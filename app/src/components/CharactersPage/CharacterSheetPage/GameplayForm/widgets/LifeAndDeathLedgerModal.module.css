@@ -110,6 +110,27 @@
   grid-column: 1 / -1;
 }
 
+.footerRollAction {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.footerRollButton {
+  min-width: 0;
+}
+
+.footerRollSettingsButton {
+  min-width: 44px;
+}
+
+.rollButtonIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+  filter: brightness(0) invert(1);
+}
+
 @media (max-width: 599px) {
   .footerActions,
   .itemGrid {

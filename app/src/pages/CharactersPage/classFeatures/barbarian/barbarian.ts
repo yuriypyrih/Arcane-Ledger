@@ -13,6 +13,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
+  type AbilityKey,
   type Character,
   type CharacterRageFeatureState,
   SKILL,
@@ -22,6 +23,7 @@ import {
   type SkillProficiencyEntry,
   type WeaponProficiencyEntry
 } from "../../../../types";
+import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
   hasStatusCondition,
   createCharacterStatusEntry,
@@ -75,6 +77,7 @@ const rageStatusSourceId = "feature-rage";
 const brutalStrikeDamageBonusLabel = "Brutal Strike";
 const primalKnowledgeSource = "Primal Knowledge";
 const instinctivePounceSource = "Instinctive Pounce";
+const indomitableMightSource = "Indomitable Might";
 const instinctivePounceStatusSourceId = "feature-barbarian-instinctive-pounce";
 const brutalStrikeActionSummary = "Your weapons do more damage";
 const relentlessRageDcIncrement = 5;
@@ -240,6 +243,48 @@ export function hasBarbarianRelentlessRageFeature(
   character: Pick<Character, "className" | "level">
 ): boolean {
   return hasBarbarianRelentlessRage(character);
+}
+
+export function hasBarbarianIndomitableMightFeature(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.INDOMITABLE_MIGHT);
+}
+
+export function getBarbarianIndomitableMightDescriptionAdditions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  const description = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.INDOMITABLE_MIGHT
+  );
+
+  return description.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.INDOMITABLE_MIGHT,
+          description,
+          indomitableMightSource
+        )
+      ]
+    : [];
+}
+
+export function getBarbarianIndomitableMightMinimumAbilityForAbilityRoll(
+  character: Pick<Character, "className" | "level">,
+  ability: AbilityKey
+): AbilityKey | null {
+  return hasBarbarianIndomitableMightFeature(character) && ability === "STR" ? "STR" : null;
+}
+
+export function getBarbarianIndomitableMightMinimumAbilityForSkillRoll(
+  character: Pick<Character, "className" | "level">,
+  skill: SkillName
+): AbilityKey | null {
+  return hasBarbarianIndomitableMightFeature(character) && skill === SKILL.ATHLETICS
+    ? "STR"
+    : null;
 }
 
 function getBarbarianAdditionalAttackCount(

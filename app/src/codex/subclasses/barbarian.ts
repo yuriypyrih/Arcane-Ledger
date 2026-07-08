@@ -77,7 +77,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "At the end of each Frightened creature's turns, the creature repeats the save, ending the effect on itself on a success.",
             "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
           ],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       )
     ]
@@ -100,11 +100,13 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.RAGE_OF_THE_WILDS, {
         description: [
           "Your <link:Rage>Rage</link> taps into the primal power of animals. Whenever you activate your Rage, you gain one of the following options of your choice.",
-          "<strong>Bear.</strong> While your Rage is active, you have <link:Resistance>Resistance</link> to every damage type except Force, Necrotic, Psychic, and Radiant. <link:tracked>Tracked</link>",
-          "<strong>Eagle.</strong> When you activate your Rage, you can take the Disengage and Dash actions as part of that Bonus Action. While your Rage is active, you can take a Bonus Action to take both of those actions. <link:not-tracked>Not Tracked</link>",
-          "<strong>Wolf.</strong> While your Rage is active, your allies have <link:Advantage>Advantage</link> on attack rolls against any enemy of yours within 5 feet of you. <link:not-tracked>Not Tracked</link>"
+          "<strong>Bear.</strong> While your Rage is active, you have <link:Resistance>Resistance</link> to every damage type except Force, Necrotic, Psychic, and Radiant.",
+          "<strong>Eagle.</strong> When you activate your Rage, you can take the Disengage and Dash actions as part of that Bonus Action. While your Rage is active, you can take a Bonus Action to take both of those actions.",
+          "<strong>Wolf.</strong> While your Rage is active, your allies have <link:Advantage>Advantage</link> on attack rolls against any enemy of yours within 5 feet of you."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Eagle and Wolf forms are not tracked. You have to remember them during play."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.ASPECT_OF_THE_WILDS, {
         description: [
@@ -125,11 +127,13 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.POWER_OF_THE_WILDS, {
         description: [
           "Whenever you activate your <link:Rage>Rage</link>, you gain one of the following options of your choice.",
-          "<strong>Falcon.</strong> While your Rage is active, you have a Fly Speed equal to your Speed if you aren't wearing any armor. <link:tracked>Tracked</link>",
-          "<strong>Lion.</strong> While your Rage is active, any of your enemies within 5 feet of you have <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you or another Barbarian who has this option active. <link:not-tracked>Not Tracked</link>",
-          "<strong>Ram.</strong> While your Rage is active, you can cause a Large or smaller creature to have the <link:Prone>Prone</link> condition when you hit it with a melee attack. <link:not-tracked>Not Tracked</link>"
+          "<strong>Falcon.</strong> While your Rage is active, you have a Fly Speed equal to your Speed if you aren't wearing any armor.",
+          "<strong>Lion.</strong> While your Rage is active, any of your enemies within 5 feet of you have <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you or another Barbarian who has this option active.",
+          "<strong>Ram.</strong> While your Rage is active, you can cause a Large or smaller creature to have the <link:Prone>Prone</link> condition when you hit it with a melee attack."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Lion and Ram forms are not tracked. You have to remember them during play."
       })
     ]
   },
@@ -147,12 +151,12 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "Your <link:Rage>Rage</link> taps into the life force of the World Tree. You gain the following benefits.",
-            "<strong>Vitality Surge.</strong> When you activate your Rage, you gain a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Barbarian level. <link:tracked>Tracked</link>",
-            "<strong>Life-Giving Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of yourself to gain Temporary Hit Points. <link:not-tracked>Not Tracked</link>",
+            "<strong>Vitality Surge.</strong> When you activate your Rage, you gain a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Barbarian level.",
+            "<strong>Life-Giving Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of yourself to gain Temporary Hit Points.",
             "To determine the number of Temporary Hit Points, roll a number of <strong>d6s</strong> equal to your Rage Damage bonus and add them together.",
             "If any of these Temporary Hit Points remain when your Rage ends, they vanish."
           ],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(
@@ -160,7 +164,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.BRANCHES_OF_THE_TREE,
         {
           description: worldTreeBranchesOfTheTreeDescription,
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.BATTERING_ROOTS, {
@@ -175,12 +179,12 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.TRAVEL_ALONG_THE_TREE,
         {
           description: [
-            "When you activate your <link:Rage>Rage</link> and as a Bonus Action while your Rage is active, you can teleport up to 60 feet to an unoccupied space you can see. <link:tracked>Tracked</link>",
-            "In addition, once per Rage, you can increase the range of that teleport to 150 feet. <link:not-tracked>Not Tracked</link>",
-            "When you do so, you can also bring up to six willing creatures who are within 10 feet of you. <link:not-tracked>Not Tracked</link>",
-            "Each creature teleports to an unoccupied space of your choice within 10 feet of your destination space. <link:not-tracked>Not Tracked</link>"
+            "When you activate your <link:Rage>Rage</link> and as a Bonus Action while your Rage is active, you can teleport up to 60 feet to an unoccupied space you can see.",
+            "In addition, once per Rage, you can increase the range of that teleport to 150 feet.",
+            "When you do so, you can also bring up to six willing creatures who are within 10 feet of you.",
+            "Each creature teleports to an unoccupied space of your choice within 10 feet of your destination space."
           ],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       )
     ]

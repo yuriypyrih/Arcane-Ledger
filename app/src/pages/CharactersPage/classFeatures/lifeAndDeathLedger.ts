@@ -96,10 +96,13 @@ export function getLifeAndDeathRelentlessRageDc(character: Character): number {
   return relentlessRageBaseDc + (rageState.relentlessRageDcBonus ?? 0);
 }
 
+export function isLifeAndDeathRelentlessRageRelevant(character: Character): boolean {
+  return hasBarbarianRelentlessRageFeature(character) && isLifeAndDeathUnconscious(character);
+}
+
 export function isLifeAndDeathRelentlessRageAvailable(character: Character): boolean {
   return (
-    hasBarbarianRelentlessRageFeature(character) &&
-    isLifeAndDeathUnconscious(character) &&
+    isLifeAndDeathRelentlessRageRelevant(character) &&
     getBarbarianRageState(character).active === true
   );
 }
@@ -171,7 +174,7 @@ export function isLifeAndDeathBoonOfRecoveryLastStandAvailable(
 export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolean {
   return (
     isArtificerSoulOfArtificeCheatDeathAvailable(character) ||
-    isLifeAndDeathRelentlessRageAvailable(character) ||
+    isLifeAndDeathRelentlessRageRelevant(character) ||
     isLifeAndDeathUndyingSentinelAvailable(character) ||
     (isLifeAndDeathUnconscious(character) && isLifeAndDeathSearingVengeanceAvailable(character)) ||
     (isLifeAndDeathUnconscious(character) &&
@@ -337,20 +340,42 @@ export function getLifeAndDeathLedgerHeaderItems(
   return headerItems;
 }
 
-export function applyLifeAndDeathRelentlessRageForCharacter(character: Character): Character {
+export function spendLifeAndDeathRelentlessRageForCharacter(character: Character): Character {
   if (!isLifeAndDeathRelentlessRageAvailable(character)) {
     return character;
   }
 
-  const characterWithSpentRage = activateBarbarianRelentlessRage(character);
-  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(characterWithSpentRage);
+  return activateBarbarianRelentlessRage(character);
+}
+
+export function applyLifeAndDeathRelentlessRageRollResultForCharacter(
+  character: Character,
+  rollTotal: number,
+  dc: number
+): Character {
+  if (!isLifeAndDeathRelentlessRageRelevant(character)) {
+    return character;
+  }
+
+  const normalizedRollTotal = Number(rollTotal);
+  const normalizedDc = Number(dc);
+
+  if (
+    !Number.isFinite(normalizedRollTotal) ||
+    !Number.isFinite(normalizedDc) ||
+    Math.floor(normalizedRollTotal) < Math.floor(normalizedDc)
+  ) {
+    return character;
+  }
+
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const nextCurrentHitPoints = Math.min(
     effectiveHitPointMaximum,
-    Math.max(0, 2 * (characterWithSpentRage.level ?? 0))
+    Math.max(0, 2 * (character.level ?? 0))
   );
 
   return reconcileCharacterStatusConsequences({
-    ...characterWithSpentRage,
+    ...character,
     currentHitPoints: nextCurrentHitPoints,
     deathSaves: {
       successes: 0,

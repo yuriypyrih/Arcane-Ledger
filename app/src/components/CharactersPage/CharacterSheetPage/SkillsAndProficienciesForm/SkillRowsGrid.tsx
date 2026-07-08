@@ -29,7 +29,9 @@ export type OpenSkillReferenceHandler = (
   additionalDescription?: SelectedSkillReference["additionalDescription"],
   descriptionAdditions?: SelectedSkillReference["descriptionAdditions"],
   rollFormula?: string,
-  rollFormulaDisplay?: string
+  rollFormulaDisplay?: string,
+  rollMinimumTotal?: number | null,
+  rollMinimumLabel?: string
 ) => void;
 
 type SkillRowsGridProps = {
@@ -106,7 +108,9 @@ function SkillRowsGrid({
                                 undefined,
                                 skillReference?.descriptionAdditions,
                                 skillReference?.rollFormula,
-                                skillReference?.rollFormulaDisplay
+                                skillReference?.rollFormulaDisplay,
+                                skillReference?.rollMinimumTotal,
+                                skillReference?.rollMinimumLabel
                               )
                             }
                           >

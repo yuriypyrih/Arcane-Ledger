@@ -46,6 +46,8 @@ export type SelectedSkillReference = {
   rollDescription?: string;
   rollFormula?: string;
   rollFormulaDisplay?: string;
+  rollMinimumTotal?: number | null;
+  rollMinimumLabel?: string;
 };
 
 type SkillReferenceDrawerProps = {

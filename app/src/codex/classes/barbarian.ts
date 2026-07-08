@@ -187,10 +187,11 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "Make an attack roll against an enemy.",
       "Force an enemy to make a saving throw.",
       "Take a Bonus Action to extend your Rage.",
-      "Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes.",
-      "(All these rules are <link:tracked>Tracked</link> except prolonging the Rage state. The app simply adds it with 10m duration. You should end it earlier if you cannot fulfill its requirements.)"
+      "Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "All the rules are being tracked except prolonging the Rage state. The app simply adds it with 10m duration. You should end it earlier if you cannot fulfill its requirements."
   },
   [CLASS_FEATURE.UNARMORED_DEFENSE]: {
     description: [
@@ -217,7 +218,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "You can throw aside all concern for defense to attack with increased ferocity.",
       "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you <link:advantage>Advantage</link> on attack rolls using Strength until the start of your next turn, but attack rolls against you have <link:advantage>Advantage</link> during that time."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.PRIMAL_KNOWLEDGE]: {
     description: [
@@ -249,29 +250,32 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   },
   [CLASS_FEATURE.BRUTAL_STRIKE]: {
     description: [
-      "If you use Reckless Attack, you can forgo any Advantage on one Strength-based attack roll of your choice on your turn. The chosen attack roll mustn't have Disadvantage. <link:not-tracked>Not Tracked</link>",
-      "If the chosen attack roll hits, the target takes an extra <strong>1d10</strong> damage of the same type dealt by the weapon or Unarmed Strike, and you can cause one Brutal Strike effect of your choice. <link:tracked>Tracked</link>",
-      "<strong>Forceful Blow.</strong> The target is pushed 15 feet straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks. <link:not-tracked>Not Tracked</link>",
-      "<strong>Hamstring Blow.</strong> The target's Speed is reduced by 15 feet until the start of your next turn. A target can be affected by only one Hamstring Blow at a time, the most recent one. <link:not-tracked>Not Tracked</link>"
+      "If you use Reckless Attack, you can forgo any Advantage on one Strength-based attack roll of your choice on your turn. The chosen attack roll mustn't have Disadvantage.",
+      "If the chosen attack roll hits, the target takes an extra <strong>1d10</strong> damage of the same type dealt by the weapon or Unarmed Strike, and you can cause one Brutal Strike effect of your choice.",
+      "<strong>Forceful Blow.</strong> The target is pushed 15 feet straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks.",
+      "<strong>Hamstring Blow.</strong> The target's Speed is reduced by 15 feet until the start of your next turn. A target can be affected by only one Hamstring Blow at a time, the most recent one."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Burtal Strike has its own card to handle choosing the options but the effects are not tracked."
   },
   [CLASS_FEATURE.RELENTLESS_RAGE]: {
     description: [
       "Your Rage can keep you fighting despite grievous wounds.",
       "If you drop to 0 Hit Points while your Rage is active and don't die outright, you can make a DC 10 Constitution saving throw. If you succeed, your Hit Points instead change to a number equal to twice your Barbarian level.",
-      "Each time you use this feature after the first, the DC increases by 5. When you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, the DC resets to 10.",
-      "(The app tracks the current DC of this feature, but you still need to resolve the saving throw and resulting Hit Points.)"
+      "Each time you use this feature after the first, the DC increases by 5. When you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, the DC resets to 10."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.IMPROVED_BRUTAL_STRIKE]: {
     description: [
-      "You have honed new ways to attack furiously. The following effects are now among your Brutal Strike options. <link:tracked>Tracked</link>",
-      "<strong>Staggering Blow.</strong> The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn. <link:not-tracked>Not Tracked</link>",
-      "<strong>Sundering Blow.</strong> Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus. <link:not-tracked>Not Tracked</link>"
+      "You have honed new ways to attack furiously. The following effects are now among your Brutal Strike options.",
+      "<strong>Staggering Blow.</strong> The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn.",
+      "<strong>Sundering Blow.</strong> Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The new options are added in the Brutal Strike but the effects are not tracked."
   },
   [CLASS_FEATURE.PERSISTENT_RAGE]: {
     description: [

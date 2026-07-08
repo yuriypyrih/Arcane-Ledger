@@ -83,7 +83,9 @@ function SkillsAndProficienciesForm({
     additionalDescription?: SelectedSkillReference["additionalDescription"],
     descriptionAdditions?: SelectedSkillReference["descriptionAdditions"],
     rollFormula?: string,
-    rollFormulaDisplay?: string
+    rollFormulaDisplay?: string,
+    rollMinimumTotal?: number | null,
+    rollMinimumLabel?: string
   ) {
     const description = getKeywordDescription(keyword) ?? `No description for - ${keyword}`;
 
@@ -98,7 +100,9 @@ function SkillsAndProficienciesForm({
       additionalDescription,
       descriptionAdditions,
       rollFormula,
-      rollFormulaDisplay
+      rollFormulaDisplay,
+      rollMinimumTotal,
+      rollMinimumLabel
     });
   }
 
@@ -113,8 +117,14 @@ function SkillsAndProficienciesForm({
 
     openDiceRoller({
       title: selectedKeyword.name,
-      formula: rollFormula,
-      formulaDisplay: rollFormulaDisplay,
+      entries: [
+        {
+          formula: rollFormula,
+          formulaDisplay: rollFormulaDisplay,
+          minimumTotal: selectedKeyword.rollMinimumTotal ?? undefined,
+          minimumLabel: selectedKeyword.rollMinimumLabel
+        }
+      ],
       description: selectedKeyword.rollDescription ?? selectedKeyword.description,
       mode: getRollModeFromIndicators(selectedKeyword.indicators)
     });

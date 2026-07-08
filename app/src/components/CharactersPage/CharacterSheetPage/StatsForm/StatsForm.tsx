@@ -27,9 +27,11 @@ import {
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
 import {
   consumeFighterIndomitableUseForCharacter,
+  getAbilityRollMinimumTotalSourceForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterIndomitableUsesTotalForCharacter,
   getSavingThrowReferenceDescriptionAdditionsForCharacter,
+  getSavingThrowRollMinimumTotalSourceForCharacter,
   type FeatureIndicator
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
@@ -522,7 +524,9 @@ function CharacterStatsForm({
     title: string,
     modifier: number,
     description: string,
-    indicators?: FeatureIndicator[]
+    indicators?: FeatureIndicator[],
+    minimumTotal?: number,
+    minimumLabel?: string
   ) {
     const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
     const totalModifier = modifier + exhaustionPenalty;
@@ -538,8 +542,14 @@ function CharacterStatsForm({
 
     openDiceRoller({
       title,
-      formula: rollFormula,
-      formulaDisplay: rollFormula,
+      entries: [
+        {
+          formula: rollFormula,
+          formulaDisplay: rollFormula,
+          minimumTotal,
+          minimumLabel
+        }
+      ],
       description: rollDescription,
       mode
     });
@@ -639,8 +649,14 @@ function CharacterStatsForm({
 
     openDiceRoller({
       title,
-      formula: rollFormula,
-      formulaDisplay: rollFormulaDisplay,
+      entries: [
+        {
+          formula: rollFormula,
+          formulaDisplay: rollFormulaDisplay,
+          minimumTotal: saveRoll.minimumTotal,
+          minimumLabel: saveRoll.minimumLabel
+        }
+      ],
       description: descriptionParts.join(" "),
       mode: getRollModeFromIndicators(saveRoll.indicators)
     });
@@ -686,6 +702,20 @@ function CharacterStatsForm({
       formatCustomTraitBonusRollFormulaTerm(entry) ? [entry.formulaLabel ?? entry.formula ?? ""] : []
     );
     const abilityLabel = abilityDisplayLabels[ability];
+    const abilityRollMinimumTotalSource = getAbilityRollMinimumTotalSourceForCharacter(
+      character,
+      ability
+    );
+    const savingThrowMinimumTotalSource = getSavingThrowRollMinimumTotalSourceForCharacter(
+      character,
+      ability
+    );
+    const abilityRollMinimumTotal = abilityRollMinimumTotalSource
+      ? combatSummary.abilities.effectiveAbilities[abilityRollMinimumTotalSource.ability]
+      : undefined;
+    const savingThrowMinimumTotal = savingThrowMinimumTotalSource
+      ? combatSummary.abilities.effectiveAbilities[savingThrowMinimumTotalSource.ability]
+      : undefined;
 
     const descriptionItems = [
       ...(abilityDescription
@@ -714,7 +744,11 @@ function CharacterStatsForm({
           title: `${abilityLabel} Ability Modifier`,
           modifier: selectedCard.modifierValue,
           description: abilityModifierFormula,
-          indicators: selectedCard.modifierIndicators
+          indicators: selectedCard.modifierIndicators,
+          minimumTotal: abilityRollMinimumTotal,
+          minimumLabel: abilityRollMinimumTotalSource
+            ? `${abilityRollMinimumTotalSource.label} minimum`
+            : undefined
         },
         save: {
           title: `${abilityLabel} Saving Throw`,
@@ -722,7 +756,11 @@ function CharacterStatsForm({
           description: savingThrowFormula,
           indicators: selectedCard.savingThrowIndicators,
           formulaTerms: savingThrowFormulaTerms,
-          formulaDisplayTerms: savingThrowFormulaDisplayTerms
+          formulaDisplayTerms: savingThrowFormulaDisplayTerms,
+          minimumTotal: savingThrowMinimumTotal,
+          minimumLabel: savingThrowMinimumTotalSource
+            ? `${savingThrowMinimumTotalSource.label} minimum`
+            : undefined
         }
       },
       descriptionAdditions: getAbilityDescriptionAdditions(character, ability),
@@ -837,7 +875,9 @@ function CharacterStatsForm({
                     resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
                     resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
                     resolvedSelectedStatReference.rollActions?.mod.description ?? "",
-                    resolvedSelectedStatReference.rollActions?.mod.indicators
+                    resolvedSelectedStatReference.rollActions?.mod.indicators,
+                    resolvedSelectedStatReference.rollActions?.mod.minimumTotal,
+                    resolvedSelectedStatReference.rollActions?.mod.minimumLabel
                   )
                 }
                 onRollSave={rollSavingThrowReference}

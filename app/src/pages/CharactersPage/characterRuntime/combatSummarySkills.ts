@@ -1,4 +1,5 @@
 import type {
+  AbilityScores,
   Character,
   CharacterProficiencyCollections,
   SkillName,
@@ -8,8 +9,10 @@ import {
   getSkillIndicatorsForCharacter,
   getSkillReferenceDescriptionAdditionsForCharacter,
   getSkillRollD20MinimumForCharacter,
+  getSkillRollMinimumTotalSourceForCharacter,
   type FeatureIndicator
 } from "../classFeatures";
+import { getAbilityScoresForCharacter } from "../abilities";
 import { formatCustomTraitBonusRollFormulaTerm } from "../customTraitEffects";
 import {
   getDisplayArmorProficiencyEntries,
@@ -46,6 +49,8 @@ export type CombatSummarySkillReference = {
   rollDescription?: string;
   rollFormula: string;
   rollFormulaDisplay: string;
+  rollMinimumTotal: number | null;
+  rollMinimumLabel?: string;
   additionalBonusLabels: string[];
   hasAdditionalBonuses: boolean;
 };
@@ -154,16 +159,22 @@ function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = 
 function getSkillReferenceDetailCards({
   row,
   rollFormula,
-  d20Minimum
+  d20Minimum,
+  minimumTotal,
+  minimumLabel
 }: {
   row: SkillRow;
   rollFormula: string;
   d20Minimum: number | null;
+  minimumTotal: number | null;
+  minimumLabel?: string;
 }): CombatSummarySkillReferenceDetailCard[] {
   const formulaCell = formatFormulaCell({
     formula: rollFormula,
     displayTerms: getSkillFormulaDisplayTerms(row, d20Minimum),
-    resultLabel: row.name
+    resultLabel: row.name,
+    minimumValue: minimumTotal ?? undefined,
+    minimumLabel: minimumLabel ? `(${minimumLabel})` : undefined
   });
 
   return [
@@ -179,13 +190,21 @@ function getSkillReferenceDetailCards({
 function createSkillReference(
   character: Character,
   row: SkillRow,
-  indicators: ReturnType<typeof getSkillIndicatorsForCharacter>
+  indicators: ReturnType<typeof getSkillIndicatorsForCharacter>,
+  effectiveAbilities: AbilityScores
 ): CombatSummarySkillReference {
   const additionalBonusLabels = [
     ...row.abilityModifierBonusEntries.map((entry) => entry.label),
     ...row.bonusEntries.map((entry) => entry.label)
   ];
   const reliableTalentD20Minimum = getSkillRollD20MinimumForCharacter(character, row.name);
+  const minimumTotalSource = getSkillRollMinimumTotalSourceForCharacter(character, row.name);
+  const rollMinimumTotal = minimumTotalSource
+    ? effectiveAbilities[minimumTotalSource.ability]
+    : null;
+  const rollMinimumLabel = minimumTotalSource
+    ? `${minimumTotalSource.label} minimum`
+    : undefined;
   const skillDescriptionAdditions = getSkillReferenceDescriptionAdditionsForCharacter(
     character,
     row.name
@@ -199,7 +218,9 @@ function createSkillReference(
   const detailCards = getSkillReferenceDetailCards({
     row,
     rollFormula: skillRollFormula,
-    d20Minimum: reliableTalentD20Minimum
+    d20Minimum: reliableTalentD20Minimum,
+    minimumTotal: rollMinimumTotal,
+    minimumLabel: rollMinimumLabel
   });
   const skillFormulaDescription =
     typeof detailCards[0]?.value === "string" ? detailCards[0].value : undefined;
@@ -213,6 +234,8 @@ function createSkillReference(
     rollDescription: skillFormulaDescription,
     rollFormula: skillRollFormula,
     rollFormulaDisplay: skillRollFormula,
+    rollMinimumTotal,
+    rollMinimumLabel,
     additionalBonusLabels,
     hasAdditionalBonuses: additionalBonusLabels.length > 0
   };
@@ -230,6 +253,7 @@ export function createCombatSummarySkills(
   const indicators = getSkillIndicatorsForCharacter(character);
   const rowsByAbility = getSkillRowsByAbility(character, resolvedSkillProficiencies);
   const referencesBySkill = new Map<SkillName, CombatSummarySkillReference>();
+  const effectiveAbilities = getAbilityScoresForCharacter(character);
   const collections =
     skillProficiencies === character.skillProficiencies
       ? proficiencyRuntime.collections
@@ -240,7 +264,10 @@ export function createCombatSummarySkills(
 
   rowsByAbility.forEach((group) => {
     group.rows.forEach((row) => {
-      referencesBySkill.set(row.name, createSkillReference(character, row, indicators));
+      referencesBySkill.set(
+        row.name,
+        createSkillReference(character, row, indicators, effectiveAbilities)
+      );
     });
   });
 

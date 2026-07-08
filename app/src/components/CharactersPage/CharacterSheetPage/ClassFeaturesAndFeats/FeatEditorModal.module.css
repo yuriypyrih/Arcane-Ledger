@@ -162,6 +162,14 @@
   gap: 0.7rem;
 }
 
+.modalFooter {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.7rem;
+  width: 100%;
+}
+
 .addButton,
 .removeActionButton {
   background: var(--build-card-control-bg, #ede8e2);

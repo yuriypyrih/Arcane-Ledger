@@ -87,7 +87,7 @@ import type {
 } from "../../../../../../types";
 import { STATUS_ENTRY_GROUP } from "../../../../../../types";
 import { superiorHuntersDefenseReactionId } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHunter";
-import { getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheWorldTree";
+import { getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheWorldTree";
 import {
   hasActiveWizardBladesong,
   wizardBladesingerSongOfDefenseReactionId
@@ -324,8 +324,8 @@ export function useReactionDrawerState({
     selectedReactionEntryId === superiorHuntersDefenseReactionId
       ? getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(character)
       : null;
-  const selectedBranchesOfTheTreeDcFormula = selectedReactionEntry
-    ? getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula(character)
+  const selectedBranchesOfTheTreeDcFormulaFact = selectedReactionEntry
+    ? getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact(character)
     : null;
   const selectedSpellThiefSpell =
     selectedSpellThiefSpellId.length > 0
@@ -413,7 +413,7 @@ export function useReactionDrawerState({
         perfectedArmorGuardianUsesTotal,
         restoreBalanceUsesRemaining,
         restoreBalanceUsesTotal,
-        selectedBranchesOfTheTreeDcFormula,
+        selectedBranchesOfTheTreeDcFormulaFact,
         selectedCosmicOmenSelection,
         selectedEldritchCannonCompanionId,
         selectedRangerHunterSuperiorHuntersDefenseDamageType,

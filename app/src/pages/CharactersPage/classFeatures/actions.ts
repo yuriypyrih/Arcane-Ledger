@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
-import { ALL_SKILLS } from "../../../types";
+import { ALL_SKILLS, SKILL } from "../../../types";
 import type {
   RangerHunterDefensiveTacticsChoice,
   RangerHunterPreyChoice,
@@ -111,6 +111,9 @@ import {
   getBarbarianPrimalKnowledgeSkillOptions,
   getBarbarianPrimalKnowledgeSkillSelection,
   getBarbarianRageDamageBonus,
+  getBarbarianIndomitableMightDescriptionAdditions,
+  getBarbarianIndomitableMightMinimumAbilityForAbilityRoll,
+  getBarbarianIndomitableMightMinimumAbilityForSkillRoll,
   getBarbarianWarriorOfTheGodsUsesRemaining,
   getBarbarianWarriorOfTheGodsUsesTotal,
   restoreAllBarbarianRageUses,
@@ -963,9 +966,42 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
     descriptionAdditions.push(...getRogueThiefSkillReferenceDescriptionAdditions(character, skill));
   }
 
+  if (skill === SKILL.ATHLETICS) {
+    descriptionAdditions.push(...getBarbarianIndomitableMightDescriptionAdditions(character));
+  }
+
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
 
   return descriptionAdditions;
+}
+
+export type FeatureRollMinimumTotalSource = {
+  ability: AbilityKey;
+  label: string;
+};
+
+export function getAbilityRollMinimumTotalSourceForCharacter(
+  character: Pick<Character, "className" | "level">,
+  ability: AbilityKey
+): FeatureRollMinimumTotalSource | null {
+  const barbarianMinimumAbility = getBarbarianIndomitableMightMinimumAbilityForAbilityRoll(
+    character,
+    ability
+  );
+
+  return barbarianMinimumAbility
+    ? {
+        ability: barbarianMinimumAbility,
+        label: "Indomitable Might"
+      }
+    : null;
+}
+
+export function getSavingThrowRollMinimumTotalSourceForCharacter(
+  character: Pick<Character, "className" | "level">,
+  ability: AbilityKey
+): FeatureRollMinimumTotalSource | null {
+  return getAbilityRollMinimumTotalSourceForCharacter(character, ability);
 }
 
 export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
@@ -1019,6 +1055,23 @@ export function getSkillRollD20MinimumForCharacter(
   }
 
   return null;
+}
+
+export function getSkillRollMinimumTotalSourceForCharacter(
+  character: Pick<Character, "className" | "level">,
+  skill: SkillName
+): FeatureRollMinimumTotalSource | null {
+  const barbarianMinimumAbility = getBarbarianIndomitableMightMinimumAbilityForSkillRoll(
+    character,
+    skill
+  );
+
+  return barbarianMinimumAbility
+    ? {
+        ability: barbarianMinimumAbility,
+        label: "Indomitable Might"
+      }
+    : null;
 }
 
 export function getWeaponAttackIndicatorsForCharacter(

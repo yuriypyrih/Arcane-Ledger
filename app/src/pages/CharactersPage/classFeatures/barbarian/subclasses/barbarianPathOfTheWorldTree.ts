@@ -7,14 +7,14 @@ import {
 } from "../../../../../codex/entries";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import { formatSignedLabel } from "../../../shared/numbers";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
-import type { WeaponAction } from "../../../gameplay";
+import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
-import type { FeatureActionCard } from "../../types";
+import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
   compileFeatureContributions,
@@ -92,25 +92,33 @@ export function hasBarbarianPathOfTheWorldTreeBranchesOfTheTree(
   return isBarbarianPathOfTheWorldTree(character) && character.level >= 6;
 }
 
-function getProficiencyBonusForLevel(level: number | undefined): number {
-  return Math.floor((Math.max(1, level ?? 1) - 1) / 4) + 2;
-}
-
-export function getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula(
+export function getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact(
   character: BarbarianWorldTreeFormulaCharacter
-): string | null {
+): FeatureActionFact | null {
   if (!hasBarbarianPathOfTheWorldTreeBranchesOfTheTree(character)) {
     return null;
   }
 
   const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const proficiencyBonus = getProficiencyBonusForLevel(character.level);
-  const total = 8 + strengthModifier + proficiencyBonus;
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const dc = 8 + strengthModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(strengthModifier, "STR"),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(dc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
 
-  return `${total} = 8 ${formatSignedLabel(strengthModifier, "STR")} ${formatSignedLabel(
-    proficiencyBonus,
-    "(Prof. Bonus)"
-  )}`;
+  return {
+    label: "Strength Save DC Formula",
+    value: `STR DC ${dc} = ${formulaCell.value}`,
+    breakdown: formulaCell.breakdown,
+    fullWidth: true
+  };
 }
 
 export function hasBarbarianPathOfTheWorldTreeBatteringRootsBonus(

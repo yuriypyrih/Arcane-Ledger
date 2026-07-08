@@ -6,7 +6,6 @@ import {
 } from "../../../../../../pages/CharactersPage/spellcasting";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import SearchField from "../../../../../SearchField";
-import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import { createCharacterStatusEntry } from "../../../../../../pages/CharactersPage/statusEntries";
 import { consumeRoundTrackerResource } from "../../../../../../pages/CharactersPage/combat";
@@ -169,7 +168,7 @@ export type ReactionDescriptorContext = {
   perfectedArmorGuardianUsesTotal: number;
   restoreBalanceUsesRemaining: number;
   restoreBalanceUsesTotal: number;
-  selectedBranchesOfTheTreeDcFormula: string | null;
+  selectedBranchesOfTheTreeDcFormulaFact: FeatureActionFact | null;
   selectedCosmicOmenSelection: DruidCosmicOmenSelection;
   selectedEldritchCannonCompanionId: string;
   selectedRangerHunterSuperiorHuntersDefenseDamageType: string | null;
@@ -376,18 +375,6 @@ function renderSuperiorHuntersDefenseDamageTypeSelector(
         ))}
       </SelectInput>
     </label>
-  );
-}
-
-function renderBranchesOfTheTreeDcFormula(context: ReactionDescriptorContext): ReactNode {
-  if (!context.selectedBranchesOfTheTreeDcFormula) {
-    return null;
-  }
-
-  return (
-    <div className={sheetStyles.spellDrawerDetails}>
-      <CellContainer label="DC Formula" content={context.selectedBranchesOfTheTreeDcFormula} />
-    </div>
   );
 }
 
@@ -1155,7 +1142,10 @@ const descriptors: ReactionDescriptor[] = [
   },
   {
     id: barbarianWorldTreeBranchesOfTheTreeReactionId,
-    renderCustomContent: renderBranchesOfTheTreeDcFormula
+    getFacts: (context) =>
+      context.selectedBranchesOfTheTreeDcFormulaFact
+        ? [context.selectedBranchesOfTheTreeDcFormulaFact]
+        : []
   },
   {
     id: rogueArcaneTricksterSpellThiefReactionId,

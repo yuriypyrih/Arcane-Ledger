@@ -50,6 +50,8 @@ export type SelectedStatReference = {
       modifier: number;
       description: string;
       indicators?: FeatureIndicator[];
+      minimumTotal?: number;
+      minimumLabel?: string;
     };
     save: {
       title: string;
@@ -58,6 +60,8 @@ export type SelectedStatReference = {
       indicators?: FeatureIndicator[];
       formulaTerms?: string[];
       formulaDisplayTerms?: string[];
+      minimumTotal?: number;
+      minimumLabel?: string;
     };
   };
   descriptionAdditions?: SpellDescriptionEntry[][];

@@ -278,12 +278,13 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   },
   [CLASS_FEATURE.SPELL_STORING_ITEM]: {
     description: [
-      "Whenever you finish a <link:long-rest>Long Rest</link>, you can touch one Simple or Martial weapon or one item that you can use as a Spellcasting Focus and store a spell in it, choosing a level 1, 2, or 3 Artificer spell that has a casting time of an action and doesn't require a Material component that is consumed by the spell. You needn't have the spell prepared. (You have to craft it yourself using MODS)",
+      "Whenever you finish a <link:long-rest>Long Rest</link>, you can touch one Simple or Martial weapon or one item that you can use as a Spellcasting Focus and store a spell in it, choosing a level 1, 2, or 3 Artificer spell that has a casting time of an action and doesn't require a Material component that is consumed by the spell. You needn't have the spell prepared.",
       "While holding the object, a creature can take a Magic action to produce the spell's effect from it, using your spellcasting ability modifier.",
       "If the spell requires <link:Concentration>Concentration</link>, the creature must concentrate. Once a creature has used the object to produce the spell's effect, the object can't be used this way again until the start of that creature's next turn.",
       "The spell stays in the object until it has been used a number of times equal to twice your Intelligence modifier, minimum of twice, or until you use this feature again to store a spell in an object."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "You have to craft the item yourself using MODS."
   },
   [CLASS_FEATURE.ADVANCED_ARTIFICE]: {
     description: [
@@ -303,7 +304,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Cheat Death.</strong> If you're reduced to 0 Hit Points but not killed outright, you can disintegrate any number of Uncommon or Rare magic items created by your Replicate Magic Item feature. If you do so, your Hit Points instead change to 20 times the number of magic items disintegrated.",
       "<strong>Magical Guidance.</strong> When you finish a <link:short-rest>Short Rest</link>, you regain all expended uses of Flash of Genius if you have Attunement to at least one magic item."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   }
 };
 

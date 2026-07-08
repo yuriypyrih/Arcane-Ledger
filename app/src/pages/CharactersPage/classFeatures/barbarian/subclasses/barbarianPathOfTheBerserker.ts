@@ -11,8 +11,11 @@ import type {
   CharacterStatusEntry
 } from "../../../../../types";
 import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { getProficiencyBonus } from "../../../gameplay";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -22,6 +25,7 @@ import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureActionFact,
   FeatureDamageBonus,
   WeaponFeatureContext
 } from "../../types";
@@ -57,6 +61,19 @@ const intimidatingPresenceUsesTotal = 1;
 
 type BarbarianSubclassCharacter = Pick<Character, "className" | "level"> &
   Partial<Pick<Character, "subclassId">>;
+type IntimidatingPresenceFormulaCharacter = BarbarianSubclassCharacter &
+  Partial<
+    Pick<
+      Character,
+      | "abilities"
+      | "background"
+      | "backgroundChoices"
+      | "classFeatureState"
+      | "feats"
+      | "inventoryItems"
+      | "statusEntries"
+    >
+  >;
 
 export function isBarbarianPathOfTheBerserker(character: BarbarianSubclassCharacter): boolean {
   return (
@@ -161,8 +178,35 @@ export function getBarbarianPathOfTheBerserkerIntimidatingPresenceUsesRemaining(
   return Math.max(0, totalUses - (rageState.intimidatingPresenceUsesExpended ?? 0));
 }
 
+function getBarbarianPathOfTheBerserkerIntimidatingPresenceFacts(
+  character: IntimidatingPresenceFormulaCharacter
+): FeatureActionFact[] {
+  const strengthModifier = getAbilityModifierForCharacter(character, "STR");
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const dc = 8 + strengthModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(strengthModifier, "STR"),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(dc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return [
+    {
+      label: "WIS DC Formula",
+      value: `WIS DC ${dc} = ${formulaCell.value}`,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  ];
+}
+
 export function getBarbarianPathOfTheBerserkerFeatureAction(
-  character: BarbarianSubclassCharacter,
+  character: IntimidatingPresenceFormulaCharacter,
   rageState: CharacterRageFeatureState,
   rageUsesRemaining: number,
   rageUsesTotal: number
@@ -212,6 +256,7 @@ export function getBarbarianPathOfTheBerserkerFeatureAction(
         icon: "flame"
       }
     ),
+    facts: getBarbarianPathOfTheBerserkerIntimidatingPresenceFacts(character),
     disabled,
     disabledReason: disabled ? "No Intimidating Presence or Rage uses remaining." : undefined
   };
