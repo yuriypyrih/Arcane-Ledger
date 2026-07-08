@@ -39,7 +39,10 @@ const sorcererDraconicElementalAffinitySourceId =
 export const sorcererDragonWingsStatusSourceId =
   "feature-sorcerer-draconic-sorcery-dragon-wings";
 const draconicSorcerySubclassEntry = getSubclassEntryById(draconicSorcerySubclassId);
+const summonDragonSpellId = "spell-summon-dragon";
 const dragonWingsUsesTotal = 1;
+const dragonCompanionName = "Dragon Companion";
+const dragonCompanionUsesTotal = 1;
 const dragonWingsDurationHours = 1;
 const dragonWingsFlySpeed = 60;
 const dragonWingsFallbackSorceryPointCost = 3;
@@ -102,6 +105,14 @@ function hasSorcererDragonWingsFeature(character: DraconicSorceryCharacter): boo
     character.className === "Sorcerer" &&
     character.subclassId === draconicSorcerySubclassId &&
     (character.level ?? 0) >= 14
+  );
+}
+
+function hasSorcererDragonCompanionFeature(character: DraconicSorceryCharacter): boolean {
+  return (
+    character.className === "Sorcerer" &&
+    character.subclassId === draconicSorcerySubclassId &&
+    (character.level ?? 0) >= 18
   );
 }
 
@@ -177,6 +188,31 @@ export function getSorcererDraconicDragonWingsUsesTotal(
   character: DraconicSorceryCharacter
 ): number {
   return hasSorcererDragonWingsFeature(character) ? dragonWingsUsesTotal : 0;
+}
+
+export function canUseSorcererDraconicDragonCompanionForSpell(
+  character: DraconicSorceryCharacter,
+  spellId: string
+): boolean {
+  return hasSorcererDragonCompanionFeature(character) && spellId === summonDragonSpellId;
+}
+
+export function getSorcererDraconicDragonCompanionUsesTotal(
+  character: DraconicSorceryCharacter
+): number {
+  return hasSorcererDragonCompanionFeature(character) ? dragonCompanionUsesTotal : 0;
+}
+
+export function getSorcererDraconicDragonCompanionUsesRemaining(
+  character: DraconicSorceryCharacter
+): number {
+  const totalUses = getSorcererDraconicDragonCompanionUsesTotal(character);
+  const expendedUses = Number(character.classFeatureState?.sorcerer?.dragonCompanionUsesExpended);
+  const normalizedExpendedUses = Number.isFinite(expendedUses)
+    ? Math.max(0, Math.min(totalUses, Math.floor(expendedUses)))
+    : 0;
+
+  return Math.max(0, totalUses - normalizedExpendedUses);
 }
 
 function getSorcererDraconicDragonWingsUsesRemaining(
@@ -368,6 +404,54 @@ export function restoreSorcererDragonWingsOnLongRest(character: Character): Char
       sorcerer: {
         ...sorcererState,
         dragonWingsUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function consumeSorcererDragonCompanionUse(character: Character): Character {
+  if (!hasSorcererDragonCompanionFeature(character)) {
+    return character;
+  }
+
+  const totalUses = getSorcererDraconicDragonCompanionUsesTotal(character);
+  const sorcererState = character.classFeatureState?.sorcerer ?? {};
+  const usesExpended = Math.max(0, Math.floor(sorcererState.dragonCompanionUsesExpended ?? 0));
+
+  if (usesExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      sorcerer: {
+        ...sorcererState,
+        dragonCompanionUsesExpended: Math.min(totalUses, usesExpended + 1)
+      }
+    }
+  };
+}
+
+export function restoreSorcererDragonCompanionOnLongRest(character: Character): Character {
+  if (!hasSorcererDragonCompanionFeature(character)) {
+    return character;
+  }
+
+  const sorcererState = character.classFeatureState?.sorcerer ?? {};
+
+  if ((sorcererState.dragonCompanionUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      sorcerer: {
+        ...sorcererState,
+        dragonCompanionUsesExpended: 0
       }
     }
   };
@@ -579,7 +663,7 @@ function collectSorcererDraconicSorceryContributions(
     contributions.push(
       createSorcererDraconicLocalHookContribution({
         id: "sorcerer-draconic-sorcery-dragon-companion",
-        label: "Dragon Companion",
+        label: dragonCompanionName,
         entryId: CLASS_FEATURE.DRAGON_COMPANION
       })
     );

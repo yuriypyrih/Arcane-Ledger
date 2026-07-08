@@ -250,10 +250,9 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   [CLASS_FEATURE.WILD_COMPANION]: {
     description: [
       "You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the <spell:Find Familiar>Find Familiar</spell> spell without Material components.",
-      "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>.",
-      "(You can click on the spell's name to read more about the spell. Once you activate Wild Companion you still need to go to the Companions Section and add it yourself)"
+      "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.WILD_RESURGENCE]: {
     description: [

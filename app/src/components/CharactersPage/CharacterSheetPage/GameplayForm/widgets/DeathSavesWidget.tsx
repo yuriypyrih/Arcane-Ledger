@@ -4,12 +4,17 @@ import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPag
 import {
   getDeathSaveDescriptionAdditionsForCharacter,
   getDeathSaveAdvantageSourcesForCharacter,
+  getDeathSaveNaturalTwentyBenefitMinimumForCharacter,
   getDeathSaveRollIndicatorsForCharacter,
   hasDeathSaveAdvantageForCharacter
 } from "../../../../../pages/CharactersPage/deathSaves";
 import { formatD20Formula } from "../../../../../pages/CharactersPage/shared";
 import { getExhaustionD20TestPenalty } from "../../../../../pages/CharactersPage/statusEntries";
 import { removeConjuredInventoryItemsForCharacterDeath } from "../../../../../pages/CharactersPage/inventoryItems";
+import {
+  getEffectiveHitPointMaximumForCharacter,
+  reconcileCharacterStatusConsequences
+} from "../../../../../pages/CharactersPage/traits";
 import { createDefaultDeathSaves, normalizeDeathSaves } from "../gameplayStateUtils";
 import DeathSavesTracker from "./DeathSavesTracker";
 import { resourcePersistOptions } from "./persistOptions";
@@ -24,6 +29,7 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const hasDeathSaveAdvantage = hasDeathSaveAdvantageForCharacter(character);
   const deathSaveAdvantageSources = getDeathSaveAdvantageSourcesForCharacter(character);
+  const naturalTwentyBenefitMinimum = getDeathSaveNaturalTwentyBenefitMinimumForCharacter(character);
 
   const updateDeathSaves = useCallback(
     (track: "success" | "failure") => {
@@ -91,6 +97,35 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
     }, resourcePersistOptions);
   }, [onPersistCharacter]);
 
+  const applyNaturalTwentyBenefit = useCallback(() => {
+    onPersistCharacter((currentCharacter) => {
+      if (currentCharacter.currentHitPoints > 0) {
+        return currentCharacter;
+      }
+
+      const currentDeathSaves = normalizeDeathSaves(currentCharacter.deathSaves);
+
+      if (currentDeathSaves.successes >= 3 || currentDeathSaves.failures >= 3) {
+        return currentCharacter;
+      }
+
+      const nextCurrentHitPoints = Math.min(
+        getEffectiveHitPointMaximumForCharacter(currentCharacter),
+        1
+      );
+
+      if (nextCurrentHitPoints <= currentCharacter.currentHitPoints) {
+        return currentCharacter;
+      }
+
+      return reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        currentHitPoints: nextCurrentHitPoints,
+        deathSaves: createDefaultDeathSaves()
+      });
+    }, resourcePersistOptions);
+  }, [onPersistCharacter]);
+
   useEffect(() => {
     if (character.currentHitPoints <= 0) {
       return;
@@ -113,6 +148,12 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
   const deathSaveFormula = formatD20Formula(exhaustionPenalty);
   const exhaustionDescription =
     exhaustionPenalty !== 0 ? ` Exhaustion applies ${exhaustionPenalty} to D20 Tests.` : "";
+  const naturalTwentyDescription =
+    naturalTwentyBenefitMinimum !== null
+      ? naturalTwentyBenefitMinimum <= 1
+        ? " Any d20 roll gains the benefit of rolling a 20."
+        : ` Rolls of ${naturalTwentyBenefitMinimum}-20 gain the benefit of rolling a 20.`
+      : "";
   const advantageSourceDescription =
     deathSaveAdvantageSources.length > 0
       ? deathSaveAdvantageSources.length === 1
@@ -122,8 +163,8 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
           }`
       : "";
   const rollDescription = hasDeathSaveAdvantage
-    ? `Roll a death saving throw with Advantage from ${advantageSourceDescription}.${exhaustionDescription}`
-    : `Roll a death saving throw.${exhaustionDescription}`;
+    ? `Roll a death saving throw with Advantage from ${advantageSourceDescription}.${exhaustionDescription}${naturalTwentyDescription}`
+    : `Roll a death saving throw.${exhaustionDescription}${naturalTwentyDescription}`;
 
   if (!isAtZeroHitPoints) {
     return null;
@@ -138,6 +179,8 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
       rollFormulaDisplay={deathSaveFormula}
       rollMode={hasDeathSaveAdvantage ? "advantage" : undefined}
       rollDescription={rollDescription}
+      naturalTwentyBenefitMinimum={naturalTwentyBenefitMinimum}
+      onNaturalTwentyBenefit={applyNaturalTwentyBenefit}
       onReset={resetDeathSaves}
       onUpdate={updateDeathSaves}
     />

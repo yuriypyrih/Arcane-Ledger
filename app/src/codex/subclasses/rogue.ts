@@ -295,7 +295,9 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Scrolls.</strong> You can use any Spell Scroll, using <link:INT>Intelligence</link> as your spellcasting ability for the spell.",
           "If the spell is a cantrip or a level 1 spell, you can cast it reliably. If the scroll contains a higher-level spell, you must first succeed on an <link:INT>Intelligence</link> (<link:Arcana>Arcana</link>) check (DC 10 plus the spell's level). On a successful check, you cast the spell from the scroll. On a failed check, the scroll disintegrates."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Charges and Scrolls part of this class feature are not being tracked. You have to remember them during play."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.THIEFS_REFLEXES, {
         description: [

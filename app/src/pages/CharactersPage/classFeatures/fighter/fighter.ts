@@ -1,5 +1,5 @@
 import { fighterFeatureMap, fighterFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -139,6 +139,48 @@ function getFighterSecondWindDescriptionAdditions(
           CLASS_FEATURE.TACTICAL_SHIFT,
           tacticalShiftDescription,
           "Tactical Shift"
+        )
+      ]
+    : [];
+}
+
+export function getFighterTacticalMindDescriptionAdditions(
+  character: Pick<Character, "className" | "level">
+): SpellDescriptionEntry[][] {
+  if (!hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MIND)) {
+    return [];
+  }
+
+  const tacticalMindDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_MIND);
+
+  return tacticalMindDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.TACTICAL_MIND,
+          tacticalMindDescription,
+          "Tactical Mind"
+        )
+      ]
+    : [];
+}
+
+export function getFighterIndomitableDescriptionAdditions(
+  character: Pick<Character, "className" | "level">
+): SpellDescriptionEntry[][] {
+  if (character.className !== "Fighter" || Math.floor(character.level ?? 0) < 17) {
+    return [];
+  }
+
+  const indomitableDescription = getFighterFeatureDescription(CLASS_FEATURE.INDOMITABLE);
+
+  return indomitableDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.INDOMITABLE,
+          indomitableDescription,
+          "Indomitable"
         )
       ]
     : [];
@@ -843,38 +885,6 @@ export function getFighterFeatureActions(
       execute: {
         kind: "activate",
         effectKind: "second-wind"
-      },
-      disabled: usesRemaining <= 0,
-      disabledReason: usesRemaining <= 0 ? "No Second Wind uses remaining." : undefined
-    });
-  }
-
-  if (hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MIND)) {
-    const totalUses = getFighterSecondWindUsesTotal(character);
-    const usesRemaining = getFighterSecondWindUsesRemaining(character);
-
-    actions.push({
-      key: fighterTacticalMindActionKey,
-      name: "Tactical Mind",
-      sourceFeature: CLASS_FEATURE.TACTICAL_MIND,
-      summary: "Roll 1d10 for an ability check.",
-      detail:
-        "Use Tactical Mind to expend one Second Wind use and roll 1d10 to add to an ability check.",
-      breakdown: "1d10 ability check",
-      economyType: ECONOMY_TYPE.FREE,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      hideUsesTrackerOnCard: true,
-      usesInlineLabel: "Use 1",
-      usesInlineIcon: "wind",
-      usesRemaining,
-      usesTotal: totalUses,
-      drawer: {
-        kind: "confirm",
-        eyebrow: "Fighter"
-      },
-      execute: {
-        kind: "activate",
-        effectKind: "tactical-mind"
       },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Second Wind uses remaining." : undefined

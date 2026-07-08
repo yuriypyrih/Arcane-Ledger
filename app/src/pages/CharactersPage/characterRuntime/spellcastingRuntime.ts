@@ -32,6 +32,8 @@ import {
 import type { FeatureSpellcastingState, SpellSourceMap } from "../classFeatures/types";
 import { getSorceryPointsRemaining, getSorceryPointsTotal } from "../classFeatures/sorcerer/sorcerer";
 import {
+  getSorcererSubclassDragonCompanionUsesRemaining,
+  getSorcererSubclassDragonCompanionUsesTotal,
   getSorcererSubclassTamedSurgeUsesRemaining,
   getSorcererSubclassTamedSurgeUsesTotal
 } from "../classFeatures/sorcerer/subclasses";
@@ -72,6 +74,8 @@ export type CharacterSpellcastingRuntime = {
   sorceryPointsRemaining: number;
   tamedSurgeUsesTotal: number;
   tamedSurgeUsesRemaining: number;
+  sorcererDragonCompanionUsesTotal: number;
+  sorcererDragonCompanionUsesRemaining: number;
   beguilingMagicUsesTotal: number;
   beguilingMagicUsesRemaining: number;
   blessingOfMoonlightUsesTotal: number;
@@ -191,6 +195,9 @@ function createSpellcastingRuntime(
     sorceryPointsRemaining: getSorceryPointsRemaining(character),
     tamedSurgeUsesTotal: getSorcererSubclassTamedSurgeUsesTotal(character),
     tamedSurgeUsesRemaining: getSorcererSubclassTamedSurgeUsesRemaining(character),
+    sorcererDragonCompanionUsesTotal: getSorcererSubclassDragonCompanionUsesTotal(character),
+    sorcererDragonCompanionUsesRemaining:
+      getSorcererSubclassDragonCompanionUsesRemaining(character),
     beguilingMagicUsesTotal: getBeguilingMagicUsesTotalForCharacter(character),
     beguilingMagicUsesRemaining: getBeguilingMagicUsesRemainingForCharacter(character),
     blessingOfMoonlightUsesTotal: getBlessingOfMoonlightUsesTotalForCharacter(character),

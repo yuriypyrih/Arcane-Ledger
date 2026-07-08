@@ -109,7 +109,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "One creature of your choice in that area regains <strong>2d6</strong> Hit Points.",
           "The damage and healing increase by <strong>1d6</strong> when you reach Druid levels 10 (<strong>3d6</strong>) and 14 (<strong>4d6</strong>)."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.NATURAL_RECOVERY, {
         description: [
@@ -132,7 +132,9 @@ export const druidSubclassEntries: SubclassEntry[] = [
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.NATURES_SANCTUARY, {
         description: [...naturesSanctuaryDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Bonus Action to move the cube is not tracked so just consume the bonus action from the round tracker yourself."
       })
     ]
   },

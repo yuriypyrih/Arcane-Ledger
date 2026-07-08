@@ -141,7 +141,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "Each creature of your choice that is within 30 feet of the creature takes <link:Radiant>Radiant</link> damage equal to <strong>2d8</strong> plus your <link:CHA>Charisma</link> modifier, and each has the <link:Blinded>Blinded</link> condition until the end of the current turn.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },

@@ -34,6 +34,7 @@ import {
   activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
   consumeDruidStarMapGuidingBoltUseForCharacter,
   consumeDruidNaturalRecoveryUseForCharacter,
+  expendDruidWildShapeUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeRangerFeyReinforcementsUseForCharacter,
@@ -53,6 +54,8 @@ import {
   mergeSpellSourceMaps,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   consumeWizardSignatureSpellFreeCastForCharacter,
+  getDruidWildShapeUsesRemainingForCharacter,
+  getDruidWildShapeUsesTotalForCharacter,
   getWizardSignatureSpellIdsForCharacter,
   hasWizardSignatureSpellFreeCastAvailableForCharacter,
   getWizardSpellMasterySpellIdsForCharacter,
@@ -87,8 +90,10 @@ import {
   spendSorceryPoints
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
+  canUseSorcererSubclassDragonCompanionForSpell,
   canUseSorcererSubclassPsionicSorceryForSpell,
   canUseSorcererSubclassTamedSurgeForSpell,
+  consumeSorcererSubclassDragonCompanionUseForCharacter,
   consumeSorcererSubclassTamedSurgeUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
@@ -253,6 +258,7 @@ const wizardSignatureSpellLevel = 3;
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 const guidingBoltSpellId = "spell-guiding-bolt";
 const huntersMarkSpellId = "spell-hunters-mark";
+const findFamiliarSpellId = "spell-find-familiar";
 const mistyStepSpellId = "spell-misty-step";
 const summonFeySpellId = "spell-summon-fey";
 const telekinesisSpellId = "spell-telekinesis";
@@ -328,7 +334,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell
   ] = useState(false);
+  const [useDragonCompanionOnSelectedSpell, setUseDragonCompanionOnSelectedSpell] =
+    useState(false);
+  const [
+    useDragonCompanionWithoutConcentrationOnSelectedSpell,
+    setUseDragonCompanionWithoutConcentrationOnSelectedSpell
+  ] = useState(false);
   const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] = useState(false);
+  const [useDruidWildCompanionOnSelectedSpell, setUseDruidWildCompanionOnSelectedSpell] =
+    useState(false);
   const [usePsionicSorceryOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell] = useState(false);
   const [useTamedSurgeOnSelectedSpell, setUseTamedSurgeOnSelectedSpell] = useState(false);
   const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
@@ -382,6 +396,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBewitchingMagicOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
+    setUseDruidWildCompanionOnSelectedSpell(false);
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTamedSurgeOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
@@ -487,6 +502,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const sorceryPointsTotal = spellcastingRuntime.sorceryPointsTotal;
   const tamedSurgeUsesRemaining = spellcastingRuntime.tamedSurgeUsesRemaining;
   const tamedSurgeUsesTotal = spellcastingRuntime.tamedSurgeUsesTotal;
+  const sorcererDragonCompanionUsesTotal = spellcastingRuntime.sorcererDragonCompanionUsesTotal;
+  const sorcererDragonCompanionUsesRemaining =
+    spellcastingRuntime.sorcererDragonCompanionUsesRemaining;
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
@@ -1144,6 +1162,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellSupportsEmeraldEnclaveFledgling =
     selectedSpell !== null &&
     canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell(character, selectedSpell.id);
+  const selectedSpellSupportsDruidWildCompanion =
+    selectedSpell?.id === findFamiliarSpellId &&
+    hasClassFeatureForCharacter(character.className, character.level, CLASS_FEATURE.WILD_COMPANION);
+  const selectedSpellDruidWildCompanionUsesTotal = selectedSpellSupportsDruidWildCompanion
+    ? getDruidWildShapeUsesTotalForCharacter(character)
+    : 0;
+  const selectedSpellDruidWildCompanionUsesRemaining = selectedSpellSupportsDruidWildCompanion
+    ? getDruidWildShapeUsesRemainingForCharacter(character)
+    : 0;
+  const selectedSpellDruidWildCompanionDisabled =
+    selectedSpellSupportsDruidWildCompanion && selectedSpellDruidWildCompanionUsesRemaining <= 0;
   const selectedSpellCanCastAsEmeraldEnclaveFledglingRitual =
     selectedSpellSupportsEmeraldEnclaveFledgling && selectedSpell?.ritual === true;
   const selectedSpellEnclaveMagicTwoHeartsOneMindState = selectedSpell
@@ -1173,6 +1202,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell?.id === mistyStepSpellId && rangerMistyWandererUsesTotal > 0;
   const selectedSpellSupportsFeyReinforcements =
     selectedSpell?.id === summonFeySpellId && rangerFeyReinforcementsUsesTotal > 0;
+  const selectedSpellSupportsDragonCompanion =
+    selectedSpell !== null &&
+    canUseSorcererSubclassDragonCompanionForSpell(character, selectedSpell.id);
   const selectedSpellPhantasmalCreaturesOptionState =
     getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter(character, selectedSpell);
   const selectedSpellSupportsPhantasmalCreatures =
@@ -1238,13 +1270,27 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellIsPrepared
     );
 
-    return selectedSpell.isAttackSpell === true
+    const transformedSpellDisplay = selectedSpell.isAttackSpell === true
       ? appendGoliathAttackDescriptionAddition(
           spellDisplay,
           getGoliathAttackOptionStateForCharacter(character)
         )
       : spellDisplay;
-  }, [character, selectedSpell, selectedSpellIsPrepared]);
+
+    return selectedSpellSupportsDragonCompanion &&
+      useDragonCompanionWithoutConcentrationOnSelectedSpell
+      ? {
+          ...transformedSpellDisplay,
+          duration: ["1 minute"]
+        }
+      : transformedSpellDisplay;
+  }, [
+    character,
+    selectedSpell,
+    selectedSpellIsPrepared,
+    selectedSpellSupportsDragonCompanion,
+    useDragonCompanionWithoutConcentrationOnSelectedSpell
+  ]);
   const selectedCustomSpellSnapshot = selectedSpell
     ? (customSpellSnapshotsBySpellId.get(selectedSpell.id) ?? null)
     : null;
@@ -1326,6 +1372,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsMistyWanderer && rangerMistyWandererUsesRemaining <= 0;
   const selectedSpellFeyReinforcementsDisabled =
     selectedSpellSupportsFeyReinforcements && rangerFeyReinforcementsUsesRemaining <= 0;
+  const selectedSpellDragonCompanionDisabled =
+    selectedSpellSupportsDragonCompanion && sorcererDragonCompanionUsesRemaining <= 0;
   const selectedSpellPhantasmalCreaturesDisabled =
     selectedSpellPhantasmalCreaturesOptionState?.disabled ?? false;
   const selectedSpellSupportsTelekineticMaster =
@@ -1347,6 +1395,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
     (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
     (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
+    (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
     (selectedSpellSupportsEmeraldEnclaveFledgling &&
       useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
     (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
@@ -1356,6 +1405,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
     (selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) ||
     (selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) ||
+    (selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell) ||
     (selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) ||
     (selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell);
   const selectedSpellTamedSurgeDisabled =
@@ -1386,10 +1436,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
+      (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
       (selectedSpellSupportsEmeraldEnclaveFledgling &&
         useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
       (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-        useTwoHeartsOneMindOnSelectedSpell)
+        useTwoHeartsOneMindOnSelectedSpell) ||
+      (selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell)
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
@@ -1406,10 +1458,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
+      (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
       (selectedSpellSupportsEmeraldEnclaveFledgling &&
         useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
       (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-        useTwoHeartsOneMindOnSelectedSpell);
+        useTwoHeartsOneMindOnSelectedSpell) ||
+      (selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell);
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1434,8 +1488,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
+    selectedSpellSupportsDruidWildCompanion,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
+    selectedSpellSupportsDragonCompanion,
     selectedSpellSupportsStarMap,
     spellSlotsExpended,
     useMagicInitiateOnSelectedSpell,
@@ -1449,8 +1505,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useDetectThoughtsOnSelectedSpell,
     useBoonOfSpellRecallOnSelectedSpell,
     useBoonOfRevelryOnSelectedSpell,
+    useDruidWildCompanionOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useTwoHeartsOneMindOnSelectedSpell,
+    useDragonCompanionOnSelectedSpell,
     useStarMapOnSelectedSpell
   ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
@@ -1561,7 +1619,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBewitchingMagicOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
+    setUseDragonCompanionOnSelectedSpell(false);
+    setUseDragonCompanionWithoutConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
+    setUseDruidWildCompanionOnSelectedSpell(false);
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseRadiantSoulOnSelectedSpell(false);
@@ -1691,6 +1752,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [selectedSpellSupportsEmeraldEnclaveFledgling]);
 
   useEffect(() => {
+    if (!selectedSpellSupportsDruidWildCompanion) {
+      setUseDruidWildCompanionOnSelectedSpell(false);
+      return;
+    }
+
+    setUseDruidWildCompanionOnSelectedSpell(selectedSpellDruidWildCompanionUsesRemaining > 0);
+  }, [
+    selectedSpellDruidWildCompanionUsesRemaining,
+    selectedSpellSupportsDruidWildCompanion,
+    selectedSpell?.id
+  ]);
+
+  useEffect(() => {
     if (
       selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
       !selectedSpellEnclaveMagicTwoHeartsOneMindDisabled
@@ -1760,6 +1834,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
   }, [selectedSpellFeyReinforcementsDisabled, selectedSpellSupportsFeyReinforcements]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsDragonCompanion) {
+      setUseDragonCompanionOnSelectedSpell(false);
+      setUseDragonCompanionWithoutConcentrationOnSelectedSpell(false);
+      return;
+    }
+
+    if (selectedSpellDragonCompanionDisabled) {
+      setUseDragonCompanionOnSelectedSpell(false);
+    }
+  }, [selectedSpellDragonCompanionDisabled, selectedSpellSupportsDragonCompanion]);
 
   useEffect(() => {
     if (!selectedSpellSupportsPhantasmalCreatures || !selectedSpellPhantasmalCreaturesDisabled) {
@@ -2225,6 +2311,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBlessingOfMoonlight?: boolean;
     useFeyReinforcements?: boolean;
     useFeyReinforcementsNoConcentration?: boolean;
+    useDragonCompanion?: boolean;
+    useDragonCompanionWithoutConcentration?: boolean;
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     usePhantasmalCreatures?: boolean;
@@ -2239,6 +2327,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useOverchannel?: boolean;
     useBoonOfSpellRecall?: boolean;
     useBoonOfRevelry?: boolean;
+    useDruidWildCompanion?: boolean;
     useEmeraldEnclaveFledglingFreeUse?: boolean;
     useTwoHeartsOneMind?: boolean;
     spellCastEffectIds?: string[];
@@ -2302,12 +2391,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         appendSpellSummonCompanionsForCast,
         canAddSpellSummonCompanionsForCast,
         consumeDruidNaturalRecoveryUseForCharacter,
+        expendDruidWildShapeUseForCharacter,
         consumeDruidStarMapGuidingBoltUseForCharacter,
         consumeRangerFeyReinforcementsUseForCharacter,
         consumeRangerMistyWandererUseForCharacter,
         consumeRangerWinterWalkerFrozenHauntUseForCharacter,
         consumeRoundTrackerResourceForCharacter,
         consumeSharedEconomyMultiForCharacterAction,
+        consumeSorcererSubclassDragonCompanionUseForCharacter,
         consumeSorcererSubclassTamedSurgeUseForCharacter,
         consumeWarlockStepsOfTheFeyUseForCharacter,
         consumeWizardIllusionistPhantasmalCreaturesUseForCharacter,
@@ -2319,6 +2410,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
         fighterPsiWarriorTelekineticMasterUsesRemaining,
         getDruidStarMapGuidingBoltUsesRemainingForCharacter,
+        getDruidWildShapeUsesRemainingForCharacter,
         getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
         getRoundTrackerResourceForSpell,
         getSorceryPointsRemaining,
@@ -2353,6 +2445,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
         selectedSpellSupportsBoonOfSpellRecall,
         selectedSpellSupportsDetectThoughts,
+        selectedSpellSupportsDruidWildCompanion,
+        selectedSpellSupportsDragonCompanion,
         selectedSpellSupportsFeyMagic,
         selectedSpellSupportsGenasiLineage,
         selectedSpellSupportsForestGnome,
@@ -2372,6 +2466,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsStepsOfTheFey,
         selectedSpellSupportsTamedSurge,
         selectedSpellSupportsTelekineticMaster,
+        sorcererDragonCompanionUsesRemaining,
         sorceryPointsRemaining,
         spellSlotsExpended,
         spellSlotsRemaining,
@@ -2465,6 +2560,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     rangerFeyReinforcementsUsesTotal,
     rangerMistyWandererUsesRemaining,
     rangerMistyWandererUsesTotal,
+    sorcererDragonCompanionUsesRemaining,
+    sorcererDragonCompanionUsesTotal,
     resetAllSpellSlotsAtLevel,
     selectedCantripIds,
     selectedFrozenHauntFallbackSlotLevel,
@@ -2499,6 +2596,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellDamageDetailOverride,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellDruidWildCompanionDisabled,
+    selectedSpellDruidWildCompanionUsesRemaining,
+    selectedSpellDruidWildCompanionUsesTotal,
+    selectedSpellDragonCompanionDisabled,
     selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
     selectedSpellEnclaveMagicTwoHeartsOneMindState,
     selectedSpellDisplay,
@@ -2537,6 +2638,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBlessingOfMoonlight,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
+    selectedSpellSupportsDruidWildCompanion,
+    selectedSpellSupportsDragonCompanion,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsDetectThoughts,
@@ -2579,6 +2682,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseTwoHeartsOneMindOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
+    setUseDruidWildCompanionOnSelectedSpell,
+    setUseDragonCompanionOnSelectedSpell,
+    setUseDragonCompanionWithoutConcentrationOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
@@ -2626,6 +2732,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useTwoHeartsOneMindOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
+    useDruidWildCompanionOnSelectedSpell,
+    useDragonCompanionOnSelectedSpell,
+    useDragonCompanionWithoutConcentrationOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useGenasiLineageOnSelectedSpell,
     useForestGnomeOnSelectedSpell,

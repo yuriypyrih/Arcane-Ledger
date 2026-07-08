@@ -279,6 +279,7 @@ import {
 import {
   getSorcererSubclassClockworkCavalcadeUsesTotal,
   getSorcererSubclassCrownOfSpellfireUsesTotal,
+  getSorcererSubclassDragonCompanionUsesTotal,
   getSorcererSubclassDragonWingsUsesTotal,
   getSorcererSubclassRestoreBalanceUsesTotal,
   getSorcererSubclassTamedSurgeUsesTotal,
@@ -618,6 +619,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const sorcererClockworkCavalcadeUsesTotal =
     getSorcererSubclassClockworkCavalcadeUsesTotal(character);
   const sorcererCrownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
+  const sorcererDragonCompanionUsesTotal =
+    getSorcererSubclassDragonCompanionUsesTotal(character);
   const sorcererDragonWingsUsesTotal = getSorcererSubclassDragonWingsUsesTotal(character);
   const sorcererRestoreBalanceUsesTotal = getSorcererSubclassRestoreBalanceUsesTotal(character);
   const sorcererTamedSurgeUsesTotal = getSorcererSubclassTamedSurgeUsesTotal(character);
@@ -2139,6 +2142,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-dragon-wings",
             label: "Restore Dragon Wings",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererDragonCompanionUsesTotal > 0
+      ? [
+          {
+            id: "restore-dragon-companion",
+            label: "Restore Dragon Companion",
             apply: (currentCharacter: Character) =>
               restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
           } satisfies RestOption

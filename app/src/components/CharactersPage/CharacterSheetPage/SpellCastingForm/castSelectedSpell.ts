@@ -25,6 +25,7 @@ export function castSelectedSpellWithContext(
     consumeBlessingOfMoonlightUseForCharacter,
     consumeBoonOfRevelryIrresistibleDanceFreeCastForCharacter,
     consumeDruidNaturalRecoveryUseForCharacter,
+    expendDruidWildShapeUseForCharacter,
     consumeDruidStarMapGuidingBoltUseForCharacter,
     consumeFeyTouchedFreeCastForCharacter,
     consumeGenasiLineageFreeCastForCharacter,
@@ -45,6 +46,7 @@ export function castSelectedSpellWithContext(
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
     consumeRoundTrackerResourceForCharacter,
     consumeSharedEconomyMultiForCharacterAction,
+    consumeSorcererSubclassDragonCompanionUseForCharacter,
     consumeSorcererSubclassTamedSurgeUseForCharacter,
     consumeWarlockStepsOfTheFeyUseForCharacter,
     consumeWizardIllusionistPhantasmalCreaturesUseForCharacter,
@@ -56,6 +58,7 @@ export function castSelectedSpellWithContext(
     fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
     fighterPsiWarriorTelekineticMasterUsesRemaining,
     getDruidStarMapGuidingBoltUsesRemainingForCharacter,
+    getDruidWildShapeUsesRemainingForCharacter,
     getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
     getRoundTrackerResourceForSpell,
     getSorceryPointsRemaining,
@@ -89,6 +92,8 @@ export function castSelectedSpellWithContext(
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
+    selectedSpellSupportsDruidWildCompanion,
+    selectedSpellSupportsDragonCompanion,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsFeyMagic,
@@ -110,6 +115,7 @@ export function castSelectedSpellWithContext(
     selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge,
     selectedSpellSupportsTelekineticMaster,
+    sorcererDragonCompanionUsesRemaining,
     sorceryPointsRemaining,
     spellSlotsExpended,
     spellSlotsRemaining,
@@ -161,6 +167,8 @@ export function castSelectedSpellWithContext(
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
   const useBoonOfRevelry =
     options?.useBoonOfRevelry === true && selectedSpellSupportsBoonOfRevelry;
+  const useDruidWildCompanion =
+    options?.useDruidWildCompanion === true && selectedSpellSupportsDruidWildCompanion;
   const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
     ? options.spellCastEffectIds
     : [];
@@ -209,12 +217,19 @@ export function castSelectedSpellWithContext(
     options?.useFeyReinforcements === true &&
     selectedSpellSupportsFeyReinforcements &&
     rangerFeyReinforcementsUsesRemaining > 0;
+  const useDragonCompanion =
+    options?.useDragonCompanion === true &&
+    selectedSpellSupportsDragonCompanion &&
+    sorcererDragonCompanionUsesRemaining > 0;
   const usePhantasmalCreatures =
     options?.usePhantasmalCreatures === true &&
     selectedSpellPhantasmalCreaturesOptionState !== null &&
     selectedSpellPhantasmalCreaturesOptionState.usesRemaining > 0;
   const useFeyReinforcementsNoConcentration =
     useFeyReinforcements && options?.useFeyReinforcementsNoConcentration === true;
+  const useDragonCompanionWithoutConcentration =
+    options?.useDragonCompanionWithoutConcentration === true &&
+    selectedSpellSupportsDragonCompanion;
   const useNaturalRecovery = options?.useNaturalRecovery === true;
   const usePsionicSorcery =
     options?.usePsionicSorcery === true && selectedSpellSupportsPsionicSorcery;
@@ -244,6 +259,13 @@ export function castSelectedSpellWithContext(
         description: selectedSpell.description
       }
     : useFeyReinforcementsNoConcentration
+    ? {
+        id: selectedSpell.id,
+        name: selectedSpell.name,
+        duration: ["1 minute"],
+        description: selectedSpell.description
+      }
+    : useDragonCompanionWithoutConcentration
     ? {
         id: selectedSpell.id,
         name: selectedSpell.name,
@@ -552,12 +574,14 @@ export function castSelectedSpellWithContext(
     useDetectThoughts ||
     useBoonOfRevelry ||
     useBoonOfSpellRecall ||
+    useDruidWildCompanion ||
     useEmeraldEnclaveFledglingFreeUse ||
     useTwoHeartsOneMind ||
     useStepsOfTheFey ||
     useBewitchingMagic ||
     useMistyWanderer ||
     useFeyReinforcements ||
+    useDragonCompanion ||
     usePhantasmalCreatures
       ? minimumSlotLevel
       : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
@@ -584,6 +608,7 @@ export function castSelectedSpellWithContext(
   const castsFreeViaDetectThoughts = useDetectThoughts;
   const castsFreeViaBoonOfRevelry = useBoonOfRevelry;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
+  const castsFreeViaDruidWildCompanion = useDruidWildCompanion;
   const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
   const castsFreeViaTwoHeartsOneMind = useTwoHeartsOneMind;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
@@ -591,6 +616,7 @@ export function castSelectedSpellWithContext(
   const castsFreeViaBewitchingMagic = useBewitchingMagic;
   const castsFreeViaMistyWanderer = useMistyWanderer;
   const castsFreeViaFeyReinforcements = useFeyReinforcements;
+  const castsFreeViaDragonCompanion = useDragonCompanion;
   const castsFreeViaPhantasmalCreatures = usePhantasmalCreatures;
   const castsFreeViaTelekineticMaster = useTelekineticMaster;
   const castsWithoutSpellSlot =
@@ -609,6 +635,7 @@ export function castSelectedSpellWithContext(
     castsFreeViaDetectThoughts ||
     castsFreeViaBoonOfRevelry ||
     castsFreeViaBoonOfSpellRecall ||
+    castsFreeViaDruidWildCompanion ||
     castsFreeViaEmeraldEnclaveFledgling ||
     castsFreeViaTwoHeartsOneMind ||
     castsFreeViaPsionicSorcery ||
@@ -616,6 +643,7 @@ export function castSelectedSpellWithContext(
     castsFreeViaBewitchingMagic ||
     castsFreeViaMistyWanderer ||
     castsFreeViaFeyReinforcements ||
+    castsFreeViaDragonCompanion ||
     castsFreeViaPhantasmalCreatures ||
     castsFreeViaTelekineticMaster;
   const useOverchannel =
@@ -624,6 +652,10 @@ export function castSelectedSpellWithContext(
     canUseWizardEvokerOverchannelForSpellSlot(character, selectedSpellDisplay, slotLevel);
 
   if (usePsionicSorcery && sorceryPointsRemaining < slotLevel) {
+    return;
+  }
+
+  if (castsFreeViaDruidWildCompanion && getDruidWildShapeUsesRemainingForCharacter(character) <= 0) {
     return;
   }
 
@@ -667,6 +699,8 @@ export function castSelectedSpellWithContext(
       );
     const currentDruidStarMapGuidingBoltUsesRemaining =
       getDruidStarMapGuidingBoltUsesRemainingForCharacter(preparedCharacter);
+    const currentDruidWildShapeUsesRemaining =
+      getDruidWildShapeUsesRemainingForCharacter(preparedCharacter);
 
     if (!castsWithoutSpellSlot) {
       if (
@@ -685,6 +719,10 @@ export function castSelectedSpellWithContext(
     }
 
     if (castsFreeViaStarMap && currentDruidStarMapGuidingBoltUsesRemaining <= 0) {
+      return currentCharacter;
+    }
+
+    if (castsFreeViaDruidWildCompanion && currentDruidWildShapeUsesRemaining <= 0) {
       return currentCharacter;
     }
 
@@ -848,11 +886,33 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
+    const nextCharacterWithDruidWildCompanion = castsFreeViaDruidWildCompanion
+      ? expendDruidWildShapeUseForCharacter(nextCharacterWithTwoHeartsOneMind)
+      : nextCharacterWithTwoHeartsOneMind;
+
+    if (
+      castsFreeViaDruidWildCompanion &&
+      nextCharacterWithDruidWildCompanion === nextCharacterWithTwoHeartsOneMind
+    ) {
+      return currentCharacter;
+    }
+
+    const nextCharacterWithDragonCompanion = castsFreeViaDragonCompanion
+      ? consumeSorcererSubclassDragonCompanionUseForCharacter(nextCharacterWithDruidWildCompanion)
+      : nextCharacterWithDruidWildCompanion;
+
+    if (
+      castsFreeViaDragonCompanion &&
+      nextCharacterWithDragonCompanion === nextCharacterWithDruidWildCompanion
+    ) {
+      return currentCharacter;
+    }
+
     const nextCharacterWithSpellcast = {
-      ...nextCharacterWithTwoHeartsOneMind,
+      ...nextCharacterWithDragonCompanion,
       spellSlotsExpended:
         castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
-          ? nextCharacterWithTwoHeartsOneMind.spellSlotsExpended
+          ? nextCharacterWithDragonCompanion.spellSlotsExpended
           : nextSpellSlotsExpended
     };
     const sourceSpellSlotLevel = shouldSpendFrozenHauntFallbackSlot

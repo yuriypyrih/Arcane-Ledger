@@ -288,7 +288,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "<strong>Polar Strikes.</strong> When you hit a creature with an attack roll using a weapon, you can deal an extra <strong>1d4</strong> <link:Cold>Cold</link> damage to the target, which can take this extra damage only once per turn.",
           "When you reach Ranger level 11, this extra damage increases to <strong>1d6</strong>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HUNTERS_RIME, {
         description: [
@@ -296,7 +296,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "When you cast <spell:Hunter's Mark>Hunter's Mark</spell>, you gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d10</strong> plus your Ranger level.",
           "Additionally, while a creature is marked by your <spell:Hunter's Mark>Hunter's Mark</spell>, it can't take the Disengage action."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -310,7 +310,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Ice Storm>Ice Storm</spell>",
             "<strong>Level 17.</strong> <spell:Cone of Cold>Cone of Cold</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.FORTIFYING_SOUL, {
@@ -320,7 +320,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "Each chosen creature regains Hit Points equal to <strong>1d10</strong> plus your Ranger level and has <link:Advantage>Advantage</link> on saving throws to avoid or end the <link:Frightened>Frightened</link> condition for 1 hour.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_11,
@@ -332,7 +332,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
             "While the target is <link:Stunned>Stunned</link>, its <link:Speed>Speed</link> is reduced to 0 feet.",
             "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
           ],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.FROZEN_HAUNT, {
@@ -346,7 +346,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "You can move through creatures and objects as if they were Difficult Terrain, but you take <strong>1d10</strong> <link:Force>Force</link> damage if you end your turn inside a creature or an object.",
           "If the form ends while you are inside a creature or an object, you are shunted to the nearest unoccupied space."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   }

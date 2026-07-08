@@ -1,7 +1,14 @@
-import { FEATS, type SpellDescriptionEntry } from "../../codex/entries";
+import { CLASS_FEATURE, FEATS, type SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
-import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
+import {
+  createFeatureSourcedDescriptionEntries,
+  createSourcedDescriptionEntries
+} from "./actionModalDescriptions";
 import type { FeatureIndicator } from "./classFeatures";
+import {
+  getFighterChampionSurvivorDefyDeathDescription,
+  hasFighterChampionSurvivorFeature
+} from "./classFeatures/fighter/subclasses/fighterChampion";
 import { hasFeatForCharacter } from "./feats/runtime";
 import {
   getRebornDeathSaveDescriptionAdditionsForCharacter,
@@ -93,8 +100,15 @@ export function hasDeathSaveAdvantageForCharacter(character: Character): boolean
 export function getDeathSaveAdvantageSourcesForCharacter(character: Character): string[] {
   return [
     ...(hasFeatForCharacter(character, FEATS.DURABLE) ? ["Durable"] : []),
+    ...(hasFighterChampionSurvivorFeature(character) ? ["Defy Death"] : []),
     ...(hasRebornDeathSaveAdvantageForCharacter(character) ? ["Escaped Death"] : [])
   ];
+}
+
+export function getDeathSaveNaturalTwentyBenefitMinimumForCharacter(
+  character: Character
+): number | null {
+  return hasFighterChampionSurvivorFeature(character) ? 18 : null;
 }
 
 export function getDeathSaveRollIndicatorsForCharacter(character: Character): FeatureIndicator[] {
@@ -121,6 +135,18 @@ export function getDeathSaveDescriptionAdditionsForCharacter(
       createSourcedDescriptionEntries("Durable: Defy Death", [
         "You have Advantage on Death Saving Throws."
       ])
+    );
+  }
+
+  const championDefyDeathDescription = getFighterChampionSurvivorDefyDeathDescription(character);
+
+  if (championDefyDeathDescription.length > 0) {
+    descriptionAdditions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.SURVIVOR,
+        championDefyDeathDescription
+      )
     );
   }
 

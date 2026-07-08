@@ -29,6 +29,7 @@ import type { WeaponAction } from "../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
 import { clampNumber } from "../../shared";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -106,6 +107,8 @@ const primalOrderWardenSource = "Primal Order";
 const druidicSource = "Druid";
 const primalStrikeSource = "Primal Strike";
 const speakWithAnimalsSpellId = "spell-speak-with-animals";
+const findFamiliarSpellId = "spell-find-familiar";
+const wildCompanionSource = "Wild Companion";
 export const circleOfTheStarsSubclassId = starsSubclass.circleOfTheStarsSubclassId;
 export const druidStarryFormStatusSourceId = starsSubclass.druidStarryFormStatusSourceId;
 export const druidCosmicOmenReactionId = starsSubclass.druidCosmicOmenReactionId;
@@ -1391,7 +1394,6 @@ export function getDruidFeatureActions(
 ): FeatureActionCard[] {
   return [
     getDruidWildShapeAction(character),
-    getDruidWildCompanionAction(character),
     getDruidWildResurgenceAction(character),
     getDruidNatureMagicianAction(character)
   ].filter((action): action is FeatureActionCard => action !== null);
@@ -1547,6 +1549,23 @@ export function getDruidSpellEntry(
   return getDruidElementalFurySpellEntry(character, getDruidElementalFuryChoice(character), spell);
 }
 
+export function getDruidWildCompanionSpellEntry(
+  character: Pick<Character, "className" | "level">,
+  spell: SpellEntry
+): SpellEntry {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION) || spell.id !== findFamiliarSpellId) {
+    return spell;
+  }
+
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.WILD_COMPANION,
+    getDruidWildCompanionDescription(),
+    wildCompanionSource
+  );
+}
+
 export function getDruidWeaponDamageBonuses(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: WeaponFeatureContext
@@ -1665,6 +1684,22 @@ export function getDruidAlwaysPreparedSpellIds(
   }
 
   return [speakWithAnimalsSpellId];
+}
+
+export function getDruidWildCompanionAlwaysPreparedSpellIds(
+  character: Pick<Character, "className" | "level">
+): string[] {
+  return hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION) ? [findFamiliarSpellId] : [];
+}
+
+export function getDruidWildCompanionAlwaysPreparedSpellSources(
+  character: Pick<Character, "className" | "level">
+): Record<string, string[]> {
+  return hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION)
+    ? {
+        [findFamiliarSpellId]: [wildCompanionSource]
+      }
+    : {};
 }
 
 export function hasDruidSpellcastingFeature(

@@ -16,7 +16,6 @@ import {
   fighterActionSurgeActionKey,
   fighterIndomitableActionKey,
   fighterSecondWindActionKey,
-  fighterTacticalMindActionKey,
   getFighterFeatureActions,
   getFighterStudiedAttacksWeaponAction,
   getFighterTacticalMasterWeaponAction,
@@ -100,17 +99,12 @@ function createFighterActionSurgeContribution(
   };
 }
 
-function createFighterTacticalMindContribution(
-  featureActions: FeatureActionCard[]
-): FeatureContributionSpec {
-  return {
-    source: createClassContributionSource({
-      id: "fighter-tactical-mind",
-      label: "Tactical Mind",
-      entryId: CLASS_FEATURE.TACTICAL_MIND
-    }),
-    actions: getFeatureActionByKey(featureActions, fighterTacticalMindActionKey)
-  };
+function createFighterTacticalMindContribution(): FeatureContributionSpec {
+  return createFighterLocalHookContribution({
+    id: "fighter-tactical-mind",
+    label: "Tactical Mind",
+    entryId: CLASS_FEATURE.TACTICAL_MIND
+  });
 }
 
 function createFighterIndomitableContribution(
@@ -174,7 +168,7 @@ export function collectFighterFeatureContributions(
     createFighterSecondWindContribution(featureActions),
     createFighterWeaponMasteryContribution(character),
     createFighterActionSurgeContribution(featureActions),
-    createFighterTacticalMindContribution(featureActions),
+    createFighterTacticalMindContribution(),
     ...(hasFighterFeature(character, CLASS_FEATURE.EXTRA_ATTACK)
       ? [
           createFighterLocalHookContribution({

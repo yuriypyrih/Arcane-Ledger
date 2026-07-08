@@ -73,6 +73,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     rangerFeyReinforcementsUsesTotal,
     rangerMistyWandererUsesRemaining,
     rangerMistyWandererUsesTotal,
+    sorcererDragonCompanionUsesRemaining,
+    sorcererDragonCompanionUsesTotal,
     resetAllSpellSlotsAtLevel,
     selectedCantripIds,
     selectedFrozenHauntFallbackSlotLevel,
@@ -94,6 +96,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellBoonOfRevelryFreeCastState,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellDruidWildCompanionDisabled,
+    selectedSpellDruidWildCompanionUsesRemaining,
+    selectedSpellDruidWildCompanionUsesTotal,
+    selectedSpellDragonCompanionDisabled,
     selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
     selectedSpellEnclaveMagicTwoHeartsOneMindState,
     selectedSpellCustomEffects,
@@ -146,6 +152,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
+    selectedSpellSupportsDruidWildCompanion,
+    selectedSpellSupportsDragonCompanion,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsFeyMagic,
@@ -185,6 +193,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     setUseBoonOfSpellRecallOnSelectedSpell,
     setUseBoonOfRevelryOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
+    setUseDruidWildCompanionOnSelectedSpell,
+    setUseDragonCompanionOnSelectedSpell,
+    setUseDragonCompanionWithoutConcentrationOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseTwoHeartsOneMindOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
@@ -232,6 +243,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     useBoonOfSpellRecallOnSelectedSpell,
     useBoonOfRevelryOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
+    useDruidWildCompanionOnSelectedSpell,
+    useDragonCompanionOnSelectedSpell,
+    useDragonCompanionWithoutConcentrationOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useTwoHeartsOneMindOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
@@ -492,6 +506,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
               useFeyReinforcementsNoConcentration:
                 useFeyReinforcementsNoConcentrationOnSelectedSpell,
+              useDragonCompanion: useDragonCompanionOnSelectedSpell,
+              useDragonCompanionWithoutConcentration:
+                useDragonCompanionWithoutConcentrationOnSelectedSpell,
               useFrozenHaunt: useFrozenHauntOnSelectedSpell,
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel,
               usePhantasmalCreatures: usePhantasmalCreaturesOnSelectedSpell,
@@ -504,6 +521,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell,
               useRadiantSoul: useRadiantSoulOnSelectedSpell,
               useOverchannel: useOverchannelOnSelectedSpell,
+              useDruidWildCompanion: useDruidWildCompanionOnSelectedSpell,
               useEmeraldEnclaveFledglingFreeUse:
                 useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
               useTwoHeartsOneMind: useTwoHeartsOneMindOnSelectedSpell
@@ -524,6 +542,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             !(selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) &&
             !(selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) &&
             !(selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) &&
+            !(selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) &&
             !(
               selectedSpellSupportsEmeraldEnclaveFledgling &&
               useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
@@ -537,6 +556,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             !(selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
             !(selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) &&
+            !(selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell) &&
             !(selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) &&
             !(selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell)
           }
@@ -553,7 +573,16 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
           }
           ritualCastingRequired={selectedSpellCanOnlyBeCastAsRitual}
           slotFreeUseOption={
-            selectedSpellSupportsEmeraldEnclaveFledgling
+            selectedSpellSupportsDruidWildCompanion
+              ? {
+                  label: `Wild Shape (${selectedSpellDruidWildCompanionUsesRemaining}/${selectedSpellDruidWildCompanionUsesTotal})`,
+                  selected: useDruidWildCompanionOnSelectedSpell,
+                  disabled: selectedSpellDruidWildCompanionDisabled,
+                  description:
+                    "Wild Companion spends 1 Wild Shape use to cast Find Familiar without expending a spell slot or requiring Material components.",
+                  onSelectedChange: setUseDruidWildCompanionOnSelectedSpell
+                }
+              : selectedSpellSupportsEmeraldEnclaveFledgling
               ? {
                   label: "Free use",
                   selected: useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
@@ -562,7 +591,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               : null
           }
           actionAvailabilityText={
-            selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+            selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell
+              ? "Wild Companion spends 1 Wild Shape use to cast Find Familiar without expending a spell slot."
+              : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
                 : selectedSpellSupportsStarMap && useStarMapOnSelectedSpell
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
@@ -612,25 +643,32 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                                           : selectedSpellSupportsFeyReinforcements &&
                                               useFeyReinforcementsOnSelectedSpell
                                             ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                                            : selectedSpellSupportsPhantasmalCreatures &&
-                                                usePhantasmalCreaturesOnSelectedSpell
-                                              ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                                              : selectedSpellSupportsTelekineticMaster &&
-                                                  useTelekineticMasterOnSelectedSpell
-                                                ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                                                  ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                                  : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                                                : selectedSpellSupportsTamedSurge &&
-                                                    useTamedSurgeOnSelectedSpell
-                                                  ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                                                  : selectedSpellUnderMantleOfMajesty
-                                                    ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                                                    : null
+                                            : selectedSpellSupportsDragonCompanion &&
+                                                useDragonCompanionOnSelectedSpell
+                                              ? "Dragon Companion lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                              : selectedSpellSupportsPhantasmalCreatures &&
+                                                  usePhantasmalCreaturesOnSelectedSpell
+                                                ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                                                : selectedSpellSupportsTelekineticMaster &&
+                                                    useTelekineticMasterOnSelectedSpell
+                                                  ? fighterPsiWarriorTelekineticMasterUsesRemaining >
+                                                    0
+                                                    ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                                    : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                                                  : selectedSpellSupportsTamedSurge &&
+                                                      useTamedSurgeOnSelectedSpell
+                                                    ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                                    : selectedSpellUnderMantleOfMajesty
+                                                      ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                                      : null
           }
           actionContextText={
             selectedSpellSupportsFeyReinforcements &&
                   useFeyReinforcementsNoConcentrationOnSelectedSpell
                 ? "Concentration is removed for this casting, and the duration becomes 10 turns."
+                : selectedSpellSupportsDragonCompanion &&
+                    useDragonCompanionWithoutConcentrationOnSelectedSpell
+                  ? "Concentration is removed for this casting, and the duration becomes 1 minute."
                 : selectedSpellUnderMantleOfMajesty
                   ? "Under the effect of Mantle of Majesty."
                   : null
@@ -690,6 +728,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             selectedSpellSupportsBewitchingMagic ||
             selectedSpellSupportsMistyWanderer ||
             selectedSpellSupportsFeyReinforcements ||
+            selectedSpellSupportsDragonCompanion ||
             selectedSpellSupportsPhantasmalCreatures ||
             selectedSpellFrozenHauntOptionState !== null ||
             selectedSpellSupportsNaturalRecovery ||
@@ -1184,6 +1223,34 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                           disabled:
                             selectedSpellFeyReinforcementsDisabled ||
                             !useFeyReinforcementsOnSelectedSpell
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsDragonCompanion
+                    ? [
+                        {
+                          id: "dragon-companion",
+                          label: "Dragon Companion | Free Cast",
+                          checked: useDragonCompanionOnSelectedSpell,
+                          onCheckedChange: setUseDragonCompanionOnSelectedSpell,
+                          disabled: selectedSpellDragonCompanionDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              sorcererDragonCompanionUsesRemaining,
+                              sorcererDragonCompanionUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            sorcererDragonCompanionUsesRemaining,
+                            sorcererDragonCompanionUsesTotal
+                          )
+                        },
+                        {
+                          id: "dragon-companion-without-concentration",
+                          label: "Without Concentration",
+                          checked: useDragonCompanionWithoutConcentrationOnSelectedSpell,
+                          onCheckedChange:
+                            setUseDragonCompanionWithoutConcentrationOnSelectedSpell
                         }
                       ]
                     : []),

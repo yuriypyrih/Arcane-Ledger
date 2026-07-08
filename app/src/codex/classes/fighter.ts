@@ -187,7 +187,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "You have a mind for tactics on and off the battlefield.",
       "When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll <strong>1d10</strong> and add the number rolled to the ability check, potentially turning it into a success.",
-      "If the check still fails, this use of Second Wind isn't expended. (If it fails do not click on Use Tactical Mind)"
+      "If the check still fails, this use of Second Wind isn't expended."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   },
@@ -195,7 +195,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "Whenever you activate your Second Wind with a Bonus Action, you can move up to half your Speed without provoking Opportunity Attacks."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.INDOMITABLE]: {
     description: [
@@ -222,7 +222,9 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You study your opponents and learn from each attack you make.",
       "If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature before the end of your next turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The description is dsiaplyed in the weapon action drawers but you have to remember it during play to use and apply the effect yourself."
   },
   [CLASS_FEATURE.THREE_EXTRA_ATTACKS]: {
     description: [

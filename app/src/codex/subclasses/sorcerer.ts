@@ -223,7 +223,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
           "Whenever you start casting the spell, you can modify it so that it doesn't require <link:Concentration>Concentration</link>.",
           "If you do so, the spell's duration becomes 1 minute for that casting."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       })
     ]
   },

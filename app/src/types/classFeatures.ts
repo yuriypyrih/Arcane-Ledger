@@ -177,6 +177,7 @@ export type CharacterSorcererFeatureState = {
   crownOfSpellfireUsesExpended?: number;
   sorcerousRestorationUsesExpended?: number;
   dragonWingsUsesExpended?: number;
+  dragonCompanionUsesExpended?: number;
   restoreBalanceUsesExpended?: number;
   tranceOfOrderUsesExpended?: number;
   clockworkCavalcadeUsesExpended?: number;

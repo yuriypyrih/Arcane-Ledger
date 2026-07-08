@@ -19,10 +19,12 @@ import {
   getDruidSkillBonuses,
   getDruidSpellcastingState,
   getDruidSpellEntry,
+  getDruidWildCompanionAlwaysPreparedSpellIds,
+  getDruidWildCompanionAlwaysPreparedSpellSources,
+  getDruidWildCompanionSpellEntry,
   getDruidWeaponAction,
   getDruidWeaponDamageBonuses,
   getDruidWeaponProficiencyEntries,
-  getDruidWildCompanionAction,
   getDruidWildResurgenceAction,
   getDruidWildShapeAction,
   hasDruidFeature
@@ -103,7 +105,14 @@ function createDruidWildCompanionContribution(
       label: "Wild Companion",
       entryId: CLASS_FEATURE.WILD_COMPANION
     }),
-    actions: compactActions([getDruidWildCompanionAction(character)])
+    alwaysPreparedSpellIds: getDruidWildCompanionAlwaysPreparedSpellIds(character),
+    alwaysPreparedSpellSources: getDruidWildCompanionAlwaysPreparedSpellSources(character),
+    spellTransforms: [
+      {
+        id: "druid-wild-companion-spell-transform",
+        transform: (spell) => getDruidWildCompanionSpellEntry(character, spell)
+      }
+    ]
   };
 }
 

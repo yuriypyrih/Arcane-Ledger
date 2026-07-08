@@ -1,18 +1,25 @@
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   fighterChampionImprovedCriticalDescription,
   fighterChampionSuperiorCriticalDescription
 } from "../../../../../codex/subclasses/fighterChampion";
 import { SKILL, type Character } from "../../../../../types";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { isCharacterBloodied } from "../../../bloodied";
+import { normalizeRoundTracker } from "../../../combat";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { restoreHeroicInspirationForCharacter } from "../../../heroicInspiration";
+import {
+  getEffectiveHitPointMaximumForCharacter,
+  reconcileCharacterStatusConsequences
+} from "../../../traits";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { WeaponAction } from "../../../gameplay";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { CoreStatIndicatorMap, SkillIndicatorMap } from "../../types";
@@ -66,6 +73,75 @@ function hasFighterChampionHeroicWarrior(
     character.subclassId === championSubclassId &&
     (character.level ?? 0) >= 10
   );
+}
+
+export function hasFighterChampionSurvivorFeature(
+  character: Partial<Pick<Character, "className" | "subclassId" | "level">>
+): boolean {
+  return (
+    character.className === "Fighter" &&
+    character.subclassId === championSubclassId &&
+    (character.level ?? 0) >= 18
+  );
+}
+
+function getFighterChampionSurvivorSectionDescription(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  sectionName: string
+): SpellDescriptionEntry[] {
+  if (!hasFighterChampionSurvivorFeature(character)) {
+    return [];
+  }
+
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SURVIVOR).filter(
+    (entry): entry is string =>
+      typeof entry === "string" && entry.includes(`<strong>${sectionName}.</strong>`)
+  );
+}
+
+export function getFighterChampionSurvivorDefyDeathDescription(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): SpellDescriptionEntry[] {
+  return getFighterChampionSurvivorSectionDescription(character, "Defy Death");
+}
+
+export function getFighterChampionSurvivorHeroicRallyDescription(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): SpellDescriptionEntry[] {
+  return getFighterChampionSurvivorSectionDescription(character, "Heroic Rally");
+}
+
+export function isFighterChampionHeroicRallyActive(character: Character): boolean {
+  return (
+    hasFighterChampionSurvivorFeature(character) &&
+    normalizeRoundTracker(character.roundTracker).isInCombat &&
+    isCharacterBloodied(character)
+  );
+}
+
+function applyFighterChampionHeroicRallyForNewRound(character: Character): Character {
+  if (!isFighterChampionHeroicRallyActive(character)) {
+    return character;
+  }
+
+  const healingAmount = Math.max(0, 5 + getAbilityModifierForCharacter(character, "CON"));
+
+  if (healingAmount <= 0) {
+    return character;
+  }
+
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
+  const nextCurrentHitPoints = Math.min(
+    effectiveHitPointMaximum,
+    character.currentHitPoints + healingAmount
+  );
+
+  return nextCurrentHitPoints === character.currentHitPoints
+    ? character
+    : reconcileCharacterStatusConsequences({
+        ...character,
+        currentHitPoints: nextCurrentHitPoints
+      });
 }
 
 function getFighterChampionCoreStatIndicators(
@@ -193,6 +269,17 @@ export function collectFighterChampionContributions(
             })
           }
         ]
+      : []),
+    ...(hasFighterChampionSurvivorFeature(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${championSubclassId}-survivor`,
+              label: "Survivor",
+              entryId: CLASS_FEATURE.SURVIVOR
+            })
+          }
+        ]
       : [])
   ];
 };
@@ -206,9 +293,11 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
   );
 
 export function advanceFighterChampionFeaturesForNewRound(character: Character): Character {
-  if (!hasFighterChampionHeroicWarrior(character) || character.heroicInspiration) {
-    return character;
+  let nextCharacter = applyFighterChampionHeroicRallyForNewRound(character);
+
+  if (hasFighterChampionHeroicWarrior(nextCharacter) && !nextCharacter.heroicInspiration) {
+    nextCharacter = restoreHeroicInspirationForCharacter(nextCharacter);
   }
 
-  return restoreHeroicInspirationForCharacter(character);
+  return nextCharacter;
 }

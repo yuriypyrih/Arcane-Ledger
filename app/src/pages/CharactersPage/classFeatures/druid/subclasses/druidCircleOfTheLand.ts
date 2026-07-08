@@ -1,4 +1,9 @@
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import {
+  ABILITY_TYPES,
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  SPELL_LIST_CLASS
+} from "../../../../../codex/entries";
 import type {
   Character,
   CharacterDruidFeatureState,
@@ -19,10 +24,11 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import { getSpellSaveFormulaCell } from "../../../shared/spellFormulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 import { createHeaderTagsFromResources } from "../../cardUsage";
 import {
   druidLandsAidActionKey,
@@ -296,6 +302,31 @@ export function getDruidCircleOfTheLandSpellIdsForCharacter(
   return getPreparedSpellIdsByLevel(character.level ?? 0, spellIdsByLand[landChoice]);
 }
 
+function getCircleOfTheLandLandsAidFacts(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureActionFact[] {
+  const spellDcFormulaCell = getSpellSaveFormulaCell(
+    {
+      isAttackSpell: false,
+      isSavingThrowSpell: true,
+      savingThrowAbility: ABILITY_TYPES.CON,
+      spellLists: [SPELL_LIST_CLASS.DRUID]
+    },
+    character as Character
+  );
+
+  return spellDcFormulaCell
+    ? [
+        {
+          label: "Constitution DC Formula",
+          value: spellDcFormulaCell.content,
+          breakdown: spellDcFormulaCell.breakdown,
+          fullWidth: true
+        }
+      ]
+    : [];
+}
+
 function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
@@ -337,6 +368,7 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
       cost: 1
     }
   ];
+  const landsAidFacts = getCircleOfTheLandLandsAidFacts(character);
 
   const featureActions: FeatureActionCard[] = [
     {
@@ -357,7 +389,8 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
       drawer: {
         kind: "confirm" as const,
         eyebrow: "Circle of the Land",
-        description
+        description,
+        facts: landsAidFacts
       },
       execute: {
         kind: "activate" as const

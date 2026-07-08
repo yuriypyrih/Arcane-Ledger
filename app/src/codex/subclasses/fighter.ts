@@ -216,7 +216,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Defy Death.</strong> You have <link:Advantage>Advantage</link> on Death Saving Throws. Moreover, when you roll 18-20 on a Death Saving Throw, you gain the benefit of rolling a 20 on it.",
           "<strong>Heroic Rally.</strong> At the start of each of your turns, you regain Hit Points equal to 5 plus your <link:CON>Constitution</link> modifier if you are Bloodied and have at least 1 Hit Point."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -250,7 +250,9 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "If it is on the same plane of existence, you can summon that weapon as a Bonus Action, causing it to teleport instantly to your hand.",
           "You can have up to two bonded weapons, but you can summon only one at a time with a Bonus Action. If you attempt to bond with a third weapon, you must break the bond with one of the other two."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "This feature is not being tracked in any significant way. You can choose the weapon of choice in the inventory and add a custom tag to it and modify its description to represent the War Bond."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.WAR_MAGIC, {
         description: [

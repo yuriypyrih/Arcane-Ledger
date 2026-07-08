@@ -113,6 +113,9 @@ export type CharacterSpellDrawerActionOptions = {
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
   useBoonOfRevelry?: boolean;
+  useDruidWildCompanion?: boolean;
+  useDragonCompanion?: boolean;
+  useDragonCompanionWithoutConcentration?: boolean;
   spellCastEffectIds?: string[];
   spellActionPathId?: string | null;
   spellImplementationCastSource?: SpellImplementationCastSource;
@@ -201,6 +204,8 @@ export type CharacterSpellDrawerActionPath = {
 export type CharacterSpellDrawerSlotFreeUseOption = {
   label: string;
   selected: boolean;
+  disabled?: boolean;
+  description?: string;
   onSelectedChange: (selected: boolean) => void;
 };
 
@@ -528,6 +533,7 @@ function CharacterSpellDrawer({
     freeCastSlotLevel !== null &&
     normalizedSelectedSpellSlotLevel === freeCastSlotLevel;
   const selectedSlotIsFreeUse = spellLevel > 0 && slotFreeUseOption?.selected === true;
+  const selectedSlotFreeUseDisabled = selectedSlotIsFreeUse && slotFreeUseOption?.disabled === true;
   const selectedSpellRemainingSlots =
     spellLevel === 0 || selectedSlotIsFreeUse
       ? null
@@ -535,7 +541,7 @@ function CharacterSpellDrawer({
   const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
     spellLevel === 0 ||
-    selectedSlotIsFreeUse ||
+    (selectedSlotIsFreeUse && !selectedSlotFreeUseDisabled) ||
     selectedSlotIsFreeCast ||
     (selectedSpellRemainingSlots !== null &&
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
@@ -618,6 +624,12 @@ function CharacterSpellDrawer({
     useTamedSurge: allActionOptions.some((option) => option.id === "tamed-surge" && option.checked),
     usePhantasmalCreatures: allActionOptions.some(
       (option) => option.id === "phantasmal-creatures" && option.checked
+    ),
+    useDragonCompanion: allActionOptions.some(
+      (option) => option.id === "dragon-companion" && option.checked
+    ),
+    useDragonCompanionWithoutConcentration: allActionOptions.some(
+      (option) => option.id === "dragon-companion-without-concentration" && option.checked
     ),
     useTelekineticMaster: allActionOptions.some(
       (option) => option.id === "telekinetic-master" && option.checked
@@ -797,7 +809,7 @@ function CharacterSpellDrawer({
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeUse
-      ? "Free use selected. This cast won't expend a spell slot."
+      ? (slotFreeUseOption?.description ?? "Free use selected. This cast won't expend a spell slot.")
       : selectedSlotIsFreeCast
         ? (freeCastAvailabilityText ??
           `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
@@ -1262,7 +1274,12 @@ function CharacterSpellDrawer({
                         onChange={(event) => handleSelectedSpellSlotLevelChange(event.target.value)}
                       >
                         {slotFreeUseOption ? (
-                          <option value={slotFreeUseSelectValue}>{slotFreeUseOption.label}</option>
+                          <option
+                            value={slotFreeUseSelectValue}
+                            disabled={slotFreeUseOption.disabled}
+                          >
+                            {slotFreeUseOption.label}
+                          </option>
                         ) : null}
                         {spellSlotLevels.map((slotLevel) => {
                           const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;

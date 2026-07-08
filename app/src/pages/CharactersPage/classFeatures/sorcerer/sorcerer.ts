@@ -22,6 +22,7 @@ import {
   getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost,
   getSorcererSubclassCrownOfSpellfireUsesRemaining,
   getSorcererSubclassCrownOfSpellfireUsesTotal,
+  getSorcererSubclassDragonCompanionUsesTotal,
   getSorcererSubclassDragonWingsUsesTotal,
   hasSorcererDraconicElementalAffinityFeature,
   getSorcererSubclassRestoreBalanceUsesTotal,
@@ -369,6 +370,7 @@ export function normalizeSorcererFeatureState(
   const hasArcaneApotheosis = hasSorcererFeature(character, CLASS_FEATURE.ARCANE_APOTHEOSIS);
   const hasDraconicElementalAffinity = hasSorcererDraconicElementalAffinityFeature(character);
   const dragonWingsUsesTotal = getSorcererSubclassDragonWingsUsesTotal(character);
+  const dragonCompanionUsesTotal = getSorcererSubclassDragonCompanionUsesTotal(character);
   const metamagicSelectionCount = getSorcererMetamagicSelectionCount(character);
   const clockworkCavalcadeUsesTotal = getSorcererSubclassClockworkCavalcadeUsesTotal(character);
   const crownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
@@ -388,6 +390,7 @@ export function normalizeSorcererFeatureState(
     !hasSpellfireBurst &&
     !hasWildMagicSurge &&
     dragonWingsUsesTotal <= 0 &&
+    dragonCompanionUsesTotal <= 0 &&
     clockworkCavalcadeUsesTotal <= 0 &&
     crownOfSpellfireUsesTotal <= 0 &&
     restoreBalanceUsesTotal <= 0 &&
@@ -409,6 +412,7 @@ export function normalizeSorcererFeatureState(
   const crownOfSpellfireUsesExpended = Number(record.crownOfSpellfireUsesExpended);
   const sorcerousRestorationUsesExpended = Number(record.sorcerousRestorationUsesExpended);
   const dragonWingsUsesExpended = Number(record.dragonWingsUsesExpended);
+  const dragonCompanionUsesExpended = Number(record.dragonCompanionUsesExpended);
   const clockworkCavalcadeUsesExpended = Number(record.clockworkCavalcadeUsesExpended);
   const restoreBalanceUsesExpended = Number(record.restoreBalanceUsesExpended);
   const tranceOfOrderUsesExpended = Number(record.tranceOfOrderUsesExpended);
@@ -452,6 +456,13 @@ export function normalizeSorcererFeatureState(
     dragonWingsUsesExpended:
       dragonWingsUsesTotal > 0 && Number.isFinite(dragonWingsUsesExpended)
         ? Math.max(0, Math.min(dragonWingsUsesTotal, Math.floor(dragonWingsUsesExpended)))
+        : 0,
+    dragonCompanionUsesExpended:
+      dragonCompanionUsesTotal > 0 && Number.isFinite(dragonCompanionUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(dragonCompanionUsesTotal, Math.floor(dragonCompanionUsesExpended))
+          )
         : 0,
     clockworkCavalcadeUsesExpended:
       clockworkCavalcadeUsesTotal > 0 && Number.isFinite(clockworkCavalcadeUsesExpended)

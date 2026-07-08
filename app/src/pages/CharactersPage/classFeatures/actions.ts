@@ -506,6 +506,7 @@ import {
   getFighterIndomitableUsesTotal,
   getFighterSecondWindUsesRemaining,
   getFighterSecondWindUsesTotal,
+  getFighterTacticalMindDescriptionAdditions,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter as getFighterPsiWarriorEnergyDiceRemaining,
   getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
   getFighterPsiWarriorEnergyDieForCharacter as getFighterPsiWarriorEnergyDie,
@@ -972,6 +973,7 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
   }
 
   descriptionAdditions.push(...getBardCollegeOfLorePeerlessSkillDescriptionAdditions(character));
+  descriptionAdditions.push(...getFighterTacticalMindDescriptionAdditions(character));
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
 
   return descriptionAdditions;

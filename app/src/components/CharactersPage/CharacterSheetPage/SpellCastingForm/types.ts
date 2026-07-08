@@ -36,6 +36,7 @@ export type CastSelectedSpellOptions = {
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
   useBoonOfRevelry?: boolean;
+  useDruidWildCompanion?: boolean;
   useEmeraldEnclaveFledglingFreeUse?: boolean;
   useTwoHeartsOneMind?: boolean;
   useBewitchingMagic?: boolean;
@@ -43,6 +44,8 @@ export type CastSelectedSpellOptions = {
   useMistyWanderer?: boolean;
   useFeyReinforcements?: boolean;
   useFeyReinforcementsNoConcentration?: boolean;
+  useDragonCompanion?: boolean;
+  useDragonCompanionWithoutConcentration?: boolean;
   useBlessingOfMoonlight?: boolean;
   useStepsOfTheFey?: boolean;
   useFrozenHaunt?: boolean;

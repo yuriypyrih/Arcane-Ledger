@@ -12,6 +12,7 @@ import type { FeatureIndicator } from "../../../../../pages/CharactersPage/class
 import ActionButton from "../../../../ActionButton";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
+import type { DiceRollerResolvedResult } from "../../../../DicePage/DiceRollerPopup/types";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
 import {
   formatResolvedRollStateDetailText,
@@ -46,15 +47,34 @@ type DeathSavesTrackerProps = {
   rollIndicators?: FeatureIndicator[];
   rollMode?: RollMode;
   rollTitle?: string;
+  naturalTwentyBenefitMinimum?: number | null;
   readOnly?: boolean;
   showDiceSettings?: boolean;
   title?: string;
+  onNaturalTwentyBenefit?: () => void;
   onReset?: () => void;
   onUpdate?: (track: DeathSaveTrack) => void;
 };
 
 function formatDeathSavesAriaLabel(deathSaves: DeathSaveTrackState) {
   return `Death saves: ${deathSaves.successes} successes and ${deathSaves.failures} failures`;
+}
+
+function normalizeNaturalTwentyBenefitMinimum(value: number | null | undefined): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.max(1, Math.min(20, Math.floor(value)));
+}
+
+function getResolvedDeathSaveD20Roll(resolvedResult: DiceRollerResolvedResult): number | null {
+  const primaryDice = resolvedResult.results[0]?.dice ?? resolvedResult.dice;
+  const countedD20 = primaryDice.find((die) => die.sides === 20 && die.counted !== false);
+
+  return typeof countedD20?.value === "number" && Number.isFinite(countedD20.value)
+    ? countedD20.value
+    : null;
 }
 
 function DeathSavesTracker({
@@ -68,9 +88,11 @@ function DeathSavesTracker({
   rollIndicators,
   rollMode,
   rollTitle = "Death save",
+  naturalTwentyBenefitMinimum = null,
   readOnly = false,
   showDiceSettings = true,
   title = "Death Saves",
+  onNaturalTwentyBenefit,
   onReset,
   onUpdate
 }: DeathSavesTrackerProps) {
@@ -86,6 +108,8 @@ function DeathSavesTracker({
   const rollState = resolveFeatureIndicators(rollIndicators);
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const canEdit = !readOnly && Boolean(onReset && onUpdate);
+  const normalizedNaturalTwentyBenefitMinimum =
+    normalizeNaturalTwentyBenefitMinimum(naturalTwentyBenefitMinimum);
 
   useEffect(() => {
     if (!canEdit && isModalOpen) {
@@ -105,7 +129,21 @@ function DeathSavesTracker({
       mode: rollMode,
       description: rollDescription,
       ignoreNextRollOverrides,
-      onResolvedResult: ({ result }) => {
+      onResolvedResult: (resolvedResult) => {
+        const deathSaveD20Roll = getResolvedDeathSaveD20Roll(resolvedResult);
+
+        if (
+          normalizedNaturalTwentyBenefitMinimum !== null &&
+          deathSaveD20Roll !== null &&
+          deathSaveD20Roll >= normalizedNaturalTwentyBenefitMinimum &&
+          onNaturalTwentyBenefit
+        ) {
+          onNaturalTwentyBenefit();
+          return;
+        }
+
+        const { result } = resolvedResult;
+
         onUpdate(result.total >= 10 ? "success" : "failure");
       }
     });

@@ -49,6 +49,11 @@ import {
 } from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import {
+  getFighterChampionSurvivorDefyDeathDescription,
+  getFighterChampionSurvivorHeroicRallyDescription,
+  isFighterChampionHeroicRallyActive
+} from "./fighter/subclasses/fighterChampion";
+import {
   activatePaladinOathOfTheAncientsUndyingSentinel,
   getPaladinOathOfTheAncientsUndyingSentinelUsesRemaining,
   getPaladinOathOfTheAncientsUndyingSentinelUsesTotal,
@@ -180,7 +185,8 @@ export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolea
     (isLifeAndDeathUnconscious(character) &&
       isLifeAndDeathGiftOfTheProtectorsAvailable(character)) ||
     isLifeAndDeathBoonOfRecoveryLastStandAvailable(character) ||
-    isLifeAndDeathSafeHavenRelevant(character)
+    isLifeAndDeathSafeHavenRelevant(character) ||
+    isFighterChampionHeroicRallyActive(character)
   );
 }
 
@@ -201,6 +207,21 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
     ),
     ...getRebornLifeAndDeathDescriptionAdditionsForCharacter(character)
   ];
+
+  const championSurvivorDescription = [
+    ...getFighterChampionSurvivorDefyDeathDescription(character),
+    ...getFighterChampionSurvivorHeroicRallyDescription(character)
+  ];
+
+  if (championSurvivorDescription.length > 0) {
+    descriptionAdditions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.SURVIVOR,
+        championSurvivorDescription
+      )
+    );
+  }
 
   if (hasPaladinOathOfTheAncientsUndyingSentinelFeature(character)) {
     const undyingSentinelDescription = getFeatureDescriptionForCharacter(

@@ -36,12 +36,17 @@ import {
 } from "./sorcererClockworkSorcery";
 import {
   activateSorcererDragonWings,
+  canUseSorcererDraconicDragonCompanionForSpell,
+  consumeSorcererDragonCompanionUse,
   draconicSorcerySubclassId,
+  getSorcererDraconicDragonCompanionUsesRemaining,
+  getSorcererDraconicDragonCompanionUsesTotal,
   getSorcererDraconicDragonWingsUsesTotal,
   getSorcererDraconicElementalAffinityDamageTypeSelection,
   getSorcererDraconicSorceryDerivedFeatureState,
   hasSorcererDraconicElementalAffinityFeature,
   normalizeSorcererDraconicElementalAffinityDamageType,
+  restoreSorcererDragonCompanionOnLongRest,
   restoreSorcererDragonWingsOnLongRest,
   setSorcererDraconicElementalAffinityDamageTypeSelection,
   sorcererDragonWingsActionKey,
@@ -86,6 +91,9 @@ const sorcererSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
 };
 
 export {
+  canUseSorcererDraconicDragonCompanionForSpell,
+  getSorcererDraconicDragonCompanionUsesRemaining,
+  getSorcererDraconicDragonCompanionUsesTotal,
   getSorcererDraconicDragonWingsUsesTotal,
   getSorcererDraconicElementalAffinityDamageTypeSelection,
   hasSorcererDraconicElementalAffinityFeature,
@@ -286,6 +294,56 @@ export function getSorcererSubclassDragonWingsUsesTotal(
     : 0;
 }
 
+export function getSorcererSubclassDragonCompanionUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return 0;
+  }
+
+  return character.subclassId === draconicSorcerySubclassId
+    ? getSorcererDraconicDragonCompanionUsesTotal(character)
+    : 0;
+}
+
+export function getSorcererSubclassDragonCompanionUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return 0;
+  }
+
+  return character.subclassId === draconicSorcerySubclassId
+    ? getSorcererDraconicDragonCompanionUsesRemaining(character)
+    : 0;
+}
+
+export function canUseSorcererSubclassDragonCompanionForSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spellId: string
+): boolean {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return false;
+  }
+
+  return character.subclassId === draconicSorcerySubclassId
+    ? canUseSorcererDraconicDragonCompanionForSpell(character, spellId)
+    : false;
+}
+
+export function consumeSorcererSubclassDragonCompanionUseForCharacter(
+  character: Character
+): Character {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return character;
+  }
+
+  return character.subclassId === draconicSorcerySubclassId
+    ? consumeSorcererDragonCompanionUse(character)
+    : character;
+}
+
 export function getSorcererSubclassCrownOfSpellfireUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
@@ -432,7 +490,9 @@ export function restoreSorcererSubclassFeaturesOnLongRest(character: Character):
   }
 
   if (character.subclassId === draconicSorcerySubclassId) {
-    return restoreSorcererDragonWingsOnLongRest(character);
+    return restoreSorcererDragonCompanionOnLongRest(
+      restoreSorcererDragonWingsOnLongRest(character)
+    );
   }
 
   return character.subclassId === aberrantSorcerySubclassId

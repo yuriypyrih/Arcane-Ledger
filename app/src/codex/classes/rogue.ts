@@ -210,7 +210,7 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
     description: [
       "Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a <strong>d20</strong> roll of 9 or lower as a 10."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.IMPROVED_CUNNING_STRIKE]: {
     description: [

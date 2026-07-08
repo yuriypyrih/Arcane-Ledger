@@ -235,7 +235,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     description: [
       "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EXTRA_ATTACK]: {
     description: [
@@ -249,7 +249,9 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "The target must make a Constitution saving throw.",
       "On a failed save, the target has the Stunned condition until the start of your next turn.On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The description is showin in the weapon action drawers but the effect is not tracked. You have to remember it during play."
   },
   [CLASS_FEATURE.EMPOWERED_STRIKES]: {
     description: [
@@ -262,13 +264,13 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail.",
       "You don't benefit from this feature if you have the Incapacitated condition."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ACROBATIC_MOVEMENT]: {
     description: [
       "While you aren't wearing armor or wielding a Shield, you gain the ability to move along vertical surfaces and across liquids on your turn without falling during the movement."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.HEIGHTENED_FOCUS]: {
     description: [
@@ -284,7 +286,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "Through sheer force of will, you can remove one of the following conditions from yourself at the end of each of your turns: Charmed, Frightened, or Poisoned.",
       "In addition, forgoing food and drink doesn't give you levels of Exhaustion."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DEFLECT_ENERGY]: {
     description: [
@@ -294,10 +296,12 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   },
   [CLASS_FEATURE.DISCIPLINED_SURVIVOR]: {
     description: [
-      "Your physical and mental discipline grant you proficiency in all saving throws. <link:tracked>Tracked</link>",
-      "Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll. <link:not-tracked>Not Tracked</link>"
+      "Your physical and mental discipline grant you proficiency in all saving throws.",
+      "Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "You have to consume a Focus Point yourself when you decide to reroll the saving throw"
   },
   [CLASS_FEATURE.PERFECT_FOCUS]: {
     description: [
