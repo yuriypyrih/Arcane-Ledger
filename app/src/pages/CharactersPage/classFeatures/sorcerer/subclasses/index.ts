@@ -441,8 +441,10 @@ export function consumeSorcererSubclassTamedSurgeUseForCharacter(character: Char
     : character;
 }
 
-export const sorcererRestoreBalanceReactionId = sorcererClockworkRestoreBalanceReactionId;
-export const sorcererBendLuckReactionEntryId = sorcererBendLuckReactionId;
+export {
+  sorcererClockworkRestoreBalanceReactionId as sorcererRestoreBalanceReactionId,
+  sorcererBendLuckReactionId as sorcererBendLuckReactionEntryId
+};
 
 export function getSorcererSubclassRestoreBalanceUsesTotal(
   character: Pick<Character, "className"> &

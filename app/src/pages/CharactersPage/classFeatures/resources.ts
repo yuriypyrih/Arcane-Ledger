@@ -338,8 +338,7 @@ import {
   restoreSorcererSubclassFeaturesOnSpellCast,
   restoreSorcererSubclassFeaturesOnSpellSlotCast,
   setSorcererDraconicElementalAffinityDamageTypeSelection,
-  sorcererDraconicElementalAffinityDamageTypeOptions,
-  sorcererRestoreBalanceReactionId
+  sorcererDraconicElementalAffinityDamageTypeOptions
 } from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
@@ -1227,7 +1226,9 @@ export function getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForC
   return getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(character);
 }
 
-export const sorcererRestoreBalanceReactionEntryId = sorcererRestoreBalanceReactionId;
+export {
+  sorcererClockworkRestoreBalanceReactionId as sorcererRestoreBalanceReactionEntryId
+} from "./sorcerer/subclasses/sorcererClockworkSorcery";
 export { sorcererBendLuckReactionEntryId };
 
 export function getSorcererRestoreBalanceUsesTotalForCharacter(

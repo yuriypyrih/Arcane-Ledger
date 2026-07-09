@@ -328,8 +328,7 @@ import {
   restoreSorcererSubclassFeaturesOnSpellCast,
   restoreSorcererSubclassFeaturesOnSpellSlotCast,
   setSorcererDraconicElementalAffinityDamageTypeSelection,
-  sorcererDraconicElementalAffinityDamageTypeOptions,
-  sorcererRestoreBalanceReactionId
+  sorcererDraconicElementalAffinityDamageTypeOptions
 } from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
