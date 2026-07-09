@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../types";
 import type { CastSelectedSpellContext, CastSelectedSpellOptions } from "./types";
+import { getSpellCastSlotPlan } from "./spellCastSlotPlan";
 
 export function castSelectedSpellWithContext(
   context: CastSelectedSpellContext,
@@ -560,92 +561,69 @@ export function castSelectedSpellWithContext(
     return;
   }
 
-  const minimumSlotLevel = Math.max(1, spellLevel);
-  const slotLevel =
-    useStarMap ||
-    useMagicInitiate ||
-    useGenasiLineage ||
-    useForestGnome ||
-    useFiendishLegacy ||
-    useHexMagic ||
-    useFeyMagic ||
-    useQuickRitual ||
-    useShadowMagic ||
-    useDetectThoughts ||
-    useBoonOfRevelry ||
-    useBoonOfSpellRecall ||
-    useDruidWildCompanion ||
-    useEmeraldEnclaveFledglingFreeUse ||
-    useTwoHeartsOneMind ||
-    useStepsOfTheFey ||
-    useBewitchingMagic ||
-    useMistyWanderer ||
-    useFeyReinforcements ||
-    useDragonCompanion ||
-    usePhantasmalCreatures
-      ? minimumSlotLevel
-      : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
-  const castsFreeViaSpellMastery =
-    selectedSpellIsWizardSpellMastery && slotLevel === minimumSlotLevel;
-  const castsFreeViaSignatureSpells =
-    selectedSpellIsWizardSignatureSpell &&
-    slotLevel === wizardSignatureSpellLevel &&
-    hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id);
-  const castsFreeViaNaturalRecovery =
-    useNaturalRecovery &&
-    selectedSpellSupportsNaturalRecovery &&
-    druidNaturalRecoveryUsesRemaining > 0 &&
-    slotLevel === spellLevel;
-  const castsFreeViaStarMap = useStarMap;
-  const castsFreeViaMagicInitiate = useMagicInitiate;
-  const castsFreeViaGenasiLineage = useGenasiLineage;
-  const castsFreeViaForestGnome = useForestGnome;
-  const castsFreeViaFiendishLegacy = useFiendishLegacy;
-  const castsFreeViaHexMagic = useHexMagic;
-  const castsFreeViaFeyMagic = useFeyMagic;
-  const castsFreeViaQuickRitual = useQuickRitual;
-  const castsFreeViaShadowMagic = useShadowMagic;
-  const castsFreeViaDetectThoughts = useDetectThoughts;
-  const castsFreeViaBoonOfRevelry = useBoonOfRevelry;
-  const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
-  const castsFreeViaDruidWildCompanion = useDruidWildCompanion;
-  const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
-  const castsFreeViaTwoHeartsOneMind = useTwoHeartsOneMind;
-  const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
-  const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
-  const castsFreeViaBewitchingMagic = useBewitchingMagic;
-  const castsFreeViaMistyWanderer = useMistyWanderer;
-  const castsFreeViaFeyReinforcements = useFeyReinforcements;
-  const castsFreeViaDragonCompanion = useDragonCompanion;
-  const castsFreeViaPhantasmalCreatures = usePhantasmalCreatures;
-  const castsFreeViaTelekineticMaster = useTelekineticMaster;
-  const castsWithoutSpellSlot =
-    castsFreeViaSpellMastery ||
-    castsFreeViaSignatureSpells ||
-    castsFreeViaNaturalRecovery ||
-    castsFreeViaStarMap ||
-    castsFreeViaMagicInitiate ||
-    castsFreeViaGenasiLineage ||
-    castsFreeViaForestGnome ||
-    castsFreeViaFiendishLegacy ||
-    castsFreeViaHexMagic ||
-    castsFreeViaFeyMagic ||
-    castsFreeViaQuickRitual ||
-    castsFreeViaShadowMagic ||
-    castsFreeViaDetectThoughts ||
-    castsFreeViaBoonOfRevelry ||
-    castsFreeViaBoonOfSpellRecall ||
-    castsFreeViaDruidWildCompanion ||
-    castsFreeViaEmeraldEnclaveFledgling ||
-    castsFreeViaTwoHeartsOneMind ||
-    castsFreeViaPsionicSorcery ||
-    castsFreeViaStepsOfTheFey ||
-    castsFreeViaBewitchingMagic ||
-    castsFreeViaMistyWanderer ||
-    castsFreeViaFeyReinforcements ||
-    castsFreeViaDragonCompanion ||
-    castsFreeViaPhantasmalCreatures ||
-    castsFreeViaTelekineticMaster;
+  const slotPlan = getSpellCastSlotPlan({
+    spellLevel,
+    selectedSpellSlotLevel,
+    wizardSignatureSpellLevel,
+    selectedSpellIsWizardSpellMastery,
+    selectedSpellIsWizardSignatureSpell,
+    selectedSpellSupportsNaturalRecovery,
+    hasWizardSignatureSpellFreeCastAvailable:
+      hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id),
+    druidNaturalRecoveryUsesRemaining,
+    sorceryPointsRemaining,
+    useStarMap,
+    useMagicInitiate,
+    useGenasiLineage,
+    useForestGnome,
+    useFiendishLegacy,
+    useHexMagic,
+    useFeyMagic,
+    useQuickRitual,
+    useShadowMagic,
+    useDetectThoughts,
+    useBoonOfRevelry,
+    useBoonOfSpellRecall,
+    useDruidWildCompanion,
+    useEmeraldEnclaveFledglingFreeUse,
+    useTwoHeartsOneMind,
+    usePsionicSorcery,
+    useStepsOfTheFey,
+    useBewitchingMagic,
+    useMistyWanderer,
+    useFeyReinforcements,
+    useDragonCompanion,
+    usePhantasmalCreatures,
+    useTelekineticMaster,
+    useNaturalRecovery
+  });
+  const { slotLevel, castsWithoutSpellSlot, freeCasts } = slotPlan;
+  const castsFreeViaSpellMastery = freeCasts.spellMastery;
+  const castsFreeViaSignatureSpells = freeCasts.signatureSpells;
+  const castsFreeViaNaturalRecovery = freeCasts.naturalRecovery;
+  const castsFreeViaStarMap = freeCasts.starMap;
+  const castsFreeViaMagicInitiate = freeCasts.magicInitiate;
+  const castsFreeViaGenasiLineage = freeCasts.genasiLineage;
+  const castsFreeViaForestGnome = freeCasts.forestGnome;
+  const castsFreeViaFiendishLegacy = freeCasts.fiendishLegacy;
+  const castsFreeViaHexMagic = freeCasts.hexMagic;
+  const castsFreeViaFeyMagic = freeCasts.feyMagic;
+  const castsFreeViaQuickRitual = freeCasts.quickRitual;
+  const castsFreeViaShadowMagic = freeCasts.shadowMagic;
+  const castsFreeViaDetectThoughts = freeCasts.detectThoughts;
+  const castsFreeViaBoonOfRevelry = freeCasts.boonOfRevelry;
+  const castsFreeViaBoonOfSpellRecall = freeCasts.boonOfSpellRecall;
+  const castsFreeViaDruidWildCompanion = freeCasts.druidWildCompanion;
+  const castsFreeViaEmeraldEnclaveFledgling = freeCasts.emeraldEnclaveFledgling;
+  const castsFreeViaTwoHeartsOneMind = freeCasts.twoHeartsOneMind;
+  const castsFreeViaPsionicSorcery = freeCasts.psionicSorcery;
+  const castsFreeViaStepsOfTheFey = freeCasts.stepsOfTheFey;
+  const castsFreeViaBewitchingMagic = freeCasts.bewitchingMagic;
+  const castsFreeViaMistyWanderer = freeCasts.mistyWanderer;
+  const castsFreeViaFeyReinforcements = freeCasts.feyReinforcements;
+  const castsFreeViaDragonCompanion = freeCasts.dragonCompanion;
+  const castsFreeViaPhantasmalCreatures = freeCasts.phantasmalCreatures;
+  const castsFreeViaTelekineticMaster = freeCasts.telekineticMaster;
   const useOverchannel =
     wantsOverchannel &&
     !castsWithoutSpellSlot &&

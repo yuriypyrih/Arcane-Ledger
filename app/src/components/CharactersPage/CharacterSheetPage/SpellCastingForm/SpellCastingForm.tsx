@@ -223,6 +223,7 @@ import {
 } from "../GameplayForm/gameplayStateUtils";
 import { renderSpellCastingForm } from "./SpellCastingFormRenderer";
 import { castSelectedSpellWithContext } from "./castSelectedSpell";
+import { getSpellCastSlotPlan } from "./spellCastSlotPlan";
 import {
   createSpellRowGroups,
   groupSpellsByLevel,
@@ -1422,48 +1423,52 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       return spellSlotsExpended;
     }
 
-    const minimumSlotLevel = Math.max(1, getSpellLevel(selectedSpell));
-    const slotLevel =
-      (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
-      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
-      (selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) ||
-      (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
-      (selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) ||
-      (selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) ||
-      (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
-      (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
-      (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
-      (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
-      (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
-      (selectedSpellSupportsEmeraldEnclaveFledgling &&
-        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
-      (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-        useTwoHeartsOneMindOnSelectedSpell) ||
-      (selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell)
-        ? minimumSlotLevel
-        : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
-    const castsWithoutSpellSlot =
-      (selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel) ||
-      (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
-      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
-      (selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) ||
-      (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
-      (selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) ||
-      (selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) ||
-      (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
-      (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
-      (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
-      (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
-      (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
-      (selectedSpellSupportsEmeraldEnclaveFledgling &&
-        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
-      (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-        useTwoHeartsOneMindOnSelectedSpell) ||
-      (selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell);
+    const { slotLevel, castsWithoutSpellSlot } = getSpellCastSlotPlan({
+      spellLevel: getSpellLevel(selectedSpell),
+      selectedSpellSlotLevel,
+      wizardSignatureSpellLevel,
+      fixedFreeCastSlotLevel: selectedSpellFreeCastSlotLevel,
+      selectedSpellIsWizardSpellMastery,
+      selectedSpellIsWizardSignatureSpell,
+      selectedSpellSupportsNaturalRecovery,
+      hasWizardSignatureSpellFreeCastAvailable: selectedSpellHasSignatureSpellFreeCastAvailable,
+      druidNaturalRecoveryUsesRemaining,
+      sorceryPointsRemaining,
+      useStarMap: selectedSpellSupportsStarMap && useStarMapOnSelectedSpell,
+      useMagicInitiate: selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell,
+      useGenasiLineage: selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell,
+      useForestGnome: selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell,
+      useFiendishLegacy: selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell,
+      useHexMagic: selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell,
+      useFeyMagic: selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell,
+      useQuickRitual: selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell,
+      useShadowMagic: selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell,
+      useDetectThoughts: selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell,
+      useBoonOfSpellRecall:
+        selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell,
+      useBoonOfRevelry: selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell,
+      useDruidWildCompanion:
+        selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell,
+      useEmeraldEnclaveFledglingFreeUse:
+        selectedSpellSupportsEmeraldEnclaveFledgling &&
+        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+      useTwoHeartsOneMind:
+        selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+        useTwoHeartsOneMindOnSelectedSpell,
+      usePsionicSorcery: selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell,
+      useStepsOfTheFey: selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell,
+      useBewitchingMagic:
+        selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell,
+      useMistyWanderer: selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell,
+      useFeyReinforcements:
+        selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell,
+      useDragonCompanion: selectedSpellSupportsDragonCompanion && useDragonCompanionOnSelectedSpell,
+      usePhantasmalCreatures:
+        selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell,
+      useTelekineticMaster:
+        selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell,
+      useNaturalRecovery: selectedSpellSupportsNaturalRecovery && useNaturalRecoveryOnSelectedSpell
+    });
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1476,7 +1481,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [
     selectedSpell,
     selectedSpellFreeCastSlotLevel,
+    selectedSpellHasSignatureSpellFreeCastAvailable,
+    selectedSpellIsWizardSignatureSpell,
+    selectedSpellIsWizardSpellMastery,
     selectedSpellSlotLevel,
+    selectedSpellSupportsBewitchingMagic,
+    selectedSpellSupportsPsionicSorcery,
+    selectedSpellSupportsStepsOfTheFey,
+    selectedSpellSupportsMistyWanderer,
+    selectedSpellSupportsFeyReinforcements,
+    selectedSpellSupportsPhantasmalCreatures,
+    selectedSpellSupportsTelekineticMaster,
+    selectedSpellSupportsNaturalRecovery,
     selectedSpellSupportsMagicInitiate,
     selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsForestGnome,
@@ -1493,7 +1509,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsDragonCompanion,
     selectedSpellSupportsStarMap,
+    sorceryPointsRemaining,
     spellSlotsExpended,
+    druidNaturalRecoveryUsesRemaining,
     useMagicInitiateOnSelectedSpell,
     useGenasiLineageOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
@@ -1509,7 +1527,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useTwoHeartsOneMindOnSelectedSpell,
     useDragonCompanionOnSelectedSpell,
-    useStarMapOnSelectedSpell
+    useStarMapOnSelectedSpell,
+    usePsionicSorceryOnSelectedSpell,
+    useStepsOfTheFeyOnSelectedSpell,
+    useBewitchingMagicOnSelectedSpell,
+    useMistyWandererOnSelectedSpell,
+    useFeyReinforcementsOnSelectedSpell,
+    usePhantasmalCreaturesOnSelectedSpell,
+    useTelekineticMasterOnSelectedSpell,
+    useNaturalRecoveryOnSelectedSpell
   ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
     () =>
