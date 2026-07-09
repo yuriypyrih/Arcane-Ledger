@@ -1131,8 +1131,7 @@ export const flameBlade: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -2429,8 +2428,7 @@ export const shadowBlade: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",

@@ -23,6 +23,7 @@ import {
   formatWeaponDamage,
   formatWeaponDamageFormula
 } from "../../utils/codex";
+import { getEphemeralWeaponSpellOutcomeSummary } from "./ephemeralWeapons/spellIds";
 
 function getSpellDamageTypeLabel(damage: WeaponDamage): string {
   const labels: string[] = [];
@@ -147,6 +148,12 @@ export function getSpellOutcomeSummaryForCharacter(
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {
+  const ephemeralWeaponSummary = getEphemeralWeaponSpellOutcomeSummary(spell);
+
+  if (ephemeralWeaponSummary) {
+    return ephemeralWeaponSummary;
+  }
+
   const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
 
   if (damageFormulaOverride) {

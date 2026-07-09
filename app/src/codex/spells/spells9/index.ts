@@ -53,8 +53,7 @@ export const bladeOfDisaster: SpellEntry = {
     ruleset: "5e-2024",
     publisherKey: "wizards-of-the-coast"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "60 feet",

@@ -627,11 +627,26 @@ export function getWeaponDrawerDetails(
   }
 
   if (!weaponEntry) {
+    const typeValue =
+      action.weaponTraining && action.combatType
+        ? formatWeaponTypeWithBaseWeapon(
+            {
+              training: action.weaponTraining,
+              combat: action.combatType
+            },
+            action.baseWeapon ?? null
+          )
+        : action.baseWeapon
+          ? `Weapon (${formatCodexLabel(action.baseWeapon)})`
+          : action.proficiencyLabel || "Weapon";
+    const actionProperties = action.properties ?? [];
+    const actionMastery = action.mastery ?? null;
+
     return [
       {
         key: "type",
         label: typeLabel,
-        value: action.baseWeapon ? `Weapon (${formatCodexLabel(action.baseWeapon)})` : "Weapon"
+        value: typeValue
       },
       {
         key: "damage",
@@ -641,12 +656,21 @@ export function getWeaponDrawerDetails(
       {
         key: "properties",
         label: "Properties",
-        value: "None"
+        value: formatWeaponProperties({
+          properties: actionProperties,
+          range: action.range ?? undefined,
+          versatileDamage: undefined,
+          propertyNotes: undefined
+        }),
+        referenceTitle: "Properties",
+        referenceKeywords: actionProperties.map((property) => formatCodexLabel(property))
       },
       {
         key: "mastery",
         label: masteryLabel,
-        value: "None"
+        value: actionMastery ? formatCodexLabel(actionMastery) : "None",
+        referenceTitle: "Mastery",
+        referenceKeywords: actionMastery ? [formatCodexLabel(actionMastery)] : []
       }
     ];
   }

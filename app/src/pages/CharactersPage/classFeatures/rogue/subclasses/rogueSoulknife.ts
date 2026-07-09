@@ -1,16 +1,5 @@
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  DICE,
-  ENTRY_CATEGORIES,
-  type WeaponDamage
-} from "../../../../../codex/entries";
-import {
-  psychicBladeWeaponName,
-  psychicBladeSoulBladesSummary,
-  psychicBladeWeaponSummary
-} from "../../../../../codex/entries/featureWeapons";
-import { getCodexEntryByName } from "../../../../../codex/selectors";
+import { CLASS_FEATURE, ENTRY_CATEGORIES, type WeaponDamage } from "../../../../../codex/entries";
+import { psychicBladeSoulBladesSummary } from "../../../../../codex/entries/featureWeapons";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterRogueFeatureState } from "../../../../../types";
 import {
@@ -25,7 +14,7 @@ import {
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getResolvedCustomLoadoutEntries } from "../../../customEquipment";
-import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
+import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
@@ -42,6 +31,13 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import {
+  createEphemeralWeaponAction,
+  psychicBladeBonusDamage,
+  psychicBladeEphemeralWeaponDefinition,
+  psychicBladeEquipmentSummary,
+  psychicBladeWeaponEntry
+} from "../../../ephemeralWeapons";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
 import {
   createCharacterStatusEntry,
@@ -62,7 +58,6 @@ import {
 } from "../../cardUsage";
 import type { FeatureActionCard, FeatureActionFact, FeatureEquipmentEntry } from "../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE, type EconomyType } from "../../../actionEconomy";
-import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../../../utils/codex";
 import { rogueSneakAttackActionKey } from "../actionKeys";
 
 export const soulknifeSubclassId = "rogue-soulknife";
@@ -83,11 +78,6 @@ const rogueSoulknifePsychicVeilStatusSourceId = "feature-rogue-soulknife-psychic
 const rogueSoulknifePsionicFallbackCost = 1;
 const rogueSoulknifePsychicTeleportationCost = 1;
 const soulknifeSubclassEntry = getSubclassEntryById(soulknifeSubclassId);
-const bonusPsychicBladeDamage = [[DICE.D4, DAMAGE_TYPE.PSYCHIC]] satisfies WeaponDamage;
-const psychicBladeWeaponEntry = (() => {
-  const entry = getCodexEntryByName(psychicBladeWeaponName);
-  return entry?.category === ENTRY_CATEGORIES.WEAPONS ? entry : null;
-})();
 
 type RogueSoulknifeLimitedUseKey =
   | "soulknifePsychicWhispersUsesExpended"
@@ -232,13 +222,6 @@ function hasFreeHandForPsychicBlade(character: RogueSoulknifeCharacter): boolean
 
 function hasTwoFreeHandsForPsychicBlade(character: RogueSoulknifeCharacter): boolean {
   return getPsychicBladeHeldSlotCount(character) === 0;
-}
-
-function getPsychicBladeAbility(character: RogueSoulknifeCharacter): "STR" | "DEX" {
-  const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const dexterityModifier = getAbilityModifierForCharacter(character, "DEX");
-
-  return dexterityModifier >= strengthModifier ? "DEX" : "STR";
 }
 
 export function hasRogueSoulknifePsychicBladesFeature(
@@ -967,7 +950,7 @@ export function getRogueSoulknifeFeatureEquipmentEntries(
   }
 
   const summaryOverride = [
-    psychicBladeWeaponSummary,
+    psychicBladeEquipmentSummary,
     hasRogueSoulknifeSoulBladesFeature(character) ? psychicBladeSoulBladesSummary : ""
   ]
     .filter((entry) => Boolean(entry && entry.trim()))
@@ -1007,66 +990,20 @@ function createRogueSoulknifePsychicBladeWeaponAction(
     economyType,
     key
   }: {
-    damage: WeaponDamage;
+    damage?: WeaponDamage;
     economyType: EconomyType;
     key: string;
   }
 ): WeaponAction | null {
-  if (!psychicBladeWeaponEntry) {
-    return null;
-  }
-
-  const damageFormula = formatWeaponDamageFormula(damage);
-
-  if (!damageFormula) {
-    return null;
-  }
-
-  const ability = getPsychicBladeAbility(character);
-  const abilityModifier = getAbilityModifierForCharacter(character, ability);
-  const baseAction = createWeaponAction(
-    {
-      abilities: character.abilities,
-      className: character.className,
-      level: character.level ?? 1,
-      subclassId: character.subclassId,
-      classFeatureState: character.classFeatureState,
-      statusEntries: character.statusEntries,
-      roundTracker: character.roundTracker
-    },
-    {
-      key,
-      name: psychicBladeWeaponEntry.name,
-      attackKind: "weapon",
-      combatType: psychicBladeWeaponEntry.type.combat,
-      weaponTraining: psychicBladeWeaponEntry.type.training,
-      properties: psychicBladeWeaponEntry.properties,
-      mastery: psychicBladeWeaponEntry.mastery,
-      damageLabel: formatWeaponDamage(damage),
-      damageFormula,
-      rollFormulaBase: damageFormula,
-      ability,
-      abilityModifier,
-      damageAbility: ability,
-      damageAbilityModifier: abilityModifier,
-      proficiencyLabel: "Simple weapon",
-      proficiencyBonus: getProficiencyBonus(character.level ?? 1),
-      economyType,
-      hasVersatileBonus: false,
-      hasGreatWeaponFighting: false,
-      hasMartialArtsDamageDie: false,
-      hasActiveMastery: true,
-      // This action is derived from subclass runtime, so re-entering feature lookups would recurse.
-      skipFeatureDerivedLookups: true
-    }
-  );
-
-  return {
-    ...baseAction,
-    drawerEyebrow: soulknifeDrawerEyebrow,
+  const baseAction = createEphemeralWeaponAction(character, psychicBladeEphemeralWeaponDefinition, {
+    key,
+    damage,
+    economyType,
     description: psychicBladesDescription,
     descriptionAdditions: getRogueSoulknifePsychicBladeDescriptionAdditions(character)
-  };
+  });
+
+  return baseAction;
 }
 
 export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacter): WeaponAction[] {
@@ -1080,13 +1017,12 @@ export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacte
 
   const psychicBladeAction = createRogueSoulknifePsychicBladeWeaponAction(character, {
     key: rogueSoulknifePsychicBladeWeaponActionKey,
-    damage: psychicBladeWeaponEntry.damage,
     economyType: ECONOMY_TYPE.ACTION
   });
   const bonusPsychicBladeAction = hasTwoFreeHandsForPsychicBlade(character)
     ? createRogueSoulknifePsychicBladeWeaponAction(character, {
         key: rogueSoulknifeBonusPsychicBladeWeaponActionKey,
-        damage: bonusPsychicBladeDamage,
+        damage: psychicBladeBonusDamage,
         economyType: ECONOMY_TYPE.BONUS_ACTION
       })
     : null;

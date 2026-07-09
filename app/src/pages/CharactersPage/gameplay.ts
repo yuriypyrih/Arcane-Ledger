@@ -13,7 +13,8 @@ import {
   type WeaponDamage,
   type WeaponDamageAmount,
   type WeaponDamageType,
-  type WeaponEntry
+  type WeaponEntry,
+  type WeaponRange
 } from "../../codex/entries";
 import { getWeaponEntries } from "../../codex/selectors";
 import type {
@@ -93,6 +94,7 @@ import {
   type CustomTraitBonusInput
 } from "./customTraitEffects";
 import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
+import { getActiveSpellEphemeralWeaponActionsForCharacter } from "./ephemeralWeapons";
 import { formatFormulaTerms } from "./shared";
 import {
   createHeldDescriptorForInventoryItem,
@@ -139,6 +141,7 @@ export type WeaponAction = {
   combatType?: WEAPON_COMBAT_TYPE | null;
   weaponTraining?: WEAPON_TRAINING | null;
   properties?: WEAPON_PROPERTY[];
+  range?: WeaponRange | null;
   mastery?: WEAPON_MASTERY | null;
   economyType: EconomyType;
   actionCategory: ActionCategory;
@@ -812,6 +815,7 @@ export function createWeaponAction(
     combatType?: WEAPON_COMBAT_TYPE | null;
     weaponTraining?: WEAPON_TRAINING | null;
     properties?: WEAPON_PROPERTY[];
+    range?: WeaponRange | null;
     mastery?: WEAPON_MASTERY | null;
     damageLabel: string;
     damageFormula: string;
@@ -943,6 +947,7 @@ export function createWeaponAction(
     combatType: options.combatType ?? null,
     weaponTraining: options.weaponTraining ?? null,
     properties: options.properties ?? [],
+    range: options.range ?? null,
     mastery: options.mastery ?? null,
     economyType: options.economyType ?? ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.ATTACK,
@@ -1722,8 +1727,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
     []
   );
   const featureWeaponActions = getFeatureWeaponActionsForCharacter(character);
+  const spellEphemeralWeaponActions = getActiveSpellEphemeralWeaponActionsForCharacter(character);
   const resolvedWeaponActions = [
     ...featureWeaponActions,
+    ...spellEphemeralWeaponActions,
     createUnarmedStrikeAction(character, {
       martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
       economyType: ECONOMY_TYPE.ACTION
