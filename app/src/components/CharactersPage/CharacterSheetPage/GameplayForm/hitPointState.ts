@@ -213,10 +213,10 @@ export function assignManualTemporaryHitPointsForCharacter(
     return character;
   }
 
-  return {
+  return reconcileCharacterStatusConsequences({
     ...character,
     ...nextTemporaryHitPointsAssignment
-  };
+  });
 }
 
 export function assignMagicTemporaryHitPointsForCharacter(

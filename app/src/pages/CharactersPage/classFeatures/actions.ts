@@ -33,6 +33,16 @@ import {
   type CustomTraitBonusInput
 } from "../customTraitEffects";
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
+import { getDraconicTransformationActionsForCharacter } from "../characterRuntime/spellImplementations/draconicTransformation";
+import {
+  getGuardianOfNatureSavingThrowIndicatorsForCharacter,
+  getGuardianOfNatureWeaponAttackIndicatorsForCharacter
+} from "../characterRuntime/spellImplementations/guardianOfNature";
+import {
+  getTensersTransformationSpellcastingStateForCharacter,
+  getTensersTransformationWeaponAttackIndicatorsForCharacter,
+  getTensersTransformationWeaponDamageBonusesForCharacter
+} from "../characterRuntime/spellImplementations/tensersTransformation";
 import {
   getFeatActionsForCharacter,
   getFeatWeaponAttackIndicatorsForCharacter,
@@ -653,6 +663,7 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
         })
       ),
       ...getFeatActionsForCharacter(character),
+      ...getDraconicTransformationActionsForCharacter(character),
       ...transformedActions
     ].map(normalizeFeatureActionCardUsage);
   });
@@ -784,6 +795,7 @@ export function getFeatureDamageBonusesForWeaponAction(
   return [
     ...(baseFeatureState.getWeaponDamageBonuses?.(context) ?? []),
     ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? []),
+    ...getTensersTransformationWeaponDamageBonusesForCharacter(character, context),
     ...getCustomTraitWeaponDamageBonuses(
       getCharacterCustomTraitEffectInput(character),
       {
@@ -848,6 +860,7 @@ export function getSavingThrowIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.savingThrowIndicators ?? {},
     subclassDerivedState.savingThrowIndicators ?? {},
+    getGuardianOfNatureSavingThrowIndicatorsForCharacter(character),
     speciesSavingThrowIndicators,
     abilityKeys.reduce<SavingThrowIndicatorMap>((indicators, ability) => {
       const abilityIndicators = getCustomTraitSavingThrowRollIndicators(
@@ -1093,6 +1106,7 @@ export function getWeaponAttackIndicatorsForCharacter(
       >
     >,
   context?: {
+    ability?: AbilityKey | null;
     attackKind: "weapon" | "unarmed";
     combatType?: WEAPON_COMBAT_TYPE | null;
   }
@@ -1103,6 +1117,10 @@ export function getWeaponAttackIndicatorsForCharacter(
   return [
     ...(subclassDerivedState.weaponAttackIndicators ?? []),
     ...getFeatWeaponAttackIndicatorsForCharacter(character),
+    ...(context ? getGuardianOfNatureWeaponAttackIndicatorsForCharacter(character, context) : []),
+    ...(context
+      ? getTensersTransformationWeaponAttackIndicatorsForCharacter(character, context)
+      : []),
     ...(context
       ? getCustomTraitWeaponAttackRollIndicators(customTraitEffectInput, context)
       : [])
@@ -1153,8 +1171,16 @@ export function getSavingThrowBonusesForCharacter(
 }
 
 export function getSpellcastingStateForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "statusEntries">>
 ): FeatureSpellcastingState {
+  const tensersTransformationState =
+    getTensersTransformationSpellcastingStateForCharacter(character);
+
+  if (tensersTransformationState?.blocked) {
+    return tensersTransformationState;
+  }
+
   return (
     collectActiveClassFeatureState(character).spellcastingState ?? {
       blocked: false,

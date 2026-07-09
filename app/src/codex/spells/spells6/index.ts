@@ -1506,8 +1506,7 @@ export const tashasOtherworldlyGuise: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -1543,8 +1542,7 @@ export const tensersTransformation: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1566,11 +1564,7 @@ export const tensersTransformation: SpellEntry = {
     },
     "Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of Exhaustion."
   ],
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D12, DAMAGE_TYPE.FORCE],
-    [DICE.D12, DAMAGE_TYPE.FORCE]
-  ],
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 6

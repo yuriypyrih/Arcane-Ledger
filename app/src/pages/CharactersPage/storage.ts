@@ -417,6 +417,11 @@ export function normalizeCharacter(value: unknown): Character | null {
     cantripIds: normalizedCantripIds,
     feats: normalizedFeats
   });
+  const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
+    species: normalizedSpecies,
+    level: normalizedLevel,
+    statusEntries: normalizeCharacterStatusEntries(record.statusEntries)
+  });
   const normalizedProficiencies = normalizeCharacterProficiencies({
     className: normalizedClassName,
     level: normalizedLevel,
@@ -435,11 +440,6 @@ export function normalizeCharacter(value: unknown): Character | null {
     selectedClassSkills: record.skills,
     selectedClassToolProficiencies: record.toolProficiencies,
     feats: normalizedFeats
-  });
-  const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
-    species: normalizedSpecies,
-    level: normalizedLevel,
-    statusEntries: normalizeCharacterStatusEntries(record.statusEntries)
   });
   const rawPreparedSpellIds = Array.isArray(record.preparedSpellIds)
     ? normalizePersistedSpellIds(record.preparedSpellIds)

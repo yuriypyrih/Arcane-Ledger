@@ -1,3 +1,6 @@
-import type { SpellImplementation } from "./types";
+import { compileSpellImplementationContributions } from "./contributions";
+import { draconicTransformationSpellImplementationSpec } from "./draconicTransformation";
 
-export const spellImplementations7: SpellImplementation[] = [];
+export const spellImplementations7 = compileSpellImplementationContributions([
+  draconicTransformationSpellImplementationSpec
+]);

@@ -31,6 +31,7 @@ import {
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
   getStatusEntrySpellSlotLabel,
+  getStatusEntryOptionLabel,
   getStatusEntryTargetLabel,
   getStatusEntryTitle
 } from "../../../../../../pages/CharactersPage/traits";
@@ -118,6 +119,7 @@ function StatusEntryDrawer({
   const isSpellStatusEntry =
     typeof entry.sourceSpellId === "string" && entry.sourceSpellId.trim().length > 0;
   const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
+  const optionLabel = isSpellStatusEntry ? getStatusEntryOptionLabel(entry) : null;
   const shouldUseTwoFactLayout = !isSpellStatusEntry && !isExhaustionEntry;
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
@@ -266,7 +268,7 @@ function StatusEntryDrawer({
           <OverlayDetailsGrid
             className={clsx(
               styles.drawerFacts,
-              targetLabel ? styles.drawerFactsWithTarget : null,
+              targetLabel || optionLabel ? styles.drawerFactsWithTarget : null,
               shouldUseTwoFactLayout ? styles.drawerFactsTwoColumn : null
             )}
           >
@@ -275,10 +277,13 @@ function StatusEntryDrawer({
               <CellContainer label="Spell Slot" content={getStatusEntrySpellSlotLabel(entry)} />
             ) : null}
             {targetLabel ? <CellContainer label="Target" content={targetLabel} /> : null}
+            {optionLabel ? <CellContainer label="Option" content={optionLabel} /> : null}
             <CellContainer
               label="Source"
               content={getStatusEntrySourceLabel(entry)}
-              className={isSpellStatusEntry && !targetLabel ? styles.sourceFact : undefined}
+              className={
+                isSpellStatusEntry && !targetLabel && !optionLabel ? styles.sourceFact : undefined
+              }
             />
             {isExhaustionEntry ? (
               <CellContainer label="Current Level" content={`Level ${entry.conditionLevel ?? 1}`} />

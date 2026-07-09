@@ -55,6 +55,7 @@ import {
   shouldApplyLightWeaponDamagePenalty
 } from "../../../../../../pages/CharactersPage/weaponLightProperty";
 import { hasAppliedWeaponProficiency } from "../../../../../../pages/CharactersPage/weaponProficiencyStatus";
+import { getProficiencyRuntimeForCharacter } from "../../../../../../pages/CharactersPage/proficiency/runtime";
 import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
 import {
   appendCriticalHitToFormulaBreakdown,
@@ -132,6 +133,10 @@ export function useSelectedWeaponActionModel({
   isVowOfEnmitySelected
 }: UseSelectedWeaponActionModelArgs) {
   const selectedWeaponAction = selectedAction?.kind === "weapon" ? selectedAction.action : null;
+  const effectiveWeaponProficiencies = useMemo(
+    () => getProficiencyRuntimeForCharacter(character).collections.weaponProficiencies,
+    [character]
+  );
   const selectedWeaponEntry = useMemo(() => {
     if (!selectedWeaponAction) {
       return null;
@@ -167,18 +172,18 @@ export function useSelectedWeaponActionModel({
     }
 
     if (selectedWeaponEntry?.baseWeapon) {
-      return hasActiveWeaponMastery(character.weaponProficiencies, {
+      return hasActiveWeaponMastery(effectiveWeaponProficiencies, {
         baseWeapon: selectedWeaponEntry.baseWeapon
       });
     }
 
     if (selectedWeaponItemRecord?.weapon) {
-      return hasActiveWeaponMastery(character.weaponProficiencies, selectedWeaponItemRecord.weapon);
+      return hasActiveWeaponMastery(effectiveWeaponProficiencies, selectedWeaponItemRecord.weapon);
     }
 
     return false;
   }, [
-    character.weaponProficiencies,
+    effectiveWeaponProficiencies,
     selectedWeaponAction,
     selectedWeaponEntry,
     selectedWeaponItemRecord
@@ -195,7 +200,7 @@ export function useSelectedWeaponActionModel({
         return false;
       }
 
-      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+      return hasAppliedWeaponProficiency(effectiveWeaponProficiencies, {
         training: adaptedWeapon.type.training,
         combatType: adaptedWeapon.type.combat,
         properties: adaptedWeapon.properties,
@@ -204,7 +209,7 @@ export function useSelectedWeaponActionModel({
     }
 
     if (selectedWeaponEntry) {
-      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+      return hasAppliedWeaponProficiency(effectiveWeaponProficiencies, {
         training: selectedWeaponEntry.type.training,
         combatType: selectedWeaponEntry.type.combat,
         properties: selectedWeaponEntry.properties,
@@ -213,7 +218,7 @@ export function useSelectedWeaponActionModel({
     }
 
     if (selectedWeaponAction.weaponTraining) {
-      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+      return hasAppliedWeaponProficiency(effectiveWeaponProficiencies, {
         training: selectedWeaponAction.weaponTraining,
         combatType: selectedWeaponAction.combatType,
         properties: selectedWeaponAction.properties
@@ -222,7 +227,7 @@ export function useSelectedWeaponActionModel({
 
     return false;
   }, [
-    character.weaponProficiencies,
+    effectiveWeaponProficiencies,
     selectedWeaponAction,
     selectedWeaponEntry,
     selectedWeaponItemRecord

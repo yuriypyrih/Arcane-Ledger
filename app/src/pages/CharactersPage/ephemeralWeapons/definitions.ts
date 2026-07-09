@@ -11,6 +11,12 @@ import {
   type WeaponDamage
 } from "../../../codex/entries";
 import {
+  hasActiveSylunesViperTemporaryHitPoints,
+  isActiveSylunesViperStatusEntry,
+  normalizeSylunesViperSourceSpellSlotLevel,
+  sylunesViperStatusValue
+} from "../characterRuntime/spellImplementations/sylunesViper";
+import {
   psychicBladeWeaponName,
   psychicBladeWeaponSummary
 } from "../../../codex/entries/featureWeapons";
@@ -19,7 +25,8 @@ import { ECONOMY_TYPE } from "../actionEconomy";
 import {
   bladeOfDisasterSpellId,
   flameBladeSpellId,
-  shadowBladeSpellId
+  shadowBladeSpellId,
+  sylunesViperSpellId
 } from "./spellIds";
 import type {
   EphemeralWeaponActionContext,
@@ -36,6 +43,7 @@ const defaultPsychicBladeDamage = [[DICE.D6, DAMAGE_TYPE.PSYCHIC]] satisfies Wea
 export const psychicBladeBonusDamage = [[DICE.D4, DAMAGE_TYPE.PSYCHIC]] satisfies WeaponDamage;
 const defaultPsychicBladeRange = { normal: 60, long: 120 };
 const shadowBladeRange = { normal: 20, long: 60 };
+const venomousBiteRange = { normal: 50, long: 50 };
 const shadowBladeBaseSpellLevel = 2;
 const flameBladeBaseSpellLevel = 2;
 
@@ -86,6 +94,18 @@ const getFlameBladeDamage = (
 
 const getBladeOfDisasterDamage = (): WeaponDamage =>
   createRepeatedDamageDice(10, DICE.D6, DAMAGE_TYPE.FORCE);
+
+const getVenomousBiteDamage = (
+  _character: EphemeralWeaponCharacter,
+  context: EphemeralWeaponActionContext
+): WeaponDamage => {
+  const slotLevel = normalizeSylunesViperSourceSpellSlotLevel(
+    context.sourceSpellSlotLevel ?? context.sourceStatusEntry?.sourceSpellSlotLevel
+  );
+  const diceCount = 1 + Math.max(0, slotLevel - 3);
+
+  return createRepeatedDamageDice(diceCount, DICE.D6, DAMAGE_TYPE.FORCE);
+};
 
 export const psychicBladeEphemeralWeaponDefinition: EphemeralWeaponDefinition = {
   id: "rogue-soulknife-psychic-blade",
@@ -192,10 +212,39 @@ export const bladeOfDisasterEphemeralWeaponDefinition: EphemeralWeaponDefinition
   skipFeatureDerivedLookups: true
 };
 
+export const venomousBiteEphemeralWeaponDefinition: EphemeralWeaponDefinition = {
+  id: `${sylunesViperSpellId}-venomous-bite`,
+  key: "spell-sylunes-viper-venomous-bite",
+  name: "Venomous Bite",
+  sourceLabel: sylunesViperStatusValue,
+  activation: {
+    kind: "spell-status",
+    spellId: sylunesViperSpellId
+  },
+  attackKind: "weapon",
+  combatType: WEAPON_COMBAT_TYPE.RANGED,
+  weaponTraining: null,
+  properties: [WEAPON_PROPERTY.RANGE],
+  range: venomousBiteRange,
+  mastery: null,
+  getDamage: getVenomousBiteDamage,
+  ability: "spellcasting",
+  damageAbility: "none",
+  proficiencyLabel: "Ranged spell attack",
+  isProficient: true,
+  economyType: ECONOMY_TYPE.ACTION,
+  getDescription: () => getSpellDescription(sylunesViperSpellId),
+  isAvailable: (character, context) =>
+    isActiveSylunesViperStatusEntry(context.sourceStatusEntry) &&
+    hasActiveSylunesViperTemporaryHitPoints(character),
+  skipFeatureDerivedLookups: true
+};
+
 export const spellEphemeralWeaponDefinitions = [
   shadowBladeEphemeralWeaponDefinition,
   flameBladeEphemeralWeaponDefinition,
-  bladeOfDisasterEphemeralWeaponDefinition
+  bladeOfDisasterEphemeralWeaponDefinition,
+  venomousBiteEphemeralWeaponDefinition
 ];
 
 export const psychicBladeEquipmentSummary = psychicBladeWeaponSummary;

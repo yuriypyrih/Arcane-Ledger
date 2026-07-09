@@ -251,8 +251,7 @@ export const draconicTransformation: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -272,15 +271,7 @@ export const draconicTransformation: SpellEntry = {
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE]
-  ],
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7

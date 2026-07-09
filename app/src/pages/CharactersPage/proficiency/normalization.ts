@@ -7,7 +7,7 @@ import type {
   ToolProficiencyEntry,
   WeaponProficiencyEntry
 } from "../../../types";
-import { PROFICIENCY_OVERRIDE_POLICY, PROF_LEVEL } from "../../../types";
+import { PROFICIENCY_OVERRIDE_POLICY, PROFICIENCY_SOURCE, PROF_LEVEL } from "../../../types";
 import { isLanguageProficiency } from "../proficiencyOptions";
 import { recomputeFeatGrantedProficiencies } from "../feats/proficiencyGrants";
 import { expandWeaponProficiencyEntries } from "../proficiencyWeaponLabels";
@@ -106,20 +106,38 @@ function normalizeSelectedStringArray(value: unknown): string[] {
     : [];
 }
 
+function stripRuntimeDerivedSpellEntries<
+  TEntry extends
+    | SkillProficiencyEntry
+    | SavingThrowProficiencyEntry
+    | WeaponProficiencyEntry
+    | ArmorProficiencyEntry
+    | ToolProficiencyEntry
+    | LanguageProficiencyEntry
+>(entries: TEntry[]): TEntry[] {
+  return entries.filter((entry) => entry.source !== PROFICIENCY_SOURCE.SPELL);
+}
+
 export function normalizeCharacterProficiencies(
   options: NormalizeCharacterProficienciesOptions
 ): CharacterProficiencyCollections {
-  const normalizedStoredSkillEntries = normalizeSkillProficiencyEntries(options.skillProficiencies);
-  const normalizedStoredSavingThrowEntries = normalizeSavingThrowProficiencyEntries(
-    options.savingThrowProficiencies
+  const normalizedStoredSkillEntries = stripRuntimeDerivedSpellEntries(
+    normalizeSkillProficiencyEntries(options.skillProficiencies)
   );
-  const normalizedStoredWeaponEntries = normalizeWeaponProficiencyEntries(
-    options.weaponProficiencies
+  const normalizedStoredSavingThrowEntries = stripRuntimeDerivedSpellEntries(
+    normalizeSavingThrowProficiencyEntries(options.savingThrowProficiencies)
   );
-  const normalizedStoredArmorEntries = normalizeArmorProficiencyEntries(options.armorProficiencies);
-  const normalizedStoredToolEntries = normalizeToolProficiencyEntries(options.toolProficiencies);
-  const normalizedStoredLanguageEntries = normalizeLanguageProficiencyEntries(
-    options.languageProficiencies
+  const normalizedStoredWeaponEntries = stripRuntimeDerivedSpellEntries(
+    normalizeWeaponProficiencyEntries(options.weaponProficiencies)
+  );
+  const normalizedStoredArmorEntries = stripRuntimeDerivedSpellEntries(
+    normalizeArmorProficiencyEntries(options.armorProficiencies)
+  );
+  const normalizedStoredToolEntries = stripRuntimeDerivedSpellEntries(
+    normalizeToolProficiencyEntries(options.toolProficiencies)
+  );
+  const normalizedStoredLanguageEntries = stripRuntimeDerivedSpellEntries(
+    normalizeLanguageProficiencyEntries(options.languageProficiencies)
   );
   const automaticCollections = getAutomaticProficiencyCollectionsForCharacter(
     options.className,

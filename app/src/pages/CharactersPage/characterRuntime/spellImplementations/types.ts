@@ -63,6 +63,7 @@ export type SpellImplementationApplyContext = {
 export type SpellImplementationRollEffectsContext = SpellImplementationApplyContext;
 
 export type SpellImplementationStatusOptions = {
+  sourceId?: string;
   sourceSpellTarget?: CharacterStatusSpellTarget | null;
   sourceSpellSkill?: SkillName | null;
 };

@@ -369,6 +369,7 @@ export type CharacterRoundTracker = {
     followUpWeaponKey?: string;
     followUpDamagePenaltyPending?: boolean;
   };
+  spellExtraAttackUses?: Record<string, number>;
 };
 
 export type CharacterDeathSaves = {

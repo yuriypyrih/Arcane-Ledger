@@ -36,20 +36,36 @@ import { getEquipmentRuntimeForCharacter } from "./characterRuntime/equipmentRun
 import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
   divineFavorSpellId,
-  getGiftOfAlacrityInitiativeBonusesForCharacter,
   getDivineFavorWeaponDamageBonusesForCharacter,
+  hasDivineFavorStatus
+} from "./characterRuntime/spellImplementations/spells1";
+import { getGiftOfAlacrityInitiativeBonusesForCharacter } from "./characterRuntime/spellImplementations/giftOfAlacrityLongstrider";
+import { getGuardianOfNatureWeaponDamageBonusesForCharacter } from "./characterRuntime/spellImplementations/guardianOfNature";
+import {
   getShillelaghDamageAdjustmentForWeapon,
   getShillelaghSpellcastingAbilityForWeapon,
+  shillelaghSpellId,
+  shillelaghStatusValue
+} from "./characterRuntime/spellImplementations/shillelagh";
+import {
+  getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon,
+  hasActiveTashasOtherworldlyGuiseStatus,
+  tashasOtherworldlyGuiseSpellId,
+  tashasOtherworldlyGuiseStatusValue
+} from "./characterRuntime/spellImplementations/tashasOtherworldlyGuise";
+import {
   getTrueStrikeDamageAdjustmentForWeapon,
   getTrueStrikeEconomyMultiCountForWeapon,
   getTrueStrikeExtraRadiantDamageFormulaForLevel,
   getTrueStrikeSpellcastingAbilityForWeapon,
-  hasDivineFavorStatus,
-  shillelaghSpellId,
-  shillelaghStatusValue,
   trueStrikeSpellId,
   trueStrikeStatusValue
-} from "./characterRuntime/spellImplementations";
+} from "./characterRuntime/spellImplementations/trueStrike";
+import {
+  hasActiveTensersTransformationStatus,
+  tensersTransformationSpellId,
+  tensersTransformationStatusValue
+} from "./characterRuntime/spellImplementations/tensersTransformation";
 import {
   canUseMonkMartialArtsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
@@ -110,6 +126,7 @@ import {
   getSkillLevelFromEntries,
   getSkillProficiencyForName
 } from "./proficiency";
+import { getProficiencyRuntimeForCharacter } from "./proficiency/runtime";
 import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from "./customEquipment";
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { getHitDieMaximumForClass } from "./hitDice";
@@ -776,10 +793,14 @@ function getTrueStrikeDamageBonusEntriesForWeaponAction(
 function getWeaponSpellCardBonusLabels(options: {
   trueStrikeEconomyMultiCount: number;
   hasShillelagh: boolean;
+  hasTashasOtherworldlyGuise: boolean;
+  hasTensersTransformation: boolean;
 }): string[] {
   return [
     ...(options.trueStrikeEconomyMultiCount > 0 ? [trueStrikeStatusValue] : []),
-    ...(options.hasShillelagh ? [shillelaghStatusValue] : [])
+    ...(options.hasShillelagh ? [shillelaghStatusValue] : []),
+    ...(options.hasTashasOtherworldlyGuise ? [tashasOtherworldlyGuiseStatusValue] : []),
+    ...(options.hasTensersTransformation ? [tensersTransformationStatusValue] : [])
   ];
 }
 
@@ -792,12 +813,20 @@ function getSpellDescriptionAddition(spellId: string): SpellDescriptionEntry[] {
 function getWeaponSpellDescriptionAdditions(options: {
   trueStrikeEconomyMultiCount: number;
   hasShillelagh: boolean;
+  hasTashasOtherworldlyGuise: boolean;
+  hasTensersTransformation: boolean;
 }): SpellDescriptionEntry[][] {
   return [
     ...(options.trueStrikeEconomyMultiCount > 0
       ? [getSpellDescriptionAddition(trueStrikeSpellId)]
       : []),
-    ...(options.hasShillelagh ? [getSpellDescriptionAddition(shillelaghSpellId)] : [])
+    ...(options.hasShillelagh ? [getSpellDescriptionAddition(shillelaghSpellId)] : []),
+    ...(options.hasTashasOtherworldlyGuise
+      ? [getSpellDescriptionAddition(tashasOtherworldlyGuiseSpellId)]
+      : []),
+    ...(options.hasTensersTransformation
+      ? [getSpellDescriptionAddition(tensersTransformationSpellId)]
+      : [])
   ].filter((section) => section.length > 0);
 }
 
@@ -861,6 +890,12 @@ export function createWeaponAction(
       : getDivineFavorWeaponDamageBonusesForCharacter(character)),
     ...(options.skipFeatureDerivedLookups
       ? []
+      : getGuardianOfNatureWeaponDamageBonusesForCharacter(character, {
+          attackKind: options.attackKind,
+          combatType: options.combatType ?? null
+        })),
+    ...(options.skipFeatureDerivedLookups
+      ? []
       : getFeatureDamageBonusesForWeaponAction(character, {
           name: options.name,
           ability: options.ability,
@@ -903,6 +938,7 @@ export function createWeaponAction(
   const indicators = options.skipFeatureDerivedLookups
     ? []
     : getWeaponAttackIndicatorsForCharacter(character, {
+        ability: options.ability,
         attackKind: options.attackKind,
         combatType: options.combatType ?? null
       });
@@ -1227,6 +1263,8 @@ function createUnarmedStrikeAction(
 
 function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
   const proficiencyBonus = getProficiencyBonus(character.level);
+  const effectiveWeaponProficiencies =
+    getProficiencyRuntimeForCharacter(character).collections.weaponProficiencies;
   const effectiveAbilityScores = getAbilityScoresForCharacter(character);
   const hasGreatWeaponFighting = hasGreatWeaponFightingFeat(character);
   const equipmentRuntime = getEquipmentRuntimeForCharacter(character);
@@ -1313,6 +1351,8 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         ...heldInventoryWeaponEntries
       ].every((weapon) => isMonkWeapon(weapon))
     });
+  const hasTashasOtherworldlyGuise = hasActiveTashasOtherworldlyGuiseStatus(character);
+  const hasTensersTransformation = hasActiveTensersTransformationStatus(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);
@@ -1344,6 +1384,8 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       character,
       weaponSpellContext
     );
+    const tashasOtherworldlyGuiseAbility =
+      getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
     const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
       character,
       weaponSpellContext,
@@ -1380,7 +1422,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         shillelaghDamageAdjustment?.damage ??
         trueStrikeDamageAdjustment?.damage,
       abilityRuleOverride:
-        trueStrikeAbility ?? shillelaghAbility ?? (isEligibleMonkWeapon ? "finesse" : undefined)
+        trueStrikeAbility ??
+        tashasOtherworldlyGuiseAbility ??
+        shillelaghAbility ??
+        (isEligibleMonkWeapon ? "finesse" : undefined)
     });
 
     if (!weaponReference) {
@@ -1390,7 +1435,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
     const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
     const abilityModifier = getAbilityModifierForCharacter(character, ability);
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
-      character.weaponProficiencies,
+      effectiveWeaponProficiencies,
       equipmentDefinition.training,
       {
         baseWeapon: equipmentDefinition.baseWeapon,
@@ -1433,16 +1478,23 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         ],
         cardBonusLabels: getWeaponSpellCardBonusLabels({
           trueStrikeEconomyMultiCount,
-          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          hasShillelagh:
+            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasTashasOtherworldlyGuise,
+          hasTensersTransformation
         }),
         descriptionAdditions: getWeaponSpellDescriptionAdditions({
           trueStrikeEconomyMultiCount,
-          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          hasShillelagh:
+            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasTashasOtherworldlyGuise,
+          hasTensersTransformation
         }),
         economyMultiCount: trueStrikeEconomyMultiCount,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
-        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
+        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),
+        isMagicWeapon: hasTashasOtherworldlyGuise
       })
     ];
   }, []);
@@ -1464,6 +1516,8 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       character,
       weaponSpellContext
     );
+    const tashasOtherworldlyGuiseAbility =
+      getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
     const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
       character,
       weaponSpellContext,
@@ -1500,6 +1554,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         trueStrikeDamageAdjustment?.damage,
       abilityRuleOverride:
         trueStrikeAbility ??
+        tashasOtherworldlyGuiseAbility ??
         shillelaghAbility ??
         (monkMartialArtsActive && isMonkWeapon(weaponEntry) ? "finesse" : undefined)
     });
@@ -1511,7 +1566,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
     const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
     const abilityModifier = getAbilityModifierForCharacter(character, ability);
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
-      character.weaponProficiencies,
+      effectiveWeaponProficiencies,
       weaponEntry.type.training,
       {
         baseWeapon: weaponEntry.baseWeapon,
@@ -1554,16 +1609,23 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         ],
         cardBonusLabels: getWeaponSpellCardBonusLabels({
           trueStrikeEconomyMultiCount,
-          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          hasShillelagh:
+            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasTashasOtherworldlyGuise,
+          hasTensersTransformation
         }),
         descriptionAdditions: getWeaponSpellDescriptionAdditions({
           trueStrikeEconomyMultiCount,
-          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          hasShillelagh:
+            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasTashasOtherworldlyGuise,
+          hasTensersTransformation
         }),
         economyMultiCount: trueStrikeEconomyMultiCount,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
-        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
+        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),
+        isMagicWeapon: hasTashasOtherworldlyGuise
       })
     ];
   }, []);
@@ -1602,6 +1664,8 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         character,
         weaponSpellContext
       );
+      const tashasOtherworldlyGuiseAbility =
+        getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
       const trueStrikeDamageAdjustment = baseDamage
         ? getTrueStrikeDamageAdjustmentForWeapon(character, weaponSpellContext, baseDamage)
         : null;
@@ -1652,7 +1716,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           ? resolveAbilityDamageAmounts(formulaDamage, character)
           : undefined,
         abilityRuleOverride:
-          trueStrikeAbility ?? shillelaghAbility ?? (isEligibleMonkWeapon ? "finesse" : undefined)
+          trueStrikeAbility ??
+          tashasOtherworldlyGuiseAbility ??
+          shillelaghAbility ??
+          (isEligibleMonkWeapon ? "finesse" : undefined)
       });
 
       if (!adaptedWeapon || !weaponType || !weaponReference) {
@@ -1662,7 +1729,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
       const abilityModifier = getAbilityModifierForCharacter(character, ability);
       const appliedWeaponProficiency = getAppliedWeaponProficiency(
-        character.weaponProficiencies,
+        effectiveWeaponProficiencies,
         weaponType.training,
         {
           combatType: weaponType.combat,
@@ -1707,18 +1774,22 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           cardBonusLabels: getWeaponSpellCardBonusLabels({
             trueStrikeEconomyMultiCount,
             hasShillelagh:
-              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+            hasTashasOtherworldlyGuise,
+            hasTensersTransformation
           }),
           descriptionAdditions: getWeaponSpellDescriptionAdditions({
             trueStrikeEconomyMultiCount,
             hasShillelagh:
-              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+            hasTashasOtherworldlyGuise,
+            hasTensersTransformation
           }),
           economyMultiCount: trueStrikeEconomyMultiCount,
           hasVersatileBonus: weaponReference.hasVersatileBonus,
           hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
           hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),
-          isMagicWeapon: inventoryItem.item.is_magic_item === true,
+          isMagicWeapon: inventoryItem.item.is_magic_item === true || hasTashasOtherworldlyGuise,
           inventoryStackId: inventoryItem.stackId,
           inventoryFeatureTags: inventoryItem.featureTags
         })

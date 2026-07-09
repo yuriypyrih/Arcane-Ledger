@@ -1,5 +1,9 @@
 import type { AbilityKey, Character } from "../../types";
+import { getDraconicTransformationSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/draconicTransformation";
+import { getGuardianOfNatureSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/guardianOfNature";
 import { getLongstriderSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/giftOfAlacrityLongstrider";
+import { getSylunesViperSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/sylunesViper";
+import { getTashasOtherworldlyGuiseSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/tashasOtherworldlyGuise";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
 import { hasRogueThiefSecondStoryWorkFeature } from "./classFeatures/rogue/subclasses/rogueThief";
 import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types";
@@ -92,7 +96,11 @@ function getMovementSpeedBonuses(
     ...getSpeedBonusesForCharacter(character, {
       wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
     }),
+    ...getGuardianOfNatureSpeedBonusesForCharacter(character),
+    ...getDraconicTransformationSpeedBonusesForCharacter(character),
     ...getLongstriderSpeedBonusesForCharacter(character),
+    ...getSylunesViperSpeedBonusesForCharacter(character),
+    ...getTashasOtherworldlyGuiseSpeedBonusesForCharacter(character),
     ...getSpeciesSpeedBonusesForCharacter(character),
     ...getFeatSpeedBonusesForCharacter(character)
   ]

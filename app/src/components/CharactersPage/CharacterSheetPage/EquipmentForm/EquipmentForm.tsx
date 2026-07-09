@@ -55,6 +55,7 @@ import {
   formatWeaponWeight
 } from "../../../../utils/codex";
 import { getLoadoutCodexEntryByName } from "../../../../pages/CharactersPage/proficiency";
+import { getProficiencyRuntimeForCharacter } from "../../../../pages/CharactersPage/proficiency/runtime";
 import {
   clearWarlockPactOfTheBladeInvocationSelectionForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
@@ -370,6 +371,10 @@ function EquipmentForm({
   const [isAddModalCommitting, setIsAddModalCommitting] = useState(false);
   const [addEquipmentDraftCharacter, setAddEquipmentDraftCharacter] = useState<Character | null>(
     null
+  );
+  const effectiveWeaponProficiencies = useMemo(
+    () => getProficiencyRuntimeForCharacter(character).collections.weaponProficiencies,
+    [character]
   );
   const addEquipmentDraftCharacterRef = useRef<Character | null>(null);
   const addEquipmentDraftOperationsRef = useRef<AddEquipmentDraftOperation[]>([]);
@@ -951,13 +956,13 @@ function EquipmentForm({
 
     const hasBaseWeaponMastery =
       Boolean(selectedLoadoutEntryData.mastery) &&
-      hasActiveWeaponMastery(character.weaponProficiencies, {
+      hasActiveWeaponMastery(effectiveWeaponProficiencies, {
         baseWeapon: selectedLoadoutEntryData.baseWeapon
       });
 
     return hasBaseWeaponMastery || selectedAdditionalWeaponMasteries.length > 0;
   }, [
-    character.weaponProficiencies,
+    effectiveWeaponProficiencies,
     selectedAdditionalWeaponMasteries.length,
     selectedLoadoutEntryData
   ]);
@@ -969,13 +974,13 @@ function EquipmentForm({
       return false;
     }
 
-    return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+    return hasAppliedWeaponProficiency(effectiveWeaponProficiencies, {
       training: selectedLoadoutEntryData.type.training,
       combatType: selectedLoadoutEntryData.type.combat,
       properties: selectedLoadoutEntryData.properties,
       baseWeapon: selectedLoadoutEntryData.baseWeapon
     });
-  }, [character.weaponProficiencies, selectedLoadoutEntryData]);
+  }, [effectiveWeaponProficiencies, selectedLoadoutEntryData]);
   const selectedWeaponMasteryKeywords = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -1114,13 +1119,13 @@ function EquipmentForm({
   const selectedInventoryWeaponHasActiveMastery = useMemo(
     () =>
       selectedInventoryRecord?.weapon
-        ? hasActiveWeaponMastery(character.weaponProficiencies, {
+        ? hasActiveWeaponMastery(effectiveWeaponProficiencies, {
             baseWeapon: selectedInventoryWeaponMods?.baseWeapon,
             name: selectedInventoryRecord.weapon.name,
             key: selectedInventoryRecord.key
           })
         : false,
-    [character.weaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]
+    [effectiveWeaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]
   );
   const selectedInventoryWeaponHasProficiency = useMemo(() => {
     if (!selectedInventoryRecord) {
@@ -1133,14 +1138,14 @@ function EquipmentForm({
       return false;
     }
 
-    return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+    return hasAppliedWeaponProficiency(effectiveWeaponProficiencies, {
       training: adaptedWeapon.type.training,
       combatType: adaptedWeapon.type.combat,
       properties: adaptedWeapon.properties,
       baseWeapon: selectedInventoryWeaponMods?.baseWeapon,
       name: selectedInventoryRecord.weapon?.name
     });
-  }, [character.weaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]);
+  }, [effectiveWeaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]);
   const selectedInventoryCount = selectedInventoryInspection
     ? selectedInventoryInspection.source === "container"
       ? (selectedContainerContent?.quantity ?? 0)

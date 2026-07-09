@@ -5,7 +5,21 @@ import {
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType
 } from "../actionEconomy";
-import { isRoundTrackerResourceAvailable, shouldTrackRoundScopedResources } from "../combat";
+import {
+  consumeRoundTrackerResource,
+  consumeRoundTrackerSpellExtraAttackUse,
+  getRoundTrackerSpellExtraAttackUses,
+  isRoundTrackerResourceAvailable,
+  shouldTrackRoundScopedResources
+} from "../combat";
+import {
+  hasActiveTashasOtherworldlyGuiseStatus,
+  tashasOtherworldlyGuiseSpellId
+} from "../characterRuntime/spellImplementations/tashasOtherworldlyGuise";
+import {
+  hasActiveTensersTransformationStatus,
+  tensersTransformationSpellId
+} from "../characterRuntime/spellImplementations/tensersTransformation";
 import type { WeaponAction } from "../gameplay";
 import {
   consumeArtificerWeaponAttack,
@@ -68,7 +82,13 @@ type SharedEconomyMultiPool = FeatureEconomyMultiPool & {
 
 type SharedEconomyMultiCharacter = Pick<
   Character,
-  "className" | "level" | "classFeatureState" | "classRules" | "customClass" | "roundTracker"
+  | "className"
+  | "level"
+  | "classFeatureState"
+  | "classRules"
+  | "customClass"
+  | "roundTracker"
+  | "statusEntries"
 > &
   Partial<Pick<Character, "subclassId">>;
 
@@ -447,6 +467,100 @@ function createWizardBladesingerExtraAttackPool(
   };
 }
 
+function hasExistingExtraAttackFeature(character: SharedEconomyMultiCharacter): boolean {
+  const hasCustomExtraAttackOverride = getCharacterClassRulesExtraAttackCount(character) > 0;
+  const pools = [
+    hasCustomExtraAttackOverride ? null : createFighterExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createBardValorExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createBarbarianExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createRangerExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createPaladinExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createArtificerExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createMonkExtraAttackPool(character),
+    createCustomClassExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createWarlockPactBladeExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createWizardBladesingerExtraAttackPool(character)
+  ];
+
+  return pools.some((pool) => pool !== null);
+}
+
+function createSpellExtraAttackPool(
+  character: SharedEconomyMultiCharacter,
+  options: {
+    id: string;
+    spellId: string;
+    isActive: (character: SharedEconomyMultiCharacter) => boolean;
+  }
+): SharedEconomyMultiPool | null {
+  if (!options.isActive(character) || hasExistingExtraAttackFeature(character)) {
+    return null;
+  }
+
+  const hasActionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+  const extraAttacksUsed = getRoundTrackerSpellExtraAttackUses(
+    character.roundTracker,
+    options.spellId
+  );
+
+  return {
+    id: options.id,
+    remaining: hasActionAvailable ? 0 : clampRemaining(1 - extraAttacksUsed),
+    priority: 10,
+    accessRules: [
+      {
+        ...createAttackAccessRule(),
+        attackKinds: ["weapon"]
+      }
+    ],
+    consume: (nextCharacter) => {
+      if (isRoundTrackerResourceAvailable(nextCharacter.roundTracker, "action")) {
+        return {
+          ...nextCharacter,
+          roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "action")
+        };
+      }
+
+      if (
+        getRoundTrackerSpellExtraAttackUses(
+          nextCharacter.roundTracker,
+          options.spellId
+        ) >= 1
+      ) {
+        return nextCharacter;
+      }
+
+      return {
+        ...nextCharacter,
+        roundTracker: consumeRoundTrackerSpellExtraAttackUse(
+          nextCharacter.roundTracker,
+          options.spellId
+        )
+      };
+    }
+  };
+}
+
+function createTashasOtherworldlyGuiseExtraAttackPool(
+  character: SharedEconomyMultiCharacter
+): SharedEconomyMultiPool | null {
+  return createSpellExtraAttackPool(character, {
+    id: "tashas-otherworldly-guise-extra-attack",
+    spellId: tashasOtherworldlyGuiseSpellId,
+    isActive: hasActiveTashasOtherworldlyGuiseStatus
+  });
+}
+
+function createTensersTransformationExtraAttackPool(
+  character: SharedEconomyMultiCharacter
+): SharedEconomyMultiPool | null {
+  return createSpellExtraAttackPool(character, {
+    id: "tensers-transformation-extra-attack",
+    spellId: tensersTransformationSpellId,
+    isActive: hasActiveTensersTransformationStatus
+  });
+}
+
 function getSharedEconomyMultiPools(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool[] {
@@ -462,7 +576,9 @@ function getSharedEconomyMultiPools(
     hasCustomExtraAttackOverride ? null : createMonkExtraAttackPool(character),
     createCustomClassExtraAttackPool(character),
     hasCustomExtraAttackOverride ? null : createWarlockPactBladeExtraAttackPool(character),
-    hasCustomExtraAttackOverride ? null : createWizardBladesingerExtraAttackPool(character)
+    hasCustomExtraAttackOverride ? null : createWizardBladesingerExtraAttackPool(character),
+    createTashasOtherworldlyGuiseExtraAttackPool(character),
+    createTensersTransformationExtraAttackPool(character)
   ].filter((pool): pool is SharedEconomyMultiPool => pool !== null);
 
   return pools.sort((left, right) => left.priority - right.priority);

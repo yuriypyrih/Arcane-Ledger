@@ -1042,8 +1042,7 @@ export const guardianOfNature: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -1062,8 +1061,8 @@ export const guardianOfNature: SpellEntry = {
     "You make Dexterity- and Wisdom-based attack rolls with Advantage.",
     "While you are on the ground, the ground within 15 feet of you is difficult terrain for your enemies."
   ],
-  isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
+  isDamagingSpell: false,
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4

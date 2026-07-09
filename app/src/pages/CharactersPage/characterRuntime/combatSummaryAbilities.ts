@@ -27,6 +27,7 @@ import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../proficiency";
+import { getProficiencyRuntimeForCharacter } from "../proficiency/runtime";
 import { resolveFeatureIndicators, type ResolvedRollState } from "../rollState";
 import { getProficiencyMultiplier } from "../shared";
 import { getCharacterCustomTraitEffectInput } from "./customEffectRuntime";
@@ -160,6 +161,8 @@ export function createCombatSummaryAbilities(character: Character): CharacterCom
     : 0;
   const abilityCheckIndicators = getAbilityCheckIndicatorsForCharacter(character);
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
+  const effectiveSavingThrowProficiencies =
+    getProficiencyRuntimeForCharacter(character).collections.savingThrowProficiencies;
   const abilitySavingThrowCards = abilityKeys.map((ability) => {
     const abilityScore = effectiveAbilities[ability];
     const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, ability, {
@@ -168,7 +171,7 @@ export function createCombatSummaryAbilities(character: Character): CharacterCom
     const abilityModifierValue = abilityModifierBreakdown.total;
     const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
     const savingThrowLevel = getSavingThrowLevelFromEntries(
-      character.savingThrowProficiencies,
+      effectiveSavingThrowProficiencies,
       savingThrowProficiency
     );
     const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);

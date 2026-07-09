@@ -117,12 +117,17 @@ import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescri
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
 import { getAidHitPointMaximumBonusForCharacter } from "./characterRuntime/spellImplementations/spells2";
+import { getGuardianOfNatureStatusOptionLabel } from "./characterRuntime/spellImplementations/guardianOfNature";
+import { reconcileSylunesViperStatusForCharacter } from "./characterRuntime/spellImplementations/sylunesViper";
+import { getTashasOtherworldlyGuiseStatusOptionLabel } from "./characterRuntime/spellImplementations/tashasOtherworldlyGuise";
+import { reconcileTensersTransformationStatusForCharacter } from "./characterRuntime/spellImplementations/tensersTransformation";
 import { getCustomTraitActualMaxHitPointBonuses } from "./customTraitEffects";
 import { getFeatHitPointMaximumBonusForCharacter } from "./feats/runtime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { getDwarvenToughnessHitPointMaximumBonus } from "./speciesDwarf";
 import { removeConjuredInventoryItems } from "./inventoryItems";
 import {
+  applyTensersTransformationAftermathToStatusEntries,
   getExhaustionLevel as getStoredExhaustionLevel,
   hasStatusCondition,
   isExhaustionStatusEntry,
@@ -680,26 +685,36 @@ export function getEffectiveHitPointMaximumForCharacter(
 }
 
 export function reconcileCharacterStatusConsequences(character: Character): Character {
-  const normalizedStatusEntries = normalizeCharacterStatusEntries(character.statusEntries);
-  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
+  const reconciledCharacter = reconcileTensersTransformationStatusForCharacter(
+    reconcileSylunesViperStatusForCharacter(character)
+  );
+  const normalizedStatusEntries = normalizeCharacterStatusEntries(
+    reconciledCharacter.statusEntries
+  );
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(reconciledCharacter);
   const exhaustionLevel = getExhaustionLevel(normalizedStatusEntries);
   const isDeadFromExhaustion = exhaustionLevel !== null && exhaustionLevel >= 6;
-  const rageState = character.classFeatureState?.rage;
+  const rageState = reconciledCharacter.classFeatureState?.rage;
   const hasIncapacitated = hasStatusCondition(
     normalizedStatusEntries,
     CONDITION_NAME.INCAPACITATED
   );
   const shouldEndRageFromIncapacitated =
-    character.className === "Barbarian" && rageState?.active === true && hasIncapacitated;
+    reconciledCharacter.className === "Barbarian" &&
+    rageState?.active === true &&
+    hasIncapacitated;
   const nextStatusEntries = hasIncapacitated
-    ? pruneLinkedStatusEntries(
-        normalizedStatusEntries.filter(
-          (entry) =>
-            !(
-              (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-                entry.value === EFFECT_NAME.CONCENTRATION) ||
-              entry.sourceId === unbreakableMajestyStatusSourceId
-            )
+    ? applyTensersTransformationAftermathToStatusEntries(
+        normalizedStatusEntries,
+        pruneLinkedStatusEntries(
+          normalizedStatusEntries.filter(
+            (entry) =>
+              !(
+                (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+                  entry.value === EFFECT_NAME.CONCENTRATION) ||
+                entry.sourceId === unbreakableMajestyStatusSourceId
+              )
+          )
         )
       )
     : normalizedStatusEntries;
@@ -708,35 +723,35 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     nextStatusEntries.some((entry, index) => entry.id !== normalizedStatusEntries[index]?.id);
   const nextCurrentHitPoints = isDeadFromExhaustion
     ? 0
-    : Math.max(0, Math.min(effectiveHitPointMaximum, character.currentHitPoints));
+    : Math.max(0, Math.min(effectiveHitPointMaximum, reconciledCharacter.currentHitPoints));
   const nextDeathSaves = isDeadFromExhaustion
     ? {
         successes: 0,
         failures: 3
       }
-    : character.deathSaves;
+    : reconciledCharacter.deathSaves;
   const nextInventoryItems = isDeadFromExhaustion
-    ? removeConjuredInventoryItems(character.inventoryItems)
-    : character.inventoryItems;
-  const inventoryItemsChanged = nextInventoryItems !== character.inventoryItems;
+    ? removeConjuredInventoryItems(reconciledCharacter.inventoryItems)
+    : reconciledCharacter.inventoryItems;
+  const inventoryItemsChanged = nextInventoryItems !== reconciledCharacter.inventoryItems;
   const deathSavesUnchanged = isDeadFromExhaustion
-    ? character.deathSaves?.successes === 0 &&
-      character.deathSaves?.failures === 3 &&
-      character.deathSaves?.resolution !== "instant-death"
+    ? reconciledCharacter.deathSaves?.successes === 0 &&
+      reconciledCharacter.deathSaves?.failures === 3 &&
+      reconciledCharacter.deathSaves?.resolution !== "instant-death"
     : true;
 
   if (
-    nextCurrentHitPoints === character.currentHitPoints &&
+    nextCurrentHitPoints === reconciledCharacter.currentHitPoints &&
     (!isDeadFromExhaustion || deathSavesUnchanged) &&
     !shouldEndRageFromIncapacitated &&
     !statusEntriesChanged &&
     !inventoryItemsChanged
   ) {
-    return character;
+    return reconciledCharacter;
   }
 
   return {
-    ...character,
+    ...reconciledCharacter,
     currentHitPoints: nextCurrentHitPoints,
     deathSaves: nextDeathSaves,
     statusEntries: nextStatusEntries,
@@ -744,7 +759,7 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     classFeatureState:
       shouldEndRageFromIncapacitated && rageState
         ? {
-            ...character.classFeatureState,
+            ...reconciledCharacter.classFeatureState,
             rage: {
               ...rageState,
               active: false,
@@ -1623,6 +1638,13 @@ export function getStatusEntryTargetLabel(entry: CharacterStatusEntry): string |
     default:
       return null;
   }
+}
+
+export function getStatusEntryOptionLabel(entry: CharacterStatusEntry): string | null {
+  return (
+    getGuardianOfNatureStatusOptionLabel(entry) ??
+    getTashasOtherworldlyGuiseStatusOptionLabel(entry)
+  );
 }
 
 export function getStatusDurationLabel(duration: CharacterStatusDuration): string {

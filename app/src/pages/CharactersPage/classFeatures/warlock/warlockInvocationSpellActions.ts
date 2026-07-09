@@ -4,12 +4,12 @@ import {
   type SpellDescriptionEntry
 } from "../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { falseLifeSpellId } from "../../characterRuntime/spellImplementations/falseLifeConfig";
 import {
   falseLifeMaximizeTemporaryHitPointsOptionId,
-  falseLifeSpellId,
   mageArmorCastOnSelfOptionId,
   mageArmorSpellId
-} from "../../characterRuntime/spellImplementations";
+} from "../../characterRuntime/spellImplementations/spells1Config";
 import type {
   FeatureActionCard,
   FeatureActionSpellEffectKind

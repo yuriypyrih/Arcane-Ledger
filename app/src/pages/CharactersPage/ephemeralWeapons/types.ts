@@ -34,6 +34,8 @@ export type EphemeralWeaponCharacter = Pick<Character, "className"> &
       | "speciesFeatureState"
       | "statusEntries"
       | "subclassId"
+      | "temporaryHitPoints"
+      | "temporaryHitPointsSource"
     >
   >;
 
@@ -68,6 +70,11 @@ export type EphemeralWeaponDetailsResolver = (
   character: EphemeralWeaponCharacter,
   context: EphemeralWeaponActionContext & { damage: WeaponDamage }
 ) => WeaponAction["details"];
+
+export type EphemeralWeaponAvailabilityResolver = (
+  character: EphemeralWeaponCharacter,
+  context: EphemeralWeaponActionContext
+) => boolean;
 
 export type EphemeralWeaponActivation =
   | {
@@ -112,6 +119,7 @@ export type EphemeralWeaponDefinition = {
   descriptionAdditions?: SpellDescriptionEntry[][];
   getDetails?: EphemeralWeaponDetailsResolver;
   details?: WeaponAction["details"];
+  isAvailable?: EphemeralWeaponAvailabilityResolver;
   facts?: FeatureActionFact[];
   damageBonusEntries?: FeatureDamageBonus[];
   cardBonusLabels?: string[];

@@ -48,6 +48,26 @@ function normalizeLightWeaponAttackState(value: unknown): LightWeaponAttackState
   };
 }
 
+function normalizeRoundTrackerSpellExtraAttackUses(
+  value: unknown
+): Record<string, number> | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>)
+    .map(([key, rawCount]) => {
+      const count = Number(rawCount);
+      return [
+        key.trim(),
+        Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+      ] as const;
+    })
+    .filter(([key, count]) => key.length > 0 && count > 0);
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
 export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
   if (!value || typeof value !== "object") {
     return createDefaultRoundTracker();
@@ -56,6 +76,9 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
   const record = value as Partial<CharacterRoundTracker>;
   const isInCombat = typeof record.isInCombat === "boolean" ? record.isInCombat : false;
   const lightWeaponAttack = normalizeLightWeaponAttackState(record.lightWeaponAttack);
+  const spellExtraAttackUses = normalizeRoundTrackerSpellExtraAttackUses(
+    record.spellExtraAttackUses
+  );
 
   if (!isInCombat) {
     return createDefaultRoundTracker();
@@ -75,7 +98,8 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
       typeof record.bonusActionAvailable === "boolean" ? record.bonusActionAvailable : true,
     reactionAvailable:
       typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true,
-    lightWeaponAttack
+    lightWeaponAttack,
+    spellExtraAttackUses
   };
 }
 
@@ -121,7 +145,8 @@ export function startRoundTrackerTurn(value?: unknown): CharacterRoundTracker {
     combatRound,
     combatRoundAdvancePending: false,
     turnStarted: true,
-    lightWeaponAttack: undefined
+    lightWeaponAttack: undefined,
+    spellExtraAttackUses: undefined
   };
 }
 
@@ -137,7 +162,8 @@ export function finishRoundTrackerTurn(value: unknown): CharacterRoundTracker {
     turnStarted: false,
     combatRound: Math.max(1, tracker.combatRound),
     combatRoundAdvancePending: true,
-    lightWeaponAttack: undefined
+    lightWeaponAttack: undefined,
+    spellExtraAttackUses: undefined
   };
 }
 
@@ -160,7 +186,8 @@ export function setRoundTrackerCombatState(
     actionAvailable: true,
     bonusActionAvailable: true,
     reactionAvailable: true,
-    lightWeaponAttack: undefined
+    lightWeaponAttack: undefined,
+    spellExtraAttackUses: undefined
   };
 }
 
@@ -201,6 +228,35 @@ export function consumeRoundTrackerResource(
   resource: RoundTrackerResource
 ): CharacterRoundTracker {
   return setRoundTrackerResourceAvailability(value, resource, false);
+}
+
+export function getRoundTrackerSpellExtraAttackUses(
+  value: unknown,
+  spellId: string
+): number {
+  const tracker = normalizeRoundTracker(value);
+  return Math.max(0, Math.floor(tracker.spellExtraAttackUses?.[spellId] ?? 0));
+}
+
+export function consumeRoundTrackerSpellExtraAttackUse(
+  value: unknown,
+  spellId: string
+): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+
+  if (!tracker.isInCombat || spellId.trim().length === 0) {
+    return tracker;
+  }
+
+  const currentUses = getRoundTrackerSpellExtraAttackUses(tracker, spellId);
+
+  return {
+    ...tracker,
+    spellExtraAttackUses: {
+      ...(tracker.spellExtraAttackUses ?? {}),
+      [spellId]: currentUses + 1
+    }
+  };
 }
 
 export function recordLightWeaponAttackTrigger(

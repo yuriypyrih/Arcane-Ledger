@@ -1,16 +1,21 @@
+import { sylunesViperSpellId } from "../characterRuntime/spellImplementations/sylunesViperConfig";
+
 export const shadowBladeSpellId = "spell-shadow-blade";
 export const flameBladeSpellId = "spell-flame-blade";
 export const bladeOfDisasterSpellId = "spell-blade-of-disaster";
+export { sylunesViperSpellId };
 
 const ephemeralWeaponSpellOutcomeSummaries = new Map<string, string>([
   [shadowBladeSpellId, "Summons weapon"],
   [flameBladeSpellId, "Summons weapon"],
-  [bladeOfDisasterSpellId, "Creates planar rift"]
+  [bladeOfDisasterSpellId, "Creates planar rift"],
+  [sylunesViperSpellId, "Conjures viper"]
 ]);
 
 const castAttackSuppressedEphemeralWeaponSpellIds = new Set([
   flameBladeSpellId,
-  bladeOfDisasterSpellId
+  bladeOfDisasterSpellId,
+  sylunesViperSpellId
 ]);
 
 export function isEphemeralWeaponSpellId(spellId: string | null | undefined): boolean {

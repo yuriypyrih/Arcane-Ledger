@@ -28,8 +28,11 @@ import {
   getSpeciesReactionEntriesForCharacter
 } from "../species";
 import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
+import { getDraconicTransformationSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/draconicTransformation";
+import { getGuardianOfNatureSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/guardianOfNature";
 import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
 import { getInvulnerabilitySpellDerivedStatusEntriesForCharacter } from "./spellImplementations/spells9";
+import { getTashasOtherworldlyGuiseSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/tashasOtherworldlyGuise";
 import { getCharacterCustomTraitEffectInput } from "./customEffectRuntime";
 import { getConditionalFeatStatusEntriesForCharacter } from "./featConditionalStatusRuntime";
 import {
@@ -330,7 +333,10 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const speciesDerivedStatusEntries = getSpeciesDerivedStatusEntriesForCharacter(character);
   const spellDerivedStatusEntries = [
     ...getDarkvisionSpellDerivedStatusEntriesForCharacter(character),
+    ...getDraconicTransformationSpellDerivedStatusEntriesForCharacter(character),
+    ...getGuardianOfNatureSpellDerivedStatusEntriesForCharacter(character),
     ...getHeroismSpellDerivedStatusEntriesForCharacter(character),
+    ...getTashasOtherworldlyGuiseSpellDerivedStatusEntriesForCharacter(character),
     ...getInvulnerabilitySpellDerivedStatusEntriesForCharacter(character)
   ];
   const customTraitDefenseStatusEntries = getCustomTraitDefenseStatusEntries(

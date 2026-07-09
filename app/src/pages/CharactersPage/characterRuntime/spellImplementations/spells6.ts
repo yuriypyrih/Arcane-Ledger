@@ -1,3 +1,8 @@
-import type { SpellImplementation } from "./types";
+import { compileSpellImplementationContributions } from "./contributions";
+import { tensersTransformationSpellImplementationSpec } from "./tensersTransformation";
+import { tashasOtherworldlyGuiseSpellImplementationSpec } from "./tashasOtherworldlyGuise";
 
-export const spellImplementations6: SpellImplementation[] = [];
+export const spellImplementations6 = compileSpellImplementationContributions([
+  tensersTransformationSpellImplementationSpec,
+  tashasOtherworldlyGuiseSpellImplementationSpec
+]);

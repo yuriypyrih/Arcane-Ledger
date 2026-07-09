@@ -6,7 +6,10 @@ import {
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
-import { applySpellCastFeatureEffectsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  applySpellCastFeatureEffectsForCharacter,
+  getSpellcastingStateForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import { applyFeatureSpellCastEffectsForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import {
   consumeSharedEconomyMultiForCharacterAction,
@@ -151,10 +154,17 @@ function EquipmentStoredSpellDrawer({
     consumesCharges && (!activeUseState || activeUseState.remaining < chargeCost)
       ? "Not enough item charges."
       : null;
+  const spellcastingState = activeSpellEntry ? getSpellcastingStateForCharacter(character) : null;
+  const spellcastingWarning = spellcastingState?.blocked ? spellcastingState.reason : null;
   const actionPathStates = activeSpellEntry
-    ? getSpellActionPathStates(character, activeSpellEntry, normalizeRoundTracker(character.roundTracker))
+    ? getSpellActionPathStates(
+        character,
+        activeSpellEntry,
+        normalizeRoundTracker(character.roundTracker)
+      )
     : [];
-  const actionWarning = chargeWarning ?? getSpellActionPathWarning(actionPathStates);
+  const actionWarning =
+    spellcastingWarning ?? chargeWarning ?? getSpellActionPathWarning(actionPathStates);
   const actionPaths = actionPathStates
     .map((path) => {
       const actionShape = getActionShapeForEconomyType(path.economyType);
@@ -166,7 +176,7 @@ function EquipmentStoredSpellDrawer({
             actionShape,
             actionShapeAvailable: path.shapeState.isAvailable,
             actionShapeMultiCount: path.shapeState.multiCount,
-            disabledReason: chargeWarning ?? path.shapeState.disabledReason,
+            disabledReason: spellcastingWarning ?? chargeWarning ?? path.shapeState.disabledReason,
             roundTrackerResourceOverride: path.roundTrackerResource,
             spellImplementationCastSource: path.spellImplementationCastSource,
             forcedSpellImplementationOptions: path.forcedSpellImplementationOptions,
@@ -203,6 +213,10 @@ function EquipmentStoredSpellDrawer({
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!selectedStoredSpell || !activeSpellEntry) {
+      return;
+    }
+
+    if (spellcastingState?.blocked) {
       return;
     }
 
@@ -337,7 +351,7 @@ function EquipmentStoredSpellDrawer({
       actionContextText={`Using ${itemName}`}
       actionAvailabilityText={availabilityText}
       actionWarning={actionWarning}
-      actionDisabled={chargeWarning !== null}
+      actionDisabled={spellcastingWarning !== null || chargeWarning !== null}
       actionPaths={actionPaths}
       backdropClassName={styles.equipmentStoredSpellBackdrop}
     />

@@ -31,10 +31,11 @@ import {
 } from "./inventoryItems";
 import { getEffectiveInventoryItemRecord, getItemShieldBonus } from "./itemMods";
 import {
-  getBarkskinArmorClassModes,
   getMageArmorArmorClassModes,
   getSpellArmorClassBonusesForCharacter
-} from "./characterRuntime/spellImplementations";
+} from "./characterRuntime/spellImplementations/spells1";
+import { getBarkskinArmorClassModes } from "./characterRuntime/spellImplementations/spells2";
+import { getTashasOtherworldlyGuiseArmorClassBonusesForCharacter } from "./characterRuntime/spellImplementations/tashasOtherworldlyGuise";
 import { getSpeciesArmorClassBonusesForCharacter } from "./species";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
@@ -687,6 +688,7 @@ export function getArmorClassResolutionForCharacter(character: Character): Armor
   const featureBonuses = [
     ...getArmorClassBonusesForCharacter(character, featureContext),
     ...getSpellArmorClassBonusesForCharacter(character),
+    ...getTashasOtherworldlyGuiseArmorClassBonusesForCharacter(character),
     ...getFeatArmorClassBonusesForCharacter(character, featureContext),
     ...getSpeciesArmorClassBonusesForCharacter(character, featureContext)
   ];

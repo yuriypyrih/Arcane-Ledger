@@ -20,6 +20,10 @@ import {
   type SkillName
 } from "../../types";
 import { sanitizeUserInput } from "../../utils/userInputSanitization";
+import {
+  tensersTransformationExhaustionNote,
+  tensersTransformationSpellId
+} from "./characterRuntime/spellImplementations/tensersTransformationConfig";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
 import { normalizeDamageCoverageStatusValue } from "./damageCoverageStatuses";
 import { clampInteger } from "./shared";
@@ -98,6 +102,68 @@ export function isExhaustionStatusEntry(
 ): boolean {
   return (
     entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.EXHAUSTION
+  );
+}
+
+function isTensersTransformationConcentrationStatusEntry(
+  entry:
+    | Pick<CharacterStatusEntry, "group" | "value" | "sourceSpellId" | "disabled">
+    | null
+    | undefined
+): boolean {
+  return (
+    entry?.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.value === EFFECT_NAME.CONCENTRATION &&
+    entry.sourceSpellId === tensersTransformationSpellId &&
+    entry.disabled !== true
+  );
+}
+
+function hasTensersTransformationConcentrationStatus(entries: CharacterStatusEntry[]): boolean {
+  return entries.some(isTensersTransformationConcentrationStatusEntry);
+}
+
+function appendTensersTransformationExhaustionNote(
+  entries: CharacterStatusEntry[]
+): CharacterStatusEntry[] {
+  const exhaustionEntry = entries.find((entry) => isExhaustionStatusEntry(entry));
+
+  if (!exhaustionEntry) {
+    return entries;
+  }
+
+  const currentNotes = exhaustionEntry.notes?.trim() ?? "";
+
+  if (currentNotes.includes(tensersTransformationExhaustionNote)) {
+    return entries;
+  }
+
+  const nextNotes = [currentNotes, tensersTransformationExhaustionNote]
+    .filter((note) => note.length > 0)
+    .join("\n");
+
+  return entries.map((entry) =>
+    entry.id === exhaustionEntry.id ? { ...entry, notes: nextNotes } : entry
+  );
+}
+
+export function applyTensersTransformationAftermathToStatusEntries(
+  previousValue: unknown,
+  nextValue: unknown
+): CharacterStatusEntry[] {
+  const previousEntries = normalizeCharacterStatusEntries(previousValue);
+  const nextEntries = normalizeCharacterStatusEntries(nextValue);
+
+  if (
+    !hasTensersTransformationConcentrationStatus(previousEntries) ||
+    hasTensersTransformationConcentrationStatus(nextEntries)
+  ) {
+    return nextEntries;
+  }
+
+  const nextExhaustionLevel = Math.min(6, (getExhaustionLevel(nextEntries) ?? 0) + 1);
+  return appendTensersTransformationExhaustionNote(
+    setCharacterExhaustionLevel(nextEntries, nextExhaustionLevel)
   );
 }
 
@@ -906,8 +972,11 @@ export function removeCharacterStatusEntry(
   value: unknown,
   entryId: string
 ): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
+  return applyTensersTransformationAftermathToStatusEntries(
+    value,
+    pruneLinkedStatusEntries(
+      normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
+    )
   );
 }
 
@@ -1176,7 +1245,7 @@ export function applySpellConcentrationToStatusEntries(
     return entries;
   }
 
-  return ensureLinkedStatusDependencies([
+  const nextEntries = ensureLinkedStatusDependencies([
     ...entries.filter(
       (entry) =>
         !(
@@ -1198,6 +1267,8 @@ export function applySpellConcentrationToStatusEntries(
       sourceSpellSkill: options?.sourceSpellSkill ?? null
     })
   ]);
+
+  return applyTensersTransformationAftermathToStatusEntries(entries, nextEntries);
 }
 
 function isGenericSpellDurationStatusEntry(
@@ -1434,71 +1505,81 @@ export function advanceCharacterStatusEntries(
   value: unknown,
   tickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
 ): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).flatMap((entry) => {
-      if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
-        return [entry];
-      }
-
-      if (normalizeStatusDurationRoundTick(entry.duration.tickOn) !== tickOn) {
-        return [entry];
-      }
-
-      const nextAmount = entry.duration.amount - 1;
-
-      if (nextAmount <= 0) {
-        return [];
-      }
-
-      return [
-        {
-          ...entry,
-          duration: {
-            kind: STATUS_DURATION_KIND.ROUNDS,
-            amount: nextAmount,
-            tickOn: normalizeStatusDurationRoundTick(entry.duration.tickOn)
-          }
+  return applyTensersTransformationAftermathToStatusEntries(
+    value,
+    pruneLinkedStatusEntries(
+      normalizeCharacterStatusEntries(value).flatMap((entry) => {
+        if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
+          return [entry];
         }
-      ];
-    })
+
+        if (normalizeStatusDurationRoundTick(entry.duration.tickOn) !== tickOn) {
+          return [entry];
+        }
+
+        const nextAmount = entry.duration.amount - 1;
+
+        if (nextAmount <= 0) {
+          return [];
+        }
+
+        return [
+          {
+            ...entry,
+            duration: {
+              kind: STATUS_DURATION_KIND.ROUNDS,
+              amount: nextAmount,
+              tickOn: normalizeStatusDurationRoundTick(entry.duration.tickOn)
+            }
+          }
+        ];
+      })
+    )
   );
 }
 
 export function applyShortRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter((entry) => {
-      switch (entry.duration.kind) {
-        case STATUS_DURATION_KIND.INFINITE:
-          return (
-            entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
-          );
-        case STATUS_DURATION_KIND.LONG_REST:
-          return true;
-        case STATUS_DURATION_KIND.HOURS:
-        case STATUS_DURATION_KIND.DAYS:
-          return entry.duration.amount >= 1;
-        case STATUS_DURATION_KIND.SHORT_REST:
-        case STATUS_DURATION_KIND.MINUTES:
-        case STATUS_DURATION_KIND.ROUNDS:
-        case STATUS_DURATION_KIND.CONCENTRATION:
-          return false;
-        case STATUS_DURATION_KIND.LINKED:
-          return true;
-        default:
-          return true;
-      }
-    })
+  return applyTensersTransformationAftermathToStatusEntries(
+    value,
+    pruneLinkedStatusEntries(
+      normalizeCharacterStatusEntries(value).filter((entry) => {
+        switch (entry.duration.kind) {
+          case STATUS_DURATION_KIND.INFINITE:
+            return (
+              entry.group !== STATUS_ENTRY_GROUP.EFFECTS ||
+              entry.value !== EFFECT_NAME.CONCENTRATION
+            );
+          case STATUS_DURATION_KIND.LONG_REST:
+            return true;
+          case STATUS_DURATION_KIND.HOURS:
+          case STATUS_DURATION_KIND.DAYS:
+            return entry.duration.amount >= 1;
+          case STATUS_DURATION_KIND.SHORT_REST:
+          case STATUS_DURATION_KIND.MINUTES:
+          case STATUS_DURATION_KIND.ROUNDS:
+          case STATUS_DURATION_KIND.CONCENTRATION:
+            return false;
+          case STATUS_DURATION_KIND.LINKED:
+            return true;
+          default:
+            return true;
+        }
+      })
+    )
   );
 }
 
 export function applyLongRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter(
-      (entry) =>
-        (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
-          entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
-          entry.duration.kind === STATUS_DURATION_KIND.DAYS) &&
-        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
+  return applyTensersTransformationAftermathToStatusEntries(
+    value,
+    pruneLinkedStatusEntries(
+      normalizeCharacterStatusEntries(value).filter(
+        (entry) =>
+          (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
+            entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
+            entry.duration.kind === STATUS_DURATION_KIND.DAYS) &&
+          (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
+      )
     )
   );
 }

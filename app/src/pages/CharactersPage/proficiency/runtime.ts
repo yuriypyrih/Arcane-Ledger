@@ -12,6 +12,7 @@ import type {
 } from "../../../types";
 import {
   ARMOR_PROFICIENCY,
+  PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SAVING_THROW_PROFICIENCY,
   SKILL_PROFICIENCY,
@@ -20,6 +21,7 @@ import {
 } from "../../../types";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
 import { getBorrowedKnowledgeSkillProficiencyEntriesForCharacter } from "../characterRuntime/spellImplementations/borrowedKnowledge";
+import { getTensersTransformationProficiencyCollectionsForCharacter } from "../characterRuntime/spellImplementations/tensersTransformation";
 import { languageProficiencyOptions, type ToolProficiency } from "../proficiencyOptions";
 import {
   mergeProficiencyEntries,
@@ -95,24 +97,63 @@ const emptyCollections: CharacterProficiencyCollections = {
   languageProficiencies: []
 };
 
+function stripRuntimeDerivedSpellEntries<
+  TEntry extends
+    | SkillProficiencyEntry
+    | SavingThrowProficiencyEntry
+    | WeaponProficiencyEntry
+    | ArmorProficiencyEntry
+    | ToolProficiencyEntry
+    | LanguageProficiencyEntry
+>(entries: readonly TEntry[]): TEntry[] {
+  return entries.filter((entry) => entry.source !== PROFICIENCY_SOURCE.SPELL);
+}
+
 function createCollections(
   character: ProficiencyRuntimeCharacter
 ): CharacterProficiencyCollections {
   const spellSkillProficiencies =
     getBorrowedKnowledgeSkillProficiencyEntriesForCharacter(character);
+  const tensersTransformationProficiencies =
+    getTensersTransformationProficiencyCollectionsForCharacter(character);
+  const storedSkillProficiencies = stripRuntimeDerivedSpellEntries(
+    character.skillProficiencies ?? emptyCollections.skillProficiencies
+  );
+  const storedSavingThrowProficiencies = stripRuntimeDerivedSpellEntries(
+    character.savingThrowProficiencies ?? emptyCollections.savingThrowProficiencies
+  );
+  const storedWeaponProficiencies = stripRuntimeDerivedSpellEntries(
+    character.weaponProficiencies ?? emptyCollections.weaponProficiencies
+  );
+  const storedArmorProficiencies = stripRuntimeDerivedSpellEntries(
+    character.armorProficiencies ?? emptyCollections.armorProficiencies
+  );
+  const storedToolProficiencies = stripRuntimeDerivedSpellEntries(
+    character.toolProficiencies ?? emptyCollections.toolProficiencies
+  );
+  const storedLanguageProficiencies = stripRuntimeDerivedSpellEntries(
+    character.languageProficiencies ?? emptyCollections.languageProficiencies
+  );
 
   return {
     skillProficiencies: mergeProficiencyEntries([
-      ...(character.skillProficiencies ?? emptyCollections.skillProficiencies),
+      ...storedSkillProficiencies,
       ...spellSkillProficiencies
     ]),
-    savingThrowProficiencies:
-      character.savingThrowProficiencies ?? emptyCollections.savingThrowProficiencies,
-    weaponProficiencies: character.weaponProficiencies ?? emptyCollections.weaponProficiencies,
-    armorProficiencies: character.armorProficiencies ?? emptyCollections.armorProficiencies,
-    toolProficiencies: character.toolProficiencies ?? emptyCollections.toolProficiencies,
-    languageProficiencies:
-      character.languageProficiencies ?? emptyCollections.languageProficiencies
+    savingThrowProficiencies: mergeProficiencyEntries([
+      ...storedSavingThrowProficiencies,
+      ...tensersTransformationProficiencies.savingThrowProficiencies
+    ]),
+    weaponProficiencies: mergeProficiencyEntries([
+      ...storedWeaponProficiencies,
+      ...tensersTransformationProficiencies.weaponProficiencies
+    ]),
+    armorProficiencies: mergeProficiencyEntries([
+      ...storedArmorProficiencies,
+      ...tensersTransformationProficiencies.armorProficiencies
+    ]),
+    toolProficiencies: storedToolProficiencies,
+    languageProficiencies: storedLanguageProficiencies
   };
 }
 

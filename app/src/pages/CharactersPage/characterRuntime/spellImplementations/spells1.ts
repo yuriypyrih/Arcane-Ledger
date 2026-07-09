@@ -37,6 +37,11 @@ import {
   getFalseLifeTemporaryHitPointsFromRoll
 } from "./falseLife";
 import {
+  falseLifeMaximizeTemporaryHitPointsOptionId,
+  mageArmorCastOnSelfOptionId,
+  mageArmorSpellId
+} from "./spells1Config";
+import {
   getGiftOfAlacrityCastOptions,
   getGiftOfAlacrityTargetFromOptions,
   getLongstriderCastOptions,
@@ -53,7 +58,6 @@ import {
   heroismStatusValue
 } from "./heroism";
 
-export const mageArmorSpellId = "spell-mage-armor";
 export const mageArmorStatusSourceId = "spell-mage-armor-self";
 export const mageArmorStatusValue = "Mage Armor";
 export const armorOfAgathysSpellId = "spell-armor-of-agathys";
@@ -67,8 +71,11 @@ export const shieldStatusValue = "Shield";
 export const shieldOfFaithSpellId = "spell-shield-of-faith";
 export const shieldOfFaithStatusValue = "Shield of Faith";
 export const shieldOfFaithTargetOptionId = "shieldOfFaithTarget";
-export const mageArmorCastOnSelfOptionId = "castOnSelf";
-export const falseLifeMaximizeTemporaryHitPointsOptionId = "maximizeTemporaryHitPoints";
+export {
+  falseLifeMaximizeTemporaryHitPointsOptionId,
+  mageArmorCastOnSelfOptionId,
+  mageArmorSpellId
+} from "./spells1Config";
 
 const armorOfAgathysTemporaryHitPointsPerSpellLevel = 5;
 const commonActionDashActionKey = "common-action-dash";

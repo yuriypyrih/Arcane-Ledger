@@ -998,11 +998,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "clear-temporary-hit-points",
             label: "Remove Temporary Hit Points",
-            apply: (currentCharacter: Character) => ({
-              ...currentCharacter,
-              temporaryHitPoints: 0,
-              temporaryHitPointsSource: undefined
-            })
+            apply: (currentCharacter: Character) =>
+              reconcileCharacterStatusConsequences({
+                ...currentCharacter,
+                temporaryHitPoints: 0,
+                temporaryHitPointsSource: undefined
+              })
           } satisfies RestOption
         ]
       : []),

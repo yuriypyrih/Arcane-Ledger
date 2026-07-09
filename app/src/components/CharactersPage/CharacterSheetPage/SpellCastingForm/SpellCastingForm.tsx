@@ -203,6 +203,7 @@ import {
   applySpellImplementationForCharacter,
   getSpellImplementationStatusOptionsForCharacter,
   getSpellImplementationRollEffectsForCharacter,
+  hasActiveTensersTransformationStatus,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
@@ -1212,7 +1213,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellSupportsPhantasmalCreatures =
     selectedSpellPhantasmalCreaturesOptionState !== null;
   const selectedSpellCanIgnoreSpellcastingBlock =
-    selectedSpell !== null && druidCircleOfTheMoonSpellIds.includes(selectedSpell.id);
+    selectedSpell !== null &&
+    druidCircleOfTheMoonSpellIds.includes(selectedSpell.id) &&
+    !hasActiveTensersTransformationStatus(character);
   const selectedSpellPsionicSorcerySlotLevel =
     selectedSpell && getSpellLevel(selectedSpell) > 0
       ? clampNumber(

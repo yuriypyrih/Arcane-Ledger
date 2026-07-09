@@ -120,6 +120,38 @@ export {
   heroismTemporaryHitPointsSource
 } from "./heroism";
 export {
+  applySylunesViperTemporaryHitPointsToCharacter,
+  getSylunesViperSpeedBonusesForCharacter,
+  getSylunesViperTemporaryHitPoints,
+  hasActiveSylunesViperBenefitsForCharacter,
+  hasActiveSylunesViperStatus,
+  hasActiveSylunesViperTemporaryHitPoints,
+  isActiveSylunesViperStatusEntry,
+  normalizeSylunesViperSourceSpellSlotLevel,
+  reconcileSylunesViperStatusForCharacter,
+  sylunesViperSpellId,
+  sylunesViperStatusValue,
+  sylunesViperTemporaryHitPointsSource
+} from "./sylunesViper";
+export {
+  getGuardianOfNatureSavingThrowIndicatorsForCharacter,
+  getGuardianOfNatureSpeedBonusesForCharacter,
+  getGuardianOfNatureSpellDerivedStatusEntriesForCharacter,
+  getGuardianOfNatureStatusOptionLabel,
+  getGuardianOfNatureWeaponAttackIndicatorsForCharacter,
+  getGuardianOfNatureWeaponDamageBonusesForCharacter,
+  guardianOfNatureFormOptionId,
+  guardianOfNatureGreatTreeStatusSourceId,
+  guardianOfNatureGreatTreeTemporaryHitPointsSource,
+  guardianOfNaturePrimalBeastStatusSourceId,
+  guardianOfNatureSpellId,
+  guardianOfNatureStatusValue,
+  hasActiveGuardianOfNatureGreatTreeStatus,
+  hasActiveGuardianOfNaturePrimalBeastStatus,
+  hasActiveGuardianOfNatureStatus,
+  isActiveGuardianOfNatureStatusEntry
+} from "./guardianOfNature";
+export {
   applyShillelaghDamageDice,
   getShillelaghDamageAdjustmentForWeapon,
   getShillelaghDamageDiceForLevel,
@@ -145,6 +177,52 @@ export {
   trueStrikeStatusSourceId,
   trueStrikeStatusValue
 } from "./trueStrike";
+export {
+  draconicTransformationBlindsightRangeFeet,
+  draconicTransformationBlindsightStatusSourceId,
+  draconicTransformationBreathWeaponActionKey,
+  draconicTransformationFlySpeed,
+  draconicTransformationSpellId,
+  draconicTransformationStatusValue,
+  getDraconicTransformationActionsForCharacter,
+  getDraconicTransformationSpeedBonusesForCharacter,
+  getDraconicTransformationSpellDerivedStatusEntriesForCharacter,
+  hasActiveDraconicTransformationStatus,
+  isActiveDraconicTransformationStatusEntry
+} from "./draconicTransformation";
+export {
+  getTashasOtherworldlyGuiseArmorClassBonusesForCharacter,
+  getTashasOtherworldlyGuiseSpeedBonusesForCharacter,
+  getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon,
+  getTashasOtherworldlyGuiseSpellDerivedStatusEntriesForCharacter,
+  getTashasOtherworldlyGuiseStatusOptionLabel,
+  hasActiveTashasOtherworldlyGuiseStatus,
+  isActiveTashasOtherworldlyGuiseStatusEntry,
+  tashasOtherworldlyGuiseLowerPlanesStatusSourceId,
+  tashasOtherworldlyGuisePlaneOptionId,
+  tashasOtherworldlyGuiseSpellId,
+  tashasOtherworldlyGuiseStatusValue,
+  tashasOtherworldlyGuiseUpperPlanesStatusSourceId
+} from "./tashasOtherworldlyGuise";
+export {
+  applyTensersTransformationTemporaryHitPointsToCharacter,
+  getTensersTransformationArmorProficiencyEntriesForCharacter,
+  getTensersTransformationProficiencyCollectionsForCharacter,
+  getTensersTransformationSavingThrowProficiencyEntriesForCharacter,
+  getTensersTransformationSpellcastingStateForCharacter,
+  getTensersTransformationWeaponAttackIndicatorsForCharacter,
+  getTensersTransformationWeaponDamageBonusesForCharacter,
+  getTensersTransformationWeaponProficiencyEntriesForCharacter,
+  hasActiveTensersTransformationStatus,
+  hasActiveTensersTransformationTemporaryHitPoints,
+  isActiveTensersTransformationStatusEntry,
+  reconcileTensersTransformationStatusForCharacter,
+  tensersTransformationExhaustionNote,
+  tensersTransformationSpellId,
+  tensersTransformationStatusValue,
+  tensersTransformationTemporaryHitPoints,
+  tensersTransformationTemporaryHitPointsSource
+} from "./tensersTransformation";
 
 type ApplySpellImplementationForCharacterContext = Pick<
   SpellImplementationApplyContext,

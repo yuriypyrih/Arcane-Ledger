@@ -1,9 +1,11 @@
 import type { Character } from "../../../../types";
-import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
-
-export const falseLifeSpellId = "spell-false-life";
-export const falseLifeTemporaryHitPointsSource = "False Life";
-export const fiendishVigorTemporaryHitPointsSource = "Fiendish Vigor";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime/bountifulHealth";
+import { falseLifeTemporaryHitPointsSource } from "./falseLifeConfig";
+export {
+  falseLifeSpellId,
+  falseLifeTemporaryHitPointsSource,
+  fiendishVigorTemporaryHitPointsSource
+} from "./falseLifeConfig";
 
 const falseLifeBaseBonus = 4;
 const falseLifeUpcastBonusPerLevel = 5;

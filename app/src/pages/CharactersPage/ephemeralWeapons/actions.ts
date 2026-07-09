@@ -78,6 +78,10 @@ export function createEphemeralWeaponAction(
   definition: EphemeralWeaponDefinition,
   context: EphemeralWeaponActionContext = {}
 ): WeaponAction | null {
+  if (definition.isAvailable && !definition.isAvailable(character, context)) {
+    return null;
+  }
+
   const damage =
     context.damage ?? definition.getDamage?.(character, context) ?? definition.damage ?? null;
 

@@ -9,7 +9,7 @@ import {
   type CharacterStatusSpellTarget
 } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
-import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime/bountifulHealth";
 import { getSpellcastingAbilityForCharacterSpell } from "../../shared/spellcastingAbility";
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import type {

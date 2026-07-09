@@ -1,3 +1,6 @@
-import type { SpellImplementation } from "./types";
+import { compileSpellImplementationContributions } from "./contributions";
+import { sylunesViperSpellImplementationSpec } from "./sylunesViper";
 
-export const spellImplementations3: SpellImplementation[] = [];
+export const spellImplementations3 = compileSpellImplementationContributions([
+  sylunesViperSpellImplementationSpec
+]);

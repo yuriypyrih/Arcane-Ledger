@@ -20,17 +20,32 @@ const FRHOF_SPELL_SOURCE: SpellEntry["source"] = {
   publisherKey: "wizards-of-the-coast"
 };
 
-function createFrhofSpellEntry(
-  entry: Omit<SpellEntry, "category" | "source" | "trackingState" | "trackingMessage">
-): SpellEntry {
+type FrhofSpellEntryInput = Omit<
+  SpellEntry,
+  "category" | "source" | "trackingState" | "trackingMessage"
+> &
+  Partial<Pick<SpellEntry, "trackingState" | "trackingMessage">>;
+
+function createFrhofSpellEntry(entry: FrhofSpellEntryInput): SpellEntry {
   const shouldSemiTrackDuration = shouldSemiTrackSpellDuration(entry.duration);
+  const {
+    trackingState: requestedTrackingState,
+    trackingMessage: requestedTrackingMessage,
+    ...spellEntry
+  } = entry;
+  const trackingState =
+    requestedTrackingState ??
+    (shouldSemiTrackDuration ? TRACKER.SEMI_TRACKED : TRACKER.NOT_TRACKED);
+  const trackingMessage =
+    requestedTrackingMessage ??
+    (trackingState === TRACKER.SEMI_TRACKED ? spellDurationOnlyTrackingMessage : undefined);
 
   return {
-    ...entry,
+    ...spellEntry,
     category: ENTRY_CATEGORIES.SPELLS,
     source: FRHOF_SPELL_SOURCE,
-    trackingState: shouldSemiTrackDuration ? TRACKER.SEMI_TRACKED : TRACKER.NOT_TRACKED,
-    ...(shouldSemiTrackDuration ? { trackingMessage: spellDurationOnlyTrackingMessage } : {})
+    trackingState,
+    ...(trackingMessage ? { trackingMessage } : {})
   };
 }
 
@@ -534,7 +549,8 @@ export const sylunesViper = createFrhofSpellEntry({
   damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 3
+  spellLevel: 3,
+  trackingState: TRACKER.TRACKED
 });
 
 export const wardaway = createFrhofSpellEntry({
