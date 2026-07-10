@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexDisclosureList from "../../components/CodexPage/CodexDisclosureList";
@@ -611,6 +612,24 @@ function CodexPage() {
     },
     [searchParams, setSearchParams, totalPages]
   );
+  const handleResetFilters = useCallback(() => {
+    const nextSearchParams = new URLSearchParams();
+
+    if (category !== ENTRY_CATEGORIES.CLASSES) {
+      nextSearchParams.set("category", category);
+    }
+
+    if (
+      category === ENTRY_CATEGORIES.ITEMS &&
+      sanitizedItemFilters.tab !== DEFAULT_ITEM_BROWSER_TAB
+    ) {
+      nextSearchParams.set(ITEM_TAB_PARAM, sanitizedItemFilters.tab);
+    }
+
+    setSearchResetSignal((currentSignal) => currentSignal + 1);
+    setSelectedSpell(null);
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [category, sanitizedItemFilters.tab, setSearchParams]);
   const handleSpellSelect = useCallback((spell: SpellEntry) => {
     setSelectedSpell(spell);
   }, []);
@@ -620,12 +639,25 @@ function CodexPage() {
   const isItemCategory = category === ENTRY_CATEGORIES.ITEMS;
   const isBackgroundCategory = category === ENTRY_CATEGORIES.BACKGROUNDS;
   const isSpeciesCategory = category === ENTRY_CATEGORIES.SPECIES;
+  const hasActiveFilters = Array.from(searchParams.keys()).some(
+    (key) => key !== "category" && !(category === ENTRY_CATEGORIES.ITEMS && key === ITEM_TAB_PARAM)
+  );
 
   return (
     <section className={styles.page}>
       <div className={styles.panel}>
         <div className={styles.header}>
           <h2 className={styles.title}>Compendium</h2>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              className={styles.resetFiltersButton}
+              onClick={handleResetFilters}
+            >
+              <RotateCcw size={15} strokeWidth={2.2} aria-hidden="true" />
+              Reset filters
+            </button>
+          ) : null}
         </div>
 
         <CodexFilters

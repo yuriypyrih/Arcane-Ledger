@@ -123,7 +123,7 @@ function CodexResults({
 
       {status === "ready" && entries.length === 0 ? (
         <div className={styles.grid}>
-          <article className={styles.card}>
+          <article className={clsx(styles.card, styles.fullWidthCard)}>
             <h4>No matches</h4>
             <p>Try a different search or switch the category filter.</p>
           </article>

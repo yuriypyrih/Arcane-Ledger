@@ -11,7 +11,10 @@ import {
   TRACKER
 } from "../../entries/enums";
 import type { SpellEntry } from "../../entries/types";
-import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
+import {
+  spellDurationDefensesAndSpeedTrackingMessage,
+  spellDurationOnlyTrackingMessage
+} from "../trackingMessages";
 
 export const arcaneGate: SpellEntry = {
   id: "spell-arcane-gate",
@@ -838,7 +841,7 @@ export const investitureOfFlame: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingMessage: spellDurationDefensesAndSpeedTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -886,7 +889,7 @@ export const investitureOfIce: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingMessage: spellDurationDefensesAndSpeedTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -934,7 +937,7 @@ export const investitureOfStone: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingMessage: spellDurationDefensesAndSpeedTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -975,7 +978,7 @@ export const investitureOfWind: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingMessage: spellDurationDefensesAndSpeedTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",

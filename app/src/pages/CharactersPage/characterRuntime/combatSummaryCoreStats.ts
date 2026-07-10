@@ -10,6 +10,7 @@ import {
   type FeatureIndicator
 } from "../classFeatures";
 import { getArtificerCartographerPortalJumpSpeedDescriptionAdditions } from "../classFeatures/artificer/artificer";
+import { getInvestitureSpeedDescriptionAdditionsForCharacter } from "./spellImplementations/investitures";
 import { getFeatureDescriptionForCharacter } from "../classFeatures/featureDescriptions";
 import { getInitiativeReferenceDescriptionAdditions } from "../classFeatures/initiativeDescriptionSections";
 import { getMonkFeatureDescriptionAdditions } from "../classFeatures/monk/contributions";
@@ -371,6 +372,7 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
   descriptionAdditions.push(
     ...getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character)
   );
+  descriptionAdditions.push(...getInvestitureSpeedDescriptionAdditionsForCharacter(character));
   descriptionAdditions.push(
     ...getSpeciesDescriptionAdditionsForCharacter(character, "stat", "speed")
   );
@@ -412,6 +414,8 @@ export function createBaseCoreStatCards(
   const characterCanHover = canCharacterHover(character);
   const hasPortalJumpSpeedDescription =
     getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character).length > 0;
+  const hasInvestitureSpeedDescription =
+    getInvestitureSpeedDescriptionAdditionsForCharacter(character).length > 0;
   const hasAcrobaticMovement =
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ACROBATIC_MOVEMENT).length > 0;
   const cards = fields.map((field) => {
@@ -432,7 +436,10 @@ export function createBaseCoreStatCards(
       value: displayedCoreStats[field.key],
       showBoostIcon:
         field.label === "Speed" &&
-        (hasModifiedSpecialMovement || hasAcrobaticMovement || hasPortalJumpSpeedDescription),
+        (hasModifiedSpecialMovement ||
+          hasAcrobaticMovement ||
+          hasPortalJumpSpeedDescription ||
+          hasInvestitureSpeedDescription),
       indicators: coreStatIndicators[field.key],
       summaryText: getKeywordDescription(field.label) ?? undefined,
       detailCards:

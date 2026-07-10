@@ -142,10 +142,13 @@ function StatusEntryDrawer({
     getStatusEntryDescriptionContent(entry, character);
   const isSpellStatusEntry =
     typeof entry.sourceSpellId === "string" && entry.sourceSpellId.trim().length > 0;
+  const shouldShowSpellSlotFact =
+    isSpellStatusEntry && entry.group === STATUS_ENTRY_GROUP.EFFECTS;
   const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
   const optionLabel = isSpellStatusEntry ? getStatusEntryOptionLabel(entry) : null;
   const spellFormulas = entry.spellFormulas ?? [];
-  const shouldUseTwoFactLayout = !isSpellStatusEntry && !isExhaustionEntry;
+  const shouldUseTwoFactLayout =
+    !shouldShowSpellSlotFact && !targetLabel && !optionLabel && !isExhaustionEntry;
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const footerActions: FooterAction[] = isEditingDuration
@@ -331,7 +334,7 @@ function StatusEntryDrawer({
             )}
           >
             <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />
-            {isSpellStatusEntry ? (
+            {shouldShowSpellSlotFact ? (
               <CellContainer label="Spell Slot" content={getStatusEntrySpellSlotLabel(entry)} />
             ) : null}
             {targetLabel ? <CellContainer label="Target" content={targetLabel} /> : null}
@@ -340,7 +343,9 @@ function StatusEntryDrawer({
               label="Source"
               content={getStatusEntrySourceLabel(entry)}
               className={
-                isSpellStatusEntry && !targetLabel && !optionLabel ? styles.sourceFact : undefined
+                shouldShowSpellSlotFact && !targetLabel && !optionLabel
+                  ? styles.sourceFact
+                  : undefined
               }
             />
             {spellFormulas.map((formula) => (

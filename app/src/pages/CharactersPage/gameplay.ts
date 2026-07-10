@@ -40,6 +40,11 @@ import {
   hasDivineFavorStatus
 } from "./characterRuntime/spellImplementations/spells1";
 import { getGiftOfAlacrityInitiativeBonusesForCharacter } from "./characterRuntime/spellImplementations/giftOfAlacrityLongstrider";
+import {
+  fountOfMoonlightSpellId,
+  getFountOfMoonlightWeaponDamageBonusesForCharacter,
+  hasActiveFountOfMoonlightStatus
+} from "./characterRuntime/spellImplementations/fountOfMoonlight";
 import { getGuardianOfNatureWeaponDamageBonusesForCharacter } from "./characterRuntime/spellImplementations/guardianOfNature";
 import {
   getShillelaghDamageAdjustmentForWeapon,
@@ -890,6 +895,12 @@ export function createWeaponAction(
       : getDivineFavorWeaponDamageBonusesForCharacter(character)),
     ...(options.skipFeatureDerivedLookups
       ? []
+      : getFountOfMoonlightWeaponDamageBonusesForCharacter(character, {
+          attackKind: options.attackKind,
+          combatType: options.combatType ?? null
+        })),
+    ...(options.skipFeatureDerivedLookups
+      ? []
       : getGuardianOfNatureWeaponDamageBonusesForCharacter(character, {
           attackKind: options.attackKind,
           combatType: options.combatType ?? null
@@ -932,6 +943,9 @@ export function createWeaponAction(
     ...(options.descriptionAdditions ?? []),
     ...(!options.skipFeatureDerivedLookups && hasDivineFavorStatus(character.statusEntries)
       ? [getSpellDescriptionAddition(divineFavorSpellId)]
+      : []),
+    ...(!options.skipFeatureDerivedLookups && hasActiveFountOfMoonlightStatus(character)
+      ? [getSpellDescriptionAddition(fountOfMoonlightSpellId)]
       : [])
   ].filter((section) => section.length > 0);
   const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);

@@ -134,6 +134,17 @@ export {
   sylunesViperTemporaryHitPointsSource
 } from "./sylunesViper";
 export {
+  fountOfMoonlightRadiantResistanceStatusSourceId,
+  fountOfMoonlightReactionEntryId,
+  fountOfMoonlightSpellId,
+  fountOfMoonlightStatusValue,
+  getFountOfMoonlightReactionEntriesForCharacter,
+  getFountOfMoonlightSpellDerivedStatusEntriesForCharacter,
+  getFountOfMoonlightWeaponDamageBonusesForCharacter,
+  hasActiveFountOfMoonlightStatus,
+  isActiveFountOfMoonlightStatusEntry
+} from "./fountOfMoonlight";
+export {
   getGuardianOfNatureSavingThrowIndicatorsForCharacter,
   getGuardianOfNatureSpeedBonusesForCharacter,
   getGuardianOfNatureSpellDerivedStatusEntriesForCharacter,

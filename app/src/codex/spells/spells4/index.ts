@@ -793,6 +793,39 @@ export const fireShield: SpellEntry = {
   spellLevel: 4
 };
 
+export const fountOfMoonlight: SpellEntry = {
+  id: "spell-fount-of-moonlight",
+  name: "Fount of Moonlight",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: {
+    documentKey: "phb-2024",
+    documentName: "Player's Handbook",
+    ruleset: "5e-2024",
+    publisherKey: "wizards-of-the-coast"
+  },
+  trackingState: TRACKER.TRACKED,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "Self",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
+  description: [
+    "A cool light wreathes your body for the duration, emitting Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.",
+    "Until the spell ends, you have Resistance to Radiant damage, and your melee attacks deal an extra <strong>2d6</strong> Radiant damage on a hit.",
+    "In addition, immediately after you take damage from a creature you can see within 60 feet of yourself, you can take a Reaction to force the creature to make a Constitution saving throw. On a failed save, the creature has the Blinded condition until the end of your next turn."
+  ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.RADIANT],
+    [DICE.D6, DAMAGE_TYPE.RADIANT]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
+  spellLevel: 4
+};
+
 export const freedomOfMovement: SpellEntry = {
   id: "spell-freedom-of-movement",
   name: "Freedom of Movement",
@@ -1940,6 +1973,7 @@ export const spellEntries4: SpellEntry[] = [
   faithfulHound,
   findGreaterSteed,
   fireShield,
+  fountOfMoonlight,
   freedomOfMovement,
   galdersSpeedyCourier,
   gateSeal,

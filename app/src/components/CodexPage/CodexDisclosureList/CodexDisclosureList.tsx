@@ -209,7 +209,7 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
 
       {status === "ready" && categoryEntries.length === 0 ? (
         <div className={resultStyles.grid}>
-          <article className={resultStyles.card}>
+          <article className={`${resultStyles.card} ${resultStyles.fullWidthCard}`}>
             <h4>No matches</h4>
             <p>Try a different search or switch the category filter.</p>
           </article>

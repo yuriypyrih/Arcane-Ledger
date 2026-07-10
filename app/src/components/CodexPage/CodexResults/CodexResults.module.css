@@ -87,6 +87,10 @@
   padding: var(--space-card-padding);
 }
 
+.fullWidthCard {
+  grid-column: 1 / -1;
+}
+
 .classCard {
   --class-card-text-backdrop: linear-gradient(
     90deg,

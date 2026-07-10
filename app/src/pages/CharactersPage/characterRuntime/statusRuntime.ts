@@ -29,8 +29,13 @@ import {
 } from "../species";
 import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
 import { getDraconicTransformationSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/draconicTransformation";
+import {
+  getFountOfMoonlightReactionEntriesForCharacter,
+  getFountOfMoonlightSpellDerivedStatusEntriesForCharacter
+} from "./spellImplementations/fountOfMoonlight";
 import { getGuardianOfNatureSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/guardianOfNature";
 import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
+import { getInvestitureSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/investitures";
 import { getInvulnerabilitySpellDerivedStatusEntriesForCharacter } from "./spellImplementations/spells9";
 import { getTashasOtherworldlyGuiseSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/tashasOtherworldlyGuise";
 import { getCharacterCustomTraitEffectInput } from "./customEffectRuntime";
@@ -317,7 +322,8 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const featureReactionEntries = [
     ...getFeatureReactionEntriesForCharacter(character),
     ...getFeatReactionEntriesForCharacter(character),
-    ...getSpeciesReactionEntriesForCharacter(character)
+    ...getSpeciesReactionEntriesForCharacter(character),
+    ...getFountOfMoonlightReactionEntriesForCharacter(character)
   ];
   const featureReactionEntriesByStatusId =
     createFeatureReactionEntriesByStatusId(featureReactionEntries);
@@ -334,8 +340,10 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const spellDerivedStatusEntries = [
     ...getDarkvisionSpellDerivedStatusEntriesForCharacter(character),
     ...getDraconicTransformationSpellDerivedStatusEntriesForCharacter(character),
+    ...getFountOfMoonlightSpellDerivedStatusEntriesForCharacter(character),
     ...getGuardianOfNatureSpellDerivedStatusEntriesForCharacter(character),
     ...getHeroismSpellDerivedStatusEntriesForCharacter(character),
+    ...getInvestitureSpellDerivedStatusEntriesForCharacter(character),
     ...getTashasOtherworldlyGuiseSpellDerivedStatusEntriesForCharacter(character),
     ...getInvulnerabilitySpellDerivedStatusEntriesForCharacter(character)
   ];
