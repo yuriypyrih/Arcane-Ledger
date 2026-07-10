@@ -154,11 +154,19 @@ function useResponsiveStatusColumnCap() {
 }
 
 function hasStatusEntryNotes(entry: CharacterStatusEntry): boolean {
+  if (entry.noteCharges) {
+    return true;
+  }
+
   return typeof entry.notes === "string"
     ? sanitizeUserInput(entry.notes, { multiline: true })
         .slice(0, DEFAULT_TEXTAREA_MAX_LENGTH)
         .trim().length > 0
     : false;
+}
+
+function getStatusEntryNoteChargesLabel(entry: CharacterStatusEntry): string | null {
+  return entry.noteCharges ? `${entry.noteCharges.current}/${entry.noteCharges.max}` : null;
 }
 
 function TraitsConditionsSections({
@@ -185,6 +193,7 @@ function TraitsConditionsSections({
             const roundSuffix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? ">" : "";
             const hasDescriptionAdditions = hasStatusEntryDescriptionAdditions(entry);
             const hasNotes = hasStatusEntryNotes(entry);
+            const noteChargesLabel = getStatusEntryNoteChargesLabel(entry);
             const statusTitle = getStatusEntryTitle(entry);
             const displayTitle =
               entry.group === STATUS_ENTRY_GROUP.RESISTANCES ||
@@ -251,10 +260,19 @@ function TraitsConditionsSections({
                           {hasNotes ? (
                             <span
                               className={styles.notesIndicator}
-                              title="Has notes"
-                              aria-label="Has notes"
+                              title={
+                                noteChargesLabel ? `Has notes: ${noteChargesLabel}` : "Has notes"
+                              }
+                              aria-label={
+                                noteChargesLabel ? `Has notes: ${noteChargesLabel}` : "Has notes"
+                              }
                             >
                               <ScrollText size={14} aria-hidden="true" />
+                              {noteChargesLabel ? (
+                                <span className={styles.notesChargeText}>
+                                  {noteChargesLabel}
+                                </span>
+                              ) : null}
                             </span>
                           ) : null}
                         </span>

@@ -65,8 +65,11 @@
   justify-self: start;
 }
 
-.notesCancelAction.notesCancelAction {
-  color: var(--theme-state-danger);
+.notesFooterButtonRow {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
 }
 
 .notesInlineHeader {
@@ -95,6 +98,71 @@
   min-height: 118px;
   resize: vertical;
   width: 100%;
+}
+
+.noteChargesEditor {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.noteChargesControls {
+  display: grid;
+  align-items: end;
+  column-gap: 1rem;
+  grid-template-columns: auto auto;
+  justify-content: start;
+}
+
+.noteChargesMaxField {
+  display: grid;
+  gap: 0.22rem;
+  width: 5.8rem;
+}
+
+.noteChargesMaxLabel {
+  color: var(--theme-text-muted, rgba(75, 47, 29, 0.74));
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.noteChargesMaxInput {
+  min-height: 36px;
+  padding: 0 0.68rem;
+}
+
+.noteChargesStepper {
+  display: grid;
+  align-items: center;
+  gap: 0.2rem;
+  grid-template-columns: repeat(2, auto) minmax(4.35rem, auto) repeat(2, auto);
+}
+
+.noteChargesIconButton.noteChargesIconButton {
+  border-radius: var(--radius-control);
+  height: 36px;
+  min-height: 36px;
+  min-width: 36px;
+  width: 36px;
+}
+
+.noteChargesCurrent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  min-height: 36px;
+  min-width: 4.35rem;
+  white-space: nowrap;
+}
+
+.noteChargesReadout {
+  font-weight: 700;
 }
 
 .footer {

@@ -1,6 +1,18 @@
 import clsx from "clsx";
-import { Pencil, Save, ScrollText, X } from "lucide-react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  Minus,
+  Pencil,
+  Plus,
+  Save,
+  ScrollText,
+  Undo2
+} from "lucide-react";
 import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../../../../../constants/inputLimits";
+import { STATUS_NOTE_CHARGES_MAX } from "../../../../../../pages/CharactersPage/statusEntries";
+import ActionButton from "../../../../../ActionButton";
+import NumberInput from "../../../../FormInputs/NumberInput";
 import TextAreaInput from "../../../../FormInputs/TextAreaInput";
 import InlineToggleButton from "../../../InlineToggleButton";
 import styles from "./StatusEntryDrawer.module.css";
@@ -31,20 +43,103 @@ export function TraitNotesBody({ editor, className }: TraitNotesBodyProps) {
           maxLength={DEFAULT_TEXTAREA_MAX_LENGTH}
           onChange={(event) => editor.setDraftNotes(event.target.value)}
         />
+        <div className={styles.noteChargesEditor}>
+          <div className={styles.noteChargesControls} role="group" aria-label="Note charges">
+            <label className={styles.noteChargesMaxField}>
+              <span className={styles.noteChargesMaxLabel}>Max Charges</span>
+              <NumberInput
+                min={0}
+                max={STATUS_NOTE_CHARGES_MAX}
+                value={editor.draftChargesMax}
+                className={styles.noteChargesMaxInput}
+                aria-label="Maximum note charges"
+                onChange={(event) => editor.setDraftChargesMax(event.target.value)}
+              />
+            </label>
+            <div className={styles.noteChargesStepper}>
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="ERROR"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<ChevronsLeft size={15} aria-hidden="true" />}
+                onClick={editor.setDraftChargesToMinimum}
+                disabled={!editor.canClearDraftCharges}
+                aria-label="Set note charges to zero"
+                title="Set note charges to zero"
+              />
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="ERROR"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<Minus size={15} aria-hidden="true" />}
+                onClick={() => editor.adjustDraftCharges(-1)}
+                disabled={!editor.canDecreaseDraftCharges}
+                aria-label="Use 1 note charge"
+                title="Use 1 note charge"
+              />
+              <span className={styles.noteChargesCurrent} aria-live="polite">
+                {editor.draftChargesCurrent}/{editor.draftChargesMaxValue}
+              </span>
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="INFO"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<Plus size={15} aria-hidden="true" />}
+                onClick={() => editor.adjustDraftCharges(1)}
+                disabled={!editor.canIncreaseDraftCharges}
+                aria-label="Recover 1 note charge"
+                title="Recover 1 note charge"
+              />
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="INFO"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<ChevronsRight size={15} aria-hidden="true" />}
+                onClick={editor.setDraftChargesToMaximum}
+                disabled={!editor.canFillDraftCharges}
+                aria-label="Set note charges to maximum"
+                title="Set note charges to maximum"
+              />
+            </div>
+          </div>
+        </div>
       </section>
     );
   }
 
-  if (editor.hasSavedNotes) {
+  if (editor.hasSavedNoteMetadata) {
     return (
       <section className={clsx(styles.notesSection, className)}>
-        <p className={styles.notesText}>
-          <span className={styles.notesInlineHeader}>
-            <ScrollText size={14} aria-hidden="true" />
-            <span className={styles.notesInlineLabel}>NOTES:</span>
-          </span>{" "}
-          {editor.savedNotes}
-        </p>
+        {editor.hasSavedNotes ? (
+          <p className={styles.notesText}>
+            <span className={styles.notesInlineHeader}>
+              <ScrollText size={14} aria-hidden="true" />
+              <span className={styles.notesInlineLabel}>NOTES:</span>
+            </span>{" "}
+            {editor.savedNotes}
+          </p>
+        ) : null}
+        {editor.savedNoteCharges ? (
+          <p className={clsx(styles.notesText, styles.noteChargesReadout)}>
+            <span className={styles.notesInlineHeader}>
+              <ScrollText size={14} aria-hidden="true" />
+              <span className={styles.notesInlineLabel}>CHARGES:</span>
+            </span>{" "}
+            {editor.savedNoteCharges.current}/{editor.savedNoteCharges.max}
+          </p>
+        ) : null}
       </section>
     );
   }
@@ -52,25 +147,29 @@ export function TraitNotesBody({ editor, className }: TraitNotesBodyProps) {
   return null;
 }
 
-export function TraitNotesFooterControls({
-  editor,
-  className
-}: TraitNotesFooterControlsProps) {
+export function TraitNotesFooterControls({ editor, className }: TraitNotesFooterControlsProps) {
   if (editor.isEditing) {
     return (
-      <div className={clsx(styles.notesActionRow, styles.notesFooterActionRow, className)}>
-        <InlineToggleButton
-          label="Save"
+      <div className={clsx(styles.notesFooterButtonRow, className)}>
+        <ActionButton
+          className={styles.footerActionButton}
+          actionType="INFO"
+          variant="FILL"
           icon={<Save size={15} aria-hidden="true" />}
           onClick={editor.saveNotes}
           disabled={!editor.canSave}
-        />
-        <InlineToggleButton
-          className={styles.notesCancelAction}
-          label="Cancel"
-          icon={<X size={15} aria-hidden="true" />}
+        >
+          Save
+        </ActionButton>
+        <ActionButton
+          className={styles.footerActionButton}
+          actionType="INFO"
+          variant="OUTLINE"
+          icon={<Undo2 size={15} aria-hidden="true" />}
           onClick={editor.cancelEditing}
-        />
+        >
+          Cancel
+        </ActionButton>
       </div>
     );
   }
@@ -78,9 +177,9 @@ export function TraitNotesFooterControls({
   return (
     <div className={clsx(styles.notesActionRow, styles.notesFooterActionRow, className)}>
       <InlineToggleButton
-        label={editor.hasSavedNotes ? "Edit Notes" : "Add Notes"}
+        label={editor.hasSavedNoteMetadata ? "Edit Notes" : "Add Notes"}
         icon={
-          editor.hasSavedNotes ? (
+          editor.hasSavedNoteMetadata ? (
             <Pencil size={15} aria-hidden="true" />
           ) : (
             <ScrollText size={15} aria-hidden="true" />

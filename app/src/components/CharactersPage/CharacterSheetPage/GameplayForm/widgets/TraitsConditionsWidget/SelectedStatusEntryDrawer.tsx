@@ -52,7 +52,11 @@ import {
   getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula,
   paladinOathOfDevotionHolyNimbusStatusSourceId
 } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
-import type { Character, CharacterStatusEntry } from "../../../../../../types";
+import type {
+  Character,
+  CharacterStatusEntry,
+  CharacterStatusEntryNoteCharges
+} from "../../../../../../types";
 import { type ExhaustionLevel } from "../../../../../../pages/CharactersPage/traits";
 import CustomTraitEffectList from "./CustomTraitEffectList";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
@@ -84,7 +88,11 @@ type SelectedStatusEntryDrawerProps = {
   openDiceRoller: (request: DiceRollerRequest) => void;
   removeStatusEntry: (entry: CharacterStatusEntry) => void;
   roundTracker: ReturnType<typeof normalizeRoundTracker>;
-  saveStatusEntryNotes: (entry: CharacterStatusEntry, notes: string) => void;
+  saveStatusEntryNotes: (
+    entry: CharacterStatusEntry,
+    notes: string,
+    noteCharges?: CharacterStatusEntryNoteCharges
+  ) => void;
   selectedExhaustionLevel: number | null;
   selectedReactionEntry: ReactionEntry | null;
   selectedReactionSpell: SpellEntry | null;

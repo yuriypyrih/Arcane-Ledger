@@ -14,7 +14,10 @@ import {
   reconcileCharacterStatusConsequences,
   type ExhaustionLevel
 } from "../../../../../../pages/CharactersPage/traits";
-import type { CharacterStatusEntry } from "../../../../../../types";
+import type {
+  CharacterStatusEntry,
+  CharacterStatusEntryNoteCharges
+} from "../../../../../../types";
 import { STATUS_ENTRY_SOURCE_TYPE } from "../../../../../../types";
 import {
   createManualStatusDuration,
@@ -132,11 +135,20 @@ export function useStatusDrawerState({
     setIsEditingStatusDuration(false);
   }
 
-  function saveStatusEntryNotes(entry: CharacterStatusEntry, notes: string) {
+  function saveStatusEntryNotes(
+    entry: CharacterStatusEntry,
+    notes: string,
+    noteCharges?: CharacterStatusEntryNoteCharges
+  ) {
     onPersistCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        statusEntries: updateCharacterStatusEntryNotes(currentCharacter.statusEntries, entry, notes)
+        statusEntries: updateCharacterStatusEntryNotes(
+          currentCharacter.statusEntries,
+          entry,
+          notes,
+          noteCharges
+        )
       }),
       {
         domains: ["statuses"],

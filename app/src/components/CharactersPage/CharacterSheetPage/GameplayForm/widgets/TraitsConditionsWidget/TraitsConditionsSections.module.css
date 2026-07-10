@@ -147,7 +147,7 @@
 .metaStack {
   display: grid;
   flex: 0 1 auto;
-  gap: 0.1rem;
+  gap: 0.28rem;
   justify-items: end;
   max-inline-size: 100%;
   min-width: 0;
@@ -175,7 +175,16 @@
   color: var(--color-accent);
   display: inline-flex;
   align-items: center;
+  gap: 0.16rem;
   justify-content: flex-end;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.notesChargeText {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
   line-height: 1;
 }
 

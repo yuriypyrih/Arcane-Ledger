@@ -258,6 +258,11 @@ export type CharacterStatusDuration =
       tickOn?: STATUS_DURATION_ROUND_TICK;
     };
 
+export type CharacterStatusEntryNoteCharges = {
+  current: number;
+  max: number;
+};
+
 export type CharacterStatusEntry = {
   id: string;
   group: STATUS_ENTRY_GROUP;
@@ -279,6 +284,7 @@ export type CharacterStatusEntry = {
   customEffects?: CharacterCustomTraitEffect[];
   monsterEntry?: MonsterRecord;
   notes?: string;
+  noteCharges?: CharacterStatusEntryNoteCharges;
   runtimeOverride?: boolean;
   runtimeOverrideKey?: string;
 };

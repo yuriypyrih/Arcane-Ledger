@@ -1,5 +1,15 @@
 import clsx from "clsx";
-import { Check, Clock3, Minus, Plus, Trash2, X, type LucideIcon } from "lucide-react";
+import {
+  Check,
+  Clock3,
+  Minus,
+  Plus,
+  Save,
+  Trash2,
+  Undo2,
+  X,
+  type LucideIcon
+} from "lucide-react";
 import { useState, type ReactNode } from "react";
 import ActionButton from "../../../../../ActionButton";
 import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
@@ -35,7 +45,11 @@ import {
   getStatusEntryTargetLabel,
   getStatusEntryTitle
 } from "../../../../../../pages/CharactersPage/traits";
-import type { Character, CharacterStatusEntry } from "../../../../../../types";
+import type {
+  Character,
+  CharacterStatusEntry,
+  CharacterStatusEntryNoteCharges
+} from "../../../../../../types";
 import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../../types";
 import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
 import styles from "./StatusEntryDrawer.module.css";
@@ -66,7 +80,11 @@ type StatusEntryDrawerProps = {
   onCancelEditDuration: () => void;
   onApplyDuration: () => void;
   onRemove: () => void;
-  onSaveNotes?: (entry: CharacterStatusEntry, notes: string) => void;
+  onSaveNotes?: (
+    entry: CharacterStatusEntry,
+    notes: string,
+    noteCharges?: CharacterStatusEntryNoteCharges
+  ) => void;
   onIncreaseExhaustion?: () => void;
   onDecreaseExhaustion?: () => void;
   onClose: () => void;
@@ -76,6 +94,7 @@ type FooterAction = {
   label: string;
   icon: LucideIcon;
   tone?: "accent" | "danger" | "neutral";
+  disabled?: boolean;
   onClick: () => void;
 };
 
@@ -177,6 +196,22 @@ function StatusEntryDrawer({
               ]
             : [])
         ];
+  const visibleFooterActions: FooterAction[] = traitNotesEditor.isEditing
+    ? [
+        {
+          label: "Save",
+          icon: Save,
+          disabled: !traitNotesEditor.canSave,
+          onClick: traitNotesEditor.saveNotes
+        },
+        {
+          label: "Cancel",
+          icon: Undo2,
+          tone: "neutral",
+          onClick: traitNotesEditor.cancelEditing
+        }
+      ]
+    : footerActions;
 
   return (
     <>
@@ -306,18 +341,20 @@ function StatusEntryDrawer({
           ) : null}
         </OverlayBody>
 
-        {footerActions.length > 0 || customFooterContent || canShowNotes ? (
+        {visibleFooterActions.length > 0 || customFooterContent || canShowNotes ? (
           <OverlayFooter className={styles.footer}>
-            {canShowNotes ? <TraitNotesFooterControls editor={traitNotesEditor} /> : null}
+            {canShowNotes && !traitNotesEditor.isEditing ? (
+              <TraitNotesFooterControls editor={traitNotesEditor} />
+            ) : null}
             {customFooterContent}
-            {footerActions.length > 0 ? (
+            {visibleFooterActions.length > 0 ? (
               <div
                 className={styles.footerActionRow}
                 style={{
-                  gridTemplateColumns: `repeat(${Math.max(1, footerActions.length)}, minmax(0, 1fr))`
+                  gridTemplateColumns: `repeat(${Math.max(1, visibleFooterActions.length)}, minmax(0, 1fr))`
                 }}
               >
-                {footerActions.map((action) => {
+                {visibleFooterActions.map((action) => {
                   const Icon = action.icon;
 
                   return (
@@ -329,6 +366,7 @@ function StatusEntryDrawer({
                         action.tone === "neutral" || action.tone === "danger" ? "OUTLINE" : "FILL"
                       }
                       onClick={action.onClick}
+                      disabled={action.disabled}
                       icon={<Icon size={16} aria-hidden="true" />}
                     >
                       {action.label}

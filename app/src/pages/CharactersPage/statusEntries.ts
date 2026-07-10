@@ -2,6 +2,7 @@ import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entri
 import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
 import { normalizeMonsterRecord } from "../../utils/monsters";
+import { isObjectRecord } from "../../utils/normalize";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -15,6 +16,7 @@ import {
   type CharacterCustomTraitEffect,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
+  type CharacterStatusEntryNoteCharges,
   type CharacterStatusSpellTarget,
   type CharacterStatusValue,
   type SkillName
@@ -37,6 +39,8 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
   Object.values(STATUS_ENTRY_SOURCE_TYPE)
 );
 const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
+
+export const STATUS_NOTE_CHARGES_MAX = 999;
 
 export function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATION_ROUND_TICK {
   return value === STATUS_DURATION_ROUND_TICK.ROUND_END
@@ -78,6 +82,19 @@ function normalizeStatusNotes(value: unknown): string | undefined {
     .trim();
 
   return notes.length > 0 ? notes : undefined;
+}
+
+function normalizeStatusNoteCharges(value: unknown): CharacterStatusEntryNoteCharges | undefined {
+  if (!isObjectRecord(value)) {
+    return undefined;
+  }
+
+  const max = clampInteger(value.max, 1, STATUS_NOTE_CHARGES_MAX, 1);
+
+  return {
+    current: clampInteger(value.current, 0, max, max),
+    max
+  };
 }
 
 function isConditionName(value: unknown): value is CONDITION_NAME {
@@ -600,6 +617,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
   const monsterEntry = normalizeMonsterRecord(record.monsterEntry);
 
+  const noteCharges = normalizeStatusNoteCharges(record.noteCharges);
   const runtimeOverride = record.runtimeOverride === true;
 
   return {
@@ -645,6 +663,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
       : undefined,
     monsterEntry: monsterEntry ?? undefined,
     notes: normalizeStatusNotes(record.notes),
+    noteCharges,
     runtimeOverride: runtimeOverride ? true : undefined,
     runtimeOverrideKey: runtimeOverride
       ? normalizeRuntimeOverrideKey(record.runtimeOverrideKey)
@@ -785,12 +804,14 @@ export function createCharacterStatusEntry(options: {
   customEffects?: CharacterCustomTraitEffect[];
   monsterEntry?: CharacterStatusEntry["monsterEntry"];
   notes?: string;
+  noteCharges?: CharacterStatusEntryNoteCharges;
   runtimeOverride?: boolean;
   runtimeOverrideKey?: string;
 }): CharacterStatusEntry {
   const descriptionAdditions = normalizeStatusDescriptionAdditions(options.descriptionAdditions);
   const monsterEntry = normalizeMonsterRecord(options.monsterEntry);
   const notes = normalizeStatusNotes(options.notes);
+  const noteCharges = normalizeStatusNoteCharges(options.noteCharges);
   const runtimeOverride = options.runtimeOverride === true;
 
   return {
@@ -824,6 +845,7 @@ export function createCharacterStatusEntry(options: {
       : undefined,
     monsterEntry: monsterEntry ?? undefined,
     notes,
+    noteCharges,
     runtimeOverride: runtimeOverride ? true : undefined,
     runtimeOverrideKey: runtimeOverride
       ? normalizeRuntimeOverrideKey(options.runtimeOverrideKey)
@@ -870,19 +892,24 @@ function getStatusEntryOverrideKey(
   ]);
 }
 
-function setStatusEntryNotes(
-  entry: CharacterStatusEntry,
-  notes: string | undefined
-): CharacterStatusEntry {
-  if (notes) {
-    return {
-      ...entry,
-      notes
-    };
-  }
+function hasStatusEntryNoteMetadata(
+  entry: Pick<CharacterStatusEntry, "noteCharges" | "notes"> | null | undefined
+): boolean {
+  return Boolean(entry?.notes || entry?.noteCharges);
+}
 
-  const { notes: _notes, ...entryWithoutNotes } = entry;
-  return entryWithoutNotes;
+function setStatusEntryNoteMetadata(
+  entry: CharacterStatusEntry,
+  notes: string | undefined,
+  noteCharges: CharacterStatusEntryNoteCharges | undefined
+): CharacterStatusEntry {
+  const { notes: _notes, noteCharges: _noteCharges, ...entryWithoutNoteMetadata } = entry;
+
+  return {
+    ...entryWithoutNoteMetadata,
+    ...(notes ? { notes } : {}),
+    ...(noteCharges ? { noteCharges } : {})
+  };
 }
 
 export function resolveCharacterStatusEntries(
@@ -917,13 +944,13 @@ export function resolveCharacterStatusEntries(
 
     durationOverrideEntriesByKey.set(overrideKey, entry);
 
-    if (entry.notes) {
+    if (hasStatusEntryNoteMetadata(entry)) {
       noteOverrideEntriesByKey.set(overrideKey, entry);
     }
   });
 
   overrideEntries.forEach((entry) => {
-    if (entry.runtimeOverride === true && entry.notes) {
+    if (entry.runtimeOverride === true && hasStatusEntryNoteMetadata(entry)) {
       const overrideKey = getStatusEntryOverrideKey(entry);
 
       if (derivedEntryOverrideKeys.has(overrideKey)) {
@@ -958,11 +985,12 @@ export function resolveCharacterStatusEntries(
             }
           : entry;
 
-      return noteOverride?.notes
-        ? {
-            ...entryWithDuration,
-            notes: noteOverride.notes
-          }
+      return hasStatusEntryNoteMetadata(noteOverride)
+        ? setStatusEntryNoteMetadata(
+            entryWithDuration,
+            noteOverride?.notes,
+            noteOverride?.noteCharges
+          )
         : entryWithDuration;
     })
   ]);
@@ -1139,7 +1167,8 @@ export function updateCharacterStatusEntryDuration(
       sourceSpellTarget: entryToUpdate.sourceSpellTarget ?? null,
       sourceSpellSkill: entryToUpdate.sourceSpellSkill ?? null,
       rangeFeet: entryToUpdate.rangeFeet ?? null,
-      notes: entryToUpdate.notes
+      notes: entryToUpdate.notes,
+      noteCharges: entryToUpdate.noteCharges
     })
   ]);
 }
@@ -1147,9 +1176,12 @@ export function updateCharacterStatusEntryDuration(
 export function updateCharacterStatusEntryNotes(
   value: unknown,
   entryToUpdate: CharacterStatusEntry,
-  nextNotes: string
+  nextNotes: string,
+  nextNoteCharges?: CharacterStatusEntryNoteCharges
 ): CharacterStatusEntry[] {
   const notes = normalizeStatusNotes(nextNotes);
+  const noteCharges = normalizeStatusNoteCharges(nextNoteCharges);
+  const hasNoteMetadata = Boolean(notes || noteCharges);
   const entries = normalizeCharacterStatusEntries(value);
   const entryOverrideKey = getStatusEntryOverrideKey(entryToUpdate);
   const isMatchingRuntimeOverride = (entry: CharacterStatusEntry) =>
@@ -1165,14 +1197,16 @@ export function updateCharacterStatusEntryNotes(
         return [];
       }
 
-      return entry.id === storedEntry.id ? [setStatusEntryNotes(entry, notes)] : [entry];
+      return entry.id === storedEntry.id
+        ? [setStatusEntryNoteMetadata(entry, notes, noteCharges)]
+        : [entry];
     });
   }
 
   const runtimeOverride = entries.find(isMatchingRuntimeOverride);
 
   if (runtimeOverride) {
-    if (!notes) {
+    if (!hasNoteMetadata) {
       return entries.filter(
         (entry) => !(entry.runtimeOverride === true && entry.id === runtimeOverride.id)
       );
@@ -1180,7 +1214,7 @@ export function updateCharacterStatusEntryNotes(
 
     return entries.map((entry) =>
       entry.runtimeOverride === true && entry.id === runtimeOverride.id
-        ? setStatusEntryNotes(entry, notes)
+        ? setStatusEntryNoteMetadata(entry, notes, noteCharges)
         : entry
     );
   }
@@ -1198,11 +1232,13 @@ export function updateCharacterStatusEntryNotes(
         return [];
       }
 
-      return entry.id === persistedOverride.id ? [setStatusEntryNotes(entry, notes)] : [entry];
+      return entry.id === persistedOverride.id
+        ? [setStatusEntryNoteMetadata(entry, notes, noteCharges)]
+        : [entry];
     });
   }
 
-  if (!notes) {
+  if (!hasNoteMetadata) {
     return entries;
   }
 
@@ -1223,7 +1259,8 @@ export function updateCharacterStatusEntryNotes(
       rangeFeet: entryToUpdate.rangeFeet ?? null,
       runtimeOverride: true,
       runtimeOverrideKey: entryOverrideKey,
-      notes
+      notes,
+      noteCharges
     })
   ];
 }
