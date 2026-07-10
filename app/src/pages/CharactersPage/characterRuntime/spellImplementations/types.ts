@@ -1,5 +1,11 @@
 import type { SpellEntry } from "../../../../codex/entries";
-import type { Character, CharacterStatusSpellTarget, SkillName } from "../../../../types";
+import type {
+  Character,
+  CharacterStatusEntryNoteCharges,
+  CharacterStatusEntrySpellFormula,
+  CharacterStatusSpellTarget,
+  SkillName
+} from "../../../../types";
 import type { FeatureContributionSource } from "../../featureContributions";
 
 export type SpellImplementationCastSource =
@@ -66,12 +72,15 @@ export type SpellImplementationStatusOptions = {
   sourceId?: string;
   sourceSpellTarget?: CharacterStatusSpellTarget | null;
   sourceSpellSkill?: SkillName | null;
+  noteCharges?: CharacterStatusEntryNoteCharges;
+  spellFormulas?: CharacterStatusEntrySpellFormula[];
 };
 
 export type SpellImplementationStatusOptionsContext = SpellImplementationApplyContext;
 
 export type SpellImplementation = {
   spellId: string;
+  suppressCastAttackRoll?: boolean;
   getCastOptions?: (
     context: SpellImplementationCastOptionsContext
   ) => SpellImplementationCastOption[];
@@ -89,6 +98,7 @@ export type SpellImplementationContributionSpec = {
     type: "spell";
   };
   spellId: string;
+  suppressCastAttackRoll?: SpellImplementation["suppressCastAttackRoll"];
   getCastOptions?: SpellImplementation["getCastOptions"];
   applyOnCast?: SpellImplementation["applyOnCast"];
   getRollEffects?: SpellImplementation["getRollEffects"];

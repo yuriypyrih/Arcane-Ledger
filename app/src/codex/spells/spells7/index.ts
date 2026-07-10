@@ -142,7 +142,9 @@ export const crownOfStars: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingMessage:
+    spellDurationOnlyTrackingMessage +
+    " The Stars are represented as charges. The app does not provide the bonus action as a separate card. Therefore, simply consume the bonus action manually and take one charge off the effect.",
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",

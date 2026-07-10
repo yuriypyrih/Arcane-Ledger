@@ -205,36 +205,3 @@ export function getEconomyShapeState(
     disabledReason: resolvedMultiCount > 0 ? null : disabledReason
   };
 }
-
-export function getRoundTrackerResourceMeta(
-  resource: RoundTrackerResource,
-  isAvailable: boolean
-): {
-  title: string;
-  description: string;
-} {
-  if (resource === "action") {
-    return {
-      title: "Action",
-      description: isAvailable
-        ? "Your main action is ready for this round. Weapon attacks and most spells will spend it automatically."
-        : "Your main action has already been spent this round. Reset it here if you need to correct the tracker manually."
-    };
-  }
-
-  if (resource === "reaction") {
-    return {
-      title: "Reaction",
-      description: isAvailable
-        ? "Your reaction is ready for this round. Reaction spells and similar responses will spend it automatically."
-        : "Your reaction has already been spent this round. Reset it here if you need to correct the tracker manually."
-    };
-  }
-
-  return {
-    title: "Bonus Action",
-    description: isAvailable
-      ? "Your bonus action is ready for this round. Bonus-action spells and similar abilities will spend it automatically."
-      : "Your bonus action has already been spent this round. Reset it here if you need to correct the tracker manually."
-  };
-}

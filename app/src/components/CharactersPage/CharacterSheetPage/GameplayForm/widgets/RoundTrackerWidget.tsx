@@ -1,7 +1,6 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { Swords } from "lucide-react";
-import ActionShape from "../../../../ActionShape";
 import ResourceManagementModal from "../../ResourceManagementModal";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
 import { STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
@@ -26,9 +25,7 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../../../pages/CharactersPage/statusEntries";
 import { advanceCharacterCompanionDurations } from "../../../../../pages/CharactersPage/companions";
-import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
-import { runWithActionConfirmationToast } from "../../actionConfirmationToast";
 import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";
 import styles from "./RoundTrackerControl.module.css";
 
@@ -70,21 +67,8 @@ function RoundTrackerWidget({
   onPersistCharacter
 }: RoundTrackerWidgetProps) {
   const dispatch = useAppDispatch();
-  const [selectedResource, setSelectedResource] = useState<RoundTrackerResource | null>(null);
   const [isCombatManagementOpen, setIsCombatManagementOpen] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const isSelectedResourceAvailable =
-    selectedResource === "action"
-      ? roundTracker.actionAvailable
-      : selectedResource === "bonusAction"
-        ? roundTracker.bonusActionAvailable
-        : selectedResource === "reaction"
-          ? roundTracker.reactionAvailable
-          : null;
-  const selectedMeta =
-    selectedResource && isSelectedResourceAvailable !== null
-      ? getRoundTrackerResourceMeta(selectedResource, isSelectedResourceAvailable)
-      : null;
 
   function startTurn() {
     onPersistCharacter(
@@ -168,6 +152,42 @@ function RoundTrackerWidget({
     }));
   }
 
+  function showRoundTrackerToggleEffect() {
+    dispatch(
+      showToast({
+        type: "success",
+        effect: "default"
+      })
+    );
+  }
+
+  function isResourceAvailable(resource: RoundTrackerResource): boolean {
+    switch (resource) {
+      case "bonusAction":
+        return roundTracker.bonusActionAvailable;
+      case "reaction":
+        return roundTracker.reactionAvailable;
+      case "action":
+      default:
+        return roundTracker.actionAvailable;
+    }
+  }
+
+  function toggleRoundTrackerResource(resource: RoundTrackerResource) {
+    if (!roundTracker.isInCombat) {
+      return;
+    }
+
+    if (isResourceAvailable(resource)) {
+      consumeResource(resource);
+      showRoundTrackerToggleEffect();
+      return;
+    }
+
+    resetResource(resource);
+    showRoundTrackerToggleEffect();
+  }
+
   function setCombatState(isInCombat: boolean) {
     onPersistCharacter((currentCharacter) => {
       const nextCharacter = clearRoundScopedFeatureStateForCharacter(currentCharacter);
@@ -187,49 +207,11 @@ function RoundTrackerWidget({
     <>
       <RoundTrackerControl
         roundTracker={roundTracker}
-        onSelectResource={(resource) => {
-          if (roundTracker.isInCombat) {
-            setSelectedResource(resource);
-          }
-        }}
+        onToggleResource={toggleRoundTrackerResource}
         onSelectCombat={() => setIsCombatManagementOpen(true)}
         onStartTurn={startTurn}
         onFinishRound={finishRound}
       />
-
-      {selectedResource && selectedMeta && isSelectedResourceAvailable !== null ? (
-        <ResourceManagementModal
-          titleId={`round-tracker-${selectedResource}-title`}
-          title={selectedMeta.title}
-          closeLabel={`Close ${selectedMeta.title.toLowerCase()} resource management`}
-          onClose={() => setSelectedResource(null)}
-          titleAccessory={
-            <ActionShape
-              shape={selectedResource}
-              isSelected={isSelectedResourceAvailable}
-              size="small"
-              aria-label={`${selectedMeta.title} action badge`}
-            />
-          }
-          actions={[
-            {
-              label: "Use",
-              onClick: () =>
-                runWithActionConfirmationToast(selectedResource, () =>
-                  consumeResource(selectedResource)
-                ),
-              disabled: !isSelectedResourceAvailable,
-              ariaLabel: `Use ${selectedMeta.title.toLowerCase()}`
-            },
-            {
-              label: "Reset",
-              onClick: () => resetResource(selectedResource),
-              disabled: isSelectedResourceAvailable,
-              ariaLabel: `Reset ${selectedMeta.title.toLowerCase()}`
-            }
-          ]}
-        />
-      ) : null}
 
       {isCombatManagementOpen ? (
         <ResourceManagementModal

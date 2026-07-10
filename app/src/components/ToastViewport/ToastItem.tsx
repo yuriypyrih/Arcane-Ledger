@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import {
   DEFAULT_TOAST_DISMISS_MS,
   dismissToast,
-  type ToastEntry,
+  type ToastCardEntry,
   type ToastType,
   useAppDispatch
 } from "../../store";
@@ -32,7 +32,7 @@ const toastToneClassNames: Record<ToastType, string> = {
 };
 
 type ToastItemProps = {
-  toast: ToastEntry;
+  toast: ToastCardEntry;
 };
 
 function ToastItem({ toast }: ToastItemProps) {

@@ -279,6 +279,7 @@ import {
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import { getSpellFormulaCellsForCharacterSpell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -741,7 +742,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
               castSource: "standard",
               options: {}
             }),
-            sourceSpellSlotLevel: null
+            sourceSpellSlotLevel: null,
+            spellFormulas: getSpellFormulaCellsForCharacterSpell(
+              spell,
+              nextCharacterWithSpellImplementation
+            )
           }
         )
       };
@@ -2224,7 +2229,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
             castSource: spellImplementationCastSource,
             options: spellImplementationOptions
           }),
-          sourceSpellSlotLevel
+          sourceSpellSlotLevel,
+          spellFormulas: getSpellFormulaCellsForCharacterSpell(
+            fixedSpellEntry,
+            nextCharacterWithSpellImplementation
+          )
         }
       );
       const nextCharacterWithSpellDuration = {
@@ -2361,7 +2370,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
               castSource: "divine-intervention",
               options: spellImplementationOptions
             }),
-            sourceSpellSlotLevel: null
+            sourceSpellSlotLevel: null,
+            spellFormulas: getSpellFormulaCellsForCharacterSpell(
+              selectedDivineInterventionSpell,
+              nextCharacterWithSpellImplementation
+            )
           }
         )
       };
@@ -2448,7 +2461,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
               castSource: "mystic-arcanum",
               options: spellImplementationOptions
             }),
-            sourceSpellSlotLevel: null
+            sourceSpellSlotLevel: null,
+            spellFormulas: getSpellFormulaCellsForCharacterSpell(
+              selectedMysticArcanumSpell,
+              nextCharacterWithSpellImplementation
+            )
           }
         )
       };

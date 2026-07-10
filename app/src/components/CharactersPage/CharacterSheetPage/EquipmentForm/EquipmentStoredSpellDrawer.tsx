@@ -21,6 +21,7 @@ import {
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import { getSpellFormulaCellsForCharacterSpell } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import {
   createInventoryItemFromContainerContent,
   findInventoryItemStackById,
@@ -279,7 +280,11 @@ function EquipmentStoredSpellDrawer({
               castSource: options?.spellImplementationCastSource ?? "standard",
               options: options?.spellImplementationOptions ?? {}
             }),
-            sourceSpellSlotLevel: null
+            sourceSpellSlotLevel: null,
+            spellFormulas: getSpellFormulaCellsForCharacterSpell(
+              spell,
+              nextCharacterWithSpellImplementation
+            )
           }
         )
       };

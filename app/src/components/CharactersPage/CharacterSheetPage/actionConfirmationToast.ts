@@ -4,7 +4,7 @@ import {
   type EconomyType
 } from "../../../pages/CharactersPage/actionEconomy";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
-import { showToast, store } from "../../../store";
+import { hasToastCards, showToast, store } from "../../../store";
 
 export type ActionConfirmationToastTrigger =
   | EconomyType
@@ -31,7 +31,7 @@ function scheduleActionConfirmationToast() {
   }
 
   window.setTimeout(() => {
-    if (store.getState().toasts.length > 0) {
+    if (hasToastCards(store.getState().toasts)) {
       return;
     }
 
@@ -52,10 +52,10 @@ export function runWithActionConfirmationToast<T>(
   callback: () => T
 ): T {
   const shouldConsiderToast =
-    isActionConfirmationTrigger(trigger) && store.getState().toasts.length === 0;
+    isActionConfirmationTrigger(trigger) && !hasToastCards(store.getState().toasts);
   const result = callback();
 
-  if (shouldConsiderToast && store.getState().toasts.length === 0) {
+  if (shouldConsiderToast && !hasToastCards(store.getState().toasts)) {
     scheduleActionConfirmationToast();
   }
 
@@ -67,10 +67,10 @@ export async function runWithActionConfirmationToastAsync<T>(
   callback: () => Promise<T>
 ): Promise<T> {
   const shouldConsiderToast =
-    isActionConfirmationTrigger(trigger) && store.getState().toasts.length === 0;
+    isActionConfirmationTrigger(trigger) && !hasToastCards(store.getState().toasts);
   const result = await callback();
 
-  if (shouldConsiderToast && store.getState().toasts.length === 0) {
+  if (shouldConsiderToast && !hasToastCards(store.getState().toasts)) {
     scheduleActionConfirmationToast();
   }
 

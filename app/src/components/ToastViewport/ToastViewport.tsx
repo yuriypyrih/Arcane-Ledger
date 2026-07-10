@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ToastEntry, ToastPosition } from "../../store";
+import type { ToastCardEntry, ToastPosition } from "../../store";
 import ToastItem from "./ToastItem";
 import styles from "./ToastViewport.module.css";
 
@@ -14,7 +14,7 @@ const viewportPositionClassNames: Record<ToastPosition, string> = {
 
 type ToastViewportProps = {
   position: ToastPosition;
-  toasts: ToastEntry[];
+  toasts: ToastCardEntry[];
 };
 
 function ToastViewport({ position, toasts }: ToastViewportProps) {

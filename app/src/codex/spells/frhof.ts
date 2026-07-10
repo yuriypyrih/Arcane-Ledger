@@ -293,6 +293,10 @@ export const elminstersEffulgentSpheres = createFrhofSpellEntry({
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   materialSpecified: "an opal worth 1,000+ GP",
   duration: ["1 hour"],
+  trackingMessage:
+    spellDurationOnlyTrackingMessage +
+    " The Spheres are represented as charges. The app does not provide the bonus action or the reaction as separate cards. Therefore, simply consume those actions manually and take one charge off the effect.",
+
   description: [
     "Six chromatic spheres orbit you for the duration.",
     "While the spheres are present, you can expend spheres to create the following effects:",

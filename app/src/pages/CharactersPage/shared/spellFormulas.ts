@@ -25,7 +25,10 @@ import {
   formatSignedFormulaTerm,
   parseFormulaRange
 } from "./formulas";
-import { getSpellcastingAbilityForCharacter } from "./spellcastingAbility";
+import {
+  getSpellcastingAbilityForCharacter,
+  getSpellcastingAbilityForCharacterSpell
+} from "./spellcastingAbility";
 export {
   getBuiltInSpellcastingAbilityForCharacter,
   getSpellcastingAbilityForCharacter,
@@ -242,6 +245,34 @@ export function getSpellSaveFormulaCell(
     content: `${saveLabel} ${dc} = ${formulaCell.value}`,
     breakdown: formulaCell.breakdown
   };
+}
+
+export function getSpellFormulaCellsForCharacter(
+  spell: Pick<
+    SpellEntry,
+    "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+  >,
+  character?: Character | null,
+  spellcastingAbilityOverride?: AbilityKey | null
+): SpellFormulaCell[] {
+  return [
+    getSpellAttackFormulaCell(spell, character, spellcastingAbilityOverride),
+    getSpellSaveFormulaCell(spell, character, spellcastingAbilityOverride)
+  ].filter((formula): formula is SpellFormulaCell => formula !== null);
+}
+
+export function getSpellFormulaCellsForCharacterSpell(
+  spell: Pick<
+    SpellEntry,
+    "id" | "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+  >,
+  character: Character
+): SpellFormulaCell[] {
+  return getSpellFormulaCellsForCharacter(
+    spell,
+    character,
+    getSpellcastingAbilityForCharacterSpell(character, spell.id)
+  );
 }
 
 export function getSpellAttackRollFormulaForCharacter(

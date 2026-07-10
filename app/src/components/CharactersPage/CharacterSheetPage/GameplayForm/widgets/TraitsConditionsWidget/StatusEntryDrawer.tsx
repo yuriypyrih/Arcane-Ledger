@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import ActionButton from "../../../../../ActionButton";
+import { FeatureTrackingBadgeButton } from "../../../../../FeatureDisclosure";
 import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
+import { TRACKER } from "../../../../../../codex/entries";
 import CellContainer from "../../../../../../components/CellContainer/CellContainer";
 import ConcentrationLabel from "../../../../../../components/ConcentrationLabel";
 import DescriptionContent from "../../../../../../components/DescriptionContent/DescriptionContent";
@@ -51,7 +53,10 @@ import type {
   CharacterStatusEntryNoteCharges
 } from "../../../../../../types";
 import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../../types";
-import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../../../../utils/codex/renderCodexRichText";
 import styles from "./StatusEntryDrawer.module.css";
 import {
   getStatusDrawerBadgeLabel,
@@ -139,6 +144,7 @@ function StatusEntryDrawer({
     typeof entry.sourceSpellId === "string" && entry.sourceSpellId.trim().length > 0;
   const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
   const optionLabel = isSpellStatusEntry ? getStatusEntryOptionLabel(entry) : null;
+  const spellFormulas = entry.spellFormulas ?? [];
   const shouldUseTwoFactLayout = !isSpellStatusEntry && !isExhaustionEntry;
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
@@ -213,6 +219,14 @@ function StatusEntryDrawer({
       ]
     : footerActions;
 
+  function openTrackingKeyword(trackingState: TRACKER, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
+
+    if (resolvedKeyword) {
+      setSelectedKeyword(resolvedKeyword);
+    }
+  }
+
   return (
     <>
       <SheetDrawer
@@ -251,7 +265,16 @@ function StatusEntryDrawer({
               </OverlayTitle>
             </OverlayTitleRow>
           </OverlayHeaderContent>
-          <OverlayCloseButton label="Close trait details" onClick={onClose} />
+          <div className={styles.headerActions}>
+            {entry.trackingState ? (
+              <FeatureTrackingBadgeButton
+                trackingState={entry.trackingState}
+                trackingMessage={entry.trackingMessage}
+                onClick={openTrackingKeyword}
+              />
+            ) : null}
+            <OverlayCloseButton label="Close trait details" onClick={onClose} />
+          </div>
         </OverlayHeader>
 
         <OverlayBody className={styles.drawerBody}>
@@ -320,6 +343,15 @@ function StatusEntryDrawer({
                 isSpellStatusEntry && !targetLabel && !optionLabel ? styles.sourceFact : undefined
               }
             />
+            {spellFormulas.map((formula) => (
+              <CellContainer
+                key={`${formula.label}-${formula.content}`}
+                className={sheetStyles.spellDrawerFormulaCell}
+                label={formula.label}
+                content={formula.content}
+                breakdown={formula.breakdown}
+              />
+            ))}
             {isExhaustionEntry ? (
               <CellContainer label="Current Level" content={`Level ${entry.conditionLevel ?? 1}`} />
             ) : null}

@@ -1,15 +1,21 @@
 import { createPortal } from "react-dom";
-import { TOAST_POSITIONS, type ToastEntry, type ToastPosition, useAppSelector } from "../../store";
+import {
+  isToastCardEntry,
+  TOAST_POSITIONS,
+  type ToastCardEntry,
+  type ToastPosition,
+  useAppSelector
+} from "../../store";
 import ToastEffects from "./ToastEffects";
 import ToastViewport from "./ToastViewport";
 
-function createToastBuckets(toasts: ToastEntry[]) {
+function createToastBuckets(toasts: ToastCardEntry[]) {
   const buckets = TOAST_POSITIONS.reduce(
     (result, position) => {
       result[position] = [];
       return result;
     },
-    {} as Record<ToastPosition, ToastEntry[]>
+    {} as Record<ToastPosition, ToastCardEntry[]>
   );
 
   for (const toast of toasts) {
@@ -26,7 +32,7 @@ function ToastHost() {
     return null;
   }
 
-  const buckets = createToastBuckets(toasts);
+  const buckets = createToastBuckets(toasts.filter(isToastCardEntry));
 
   return createPortal(
     <>

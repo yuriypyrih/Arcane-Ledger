@@ -5,6 +5,15 @@
   min-height: 0;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
 .drawerFacts {
   display: grid;
   gap: 0.45rem;
@@ -162,7 +171,24 @@
 }
 
 .noteChargesReadout {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
   font-weight: 700;
+}
+
+.noteChargesReadoutHeader {
+  display: inline-flex;
+  align-items: center;
+}
+
+.noteChargesReadoutStepper {
+  display: inline-grid;
+  align-items: center;
+  gap: 0.2rem;
+  grid-template-columns: auto minmax(4.35rem, auto) auto;
+  justify-content: start;
 }
 
 .footer {

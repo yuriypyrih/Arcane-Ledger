@@ -66,6 +66,7 @@ import {
   getSpellImplementationStatusOptionsForCharacter,
   type SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import { getSpellFormulaCellsForCharacterSpell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import { getSpellLevel } from "../../../../../../pages/CharactersPage/spellcasting";
 import {
   consumeRoundTrackerResource,
@@ -637,7 +638,11 @@ export function useReactionDrawerState({
                 castSource: "reaction",
                 options: spellImplementationOptions
               }),
-              sourceSpellSlotLevel: null
+              sourceSpellSlotLevel: null,
+              spellFormulas: getSpellFormulaCellsForCharacterSpell(
+                selectedReactionSpell,
+                nextCharacterWithSpellImplementation
+              )
             }
           )
         };
@@ -683,7 +688,11 @@ export function useReactionDrawerState({
                 castSource: "reaction",
                 options: spellImplementationOptions
               }),
-              sourceSpellSlotLevel: null
+              sourceSpellSlotLevel: null,
+              spellFormulas: getSpellFormulaCellsForCharacterSpell(
+                selectedReactionSpell,
+                nextCharacterWithSpellImplementation
+              )
             }
           )
         };
@@ -752,7 +761,11 @@ export function useReactionDrawerState({
               castSource: "reaction",
               options: spellImplementationOptions
             }),
-            sourceSpellSlotLevel: slotLevel
+            sourceSpellSlotLevel: slotLevel,
+            spellFormulas: getSpellFormulaCellsForCharacterSpell(
+              selectedReactionSpell,
+              nextCharacterWithSpellImplementation
+            )
           }
         )
       };

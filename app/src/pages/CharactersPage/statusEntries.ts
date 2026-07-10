@@ -1,5 +1,5 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
-import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
+import { DAMAGE_TYPE, DURATION, TRACKER } from "../../codex/entries";
 import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
 import { normalizeMonsterRecord } from "../../utils/monsters";
 import { isObjectRecord } from "../../utils/normalize";
@@ -17,6 +17,7 @@ import {
   type CharacterStatusDuration,
   type CharacterStatusEntry,
   type CharacterStatusEntryNoteCharges,
+  type CharacterStatusEntrySpellFormula,
   type CharacterStatusSpellTarget,
   type CharacterStatusValue,
   type SkillName
@@ -38,6 +39,7 @@ const statusGroupValues = new Set<STATUS_ENTRY_GROUP>(Object.values(STATUS_ENTRY
 const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
   Object.values(STATUS_ENTRY_SOURCE_TYPE)
 );
+const trackingStateValues = new Set<TRACKER>(Object.values(TRACKER));
 const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 
 export const STATUS_NOTE_CHARGES_MAX = 999;
@@ -279,11 +281,22 @@ export function getSpellConcentrationDuration(
 const spellDurationStatusSourceIdPrefix = "spell-duration-";
 const customSpellEffectStatusSourceIdPrefix = "custom-spell-effect-";
 
+type SpellStatusEntryOptions = {
+  sourceId?: string;
+  sourceSpellSlotLevel?: number | null;
+  sourceSpellTarget?: CharacterStatusSpellTarget | null;
+  sourceSpellSkill?: SkillName | null;
+  noteCharges?: CharacterStatusEntryNoteCharges;
+  spellFormulas?: CharacterStatusEntrySpellFormula[];
+};
+
 type SpellStatusEntrySource = {
   id?: string;
   name: string;
   duration: SpellDurationPart[];
   description?: SpellDescriptionEntry[];
+  trackingState?: TRACKER;
+  trackingMessage?: string;
 };
 
 function getSpellDurationStatusSourceId(
@@ -562,6 +575,57 @@ function normalizeStatusDescriptionAdditions(value: unknown): SpellDescriptionEn
     .filter((section) => section.length > 0);
 }
 
+function normalizeStatusSpellFormula(value: unknown): CharacterStatusEntrySpellFormula | null {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  const label =
+    typeof value.label === "string" ? sanitizeUserInput(value.label).trim() : "";
+  const content =
+    typeof value.content === "string" ? sanitizeUserInput(value.content).trim() : "";
+  const breakdown =
+    typeof value.breakdown === "string" ? sanitizeUserInput(value.breakdown).trim() : "";
+
+  if (!label || !content) {
+    return null;
+  }
+
+  return {
+    label,
+    content,
+    ...(breakdown ? { breakdown } : {})
+  };
+}
+
+function normalizeStatusSpellFormulas(
+  value: unknown
+): CharacterStatusEntrySpellFormula[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const formulas = value
+    .map((entry) => normalizeStatusSpellFormula(entry))
+    .filter((entry): entry is CharacterStatusEntrySpellFormula => entry !== null);
+
+  return formulas.length > 0 ? formulas : undefined;
+}
+
+function normalizeStatusTrackingState(value: unknown): TRACKER | undefined {
+  return trackingStateValues.has(value as TRACKER) ? (value as TRACKER) : undefined;
+}
+
+function normalizeStatusTrackingMessage(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trackingMessage = sanitizeUserInput(value).trim();
+
+  return trackingMessage.length > 0 ? trackingMessage : undefined;
+}
+
 function normalizeStatusSourceSpellSlotLevel(value: unknown): number | null {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return null;
@@ -615,6 +679,8 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     kind: STATUS_DURATION_KIND.INFINITE
   };
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
+  const spellFormulas = normalizeStatusSpellFormulas(record.spellFormulas);
+  const trackingState = normalizeStatusTrackingState(record.trackingState);
   const monsterEntry = normalizeMonsterRecord(record.monsterEntry);
 
   const noteCharges = normalizeStatusNoteCharges(record.noteCharges);
@@ -658,6 +724,11 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         ? record.description.trim()
         : undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
+    spellFormulas,
+    trackingState,
+    trackingMessage: trackingState
+      ? normalizeStatusTrackingMessage(record.trackingMessage)
+      : undefined,
     customEffects: Array.isArray(record.customEffects)
       ? normalizeCharacterCustomTraitEffects(record.customEffects)
       : undefined,
@@ -801,6 +872,9 @@ export function createCharacterStatusEntry(options: {
   rangeFeet?: number | null;
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
+  spellFormulas?: CharacterStatusEntrySpellFormula[];
+  trackingState?: TRACKER;
+  trackingMessage?: string;
   customEffects?: CharacterCustomTraitEffect[];
   monsterEntry?: CharacterStatusEntry["monsterEntry"];
   notes?: string;
@@ -809,6 +883,8 @@ export function createCharacterStatusEntry(options: {
   runtimeOverrideKey?: string;
 }): CharacterStatusEntry {
   const descriptionAdditions = normalizeStatusDescriptionAdditions(options.descriptionAdditions);
+  const spellFormulas = normalizeStatusSpellFormulas(options.spellFormulas);
+  const trackingState = normalizeStatusTrackingState(options.trackingState);
   const monsterEntry = normalizeMonsterRecord(options.monsterEntry);
   const notes = normalizeStatusNotes(options.notes);
   const noteCharges = normalizeStatusNoteCharges(options.noteCharges);
@@ -840,6 +916,11 @@ export function createCharacterStatusEntry(options: {
     rangeFeet: options.rangeFeet ?? null,
     description: options.description?.trim() || undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
+    spellFormulas,
+    trackingState,
+    trackingMessage: trackingState
+      ? normalizeStatusTrackingMessage(options.trackingMessage)
+      : undefined,
     customEffects: Array.isArray(options.customEffects)
       ? normalizeCharacterCustomTraitEffects(options.customEffects)
       : undefined,
@@ -1098,6 +1179,11 @@ export function upsertManualStatusEntry(
             sourceSpellSkill: normalizeStatusSourceSpellSkill(nextEntry.sourceSpellSkill),
             rangeFeet: nextEntry.rangeFeet ?? null,
             description: nextEntry.description?.trim() || undefined,
+            spellFormulas: normalizeStatusSpellFormulas(nextEntry.spellFormulas),
+            trackingState: normalizeStatusTrackingState(nextEntry.trackingState),
+            trackingMessage: normalizeStatusTrackingState(nextEntry.trackingState)
+              ? normalizeStatusTrackingMessage(nextEntry.trackingMessage)
+              : undefined,
             customEffects: Array.isArray(nextEntry.customEffects)
               ? normalizeCharacterCustomTraitEffects(nextEntry.customEffects)
               : undefined
@@ -1167,6 +1253,9 @@ export function updateCharacterStatusEntryDuration(
       sourceSpellTarget: entryToUpdate.sourceSpellTarget ?? null,
       sourceSpellSkill: entryToUpdate.sourceSpellSkill ?? null,
       rangeFeet: entryToUpdate.rangeFeet ?? null,
+      spellFormulas: entryToUpdate.spellFormulas,
+      trackingState: entryToUpdate.trackingState,
+      trackingMessage: entryToUpdate.trackingMessage,
       notes: entryToUpdate.notes,
       noteCharges: entryToUpdate.noteCharges
     })
@@ -1267,13 +1356,8 @@ export function updateCharacterStatusEntryNotes(
 
 export function applySpellConcentrationToStatusEntries(
   value: unknown,
-  spell: { id?: string; name: string; duration: SpellDurationPart[] },
-  options?: {
-    sourceId?: string;
-    sourceSpellSlotLevel?: number | null;
-    sourceSpellTarget?: CharacterStatusSpellTarget | null;
-    sourceSpellSkill?: SkillName | null;
-  }
+  spell: SpellStatusEntrySource,
+  options?: SpellStatusEntryOptions
 ): CharacterStatusEntry[] {
   const concentrationDuration = getSpellConcentrationDuration(spell.duration);
   const entries = normalizeCharacterStatusEntries(value);
@@ -1301,7 +1385,11 @@ export function applySpellConcentrationToStatusEntries(
       sourceSpellId: spell.id,
       sourceSpellSlotLevel: options?.sourceSpellSlotLevel ?? null,
       sourceSpellTarget: options?.sourceSpellTarget ?? null,
-      sourceSpellSkill: options?.sourceSpellSkill ?? null
+      sourceSpellSkill: options?.sourceSpellSkill ?? null,
+      noteCharges: options?.noteCharges,
+      spellFormulas: options?.spellFormulas,
+      trackingState: spell.trackingState,
+      trackingMessage: spell.trackingMessage
     })
   ]);
 
@@ -1362,12 +1450,7 @@ function getSpellStatusDescription(
 export function applySpellDurationToStatusEntries(
   value: unknown,
   spell: SpellStatusEntrySource,
-  options?: {
-    sourceId?: string;
-    sourceSpellSlotLevel?: number | null;
-    sourceSpellTarget?: CharacterStatusSpellTarget | null;
-    sourceSpellSkill?: SkillName | null;
-  }
+  options?: SpellStatusEntryOptions
 ): CharacterStatusEntry[] {
   const concentrationDuration = getSpellConcentrationDuration(spell.duration);
 
@@ -1404,7 +1487,11 @@ export function applySpellDurationToStatusEntries(
       sourceSpellSlotLevel: options?.sourceSpellSlotLevel ?? null,
       sourceSpellTarget: options?.sourceSpellTarget ?? null,
       sourceSpellSkill: options?.sourceSpellSkill ?? null,
-      description: getSpellStatusDescription(spell)
+      description: getSpellStatusDescription(spell),
+      noteCharges: options?.noteCharges,
+      spellFormulas: options?.spellFormulas,
+      trackingState: spell.trackingState,
+      trackingMessage: spell.trackingMessage
     })
   ]);
 }
@@ -1413,12 +1500,7 @@ export function applyCustomSpellDurationToStatusEntries(
   value: unknown,
   spell: SpellStatusEntrySource,
   customEffects: CharacterCustomTraitEffect[] | undefined,
-  options?: {
-    sourceId?: string;
-    sourceSpellSlotLevel?: number | null;
-    sourceSpellTarget?: CharacterStatusSpellTarget | null;
-    sourceSpellSkill?: SkillName | null;
-  }
+  options?: SpellStatusEntryOptions
 ): CharacterStatusEntry[] {
   const normalizedCustomEffects = normalizeCharacterCustomTraitEffects(customEffects);
 
@@ -1440,6 +1522,10 @@ export function applyCustomSpellDurationToStatusEntries(
       sourceSpellTarget: options?.sourceSpellTarget ?? null,
       sourceSpellSkill: options?.sourceSpellSkill ?? null,
       description: getSpellStatusDescription(spell),
+      noteCharges: options?.noteCharges,
+      spellFormulas: options?.spellFormulas,
+      trackingState: spell.trackingState,
+      trackingMessage: spell.trackingMessage,
       customEffects: normalizedCustomEffects
     });
 

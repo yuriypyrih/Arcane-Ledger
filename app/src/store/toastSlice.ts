@@ -15,7 +15,7 @@ export type ToastType = (typeof TOAST_TYPES)[number];
 export type ToastPosition = (typeof TOAST_POSITIONS)[number];
 export type ToastEffect = (typeof TOAST_EFFECTS)[number];
 
-export type ShowToastPayload = {
+type ShowToastMessagePayload = {
   text: string;
   type?: ToastType;
   position?: ToastPosition;
@@ -23,14 +23,35 @@ export type ShowToastPayload = {
   dismissMs?: number;
 };
 
-export type ToastEntry = {
-  id: string;
-  text: string;
-  type: ToastType;
-  position: ToastPosition;
-  effect?: ToastEffect;
+type ShowToastEffectPayload = {
+  text?: undefined;
+  type?: ToastType;
+  position?: ToastPosition;
+  effect: ToastEffect;
   dismissMs?: number;
 };
+
+export type ShowToastPayload = ShowToastMessagePayload | ShowToastEffectPayload;
+
+type ToastEntryBase = {
+  id: string;
+  type: ToastType;
+  position: ToastPosition;
+  dismissMs?: number;
+};
+
+export type ToastCardEntry = ToastEntryBase & {
+  kind: "toast";
+  text: string;
+  effect?: ToastEffect;
+};
+
+export type ToastEffectEntry = ToastEntryBase & {
+  kind: "effect";
+  effect: ToastEffect;
+};
+
+export type ToastEntry = ToastCardEntry | ToastEffectEntry;
 
 export const DEFAULT_TOAST_DISMISS_MS = 6_000;
 
@@ -45,6 +66,14 @@ function createToastId() {
   return `toast-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+export function isToastCardEntry(toast: ToastEntry): toast is ToastCardEntry {
+  return toast.kind === "toast";
+}
+
+export function hasToastCards(toasts: readonly ToastEntry[]): boolean {
+  return toasts.some(isToastCardEntry);
+}
+
 const toastSlice = createSlice({
   name: "toasts",
   initialState: [] as ToastEntry[],
@@ -54,14 +83,30 @@ const toastSlice = createSlice({
         state.unshift(action.payload);
       },
       prepare(payload: ShowToastPayload) {
+        const text = "text" in payload ? payload.text : undefined;
+        const baseEntry = {
+          id: createToastId(),
+          type: payload.type ?? DEFAULT_TOAST_TYPE,
+          position: payload.position ?? DEFAULT_TOAST_POSITION,
+          dismissMs: payload.dismissMs
+        };
+
+        if (typeof text === "string" && text.trim().length > 0) {
+          return {
+            payload: {
+              ...baseEntry,
+              kind: "toast" as const,
+              text,
+              effect: payload.effect
+            }
+          };
+        }
+
         return {
           payload: {
-            id: createToastId(),
-            text: payload.text,
-            type: payload.type ?? DEFAULT_TOAST_TYPE,
-            position: payload.position ?? DEFAULT_TOAST_POSITION,
-            effect: payload.effect,
-            dismissMs: payload.dismissMs
+            ...baseEntry,
+            kind: "effect" as const,
+            effect: payload.effect ?? "default"
           }
         };
       }

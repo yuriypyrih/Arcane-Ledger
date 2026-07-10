@@ -178,6 +178,16 @@ export {
   trueStrikeStatusValue
 } from "./trueStrike";
 export {
+  elminstersEffulgentSpheresSpellId,
+  elminstersEffulgentSpheresStatusValue,
+  getElminstersEffulgentSpheresSphereCount
+} from "./elminstersEffulgentSpheres";
+export {
+  crownOfStarsSpellId,
+  crownOfStarsStatusValue,
+  getCrownOfStarsMoteCount
+} from "./crownOfStars";
+export {
   draconicTransformationBlindsightRangeFeet,
   draconicTransformationBlindsightStatusSourceId,
   draconicTransformationBreathWeaponActionKey,
@@ -271,6 +281,10 @@ export function getSpellImplementationStatusOptionsForCharacter(
   context: SpellImplementationStatusOptionsContext
 ): SpellImplementationStatusOptions {
   return getSpellImplementation(context.spell.id)?.getStatusOptions?.(context) ?? {};
+}
+
+export function shouldSuppressSpellImplementationCastAttackRoll(spellId: string): boolean {
+  return getSpellImplementation(spellId)?.suppressCastAttackRoll === true;
 }
 
 export function createDefaultSpellImplementationOptionValues(

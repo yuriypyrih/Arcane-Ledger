@@ -144,13 +144,37 @@ export function useTraitNotesEditor({ entry, onSaveNotes }: UseTraitNotesEditorO
     setIsEditing(false);
   }
 
+  function adjustSavedCharges(delta: number) {
+    if (!savedNoteCharges) {
+      return;
+    }
+
+    const nextCurrent = Math.max(
+      0,
+      Math.min(savedNoteCharges.max, savedNoteCharges.current + delta)
+    );
+
+    if (nextCurrent === savedNoteCharges.current) {
+      return;
+    }
+
+    onSaveNotes(entry, savedNotes, {
+      ...savedNoteCharges,
+      current: nextCurrent
+    });
+  }
+
   return {
+    adjustSavedCharges,
     adjustDraftCharges,
     canSave,
     canClearDraftCharges,
     canDecreaseDraftCharges,
     canFillDraftCharges,
     canIncreaseDraftCharges,
+    canDecreaseSavedCharges: savedNoteCharges !== undefined && savedNoteCharges.current > 0,
+    canIncreaseSavedCharges:
+      savedNoteCharges !== undefined && savedNoteCharges.current < savedNoteCharges.max,
     cancelEditing,
     draftChargesCurrent: draftNoteCharges?.current ?? 0,
     draftChargesMax,

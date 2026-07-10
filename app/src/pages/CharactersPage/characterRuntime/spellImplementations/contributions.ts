@@ -5,6 +5,7 @@ export function compileSpellImplementationContributions(
 ): SpellImplementation[] {
   return specs.map((spec) => ({
     spellId: spec.spellId,
+    suppressCastAttackRoll: spec.suppressCastAttackRoll,
     getCastOptions: spec.getCastOptions,
     applyOnCast: spec.applyOnCast,
     getRollEffects: spec.getRollEffects,

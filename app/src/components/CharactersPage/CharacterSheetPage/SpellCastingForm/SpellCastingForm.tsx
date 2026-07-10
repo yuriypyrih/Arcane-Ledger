@@ -204,6 +204,7 @@ import {
   getSpellImplementationStatusOptionsForCharacter,
   getSpellImplementationRollEffectsForCharacter,
   hasActiveTensersTransformationStatus,
+  shouldSuppressSpellImplementationCastAttackRoll,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
@@ -237,6 +238,13 @@ type SpellCastingFormProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
+
+function shouldSuppressSpellCastAttackRoll(spell: { id?: string } | null | undefined): boolean {
+  return (
+    shouldSuppressEphemeralWeaponSpellCastAttackRoll(spell) ||
+    (spell?.id ? shouldSuppressSpellImplementationCastAttackRoll(spell.id) : false)
+  );
+}
 
 type SelectedSpellViewMode = CharacterSpellDrawerMode;
 type SelectedSpellPreviewOptions = {
@@ -1265,7 +1273,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       return null;
     }
 
-    const shouldSuppressCastAttackRoll =
+    const shouldHideCastAttackDisplay =
       shouldSuppressEphemeralWeaponSpellCastAttackRoll(selectedSpell);
     const spellDisplay = getDruidCircleOfTheStarsChaliceHealingSpellEntry(
       character,
@@ -1278,13 +1286,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     );
 
     const transformedSpellDisplay =
-      selectedSpell.isAttackSpell === true && !shouldSuppressCastAttackRoll
+      selectedSpell.isAttackSpell === true && !shouldHideCastAttackDisplay
         ? appendGoliathAttackDescriptionAddition(
             spellDisplay,
             getGoliathAttackOptionStateForCharacter(character)
           )
         : spellDisplay;
-    const castDisplaySpell = shouldSuppressCastAttackRoll
+    const castDisplaySpell = shouldHideCastAttackDisplay
       ? {
           ...transformedSpellDisplay,
           isAttackSpell: false
@@ -1335,7 +1343,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellOverchannelNecroticDamage =
     getWizardEvokerOverchannelNecroticDamageFormula(character);
   const selectedSpellAttackRollFormula =
-    selectedSpellDisplay && !shouldSuppressEphemeralWeaponSpellCastAttackRoll(selectedSpell)
+    selectedSpellDisplay && !shouldSuppressSpellCastAttackRoll(selectedSpell)
       ? getSpellAttackRollFormulaForCharacter(
           selectedSpellDisplay,
           character,
@@ -1344,7 +1352,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       : null;
   const selectedSpellGoliathAncestryState =
     selectedSpell?.isAttackSpell === true &&
-    !shouldSuppressEphemeralWeaponSpellCastAttackRoll(selectedSpell)
+    !shouldSuppressSpellCastAttackRoll(selectedSpell)
       ? getGoliathAttackOptionStateForCharacter(character)
       : null;
   const selectedSpellSupportsGoliathAncestry = selectedSpellGoliathAncestryState !== null;
@@ -2313,7 +2321,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   function rollSpellAttackForSpellCast(
     spell: Pick<SpellEntry, "id" | "isAttackSpell" | "isSavingThrowSpell" | "name" | "spellLists">
   ) {
-    if (shouldSuppressEphemeralWeaponSpellCastAttackRoll(spell)) {
+    if (shouldSuppressSpellCastAttackRoll(spell)) {
       return;
     }
 

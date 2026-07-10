@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../types";
+import { getSpellFormulaCellsForCharacterSpell } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import type { CastSelectedSpellContext, CastSelectedSpellOptions } from "./types";
 import { getSpellCastSlotPlan } from "./spellCastSlotPlan";
 
@@ -257,21 +258,27 @@ export function castSelectedSpellWithContext(
         id: selectedSpell.id,
         name: selectedSpell.name,
         duration: ["1 hour"],
-        description: selectedSpell.description
+        description: selectedSpell.description,
+        trackingState: selectedSpell.trackingState,
+        trackingMessage: selectedSpell.trackingMessage
       }
     : useFeyReinforcementsNoConcentration
     ? {
         id: selectedSpell.id,
         name: selectedSpell.name,
         duration: ["1 minute"],
-        description: selectedSpell.description
+        description: selectedSpell.description,
+        trackingState: selectedSpell.trackingState,
+        trackingMessage: selectedSpell.trackingMessage
       }
     : useDragonCompanionWithoutConcentration
     ? {
         id: selectedSpell.id,
         name: selectedSpell.name,
         duration: ["1 minute"],
-        description: selectedSpell.description
+        description: selectedSpell.description,
+        trackingState: selectedSpell.trackingState,
+        trackingMessage: selectedSpell.trackingMessage
       }
     : selectedSpell;
   const selectedCustomSpellSnapshot =
@@ -300,18 +307,23 @@ export function castSelectedSpellWithContext(
     statusCharacter: Character,
     spellSlotLevel: number | null,
     sourceSpellSlotLevel: number | null
-  ) => ({
-    ...(concentrationStatusOptions ?? {}),
-    ...getSpellImplementationStatusOptionsForCharacter({
-      character: statusCharacter,
-      spell: selectedSpell,
-      spellSlotLevel,
+  ) => {
+    const spellFormulas = getSpellFormulaCellsForCharacterSpell(selectedSpell, statusCharacter);
+
+    return {
+      ...(concentrationStatusOptions ?? {}),
+      ...getSpellImplementationStatusOptionsForCharacter({
+        character: statusCharacter,
+        spell: selectedSpell,
+        spellSlotLevel,
+        sourceSpellSlotLevel,
+        castSource: spellImplementationCastSource,
+        options: spellImplementationOptions
+      }),
       sourceSpellSlotLevel,
-      castSource: spellImplementationCastSource,
-      options: spellImplementationOptions
-    }),
-    sourceSpellSlotLevel
-  });
+      ...(spellFormulas.length > 0 ? { spellFormulas } : {})
+    };
+  };
   const applySelectedSpellDurationToCharacter = (
     nextCharacter: Character,
     spellSlotLevel: number | null = null,

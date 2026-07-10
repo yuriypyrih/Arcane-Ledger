@@ -12,7 +12,7 @@ type RoundTrackerControlProps = {
     reactionAvailable: boolean;
     isInCombat: boolean;
   };
-  onSelectResource: (resource: RoundTrackerResource) => void;
+  onToggleResource: (resource: RoundTrackerResource) => void;
   onSelectCombat: () => void;
   onStartTurn: () => void;
   onFinishRound: () => void;
@@ -20,7 +20,7 @@ type RoundTrackerControlProps = {
 
 function RoundTrackerControl({
   roundTracker,
-  onSelectResource,
+  onToggleResource,
   onSelectCombat,
   onStartTurn,
   onFinishRound
@@ -78,7 +78,7 @@ function RoundTrackerControl({
       <ActionShape
         shape="action"
         isSelected={roundTracker.actionAvailable}
-        onSelect={() => onSelectResource("action")}
+        onSelect={() => onToggleResource("action")}
         disabled={areRoundResourcesDisabled}
         className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(
@@ -97,7 +97,7 @@ function RoundTrackerControl({
       <ActionShape
         shape="bonusAction"
         isSelected={roundTracker.bonusActionAvailable}
-        onSelect={() => onSelectResource("bonusAction")}
+        onSelect={() => onToggleResource("bonusAction")}
         disabled={areRoundResourcesDisabled}
         className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(
@@ -116,7 +116,7 @@ function RoundTrackerControl({
       <ActionShape
         shape="reaction"
         isSelected={roundTracker.reactionAvailable}
-        onSelect={() => onSelectResource("reaction")}
+        onSelect={() => onToggleResource("reaction")}
         disabled={areRoundResourcesDisabled}
         className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(

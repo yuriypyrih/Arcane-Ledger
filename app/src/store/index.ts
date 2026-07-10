@@ -82,10 +82,14 @@ export {
   TOAST_TYPES,
   dismissAllToasts,
   dismissToast,
+  hasToastCards,
+  isToastCardEntry,
   showToast,
   type ToastEffect,
+  type ToastCardEntry,
   type ShowToastPayload,
   type ToastEntry,
+  type ToastEffectEntry,
   type ToastPosition,
   type ToastType
 } from "./toastSlice";

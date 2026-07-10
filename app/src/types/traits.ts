@@ -1,4 +1,9 @@
-import type { DAMAGE_TYPE, SpellDescriptionEntry, WEAPON_COMBAT_TYPE } from "../codex/entries";
+import type {
+  DAMAGE_TYPE,
+  SpellDescriptionEntry,
+  TRACKER,
+  WEAPON_COMBAT_TYPE
+} from "../codex/entries";
 import type { AbilityKey } from "./characters";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
@@ -263,6 +268,12 @@ export type CharacterStatusEntryNoteCharges = {
   max: number;
 };
 
+export type CharacterStatusEntrySpellFormula = {
+  label: string;
+  content: string;
+  breakdown?: string;
+};
+
 export type CharacterStatusEntry = {
   id: string;
   group: STATUS_ENTRY_GROUP;
@@ -281,6 +292,9 @@ export type CharacterStatusEntry = {
   rangeFeet?: number | null;
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
+  spellFormulas?: CharacterStatusEntrySpellFormula[];
+  trackingState?: TRACKER;
+  trackingMessage?: string;
   customEffects?: CharacterCustomTraitEffect[];
   monsterEntry?: MonsterRecord;
   notes?: string;

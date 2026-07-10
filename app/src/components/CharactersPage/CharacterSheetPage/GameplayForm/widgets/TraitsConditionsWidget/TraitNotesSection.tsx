@@ -132,13 +132,45 @@ export function TraitNotesBody({ editor, className }: TraitNotesBodyProps) {
           </p>
         ) : null}
         {editor.savedNoteCharges ? (
-          <p className={clsx(styles.notesText, styles.noteChargesReadout)}>
-            <span className={styles.notesInlineHeader}>
-              <ScrollText size={14} aria-hidden="true" />
-              <span className={styles.notesInlineLabel}>CHARGES:</span>
-            </span>{" "}
-            {editor.savedNoteCharges.current}/{editor.savedNoteCharges.max}
-          </p>
+          <div className={clsx(styles.notesText, styles.noteChargesReadout)}>
+            <div className={styles.noteChargesReadoutHeader}>
+              <span className={styles.notesInlineHeader}>
+                <ScrollText size={14} aria-hidden="true" />
+                <span className={styles.notesInlineLabel}>CHARGES:</span>
+              </span>
+            </div>
+            <div className={styles.noteChargesReadoutStepper} role="group" aria-label="Charges">
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="ERROR"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<Minus size={15} aria-hidden="true" />}
+                onClick={() => editor.adjustSavedCharges(-1)}
+                disabled={!editor.canDecreaseSavedCharges}
+                aria-label="Use 1 charge"
+                title="Use 1 charge"
+              />
+              <span className={styles.noteChargesCurrent} aria-live="polite">
+                {editor.savedNoteCharges.current}/{editor.savedNoteCharges.max}
+              </span>
+              <ActionButton
+                className={styles.noteChargesIconButton}
+                actionType="INFO"
+                variant="OUTLINE"
+                size="sm"
+                fullWidth={false}
+                iconOnly
+                icon={<Plus size={15} aria-hidden="true" />}
+                onClick={() => editor.adjustSavedCharges(1)}
+                disabled={!editor.canIncreaseSavedCharges}
+                aria-label="Recover 1 charge"
+                title="Recover 1 charge"
+              />
+            </div>
+          </div>
         ) : null}
       </section>
     );
