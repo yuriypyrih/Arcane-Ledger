@@ -33,9 +33,14 @@
   outline-offset: 2px;
 }
 
-.status {
+.status,
+.total {
   color: var(--theme-text-secondary);
   font-size: 0.88rem;
+}
+
+.total {
+  font-weight: 750;
 }
 
 @media (max-width: 899px) {
@@ -49,7 +54,8 @@
     font-size: 0.8rem;
   }
 
-  .status {
+  .status,
+  .total {
     font-size: 0.76rem;
   }
 }
@@ -65,7 +71,8 @@
     font-size: 0.72rem;
   }
 
-  .status {
+  .status,
+  .total {
     font-size: 0.68rem;
   }
 }

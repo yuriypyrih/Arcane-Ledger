@@ -62,22 +62,24 @@ function StartingGuideModal({ onClose }: StartingGuideModalProps) {
         </GuideItem>
 
         <GuideItem icon={Swords} title="Pick Your Class">
-          Your class is the main engine of the sheet: how you solve problems, spend turns, and grow
-          over levels. Your subclass sharpens that identity, though many characters choose it at
-          level 3. Use the book button beside class and subclass fields for a quick reference, or
-          read the full progression in the Classes section of the Compendium.
+          Choose a class based on how you want your character to approach adventure. Your class
+          shapes your abilities, actions, spellcasting, and the choices available as you level up.
+          Your subclass adds a more focused path, though many classes choose one at level 3. Use the
+          book button beside the class and subclass fields for a quick reference, or explore the full
+          progression in the Compendium.
         </GuideItem>
 
         <GuideItem icon={BookUser} title="Choose Your Origin">
-          Species gives traits such as speed, senses, resistances, and special abilities. Background
-          explains who shaped you before adventuring and enchances your character sheet further.
+          Choose a species for traits that shape how your character moves through the world, such as
+          senses, resilience, speed, and special abilities. Choose a background to reflect the life
+          they lived before adventure, adding useful details to the sheet and a foundation for their
+          story.
         </GuideItem>
 
         <GuideItem icon={NotebookPen} title="Finish the Sheet">
-          Customize the character sheet around what your character needs. Put your strongest ability
-          score where your class uses it most, then use the build setup step to choose equipment,
-          skills, and other starting options. If something is not available during creation, no
-          worries, you can add it after the character is finalized.
+          Put your strongest ability score where your class will use it most. Then use Build Setup to
+          choose skills, equipment, and other starting options. If something is missing, you can
+          adjust the sheet later.
         </GuideItem>
       </OverlayBody>
     </SheetModal>

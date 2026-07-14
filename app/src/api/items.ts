@@ -12,7 +12,7 @@ import type {
   ItemRecord,
   ItemSpecialFilter
 } from "../types/items";
-import type { PaginatedApiResponse } from "../types/monsters";
+import type { PaginatedApiResponse } from "../types/api";
 import { apiGet, apiPost, type ApiRequestOptions } from "./client";
 
 export type FetchItemListParams = {

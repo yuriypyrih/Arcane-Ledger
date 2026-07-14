@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { administrationRoutes } from "./administrationRoutes.js";
 import { analyticsRoutes } from "./analyticsRoutes.js";
 import { authRoutes } from "./authRoutes.js";
 import { campaignRoutes } from "./campaignRoutes.js";
@@ -15,6 +16,7 @@ import { supportRoutes } from "./supportRoutes.js";
 
 const apiRouter = Router();
 
+apiRouter.use("/administration", administrationRoutes);
 apiRouter.use("/analytics", analyticsRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/campaigns", campaignRoutes);

@@ -182,10 +182,3 @@ export type MonsterListItem = {
   imageUrl: string | null;
   deprecated?: boolean;
 };
-
-export type PaginatedApiResponse<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};

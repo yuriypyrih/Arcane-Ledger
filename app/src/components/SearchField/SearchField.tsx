@@ -45,6 +45,7 @@ function SearchField({
   return (
     <TextInput
       {...inputProps}
+      type="search"
       value={draftValue}
       onChange={(event) => setDraftValue(event.target.value)}
     />

@@ -10,6 +10,7 @@ import {
   Moon,
   RefreshCw,
   Settings,
+  ShieldCheck,
   Sun,
   UserCircle
 } from "lucide-react";
@@ -257,6 +258,11 @@ function PrimaryNav({
     navigate("/analytics");
   }
 
+  function handleAdministration() {
+    setAccountMenuOpen(false);
+    navigate("/administration");
+  }
+
   return (
     <nav className={styles.nav} aria-label="Primary">
       <div className={styles.leftCluster}>
@@ -388,15 +394,26 @@ function PrimaryNav({
                   <span>Support & Feedback</span>
                 </button>
                 {user?.role === "admin" ? (
-                  <button
-                    type="button"
-                    className={styles.accountMenuItem}
-                    role="menuitem"
-                    onClick={handleAnalytics}
-                  >
-                    <BarChart3 size={15} aria-hidden="true" />
-                    <span>Analytics</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={styles.accountMenuItem}
+                      role="menuitem"
+                      onClick={handleAnalytics}
+                    >
+                      <BarChart3 size={15} aria-hidden="true" />
+                      <span>Analytics</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.accountMenuItem}
+                      role="menuitem"
+                      onClick={handleAdministration}
+                    >
+                      <ShieldCheck size={15} aria-hidden="true" />
+                      <span>Administration</span>
+                    </button>
+                  </>
                 ) : null}
               </div>
             ) : null}

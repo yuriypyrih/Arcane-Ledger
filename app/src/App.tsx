@@ -16,6 +16,9 @@ const LEGACY_NETLIFY_HOSTNAME = "arcane-ledger.netlify.app";
 const ARCANE_LEDGER_HOME_URL = "https://arcane-ledger.com";
 
 const AccountPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/AccountPage"));
+const AdministrationPage = lazyWithTrackedLoad(
+  () => import("./pages/AuthPages/AdministrationPage")
+);
 const AnalyticsPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/AnalyticsPage"));
 const CharacterBuilderPage = lazyWithTrackedLoad(
   () => import("./pages/CharactersPage/CharacterBuilderPage")
@@ -67,8 +70,7 @@ function LegacyDomainNotice() {
         </div>
         <h1 id="legacy-domain-title">Arcane Ledger Has Moved</h1>
         <p>
-          Thank you for helping alpha test Arcane Ledger. We have moved to a new home:
-          {" "}
+          Thank you for helping alpha test Arcane Ledger. We have moved to a new home:{" "}
           <a href={ARCANE_LEDGER_HOME_URL}>{ARCANE_LEDGER_HOME_URL}</a>. Come join us there.
         </p>
       </section>
@@ -126,6 +128,7 @@ function App() {
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/administration" element={<AdministrationPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -152,7 +155,10 @@ function App() {
               path="/gm-tools/encounter-templates/:encounterTemplateId"
               element={<EncounterTemplateDetailPage />}
             />
-            <Route path="/gm-tools/party-manager/:partyGroupId" element={<PartyGroupDetailPage />} />
+            <Route
+              path="/gm-tools/party-manager/:partyGroupId"
+              element={<PartyGroupDetailPage />}
+            />
             <Route path="/compendium/items/:key" element={<ItemCodexEntryPage />} />
             <Route path="/compendium/monsters/:key" element={<MonsterCodexEntryPage />} />
             <Route path="/compendium/:entryId" element={<CodexEntryPage />} />

@@ -66,6 +66,11 @@
     opacity 160ms ease;
 }
 
+.stepBadgeCompactLabel,
+.startingGuideCompactLabel {
+  display: none;
+}
+
 :global(html[data-theme="dark"]) .stepBadge {
   border-color: var(--theme-border-subtle);
   background: var(--theme-control-subtle);
@@ -955,6 +960,30 @@ select.fieldInput option[value=""] {
 }
 
 @media (max-width: 599px) {
+  .stepBadgeLabel,
+  .startingGuideLabel {
+    display: none;
+  }
+
+  .stepBadgeCompactLabel,
+  .startingGuideCompactLabel {
+    display: inline;
+  }
+
+  .profileRowTop .field {
+    gap: 0.26rem;
+  }
+
+  .profileRowTop .field > span {
+    font-size: 0.7rem;
+  }
+
+  .profileRowTop .fieldInput {
+    min-height: 38px;
+    padding: 0 0.65rem;
+    font-size: 0.9rem;
+  }
+
   .pointSummary {
     flex-direction: column;
     align-items: flex-start;

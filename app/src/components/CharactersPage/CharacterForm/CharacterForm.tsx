@@ -3055,7 +3055,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setWizardStep(step);
   }
 
-  function renderWizardStepBadge(step: CreationStep, label: string) {
+  function renderWizardStepBadge(
+    step: CreationStep,
+    label: string,
+    compactLabel = label
+  ) {
     const isActive = wizardStep === step;
     const isDone = wizardStep > step;
     const isPending = !isActive && !isDone;
@@ -3076,7 +3080,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           onClick={() => handleWizardStepClick(step)}
           disabled={hasPendingAction}
         >
-          {label}
+          <span className={styles.stepBadgeLabel}>{label}</span>
+          <span className={styles.stepBadgeCompactLabel}>{compactLabel}</span>
         </button>
       );
     }
@@ -3088,7 +3093,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         aria-current={isActive ? "step" : undefined}
         aria-disabled={isPending ? true : undefined}
       >
-        {label}
+        <span className={styles.stepBadgeLabel}>{label}</span>
+        <span className={styles.stepBadgeCompactLabel}>{compactLabel}</span>
       </span>
     );
   }
@@ -6028,8 +6034,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ) : (
           <div className={styles.progressCardContent}>
             <div className={styles.wizardProgress} aria-label="Character creation steps">
-              {renderWizardStepBadge(1, "1. Core profile")}
-              {renderWizardStepBadge(2, "2. Build setup")}
+              {renderWizardStepBadge(1, "1. Core profile", "1. Core")}
+              {renderWizardStepBadge(2, "2. Build setup", "2. Build")}
               {renderWizardStepBadge(3, "3. Notes")}
             </div>
             <button
@@ -6040,7 +6046,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               title="Starting Guide"
             >
               <CircleHelp size={16} aria-hidden="true" />
-              <span>Starting Guide</span>
+              <span className={styles.startingGuideLabel}>Starting Guide</span>
+              <span className={styles.startingGuideCompactLabel}>Guide</span>
             </button>
           </div>
         )}
