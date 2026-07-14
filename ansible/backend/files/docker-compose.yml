@@ -1,27 +1,9 @@
 services:
-  mongo-keyfile-init:
-    image: alpine:3.21
-    restart: "no"
-    command:
-      - sh
-      - -c
-      - >-
-        umask 077;
-        if [ ! -s /keyfile/keyfile ]; then
-          head -c 756 /dev/urandom | base64 > /keyfile/keyfile;
-        fi;
-        chown 999:999 /keyfile/keyfile;
-        chmod 400 /keyfile/keyfile
-    volumes: [arcane-ledger-backend-mongodb-keyfile:/keyfile]
-
   al:
     image: lausi95/arcane-ledger-backend
     networks: [traefik]
-    env_file: [arcane-ledger-backend.env]
+    env_file: [ arcane-ledger-backend.env ]
     restart: unless-stopped
-    depends_on:
-      mongo-rs-init:
-        condition: service_completed_successfully
     labels:
       - traefik.enable=true
       - traefik.http.routers.alb.rule=Host(`backend.arcane-ledger.com`)
@@ -29,51 +11,16 @@ services:
       - traefik.http.routers.alb.tls.certresolver=letsencrypt
 
   mongodb:
-    image: mongo:7.0
+    image: mongo
     networks: [traefik]
-    env_file: [mongo.env]
-    command:
-      ["mongod", "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile/keyfile"]
-    depends_on:
-      mongo-keyfile-init:
-        condition: service_completed_successfully
-    volumes:
-      - arcane-ledger-backend-mongodb:/data/db
-      - arcane-ledger-backend-mongodb-keyfile:/etc/mongo-keyfile:ro
+    env_file: [ mongo.env ]
+    volumes: [arcane-ledger-backend-mongodb:/etc/mongodb]
     restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mongosh --quiet --username $$MONGO_INITDB_ROOT_USERNAME --password $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval 'db.adminCommand({ ping: 1 })'"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
     labels:
       - traefik.enable=true
       - traefik.tcp.routers.mongodb.rule=HostSNI(`*`)
       - traefik.tcp.routers.mongodb.entrypoints=mongodb
       - traefik.tcp.routers.mongodb.tls=false
-
-  mongo-rs-init:
-    image: mongo:7.0
-    networks: [traefik]
-    env_file: [mongo.env]
-    restart: "no"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    entrypoint:
-      - sh
-      - -c
-      - >-
-        mongosh --quiet --host mongodb
-        --username "$$MONGO_INITDB_ROOT_USERNAME"
-        --password "$$MONGO_INITDB_ROOT_PASSWORD"
-        --authenticationDatabase admin
-        --eval 'try { rs.status().ok } catch (error) { rs.initiate({_id:"rs0",members:[{_id:0,host:"mongodb:27017"}]}) }'
 
 networks:
   traefik:
@@ -82,4 +29,3 @@ networks:
 
 volumes:
   arcane-ledger-backend-mongodb:
-  arcane-ledger-backend-mongodb-keyfile:
