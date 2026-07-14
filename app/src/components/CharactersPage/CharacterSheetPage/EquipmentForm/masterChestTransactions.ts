@@ -223,7 +223,9 @@ export function createTransactionSummary(log: MasterChestTransactionLog): string
 
 export function parseHistoryEntry(entry: string): ParsedHistoryEntry {
   const [, timestamp = "", actor = "", summary = entry] =
-    entry.match(/^(\d{2}\/\d{2}\/\d{2} \d{2}:\d{2}) - ([^:]+): (.+)$/) ?? [];
+    entry.match(
+      /^(\d{2}\/\d{2}\/\d{2} \d{2}:\d{2}) - (.+): ((?:Transferred-in|Transferred-out|Deposit|Withdraw) \(.+\))$/
+    ) ?? [];
   const actions: ParsedHistoryAction[] = [];
 
   for (const match of summary.matchAll(historyActionPattern)) {

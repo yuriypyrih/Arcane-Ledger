@@ -37,8 +37,13 @@ function CharacterSheetPage() {
   const { isBroadLayoutActive } = useOutletContext<AppShellOutletContext>();
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
   const [isCompanionCreatorOpen, setIsCompanionCreatorOpen] = useState(false);
-  const { character, isLoadingCharacter, persistCharacter, queueHitPointCharacterSave } =
-    useCharacterSheetPersistence(parsedCharacterId);
+  const {
+    adoptCloudCharacter,
+    character,
+    isLoadingCharacter,
+    persistCharacter,
+    queueHitPointCharacterSave
+  } = useCharacterSheetPersistence(parsedCharacterId);
   const trackedCharacterOpenId = useRef<number | null>(null);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
@@ -161,6 +166,7 @@ function CharacterSheetPage() {
           <CharacterSheetSectionProfiler id="equipment">
             <EquipmentSheetSection
               className={styles.cascadeSeven}
+              onAdoptCloudCharacter={adoptCloudCharacter}
               onPersistCharacter={persistCharacter}
             />
           </CharacterSheetSectionProfiler>

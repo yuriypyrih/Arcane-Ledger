@@ -1,4 +1,5 @@
 import type { CampaignLiveEncounterTrackerRecord } from "./campaigns";
+import type { CharacterSheetCloudDocument } from "./characters";
 import type {
   CharacterAvatarMetadata,
   CharacterCurrencies,
@@ -106,6 +107,31 @@ export type PartyGroupMasterChestEnvelope = {
   masterChest: PartyGroupMasterChestRecord;
 };
 
+export type MasterChestTransactionOperation =
+  | {
+      type: "transfer-item";
+      direction: "character-to-chest" | "chest-to-character";
+      sourceStackId: string;
+      quantity: number;
+    }
+  | {
+      type: "transfer-currency";
+      direction: "character-to-chest" | "chest-to-character";
+      currency: keyof CharacterCurrencies;
+      amount: number;
+    }
+  | { type: "add-item"; item: CharacterInventoryItem }
+  | { type: "remove-item"; sourceStackId: string; quantity: number }
+  | { type: "adjust-currency"; currency: keyof CharacterCurrencies; delta: number };
+
+export type MasterChestTransactionEnvelope = PartyGroupMasterChestEnvelope & {
+  transaction: {
+    operationId: string;
+    replayed: boolean;
+  };
+  character?: CharacterSheetCloudDocument;
+};
+
 export type PartyGroupInventoryMemberRecord = PartyGroupMemberRecord & {
   currencies: CharacterCurrencies;
   inventoryItems: CharacterInventoryItem[];
@@ -185,6 +211,22 @@ export function updatePartyGroupMasterChest(
 ) {
   return apiPut<PartyGroupMasterChestEnvelope>(
     `/party-groups/${partyGroupId}/master-chest`,
+    payload,
+    options
+  );
+}
+
+export function createPartyGroupMasterChestTransaction(
+  partyGroupId: string,
+  payload: {
+    operationId: string;
+    actorCharacterId?: string;
+    operations: MasterChestTransactionOperation[];
+  },
+  options?: ApiRequestOptions
+) {
+  return apiPost<MasterChestTransactionEnvelope>(
+    `/party-groups/${partyGroupId}/master-chest/transactions`,
     payload,
     options
   );

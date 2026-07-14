@@ -66,6 +66,9 @@ export function useMasterChestData({
   const [draft, setDraft] = useState<MasterChestDraft>(() =>
     createInitialMasterChestDraft(character)
   );
+  const [baseDraft, setBaseDraft] = useState<MasterChestDraft>(() =>
+    createInitialMasterChestDraft(character)
+  );
   const [history, setHistory] = useState<string[]>([]);
   const [loadStatus, setLoadStatus] = useState<MasterChestLoadStatus>("loading");
   const [partyInventoryMembers, setPartyInventoryMembers] = useState<
@@ -96,11 +99,13 @@ export function useMasterChestData({
           })
         ]);
 
-        setDraft({
+        const loadedDraft = {
           ...createInitialMasterChestDraft(characterRef.current),
           chestCurrencies: normalizeMasterChestCurrencies(masterChest.currencies),
           chestInventoryItems: normalizeCharacterInventoryItems(masterChest.inventoryItems)
-        });
+        };
+        setBaseDraft(loadedDraft);
+        setDraft(loadedDraft);
         setHistory(Array.isArray(masterChest.history) ? masterChest.history : []);
         setPartyInventoryMembers(normalizePartyInventoryMembers(partyInventories.members));
         setRevision(masterChest.revision);
@@ -130,6 +135,7 @@ export function useMasterChestData({
   }, [loadMasterChestData]);
 
   return {
+    baseDraft,
     draft,
     error,
     history,

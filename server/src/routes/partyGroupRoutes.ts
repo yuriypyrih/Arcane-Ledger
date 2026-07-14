@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createPartyGroupMasterChestTransaction,
   createPartyGroup,
   deletePartyGroup,
   getPartyGroup,
@@ -36,6 +37,11 @@ partyGroupRoutes.patch(
 );
 partyGroupRoutes.get("/:partyGroupId/inventories", requireAuth, getPartyGroupInventoryContent);
 partyGroupRoutes.get("/:partyGroupId/master-chest", requireAuth, getPartyGroupMasterChestContent);
+partyGroupRoutes.post(
+  "/:partyGroupId/master-chest/transactions",
+  requireAuth,
+  createPartyGroupMasterChestTransaction
+);
 partyGroupRoutes.put(
   "/:partyGroupId/master-chest",
   requireAuth,

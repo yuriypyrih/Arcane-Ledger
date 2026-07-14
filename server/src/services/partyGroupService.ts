@@ -18,6 +18,7 @@ import type { UserRole } from "../types/auth.js";
 import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
 import { toMemberVisibleCampaignLiveEncounterTrackerDetailRecord } from "./campaignLiveEncounterTrackerService.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
+import { createHistoryActorLabel } from "./masterChestTransactionService.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const PARTY_GROUP_INVITE_TOKEN_LENGTH = 12;
@@ -251,7 +252,7 @@ function normalizeMasterChestHistory(value: unknown): string[] {
 }
 
 function createMasterChestHistory(options: {
-  actorNickname: string;
+  actorLabel: string;
   currentHistory: unknown;
   transactionSummary: unknown;
 }) {
@@ -262,8 +263,7 @@ function createMasterChestHistory(options: {
     return currentHistory;
   }
 
-  const nickname = options.actorNickname.trim() || "Unknown Player";
-  const entry = `${formatMasterChestHistoryTimestamp(new Date())} - ${nickname}: ${transactionSummary}`;
+  const entry = `${formatMasterChestHistoryTimestamp(new Date())} - ${options.actorLabel}: ${transactionSummary}`;
 
   return [entry, ...currentHistory].slice(0, MASTER_CHEST_HISTORY_LIMIT);
 }
@@ -742,6 +742,7 @@ export async function updatePartyGroupMasterChest(options: {
   const canManageAsPartyOwner =
     partyGroup.ownerId.toString() === ownerId ||
     (partyGroup.adminUserIds ?? []).some((adminUserId) => adminUserId.toString() === ownerId);
+  let actorCharacterName: string | undefined;
 
   if (!canManageAsPartyOwner) {
     if (
@@ -752,17 +753,28 @@ export async function updatePartyGroupMasterChest(options: {
     }
 
     const actorCharacterId = new Types.ObjectId(options.actorCharacterId);
-    const ownedMember = await CharacterSheet.exists({
+    const ownedMember = await CharacterSheet.findOne({
       _id: actorCharacterId,
       ownerId: options.ownerId,
       deletedAt: null,
       partyGroupId: new Types.ObjectId(options.partyGroupId)
-    }).exec();
+    })
+      .select("summary.name")
+      .lean()
+      .exec();
 
     if (!ownedMember) {
       throw new AppError("Party member was not found.", 404, "PARTY_MEMBER_NOT_FOUND");
     }
+
+    actorCharacterName = ownedMember.summary.name;
   }
+
+  const actorLabel = createHistoryActorLabel({
+    actorNickname: options.actorNickname,
+    characterName: actorCharacterName,
+    mode: canManageAsPartyOwner ? "gm" : "player"
+  });
 
   const revisionFilter =
     baseRevision === 1
@@ -780,7 +792,7 @@ export async function updatePartyGroupMasterChest(options: {
         masterChestItems: inventoryItems,
         masterChestCurrencies: currencies,
         masterChestHistory: createMasterChestHistory({
-          actorNickname: options.actorNickname,
+          actorLabel,
           currentHistory: partyGroup.masterChestHistory,
           transactionSummary: options.transactionSummary
         }),

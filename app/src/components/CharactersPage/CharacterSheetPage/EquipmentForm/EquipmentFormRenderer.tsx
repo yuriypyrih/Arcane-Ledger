@@ -12,7 +12,7 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
     isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isMasterChestOpen, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, partyMembership, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, saveMasterChestCharacterDraft, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
+    openWeaponReference, onAdoptCloudCharacter, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, partyMembership, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
     selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setIsMasterChestOpen, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetActionButton, SheetSurface,
@@ -305,7 +305,7 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
           partyGroupId={partyMembership.partyGroupId}
           partyGroupName={partyMembership.partyGroupName}
           onClose={() => setIsMasterChestOpen(false)}
-          onSaveCharacterDraft={saveMasterChestCharacterDraft}
+          onAdoptCloudCharacter={onAdoptCloudCharacter}
         />
       ) : null}
 

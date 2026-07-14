@@ -238,6 +238,7 @@ import EquipmentStoredSpellDrawer, {
 type EquipmentFormProps = {
   character: Character;
   className?: string;
+  onAdoptCloudCharacter: (document: import("../../../../api").CharacterSheetCloudDocument) => unknown;
   onPersistCharacter: PersistCharacterUpdater;
   partyMembership?: PartyMembershipRecord;
 };
@@ -346,6 +347,7 @@ function getInventoryRowObjectTagLabel(
 function EquipmentForm({
   character,
   className,
+  onAdoptCloudCharacter,
   onPersistCharacter,
   partyMembership
 }: EquipmentFormProps) {
@@ -1633,20 +1635,6 @@ function EquipmentForm({
 
     setManagingContainerStackId(null);
     closeInventoryItemDrawer();
-  }
-
-  function saveMasterChestCharacterDraft(draft: {
-    currencies: Character["currencies"];
-    inventoryItems: Character["inventoryItems"];
-  }) {
-    onPersistCharacter(
-      (currentCharacter) => ({
-        ...currentCharacter,
-        currencies: draft.currencies,
-        inventoryItems: draft.inventoryItems
-      }),
-      equipmentPersistOptions
-    );
   }
 
   function canAddItemToSelectedInventoryTarget(item: ItemRecord): boolean {
@@ -3158,6 +3146,7 @@ function EquipmentForm({
     openInventoryInspectionFromBrowser,
     openInventoryInspectionFromLoadout,
     openLoadoutEntryDetails,
+    onAdoptCloudCharacter,
     openWeaponReference,
     parentInventoryDrawerBodyAfterItem,
     parentInventoryDrawerHeaderContent,
@@ -3173,7 +3162,6 @@ function EquipmentForm({
     removeEquipmentItem,
     saveCustomEquipment,
     saveContainerManagement,
-    saveMasterChestCharacterDraft,
     selectedAdditionalWeaponMasteries,
     selectedInventoryInspection,
     inventoryDrawerTitleId,

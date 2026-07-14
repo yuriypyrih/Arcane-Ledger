@@ -1,4 +1,20 @@
 services:
+  mongo-keyfile-init:
+    image: alpine:3.21
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - >-
+        umask 077;
+        if [ ! -s /keyfile/keyfile ]; then
+          head -c 756 /dev/urandom | base64 > /keyfile/keyfile;
+        fi;
+        chown 999:999 /keyfile/keyfile;
+        chmod 400 /keyfile/keyfile
+    volumes:
+      - arcane_ledger_mongo_keyfile:/keyfile
+
   mongodb:
     image: mongo:7.0
     container_name: arcane-ledger-mongo
@@ -9,7 +25,11 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: arcane_ledger
-    command: ["--bind_ip_all"]
+    command:
+      ["mongod", "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile/keyfile"]
+    depends_on:
+      mongo-keyfile-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -31,6 +51,27 @@ services:
       start_period: 15s
     volumes:
       - arcane_ledger_mongo_data:/data/db
+      - arcane_ledger_mongo_keyfile:/etc/mongo-keyfile:ro
+
+  mongo-rs-init:
+    image: mongo:7.0
+    restart: "no"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    entrypoint:
+      - sh
+      - -c
+      - >-
+        mongosh --quiet --host mongodb
+        --username "$$MONGO_INITDB_ROOT_USERNAME"
+        --password "$$MONGO_INITDB_ROOT_PASSWORD"
+        --authenticationDatabase admin
+        --eval 'try { rs.status().ok } catch (error) { rs.initiate({_id:"rs0",members:[{_id:0,host:"mongodb:27017"}]}) }'
 
 volumes:
   arcane_ledger_mongo_data:
+  arcane_ledger_mongo_keyfile:

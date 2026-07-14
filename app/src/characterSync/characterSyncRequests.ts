@@ -2,10 +2,29 @@ export const CHARACTER_SYNC_REQUEST_EVENT = "arcane-ledger:character-sync-reques
 export const CHARACTER_SYNC_COMPLETE_EVENT = "arcane-ledger:character-sync-completed";
 
 const characterSyncRequestTimeoutMs = 30_000;
+const lockedCharacterIds = new Set<number>();
 
 export type CharacterSyncRequestEventDetail = {
   requestId: string;
 };
+
+export function acquireCharacterSyncLock(characterId: number) {
+  lockedCharacterIds.add(characterId);
+  let released = false;
+
+  return () => {
+    if (released) {
+      return;
+    }
+
+    released = true;
+    lockedCharacterIds.delete(characterId);
+  };
+}
+
+export function isCharacterSyncLocked(characterId: number) {
+  return lockedCharacterIds.has(characterId);
+}
 
 function createCharacterSyncRequestId() {
   if (typeof globalThis.crypto?.randomUUID === "function") {

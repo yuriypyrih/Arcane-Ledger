@@ -44,7 +44,8 @@ import {
 import {
   CHARACTER_SYNC_REQUEST_EVENT,
   type CharacterSyncRequestEventDetail,
-  dispatchCharacterSyncRequestComplete
+  dispatchCharacterSyncRequestComplete,
+  isCharacterSyncLocked
 } from "./characterSyncRequests";
 import {
   applyCloudDocumentToPortableCharacterSheet,
@@ -356,7 +357,9 @@ function CharacterSyncBootstrap() {
       const ownerId = user.id;
       const syncableRecords = (await loadSyncableStoredPortableCharacterSheets()).filter(
         (record) =>
-          isPortableCharacterSheetOwnedBy(record, ownerId) && isRetryableDirtyStatus(record)
+          isPortableCharacterSheetOwnedBy(record, ownerId) &&
+          isRetryableDirtyStatus(record) &&
+          !isCharacterSyncLocked(record.identity.localId)
       );
 
       if (syncableRecords.length === 0) {
@@ -970,11 +973,7 @@ function CharacterSyncBootstrap() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearSyncTimer();
     };
-  }, [
-    clearSyncTimer,
-    initializeAuthenticatedCharacterCache,
-    syncDirtyCharacterRecords
-  ]);
+  }, [clearSyncTimer, initializeAuthenticatedCharacterCache, syncDirtyCharacterRecords]);
 
   return (
     <>

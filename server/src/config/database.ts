@@ -6,8 +6,17 @@ const USERNAME_PLACEHOLDER = "${USERNAME}";
 const PASSWORD_PLACEHOLDER = "${PASSWORD}";
 const USERNAME_PLACEHOLDER_PATTERN = /\$\{USERNAME\}/g;
 const PASSWORD_PLACEHOLDER_PATTERN = /\$\{PASSWORD\}/g;
+let mongoTransactionsSupported = false;
 
-function resolveMongoUriCredentials(mongodbUri: string, username: string, password: string): string {
+export function supportsMongoTransactions() {
+  return mongoTransactionsSupported;
+}
+
+function resolveMongoUriCredentials(
+  mongodbUri: string,
+  username: string,
+  password: string
+): string {
   const hasUsername = Boolean(username);
   const hasPassword = Boolean(password);
   const hasUsernamePlaceholder = mongodbUri.includes(USERNAME_PLACEHOLDER);
@@ -82,9 +91,22 @@ export async function connectToDatabase() {
     dbName
   });
 
+  const hello = await mongoose.connection.db?.admin().command({ hello: 1 });
+
+  mongoTransactionsSupported = Boolean(hello && typeof hello.setName === "string");
+
+  const transactionMode = mongoTransactionsSupported
+    ? `atomic transactions via replica set ${String(hello?.setName)}`
+    : "standalone transaction fallback";
   console.log(
-    `Connected successfully to database ${connectionSummary.database} on ${connectionSummary.host}:${connectionSummary.port} (authSource: ${connectionSummary.authSource}).`
+    `Connected successfully to database ${connectionSummary.database} on ${connectionSummary.host}:${connectionSummary.port} (authSource: ${connectionSummary.authSource}, mode: ${transactionMode}).`
   );
+
+  if (!mongoTransactionsSupported) {
+    console.warn(
+      "MongoDB is running standalone. Master Chest saves will use the lease-and-journal fallback instead of multi-document transactions."
+    );
+  }
 
   return mongoose.connection;
 }
@@ -95,4 +117,5 @@ export async function disconnectFromDatabase() {
   }
 
   await mongoose.disconnect();
+  mongoTransactionsSupported = false;
 }

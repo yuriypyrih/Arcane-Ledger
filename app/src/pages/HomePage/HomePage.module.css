@@ -255,6 +255,34 @@
   line-height: 1.45;
 }
 
+.patchNotesLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  color: rgba(255, 246, 226, 0.82);
+  font-size: 0.84rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  transition: color 140ms ease, transform 120ms ease;
+}
+
+.patchNotesLink strong {
+  color: #ffe8c0;
+}
+
+.patchNotesLink:hover,
+.patchNotesLink:focus-visible {
+  color: #fff6e2;
+  transform: translateY(-1px);
+}
+
+.patchNotesLink:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid rgba(111, 224, 255, 0.58);
+  outline-offset: 3px;
+}
+
 .heroPortrait {
   position: relative;
   display: grid;

@@ -117,19 +117,13 @@ function RegisterPage() {
     }
   }
 
-  const resendButtonLabel =
-    resendCooldownSeconds > 0 ? `Resend Email (${resendCooldownSeconds})` : "Resend Email";
-  const canShowResendVerification = Boolean(
-    message && registeredEmail && (resendCooldownSeconds <= 0 || resendUsed)
-  );
   const resendDisabled = resendCooldownSeconds > 0 || resendUsed;
 
   if (message && registeredEmail) {
     return (
       <RegisterConfirmationView
-        canShowResendVerification={canShowResendVerification}
         message={message}
-        resendButtonLabel={resendButtonLabel}
+        resendCooldownSeconds={resendCooldownSeconds}
         resendDisabled={resendDisabled}
         resendUsed={resendUsed}
         resending={resending}

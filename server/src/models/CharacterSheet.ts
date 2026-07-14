@@ -156,7 +156,8 @@ const characterEncounterStatBlockAbilitySchema =
       }
     },
     {
-      _id: false
+      _id: false,
+      suppressReservedKeysWarning: true
     }
   );
 

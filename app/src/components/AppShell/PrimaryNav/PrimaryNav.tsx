@@ -384,26 +384,8 @@ function PrimaryNav({
                   <Settings size={15} aria-hidden="true" />
                   <span>Account Settings</span>
                 </button>
-                <button
-                  type="button"
-                  className={styles.accountMenuItem}
-                  role="menuitem"
-                  onClick={handleSupport}
-                >
-                  <Headset size={15} aria-hidden="true" />
-                  <span>Support & Feedback</span>
-                </button>
                 {user?.role === "admin" ? (
                   <>
-                    <button
-                      type="button"
-                      className={styles.accountMenuItem}
-                      role="menuitem"
-                      onClick={handleAnalytics}
-                    >
-                      <BarChart3 size={15} aria-hidden="true" />
-                      <span>Analytics</span>
-                    </button>
                     <button
                       type="button"
                       className={styles.accountMenuItem}
@@ -413,8 +395,26 @@ function PrimaryNav({
                       <ShieldCheck size={15} aria-hidden="true" />
                       <span>Administration</span>
                     </button>
+                    <button
+                      type="button"
+                      className={styles.accountMenuItem}
+                      role="menuitem"
+                      onClick={handleAnalytics}
+                    >
+                      <BarChart3 size={15} aria-hidden="true" />
+                      <span>Analytics</span>
+                    </button>
                   </>
                 ) : null}
+                <button
+                  type="button"
+                  className={styles.accountMenuItem}
+                  role="menuitem"
+                  onClick={handleSupport}
+                >
+                  <Headset size={15} aria-hidden="true" />
+                  <span>Support & Feedback</span>
+                </button>
               </div>
             ) : null}
           </div>

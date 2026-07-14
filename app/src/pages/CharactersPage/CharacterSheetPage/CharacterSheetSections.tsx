@@ -21,6 +21,7 @@ import {
   selectStatsCharacter
 } from "./selectors";
 import type { PersistCharacterOptions, PersistCharacterUpdater, QueueCharacterSave } from "./types";
+import type { CharacterSheetCloudDocument } from "../../../api";
 
 type PersistSectionProps = {
   className?: string;
@@ -39,6 +40,10 @@ type CharacterProfileSectionProps = PersistSectionProps & {
 
 type StatsSectionProps = PersistSectionProps & {
   broadLayout?: boolean;
+};
+
+type EquipmentSectionProps = PersistSectionProps & {
+  onAdoptCloudCharacter: (document: CharacterSheetCloudDocument) => unknown;
 };
 
 const gameplayPersistOptions: PersistCharacterOptions = {
@@ -185,8 +190,9 @@ export const CompanionsSheetSection = memo(function CompanionsSheetSection({
 
 export const EquipmentSheetSection = memo(function EquipmentSheetSection({
   className,
+  onAdoptCloudCharacter,
   onPersistCharacter
-}: PersistSectionProps) {
+}: EquipmentSectionProps) {
   const character = useAppSelector(selectEquipmentCharacter);
   const partyMembership = useAppSelector((state) => {
     const remoteId = character?.storageMetadata?.sync?.remoteId;
@@ -198,6 +204,7 @@ export const EquipmentSheetSection = memo(function EquipmentSheetSection({
     <EquipmentForm
       character={character}
       className={className}
+      onAdoptCloudCharacter={onAdoptCloudCharacter}
       onPersistCharacter={onPersistCharacter}
       partyMembership={partyMembership}
     />

@@ -19,11 +19,7 @@ import {
   useAppDispatch,
   useAppSelector
 } from "../../../store";
-import type {
-  PersistCharacterOptions,
-  PersistCharacterUpdater,
-  QueueCharacterSave
-} from "./types";
+import type { PersistCharacterOptions, PersistCharacterUpdater, QueueCharacterSave } from "./types";
 import { normalizeCharacterRuntimeUpdate } from "./activeCharacterNormalization";
 import {
   characterSheetDomains,
@@ -32,6 +28,8 @@ import {
 } from "./domains";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import { CHARACTER_SYNC_REQUEST_EVENT } from "../../../characterSync/characterSyncRequests";
+import type { CharacterSheetCloudDocument } from "../../../api";
+import { storeCloudCharacterSheetDocument } from "../resolvePortableCharacterSheet";
 
 const hitPointSaveDebounceMs = 150;
 const storageSaveDebounceMs = 1000;
@@ -332,6 +330,30 @@ export function useCharacterSheetPersistence(characterId: number) {
     [clearPendingHitPointTimeout, flushPendingHitPointSave]
   );
 
+  const adoptCloudCharacter = useCallback(
+    (document: CharacterSheetCloudDocument) => {
+      const storedRecord = storeCloudCharacterSheetDocument(document, { localId: characterId });
+      const nextCharacter = normalizeCharacter(storedRecord);
+
+      if (!nextCharacter) {
+        throw new Error("Unable to apply the saved cloud character.");
+      }
+
+      initialCharacterRef.current = { characterId, character: nextCharacter };
+      characterRef.current = nextCharacter;
+      pendingHitPointCharacterRef.current = null;
+      pendingStorageCharacterRef.current = null;
+      dispatch(
+        setActiveCharacterSheet({
+          character: nextCharacter,
+          characterId
+        })
+      );
+      return nextCharacter;
+    },
+    [characterId, dispatch]
+  );
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -615,6 +637,7 @@ export function useCharacterSheetPersistence(characterId: number) {
   }, [characterId, dispatch, flushPendingSaves, navigate, ownerId, status]);
 
   return {
+    adoptCloudCharacter,
     character,
     isLoadingCharacter,
     persistCharacter,

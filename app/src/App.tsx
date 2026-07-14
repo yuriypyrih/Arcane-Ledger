@@ -52,6 +52,7 @@ const MonsterCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/MonsterC
 const PartyGroupDetailPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/PartyGroupDetailPage")
 );
+const PatchNotesPage = lazyWithTrackedLoad(() => import("./pages/PatchNotesPage"));
 const RegisterPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/RegisterPage"));
 const ResetPasswordPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/ResetPasswordPage"));
 const SupportPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/SupportPage"));
@@ -142,6 +143,7 @@ function App() {
             <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
             <Route path="/compendium" element={<CodexPage />} />
             <Route path="/gm-tools" element={<DmToolsPage />} />
+            <Route path="/patch-notes" element={<PatchNotesPage />} />
             <Route path="/gm-tools/campaign-manager/:campaignId" element={<CampaignDetailPage />} />
             <Route
               path="/gm-tools/campaign-manager/:campaignId/live-encounter"

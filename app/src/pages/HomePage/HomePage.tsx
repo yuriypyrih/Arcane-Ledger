@@ -3,6 +3,7 @@ import {
   Headset,
   Image,
   Moon,
+  Newspaper,
   Sparkles,
   Sun,
   Swords,
@@ -17,6 +18,7 @@ import { useAppSelector } from "../../store";
 import { GUEST_CHARACTER_LIMIT, USER_CHARACTER_LIMIT } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
 import { DM_TOOLS_TABS, createDmToolsPath, type DmToolsTabId } from "../DmToolsPage/dmToolsTabs";
+import { latestPatchNote } from "../PatchNotesPage/patchNotes";
 import EmptyRosterGuestBanner from "./EmptyRosterGuestBanner";
 import styles from "./HomePage.module.css";
 
@@ -80,6 +82,12 @@ function HomePage() {
             <p className={styles.heroCustomLine}>
               A versatile tool with enough room for even the wildest homebrews.
             </p>
+            <Link className={styles.patchNotesLink} to="/patch-notes">
+              <Newspaper size={16} aria-hidden="true" />
+              <span>
+                Read the Patch Notes <strong>{latestPatchNote.version}</strong>
+              </span>
+            </Link>
           </div>
         </div>
       </section>

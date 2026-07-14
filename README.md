@@ -45,6 +45,10 @@ actions, statuses, companions, and equipment flow from shared codex/runtime modu
 character state. The backend keeps durable account and campaign data in MongoDB and exposes the app's
 server-backed workflows under one versioned API surface.
 
+Architecture guides:
+
+- [Concurrent Master Chest transactions](docs/master-chest-transactions.md)
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, React Router, Redux Toolkit, React Hook Form, CSS Modules,

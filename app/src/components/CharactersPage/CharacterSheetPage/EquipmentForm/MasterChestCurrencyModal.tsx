@@ -14,7 +14,7 @@ import {
   SheetModal
 } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
-import { formatCurrencyPillAmount, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
+import { normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
 import styles from "./MasterChestModal.module.css";
 
 export type MasterChestCurrencyDefinition = {
@@ -80,9 +80,7 @@ function MasterChestCurrencyModal({
               <span className={styles.currencySelectorHint}>
                 {isGmMode
                   ? "You: Unlimited"
-                  : `You: ${formatCurrencyPillAmount(characterCurrencies[currency.key] ?? 0)} ${
-                      currency.code
-                    }`}
+                  : `You: ${characterCurrencies[currency.key] ?? 0} ${currency.code}`}
               </span>
               <button
                 type="button"
@@ -98,7 +96,7 @@ function MasterChestCurrencyModal({
                   className={styles.currencySelectorIcon}
                   aria-hidden="true"
                 />
-                <strong>{formatCurrencyPillAmount(chestCurrencies[currency.key] ?? 0)}</strong>
+                <strong>{chestCurrencies[currency.key] ?? 0}</strong>
                 <span>{currency.code}</span>
               </button>
             </div>

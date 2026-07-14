@@ -3,7 +3,11 @@ import { CircleCheck, History, Plus, RefreshCw, Save } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import ActionButton from "../../../ActionButton";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
-import { updatePartyGroupMasterChest } from "../../../../api";
+import {
+  ApiRequestFailedError,
+  createPartyGroupMasterChestTransaction,
+  type CharacterSheetCloudDocument
+} from "../../../../api";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
@@ -22,19 +26,12 @@ import {
   DestructiveConfirmationModal
 } from "../../../Overlay";
 import SelectInput from "../../FormInputs/SelectInput";
-import type {
-  Character,
-  CharacterCurrencies,
-  CharacterInventoryItem,
-  CurrencyKey,
-  ItemRecord
-} from "../../../../types";
+import type { Character, CharacterCurrencies, CurrencyKey, ItemRecord } from "../../../../types";
 import {
   canAddInventoryObject,
   createCharacterInventoryItem,
   getItemTransactionCost,
   moveOneInventoryItemCopyBetweenRootInventories,
-  normalizeCharacterInventoryItems,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
 import SheetActionButton from "../SheetActionButton";
@@ -70,11 +67,18 @@ import {
   type MasterChestRemovalAction,
   type PendingMasterChestItemRemoval
 } from "./masterChestEditing";
+import { getMasterChestErrorMessage, useMasterChestData } from "./useMasterChestData";
 import {
-  getMasterChestErrorMessage,
-  normalizeMasterChestCurrencies,
-  useMasterChestData
-} from "./useMasterChestData";
+  buildGmMasterChestOperations,
+  buildPlayerMasterChestOperations,
+  createBaseMasterChestRecord
+} from "./masterChestOperationBuilder";
+import {
+  acquireCharacterSyncLock,
+  requestImmediateCharacterSync
+} from "../../../../characterSync/characterSyncRequests";
+import { findCharacter } from "../../../../pages/CharactersPage/storage";
+import { showToast, useAppDispatch } from "../../../../store";
 import styles from "./MasterChestModal.module.css";
 
 type MasterChestMode = "player" | "gm";
@@ -82,11 +86,8 @@ type MasterChestMode = "player" | "gm";
 type MasterChestModalProps = {
   character?: Character;
   mode: MasterChestMode;
+  onAdoptCloudCharacter?: (document: CharacterSheetCloudDocument) => unknown;
   onClose: () => void;
-  onSaveCharacterDraft?: (draft: {
-    currencies: CharacterCurrencies;
-    inventoryItems: CharacterInventoryItem[];
-  }) => void;
   partyGroupId: string;
   partyGroupName?: string;
 };
@@ -109,14 +110,16 @@ function getTransactionItemName(item: Pick<ItemRecord, "name">): string {
 function MasterChestModal({
   character,
   mode,
+  onAdoptCloudCharacter,
   onClose,
-  onSaveCharacterDraft,
   partyGroupId,
   partyGroupName
 }: MasterChestModalProps) {
+  const dispatch = useAppDispatch();
   const refreshConfirmTitleId = useId();
   const refreshCooldownRef = useRef<number | null>(null);
   const {
+    baseDraft,
     draft,
     error,
     history,
@@ -138,14 +141,15 @@ function MasterChestModal({
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [pendingItemRemoval, setPendingItemRemoval] =
     useState<PendingMasterChestItemRemoval | null>(null);
-  const [selectedInspection, setSelectedInspection] =
-    useState<MasterChestItemInspection | null>(null);
-  const [selectedViewId, setSelectedViewId] = useState(masterChestViewId);
-  const [transactionLog, setTransactionLog] = useState<MasterChestTransactionLog>(
-    createEmptyTransactionLog
+  const [selectedInspection, setSelectedInspection] = useState<MasterChestItemInspection | null>(
+    null
   );
+  const [selectedViewId, setSelectedViewId] = useState(masterChestViewId);
+  const [transactionLog, setTransactionLog] =
+    useState<MasterChestTransactionLog>(createEmptyTransactionLog);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const operationIdRef = useRef<string | null>(null);
   const isGmMode = mode === "gm";
   const selectedPartyMember =
     selectedViewId === masterChestViewId
@@ -155,6 +159,10 @@ function MasterChestModal({
   const canGmEditChest = isGmMode && isMasterChestView && loadStatus === "ready";
   const canTransferItems = mode === "player" && isMasterChestView;
   const hasUnsavedTransferDraft = Boolean(createTransactionSummary(transactionLog));
+
+  useEffect(() => {
+    operationIdRef.current = null;
+  }, [transactionLog]);
   const activeCurrencyDefinition =
     currencyDefinitions.find((currency) => currency.key === activeCurrencyKey) ??
     currencyDefinitions[3];
@@ -295,8 +303,11 @@ function MasterChestModal({
       return;
     }
 
-    const characterDelta =
-      isGmMode ? 0 : direction === "deposit" ? -normalizedCurrencyAmount : normalizedCurrencyAmount;
+    const characterDelta = isGmMode
+      ? 0
+      : direction === "deposit"
+        ? -normalizedCurrencyAmount
+        : normalizedCurrencyAmount;
     const chestDelta =
       direction === "deposit" ? normalizedCurrencyAmount : -normalizedCurrencyAmount;
 
@@ -388,13 +399,11 @@ function MasterChestModal({
 
     setDraft({
       ...draft,
-      chestInventoryItems: addMasterChestInspectionItem(
-        draft.chestInventoryItems,
-        inspection,
-        item
-      )
+      chestInventoryItems: addMasterChestInspectionItem(draft.chestInventoryItems, inspection, item)
     });
-    setTransactionLog((currentLog) => addTransactionItem(currentLog, "transferredInItems", itemName));
+    setTransactionLog((currentLog) =>
+      addTransactionItem(currentLog, "transferredInItems", itemName)
+    );
     setNotice(null);
   }
 
@@ -427,11 +436,7 @@ function MasterChestModal({
         [transactionCost.currencyKey]:
           (draft.chestCurrencies[transactionCost.currencyKey] ?? 0) - transactionCost.amount
       },
-      chestInventoryItems: addMasterChestInspectionItem(
-        draft.chestInventoryItems,
-        inspection,
-        item
-      )
+      chestInventoryItems: addMasterChestInspectionItem(draft.chestInventoryItems, inspection, item)
     });
     setTransactionLog((currentLog) =>
       addTransactionCurrency(
@@ -570,6 +575,7 @@ function MasterChestModal({
 
   async function saveMasterChest() {
     const actorCharacterId = character?.storageMetadata?.sync?.remoteId;
+    let releaseCharacterSyncLock: (() => void) | null = null;
 
     if (isSaving || revision === null) {
       return;
@@ -585,31 +591,70 @@ function MasterChestModal({
     setNotice(null);
 
     try {
-      const chestInventoryItems = normalizeCharacterInventoryItems(draft.chestInventoryItems);
-      const chestCurrencies = normalizeMasterChestCurrencies(draft.chestCurrencies);
+      if (mode === "player" && character) {
+        await requestImmediateCharacterSync();
+        const syncedCharacter = findCharacter(character.id);
 
-      await updatePartyGroupMasterChest(
+        if (syncedCharacter?.storageMetadata?.sync?.syncStatus !== "synced") {
+          setError("Sync this character before saving Master Chest changes.");
+          return;
+        }
+
+        releaseCharacterSyncLock = acquireCharacterSyncLock(character.id);
+      }
+
+      const operations = isGmMode
+        ? buildGmMasterChestOperations(
+            createBaseMasterChestRecord(baseDraft, revision, history),
+            draft
+          )
+        : buildPlayerMasterChestOperations(baseDraft, draft);
+
+      if (operations.length === 0) {
+        onClose();
+        return;
+      }
+
+      const operationId = operationIdRef.current ?? crypto.randomUUID();
+      operationIdRef.current = operationId;
+      const result = await createPartyGroupMasterChestTransaction(
         partyGroupId,
         {
+          operationId,
           ...(actorCharacterId ? { actorCharacterId } : {}),
-          baseRevision: revision,
-          currencies: chestCurrencies,
-          inventoryItems: chestInventoryItems,
-          transactionSummary: createTransactionSummary(transactionLog)
+          operations
         },
         { suppressFailureToast: true }
       );
 
       if (mode === "player") {
-        onSaveCharacterDraft?.({
-          currencies: normalizeMasterChestCurrencies(draft.characterCurrencies),
-          inventoryItems: normalizeCharacterInventoryItems(draft.characterInventoryItems)
-        });
+        if (!result.character || !onAdoptCloudCharacter) {
+          throw new Error("Master Chest transaction did not return the updated character.");
+        }
+
+        onAdoptCloudCharacter(result.character);
       }
       onClose();
     } catch (saveError) {
+      if (
+        saveError instanceof ApiRequestFailedError &&
+        saveError.code === "MASTER_CHEST_OPERATION_CONFLICT"
+      ) {
+        operationIdRef.current = null;
+        setTransactionLog(createEmptyTransactionLog());
+        await loadMasterChestData();
+        dispatch(
+          showToast({
+            text: "The Master Chest changed and your actions could not be completed. Please try them again.",
+            type: "warning"
+          })
+        );
+        return;
+      }
+
       setError(getMasterChestErrorMessage(saveError, "Unable to save master chest."));
     } finally {
+      releaseCharacterSyncLock?.();
       setIsSaving(false);
     }
   }
@@ -783,9 +828,7 @@ function MasterChestModal({
 
       <OverlayFooter>
         <div
-          className={clsx(
-            isMasterChestView ? styles.footerActions : styles.readOnlyFooterActions
-          )}
+          className={clsx(isMasterChestView ? styles.footerActions : styles.readOnlyFooterActions)}
         >
           <ActionButton variant="OUTLINE" onClick={onClose}>
             {isGmMode || !isMasterChestView ? "Close" : "Cancel"}

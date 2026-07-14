@@ -21,6 +21,8 @@ import {
 } from "../services/partyGroupService.js";
 import { updateMemberVisibleCampaignLiveEncounterTrackerTurn } from "../services/liveEncounterPlayerTurnService.js";
 import { AppError } from "../errors/AppError.js";
+import { executeMasterChestTransaction } from "../services/masterChestTransactionCoordinator.js";
+import { readMasterChestTransactionRequest } from "../services/masterChestTransactionService.js";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -146,6 +148,12 @@ export const updatePartyGroupMasterChestContent = asyncHandler(
       throw new AppError("Request body must be a JSON object.", 400, "INVALID_MASTER_CHEST_INPUT");
     }
 
+    response.setHeader("Deprecation", "true");
+    response.setHeader("Sunset", "Thu, 13 Aug 2026 00:00:00 GMT");
+    response.setHeader(
+      "Link",
+      `</party-groups/${request.params.partyGroupId ?? ""}/master-chest/transactions>; rel="successor-version"`
+    );
     response.json({
       masterChest: await updatePartyGroupMasterChest({
         actorCharacterId: request.body.actorCharacterId,
@@ -158,6 +166,19 @@ export const updatePartyGroupMasterChestContent = asyncHandler(
         transactionSummary: request.body.transactionSummary
       })
     });
+  }
+);
+
+export const createPartyGroupMasterChestTransaction = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.status(201).json(
+      await executeMasterChestTransaction({
+        actorNickname: response.locals.authUser.nickname,
+        actorUserId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? "",
+        request: readMasterChestTransactionRequest(request.body)
+      })
+    );
   }
 );
 

@@ -4,9 +4,8 @@ import ActionButton from "../../components/ActionButton";
 import styles from "./AuthPages.module.css";
 
 type RegisterConfirmationViewProps = {
-  canShowResendVerification: boolean;
   message: string;
-  resendButtonLabel: string;
+  resendCooldownSeconds: number;
   resendDisabled: boolean;
   resendUsed: boolean;
   resending: boolean;
@@ -14,9 +13,8 @@ type RegisterConfirmationViewProps = {
 };
 
 function RegisterConfirmationView({
-  canShowResendVerification,
   message,
-  resendButtonLabel,
+  resendCooldownSeconds,
   resendDisabled,
   resendUsed,
   resending,
@@ -40,19 +38,23 @@ function RegisterConfirmationView({
           >
             Log In
           </ActionButton>
-          {canShowResendVerification ? (
-            <ActionButton
-              icon={<MailCheck size={16} aria-hidden="true" />}
-              loading={resending}
-              variant="OUTLINE"
-              type="button"
-              disabled={resendDisabled}
-              onClick={onResendVerification}
-            >
-              {resendUsed ? "Verification Email Sent" : resendButtonLabel}
-            </ActionButton>
-          ) : null}
+          <ActionButton
+            icon={<MailCheck size={16} aria-hidden="true" />}
+            loading={resending}
+            variant="OUTLINE"
+            type="button"
+            disabled={resendDisabled}
+            onClick={onResendVerification}
+          >
+            {resendUsed ? "Verification Email Sent" : "Resend Email"}
+          </ActionButton>
         </div>
+
+        {resendCooldownSeconds > 0 && !resendUsed ? (
+          <p className={styles.resendTimer} role="timer">
+            You can resend the verification email in {resendCooldownSeconds}s.
+          </p>
+        ) : null}
       </div>
     </section>
   );
