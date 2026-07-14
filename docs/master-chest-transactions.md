@@ -1,19 +1,17 @@
-# Master Chest Transactions
+# Master Chest Operations
 
-The Master Chest uses operation-based updates so several players can save independent transfers
-without overwriting each other. On a replica set it uses a MongoDB transaction. On standalone
-MongoDB it automatically uses a lease, durable journal, revision guards, and recovery. This guide
-explains both paths from a frontend developer's point of view.
+The Master Chest uses operation-based optimistic saves designed for standalone MongoDB. It does not
+require MongoDB transactions, a replica set, a database lease, or a recovery lock.
+
+The API route still uses `/transactions` because one request contains a batch of related operations.
+That name does not mean the backend opens a MongoDB transaction.
 
 ## Mental model
 
-### Snapshot updates and operations
+A snapshot update says, “replace the chest with the copy I opened earlier.” That can overwrite a
+different player's newer changes.
 
-A snapshot update says, “make the chest look exactly like this.” If Alice and Bob both loaded revision
-12, Alice's saved snapshot makes Bob's revision-12 snapshot stale. Accepting Bob's snapshot would
-remove Alice's changes, even if they touched different items.
-
-An operation says what changed:
+An operation says what the player intended:
 
 ```json
 {
@@ -24,152 +22,84 @@ An operation says what changed:
 }
 ```
 
-The backend applies that command to the latest state. Alice can move a Sword while Bob moves a
-Potion because both commands remain valid after either one commits first.
+The backend applies that operation to the latest saved state. Independent operations can therefore
+survive intervening saves, while an operation whose source item or currency is no longer available
+is rejected with `MASTER_CHEST_OPERATION_CONFLICT`.
 
-### Database transaction
+## Save flow
 
-A player transfer modifies two MongoDB documents: the Party Group containing the chest and the
-Character Sheet containing the player's inventory. A database transaction gives the batch
-atomicity: chest, character, history, and idempotency record all commit, or none of them do.
+1. The frontend syncs the character and builds operations from the edited preview.
+2. A process-local queue orders saves for the same party group.
+3. The backend loads the latest Master Chest and character inventory.
+4. The pure inventory helper validates and applies every requested operation to those snapshots.
+5. The character inventory is updated with a character revision guard.
+6. The Master Chest is updated with a chest revision guard.
+7. If a guarded write loses a race, the backend restores the first write when necessary, reloads
+   current state, and tries the operation batch again.
+8. After five unsuccessful races, the request becomes a normal operation conflict and the frontend
+   reloads current contents for review.
 
-Transactions also provide isolation. Two requests may arrive together, but MongoDB establishes a
-safe commit order. If both initially write the same Party Group document, one transaction retries
-against the state committed by the other.
+The queue has no MongoDB record. A backend restart clears it automatically, so it cannot leave the
+Master Chest persistently busy.
 
-### Standalone fallback
+## Semantic conflicts
 
-Standalone MongoDB cannot provide a real multi-document transaction. The fallback therefore uses a
-small saga:
+The operation batch is rejected when it is no longer valid against the latest data. Examples:
 
-1. An atomic lease serializes Master Chest writers for one party, including writers from another
-   backend process.
-2. The backend reads and validates the latest chest and character state.
-3. A durable operation journal records the before and intended after inventory states.
-4. Character and chest updates use compare-and-swap revision filters.
-5. The operation is marked committed only after both writes succeed.
-6. An interrupted prepared operation is completed on the next Master Chest request. If current data
-   no longer matches either side of the journal, the chest is locked with
-   `MASTER_CHEST_RECOVERY_REQUIRED` instead of guessing or overwriting newer data.
+- A requested stack no longer exists.
+- A stack contains fewer copies than requested.
+- The source currency balance is insufficient.
+- A concurrent character or chest write keeps winning the revision guard.
 
-This is not perfectly atomic: a crash can leave the two documents temporarily inconsistent until
-recovery runs. It still prevents ordinary concurrent saves, stale snapshots, and duplicate retries,
-and it detects rather than silently overwrites a state that cannot be recovered safely.
+The frontend discards that preview, reloads the current chest, and asks the player to review and
+repeat the intended move.
 
-### Semantic conflict
+## Revision guards
 
-A write conflict is an internal database coordination event and is normally retried. A semantic
-conflict means the retried command is no longer possible. Examples include:
+MongoDB updates one document atomically. The service uses that property by including the revision it
+just read in each update filter. A failed match means another writer changed the document, so the
+service does not overwrite that newer state.
 
-- The requested stack no longer exists.
-- The stack has fewer copies than requested.
-- The requested currency balance is no longer sufficient.
+Legacy party groups may not have `masterChestRevision` stored. A missing revision is treated as
+revision `1`, and the revision filter accepts either representation.
 
-The whole batch is rejected in these cases. The UI reloads current state and asks the player to
-repeat the transfer.
+## Idempotency
 
-### Idempotency key
+The frontend creates one UUID for each Save. After a successful save, the backend retains a committed
+operation record for seven days. Repeating the same UUID returns current authoritative data without
+moving an item or currency twice.
 
-The frontend creates one UUID for each Save. If the server commits but the response is lost, the
-frontend retries with the same UUID. The server finds the completed operation and returns success
-without applying it again.
+An incomplete record created by the older lease-and-journal implementation no longer locks the
+party. Only a retry of that exact UUID is rejected and refreshed; a new operation can proceed.
 
-An idempotency key answers, “have I already processed this intended request?” It is not a revision
-and it does not control ordering. Reusing a UUID with different request content is rejected.
+## Standalone limitation
 
-### Revision
+A player transfer changes a character document and a party-group document. Standalone MongoDB cannot
+make those two writes atomic together. The service updates them sequentially and compensates the
+character write if the chest revision loses a race.
 
-Chest and character revisions still identify durable state versions. They remain useful for cloud
-sync, diagnostics, and responses, but independent Master Chest operations are no longer rejected
-merely because the chest revision advanced.
+A process crash in the short interval between those two document writes can still leave them out of
+sync. This is the accepted tradeoff for the simpler standalone mechanism. Normal concurrent saves,
+stale previews, and invalid item or currency requests remain guarded.
 
-## Request lifecycle
-
-```text
-Player edits local preview
-        ↓
-Frontend flushes and syncs character
-        ↓
-Frontend derives operations against original stack IDs
-        ↓
-Frontend creates or reuses a Save UUID
-        ↓
-Backend selects atomic or standalone execution
-        ↓
-Backend reads latest chest and character
-        ↓
-Backend validates and applies every operation
-        ↓
-Atomic transaction, or lease + journal + guarded writes
-        ↓
-Frontend adopts the authoritative character response
-```
-
-The modal compares its base and final inventories by a transfer-safe item signature. Location-only
-fields such as stack ID, equipped state, and on-hand count are excluded, while item modifications,
-charges, stored spells, tags, and container contents remain part of the identity. The resulting
-commands reference original stable stack IDs. Moving an item out and then back therefore produces no
-net command.
+The process-local queue is shared by all requests handled by one backend process. If the application
+is later scaled to multiple backend processes, revision retries still prevent blind chest overwrites,
+but cross-process requests can require more retries because their queues are not shared.
 
 ## Code-reading path
 
-1. Start with `masterChestOperationBuilder.ts` to see how the frontend converts a preview into item
-   and currency operations.
-2. Follow `createPartyGroupMasterChestTransaction` in `app/src/api/partyGroups.ts` to see the wire
-   contract.
-3. Read the transaction route and controller in the Party Group backend flow.
-4. Continue into `masterChestTransactionCoordinator.ts` to see capability-based path selection.
-5. Read `masterChestTransactionService.ts` for the fully atomic replica-set implementation.
-6. Read `masterChestStandaloneTransactionService.ts` for leases, journaling, guarded writes,
-   compensation, and recovery.
-7. Read `masterChestInventory.ts` for pure stack, quantity, currency, and history transformations.
-8. Inspect `MasterChestOperation.ts` and `MasterChestLease.ts` for idempotency, recovery state, and
-   per-party writer serialization.
-9. Return to `MasterChestModal.tsx` and `useCharacterSheetPersistence.ts` for sync-first saving,
-   conflict handling, and adoption of the server-returned character.
-
-## Debugger exercises
-
-Use development or staging data; do not start these exercises against production data.
-
-1. Pause before the API call and inspect the derived operation array.
-2. Send the same request and UUID twice. The second response should set `replayed` to `true` and no
-   quantity should change twice.
-3. Submit independent Sword and Potion transfers concurrently. Both should succeed.
-4. Submit two withdrawals for the last copy of one stack. One should receive
-   `MASTER_CHEST_OPERATION_CONFLICT` with the failing operation index and available quantity.
-5. On standalone MongoDB, interrupt the process after the first guarded write. Retry the same UUID
-   and observe the prepared journal recover without applying the transfer twice.
-6. Add a temporary throw before the replica-set transaction commit and confirm neither chest nor
-   character changes. Remove the throw immediately after the exercise.
-
-## Replica-set deployment
-
-MongoDB multi-document transactions require a replica set. Both Docker Compose definitions configure
-an authenticated single-node set named `rs0`, generate a private keyfile, and run `rs.initiate()`
-idempotently. The backend checks `hello.setName` during startup and selects the fully atomic path when
-available. If it is absent, startup continues and the standalone fallback is selected automatically.
-
-Before updating an existing production MongoDB:
-
-1. Stop application writes and create a verified `mongodump`.
-2. Preserve the current database files or restore the dump into the named `/data/db` volume.
-3. Deploy the keyfile and replica-set Compose configuration.
-4. Add `replicaSet=rs0` to `MONGODB_URI`; container-to-container production connections should use
-   the advertised `mongodb:27017` member address.
-5. Start MongoDB, wait for the replica initializer, and confirm `rs.status().ok === 1`.
-6. Compare critical collection counts with the pre-deployment backup before starting the backend.
-
-Local host connections may add `replicaSet=rs0&directConnection=true` when using the provided
-replica-set Compose file, because its member advertises the Docker service hostname.
-
-Replica-set deployment remains recommended for production because it removes the temporary
-inconsistency window and the possibility of manual recovery. It is no longer required to run the
-backend or use operation-based Master Chest saves.
+1. `masterChestOperationBuilder.ts` converts the frontend preview into item and currency operations.
+2. `createPartyGroupMasterChestTransaction` sends the operation batch and idempotency UUID.
+3. `masterChestOptimisticOperationService.ts` reloads state, applies revision guards, retries races,
+   and compensates the character write when needed.
+4. `masterChestSaveQueue.ts` orders saves for one party within the backend process.
+5. `masterChestInventory.ts` contains the pure operation validation and inventory transformations.
+6. `MasterChestOperation.ts` retains completed UUIDs for idempotent replays.
+7. `MasterChestModal.tsx` handles sync-first saving, conflict reloads, and authoritative character
+   adoption.
 
 ## Key takeaway
 
-Concurrent does not mean MongoDB changes one document literally simultaneously. Requests can arrive
-together, and the application re-evaluates each intention against current state. A replica set
-provides atomic commits; standalone mode serializes writers and journals the two guarded writes.
-Independent intentions survive, while impossible or unsafe operations become explicit conflicts.
+The server treats each Save as a list of orders, not a stale replacement snapshot. It applies those
+orders to the latest state when they remain possible and rejects them when their item or currency
+requirements are no longer satisfied.

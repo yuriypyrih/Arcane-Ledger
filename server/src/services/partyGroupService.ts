@@ -18,6 +18,7 @@ import type { UserRole } from "../types/auth.js";
 import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
 import { toMemberVisibleCampaignLiveEncounterTrackerDetailRecord } from "./campaignLiveEncounterTrackerService.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
+import { createMasterChestRevisionFilter } from "./masterChestRevision.js";
 import { createHistoryActorLabel } from "./masterChestTransactionService.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -198,11 +199,7 @@ function readMasterChestInventoryItems(value: unknown) {
 
 function readMasterChestRevision(value: unknown) {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
-    throw new AppError(
-      "Master chest revision is invalid.",
-      400,
-      "INVALID_MASTER_CHEST_INPUT"
-    );
+    throw new AppError("Master chest revision is invalid.", 400, "INVALID_MASTER_CHEST_INPUT");
   }
 
   return value;
@@ -776,16 +773,10 @@ export async function updatePartyGroupMasterChest(options: {
     mode: canManageAsPartyOwner ? "gm" : "player"
   });
 
-  const revisionFilter =
-    baseRevision === 1
-      ? {
-          $or: [{ masterChestRevision: baseRevision }, { masterChestRevision: { $exists: false } }]
-        }
-      : { masterChestRevision: baseRevision };
   const updatedPartyGroup = (await PartyGroup.findOneAndUpdate(
     {
       _id: getDocumentId(partyGroup),
-      ...revisionFilter
+      ...createMasterChestRevisionFilter(baseRevision)
     },
     {
       $set: {

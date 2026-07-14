@@ -34,12 +34,13 @@ function serializeAdministrationUser(user: AdministrationUserRecord): Administra
 
 function buildAdministrationUserFilter(search: string | undefined): FilterQuery<UserRecord> {
   if (!search) {
-    return {};
+    return { emailVerifiedAt: { $ne: null } };
   }
 
   const searchPattern = new RegExp(escapeRegularExpression(search), "i");
 
   return {
+    emailVerifiedAt: { $ne: null },
     $or: [{ nickname: searchPattern }, { email: searchPattern }]
   };
 }

@@ -216,7 +216,7 @@ function AdministrationUsersTable({
             debounceMs={ADMINISTRATION_SEARCH_DEBOUNCE_MS}
             minLength={ADMINISTRATION_USER_SEARCH_MIN_LENGTH}
             maxLength={ADMINISTRATION_USER_SEARCH_MAX_LENGTH}
-            placeholder="Nickname or email (2+ characters)"
+            placeholder="By nickname or email"
             name="administration-user-search"
             autoComplete="off"
             autoCapitalize="none"

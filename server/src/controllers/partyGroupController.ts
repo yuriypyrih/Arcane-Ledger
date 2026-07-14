@@ -21,7 +21,7 @@ import {
 } from "../services/partyGroupService.js";
 import { updateMemberVisibleCampaignLiveEncounterTrackerTurn } from "../services/liveEncounterPlayerTurnService.js";
 import { AppError } from "../errors/AppError.js";
-import { executeMasterChestTransaction } from "../services/masterChestTransactionCoordinator.js";
+import { executeOptimisticMasterChestOperations } from "../services/masterChestOptimisticOperationService.js";
 import { readMasterChestTransactionRequest } from "../services/masterChestTransactionService.js";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -172,7 +172,7 @@ export const updatePartyGroupMasterChestContent = asyncHandler(
 export const createPartyGroupMasterChestTransaction = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     response.status(201).json(
-      await executeMasterChestTransaction({
+      await executeOptimisticMasterChestOperations({
         actorNickname: response.locals.authUser.nickname,
         actorUserId: response.locals.authUser._id,
         partyGroupId: request.params.partyGroupId ?? "",
