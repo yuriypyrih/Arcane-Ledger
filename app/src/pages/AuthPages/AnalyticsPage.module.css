@@ -549,9 +549,8 @@
     justify-content: flex-start;
   }
 
-  .chartGrid,
-  .splitTables,
-  .characterCharts {
+  /* Demographics remains a single chart/legend column on compact screens. */
+  .chartGrid {
     grid-template-columns: 1fr;
   }
 
@@ -561,22 +560,62 @@
 }
 
 @media (max-width: 620px) {
+  .filterBar {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .filterControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+  }
+
   .metricPanel {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sectionHeader {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
   }
 
-  .segmentedControl,
   .segmentedControlCompact,
   .dateControls {
     width: 100%;
   }
 
-  .segmentButton,
-  .segmentButtonActive,
+  .segmentedControl {
+    flex: 1 0 100%;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .segmentedControlCompact {
+    display: flex;
+    flex: 1 0 100%;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .segmentedControl .segmentButton,
+  .segmentedControl .segmentButtonActive {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 0.42rem;
+    white-space: nowrap;
+  }
+
+  .segmentedControlCompact .segmentButton,
+  .segmentedControlCompact .segmentButtonActive {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 0.42rem;
+    white-space: nowrap;
+  }
+
   .dateField {
     flex: 1 1 120px;
   }
