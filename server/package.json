@@ -12,7 +12,8 @@
     "db:docker:down": "docker compose -f docker-compose.mongodb.yml down",
     "db:docker:stop": "docker compose -f docker-compose.mongodb.yml stop",
     "db:docker:logs": "docker compose -f docker-compose.mongodb.yml logs -f mongodb",
-    "db:docker:ps": "docker compose -f docker-compose.mongodb.yml ps"
+    "db:docker:ps": "docker compose -f docker-compose.mongodb.yml ps",
+    "db:backup": "node src/scripts/backupMongoDatabase.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",

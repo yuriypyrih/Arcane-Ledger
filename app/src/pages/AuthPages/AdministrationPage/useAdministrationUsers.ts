@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchAdministrationUsers, isApiOfflineError } from "../../../api";
 import { useOnlineStatus } from "../../../lib/useOnlineStatus";
+import { ADMINISTRATION_USER_SEARCH_MIN_LENGTH } from "../../../types";
 import type { AdministrationUserListResponse, AdministrationUserOrdering } from "../../../types";
 
 export type AdministrationUsersStatus =
@@ -26,6 +27,11 @@ export function useAdministrationUsers({
   search
 }: UseAdministrationUsersOptions) {
   const isOnline = useOnlineStatus();
+  const normalizedSearch = search.trim();
+  const querySearch =
+    normalizedSearch.length >= ADMINISTRATION_USER_SEARCH_MIN_LENGTH
+      ? normalizedSearch
+      : undefined;
   const [payload, setPayload] = useState<AdministrationUserListResponse | null>(null);
   const [status, setStatus] = useState<AdministrationUsersStatus>(enabled ? "loading" : "idle");
 
@@ -52,7 +58,7 @@ export function useAdministrationUsers({
       {
         ordering,
         page,
-        search: search.trim() || undefined
+        search: querySearch
       },
       {
         signal: abortController.signal,
@@ -78,7 +84,7 @@ export function useAdministrationUsers({
       active = false;
       abortController.abort();
     };
-  }, [enabled, isOnline, ordering, page, refreshSignal, search]);
+  }, [enabled, isOnline, ordering, page, querySearch, refreshSignal]);
 
   return {
     payload,

@@ -1,5 +1,8 @@
 import type { UserRole } from "./auth.js";
 
+export const ADMINISTRATION_USER_SEARCH_MIN_LENGTH = 2;
+export const ADMINISTRATION_USER_SEARCH_MAX_LENGTH = 80;
+
 export const ADMINISTRATION_USER_ORDERINGS = [
   "nickname",
   "-nickname",

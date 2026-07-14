@@ -1,12 +1,18 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
 import TablePagination from "../../../components/CodexPage/TablePagination";
 import SearchField from "../../../components/SearchField";
+import {
+  ADMINISTRATION_USER_SEARCH_MAX_LENGTH,
+  ADMINISTRATION_USER_SEARCH_MIN_LENGTH
+} from "../../../types";
 import type { AdministrationUser, AdministrationUserOrdering } from "../../../types";
 import { formatAdministrationDate, formatAdministrationRole } from "./administrationFormatters";
 import type { AdministrationUsersStatus } from "./useAdministrationUsers";
 import styles from "./AdministrationPage.module.css";
 
 type AdministrationSortField = "nickname" | "email" | "role" | "createdAt" | "lastActive";
+
+const ADMINISTRATION_SEARCH_DEBOUNCE_MS = 600;
 
 type AdministrationUsersTableProps = {
   currentPage: number;
@@ -207,7 +213,10 @@ function AdministrationUsersTable({
             className={styles.tableSearchInput}
             value={search}
             onValueChange={onSearchChange}
-            placeholder="Nickname or email"
+            debounceMs={ADMINISTRATION_SEARCH_DEBOUNCE_MS}
+            minLength={ADMINISTRATION_USER_SEARCH_MIN_LENGTH}
+            maxLength={ADMINISTRATION_USER_SEARCH_MAX_LENGTH}
+            placeholder="Nickname or email (2+ characters)"
             name="administration-user-search"
             autoComplete="off"
             autoCapitalize="none"

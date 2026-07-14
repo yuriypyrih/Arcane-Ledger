@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "db:backup": "npm --prefix server run db:backup",
     "lint": "eslint app/src app/vite.config.ts server/src",
     "lint:fix": "eslint app/src app/vite.config.ts server/src --fix",
     "format": "prettier --write .",

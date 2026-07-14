@@ -1,4 +1,3 @@
-import { Newspaper } from "lucide-react";
 import DescriptionContent from "../../components/DescriptionContent/DescriptionContent";
 import { patchNotes } from "./patchNotes";
 import styles from "./PatchNotesPage.module.css";

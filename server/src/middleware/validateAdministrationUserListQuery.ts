@@ -2,6 +2,8 @@ import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import {
   ADMINISTRATION_USER_ORDERINGS,
+  ADMINISTRATION_USER_SEARCH_MAX_LENGTH,
+  ADMINISTRATION_USER_SEARCH_MIN_LENGTH,
   type AdministrationUserListQueryLocals,
   type AdministrationUserOrdering
 } from "../types/administration.js";
@@ -58,18 +60,50 @@ function parseOrdering(value: string | undefined): AdministrationUserOrdering {
   return value as AdministrationUserOrdering;
 }
 
+function parseSearch(value: unknown): string | undefined {
+  const search = readSingleQueryValue(value, "search")?.trim();
+
+  if (!search) {
+    return undefined;
+  }
+
+  if (search.length < ADMINISTRATION_USER_SEARCH_MIN_LENGTH) {
+    throw new AppError(
+      `Query parameter "search" must be at least ${ADMINISTRATION_USER_SEARCH_MIN_LENGTH} characters long.`,
+      400,
+      "INVALID_QUERY",
+      {
+        parameter: "search",
+        minLength: ADMINISTRATION_USER_SEARCH_MIN_LENGTH
+      }
+    );
+  }
+
+  if (search.length > ADMINISTRATION_USER_SEARCH_MAX_LENGTH) {
+    throw new AppError(
+      `Query parameter "search" must be at most ${ADMINISTRATION_USER_SEARCH_MAX_LENGTH} characters long.`,
+      400,
+      "INVALID_QUERY",
+      {
+        parameter: "search",
+        maxLength: ADMINISTRATION_USER_SEARCH_MAX_LENGTH
+      }
+    );
+  }
+
+  return search;
+}
+
 export function validateAdministrationUserListQuery(
   request: Request,
   response: Response<unknown, AdministrationUserListQueryLocals>,
   next: NextFunction
 ) {
   try {
-    const search = readSingleQueryValue(request.query.search, "search")?.trim();
-
     response.locals.administrationUserListQuery = {
       page: parsePage(readSingleQueryValue(request.query.page, "page")),
       ordering: parseOrdering(readSingleQueryValue(request.query.ordering, "ordering")),
-      search: search || undefined
+      search: parseSearch(request.query.search)
     };
     next();
   } catch (error: unknown) {

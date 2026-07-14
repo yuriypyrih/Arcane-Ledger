@@ -1,6 +1,9 @@
 import type { UserRole } from "./auth";
 import type { PaginatedApiResponse } from "./api";
 
+export const ADMINISTRATION_USER_SEARCH_MIN_LENGTH = 2;
+export const ADMINISTRATION_USER_SEARCH_MAX_LENGTH = 80;
+
 export const ADMINISTRATION_USER_ORDERINGS = [
   "nickname",
   "-nickname",
