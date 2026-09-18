@@ -52,7 +52,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["app/src/**/*.{ts,tsx}"],
+    files: ["app/src/**/*.{ts,tsx}", "app/tests/**/*.{ts,tsx}", "app/e2e/**/*.ts"],
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
@@ -81,7 +81,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["app/vite.config.ts", "server/**/*.{ts,mts,cts}"],
+    files: ["app/*.config.ts", "app/tests/**/*.ts", "app/e2e/**/*.ts", "server/**/*.{ts,mts,cts}"],
     languageOptions: {
       globals: {
         ...globals.node

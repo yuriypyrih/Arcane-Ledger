@@ -117,6 +117,7 @@ function HitPointControls({
         {readOnly ? null : (
           <div className={styles.stepControl}>
             <NumberInput
+              aria-label="Hit point adjustment"
               min={0}
               className={styles.stepInput}
               value={hitPointStep}

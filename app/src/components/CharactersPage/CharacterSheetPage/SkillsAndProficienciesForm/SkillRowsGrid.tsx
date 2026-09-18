@@ -137,6 +137,7 @@ function SkillRowsGrid({
                         </div>
                         {editable ? (
                           <SelectInput
+                            aria-label={`${row.name} proficiency`}
                             className={styles.skillLevelSelect}
                             value={currentSkillLevel}
                             onChange={(event) =>

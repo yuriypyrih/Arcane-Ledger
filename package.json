@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "db:backup": "npm --prefix server run db:backup",
-    "lint": "eslint app/src app/vite.config.ts server/src",
-    "lint:fix": "eslint app/src app/vite.config.ts server/src --fix",
+    "lint": "eslint app/src app/tests app/e2e app/*.config.ts server/src server/tests server/vitest.config.ts",
+    "lint:fix": "eslint app/src app/tests app/e2e app/*.config.ts server/src server/tests server/vitest.config.ts --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "npm --prefix app test && npm --prefix server test",
+    "test:e2e": "npm --prefix app run test:e2e",
+    "test:types": "npm --prefix app run test:types && npm --prefix server run test:types"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

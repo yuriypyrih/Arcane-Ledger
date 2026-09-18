@@ -19,7 +19,9 @@ function loadEnv() {
     return;
   }
 
-  dotenv.config();
+  if (process.env.NODE_ENV !== "test") {
+    dotenv.config();
+  }
   envLoaded = true;
 }
 

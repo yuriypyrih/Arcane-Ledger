@@ -86,6 +86,8 @@ export function useCharacterSheetPersistence(characterId: number) {
   const pendingStorageTimeoutRef = useRef<number | null>(null);
   const pendingStorageIdleCallbackRef = useRef<number | null>(null);
   const isMountedRef = useRef(false);
+  // Opening is asynchronous; even an edit already flushed to disk must win over its response.
+  const editRevisionRef = useRef(0);
 
   useEffect(() => {
     characterRef.current = character;
@@ -128,7 +130,6 @@ export function useCharacterSheetPersistence(characterId: number) {
       return characterRef.current;
     }
 
-    pendingStorageCharacterRef.current = null;
     let savedCharacter: Character;
 
     try {
@@ -146,6 +147,7 @@ export function useCharacterSheetPersistence(characterId: number) {
       throw error;
     }
 
+    pendingStorageCharacterRef.current = null;
     characterRef.current = savedCharacter;
     dispatch(
       commitActiveCharacterSheet({
@@ -238,6 +240,7 @@ export function useCharacterSheetPersistence(characterId: number) {
         : [...characterSheetDomains];
 
       pendingHitPointCharacterRef.current = null;
+      editRevisionRef.current += 1;
       characterRef.current = savedCharacter;
 
       if (isMountedRef.current) {
@@ -321,6 +324,7 @@ export function useCharacterSheetPersistence(characterId: number) {
         return;
       }
 
+      editRevisionRef.current += 1;
       pendingHitPointCharacterRef.current = nextCharacter;
       clearPendingHitPointTimeout();
       pendingHitPointTimeoutRef.current = window.setTimeout(() => {
@@ -340,6 +344,7 @@ export function useCharacterSheetPersistence(characterId: number) {
       }
 
       initialCharacterRef.current = { characterId, character: nextCharacter };
+      editRevisionRef.current += 1;
       characterRef.current = nextCharacter;
       pendingHitPointCharacterRef.current = null;
       pendingStorageCharacterRef.current = null;
@@ -504,6 +509,7 @@ export function useCharacterSheetPersistence(characterId: number) {
       };
     }
 
+    const openingEditRevision = editRevisionRef.current;
     openTaskId = window.setTimeout(() => {
       let localCharacter: Character | null = immediateLocalCharacter;
 
@@ -534,7 +540,7 @@ export function useCharacterSheetPersistence(characterId: number) {
         return;
       }
 
-      if (localCharacter) {
+      if (localCharacter && editRevisionRef.current === openingEditRevision) {
         initialCharacterRef.current = {
           characterId,
           character: localCharacter
@@ -550,7 +556,7 @@ export function useCharacterSheetPersistence(characterId: number) {
 
       void resolvePortableCharacterSheetForOpen(characterId, { ownerId })
         .then((record) => {
-          if (didCancel) {
+          if (didCancel || editRevisionRef.current !== openingEditRevision) {
             return;
           }
 
@@ -608,6 +614,9 @@ export function useCharacterSheetPersistence(characterId: number) {
               characterId
             }
           });
+          if (editRevisionRef.current !== openingEditRevision) {
+            return;
+          }
           initialCharacterRef.current = {
             characterId,
             character: localCharacter

@@ -1,239 +1,80 @@
-# Architecture Guide for Agents
+# Arcane Ledger: agent guide
 
-This repository centers on a persistent local character sheet, codex-derived rules/content, and a server-backed monster pipeline. Most sheet behavior should be derived from codex data plus current character state rather than hardcoded per-screen conditionals.
+## Working agreements
 
-## Repo Priorities
+- Preserve working character-sheet behavior. Add a regression test for a bug fix and meaningful behavior tests for new mechanics. Tests are explicitly encouraged.
+- Keep changes focused. Do not combine a test-foundation change with architectural refactoring or unrelated cleanup.
+- Prefer small modules with clear ownership. Extract a concern when necessary instead of expanding an already mixed component; file splitting is a means, not the first priority of every task.
+- Derive rules from codex content and character state. Avoid repeating class/subclass rules in UI components or maintaining duplicate resource counters.
+- Run the relevant automated tests and existing lint/build checks. Browser tests and local test servers are part of normal verification. Use synthetic data and isolated services; never run destructive tests against a developer or production database.
+- Keep documentation aligned with the code. Distinguish established behavior from proposed migrations, and report verification that could not run.
 
-1. Code splitting comes first. Big files should always try to split into smaller ones before they grow further. If a file is already handling multiple concerns, extract subcomponents, hooks, helpers, constants, or per-feature modules instead of adding more inline logic.
-2. This project should not contain tests. Do not add unit tests, component tests, integration tests, test configs, test helpers, or test-only dependencies unless the user explicitly reverses this policy.
-3. Preserve derivation-driven architecture. Keep class behavior, spell access, actions, recoveries, statuses, and companion/monster behavior derived from shared state and codex/runtime modules rather than duplicating logic across screens.
-4. Favor house cleaning when touching a feature area. Remove dead helpers, stale scripts, outdated docs, and leftover scaffolding when it is safe to do so.
-5. Do not start, request approval for, or ask the user to run browser/dev-server verification unless the user explicitly asks for it. Use static verification such as linting or builds by default.
+## Repository map
 
-Current large-file hotspots that should be split instead of expanded further:
-- `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/index.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/ActionsWidgetDrawerFooter.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/useActionsWidgetExecution.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/useActionsWidgetSubmissions.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/ActionsWidgetDrawerBody.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/ClassFeaturesAndFeats/ClassFeatureList.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/SpellCastingForm/SpellCastingForm.tsx`
-- large class runtime modules under `app/src/pages/CharactersPage/classFeatures/<class>/`
+- `app/`: React/TypeScript/Vite PWA, Redux Toolkit, React Router, local form state with React Hook Form, CSS Modules.
+- `server/`: Express/TypeScript API, Mongoose/MongoDB, cookie authentication. It owns accounts, cloud characters, sharing, parties, campaigns/encounters, shared inventory, custom content, and database-backed reference browsing.
+- Root, `app`, and `server` are separate npm projects with separate lockfiles.
+- `README.md`: setup and commands. `docs/testing.md`: test layers, fixtures, isolation, and coverage boundaries.
+- `docs/master-chest-transactions.md`: shared-inventory operations, concurrency, retries, and known atomicity limits.
 
-Useful source anchors:
-- `app/src/pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.tsx`
-- `app/src/components/CharactersPage/CharacterSheetPage/index.ts`
-- `app/src/pages/CharactersPage/classFeatures/index.ts`
-- `app/src/pages/CharactersPage/companions.ts`
-- `app/src/components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionsSection.tsx`
-- `app/src/pages/CodexPage/useMonsterEntries.ts`
-- `app/src/components/CodexPage/MonsterCodexTable/MonsterCodexTable.tsx`
-- `app/src/components/MonsterEntryRenderer/MonsterEntryDrawer.tsx`
-- `server/src/middleware/validateMonsterListQuery.ts`
-- `server/src/services/monsterService.ts`
+## Verification commands
 
-## Character Sheet Page
+Run from the repository root:
 
-The Character Sheet page is the orchestration layer for a single character. It loads the saved character, places the sheet under a shared React Hook Form context, and persists all updates back through storage. The sections are separated into mostly self-contained components, but they all operate on the same character object and the same persistence callback.
+- `npm run lint`
+- `npm test`: frontend rule/component/persistence tests and backend HTTP/database tests.
+- `npm run test:e2e`: browser journeys on desktop and mobile, including the real local backend.
+- `npm run test:types`: type-check the test code and configurations.
+- `npm --prefix app run build`
+- `npm --prefix server run build`
 
-Current render order and purpose:
-- `Character Profile`: identity, class/subclass, level progression, XP, and core sheet metadata.
-- `Gameplay`: combat-facing controls, action economy, rests, traits and conditions, live-session tools, and class/resource widgets.
-- `Character Stats`: abilities, modifiers, saves, initiative, speed, armor class, and formula inspection.
-- `Skills & Proficiencies`: resolved skills plus grouped proficiencies, tools, armor, weapons, and languages.
-- `Class Features & Feats`: feature reference, feature-driven choices, feat selection, and class-specific choice editing.
-- `Companions`: custom companions plus monster-backed companion inheritance and inspection.
-- `Equipment`: loadout, item inspection, shop/custom equipment, currency, and equip state.
-- `Spellcasting`: cantrips, prepared spells, spell slots, always-prepared entries, and divinities where applicable.
-- `Thumb Dice Button`: global quick access to the dice roller.
+See `docs/testing.md` for installation, browser/database downloads, individual suites, and failure artifacts. Add tests to the existing harness rather than introducing another runner. Prefer behavior assertions over implementation snapshots or tests that merely repeat code.
 
-## Class Feature Inheritance System
+## Character-sheet data flow
 
-The class feature system has two layers.
+Start at `app/src/pages/CharactersPage/CharacterSheetPage/`:
 
-The first layer is the codex progression layer. Each class defines a progression table as `FeatureClassObj[]`, where each row represents a level breakpoint. Rows list the class features unlocked at that level and can also include per-level values such as cantrips, prepared spells, spell slots, charges, wild shape uses, or other class-specific counters. `featureOverrides` can replace or refine the shared description or tracking state for specific features at specific levels.
+- `CharacterSheetPage.tsx` orchestrates the page, layout, and companion creation.
+- `CharacterSheetSections.tsx` contains memoized section wrappers. Each reads the active character through Redux selectors; there is no shared page-wide React Hook Form context.
+- `selectors.ts` and `domains.ts` control which updates reach each section. When a section starts reading another field or derived dependency, check its invalidation rules.
+- `useCharacterSheetPersistence.ts` coordinates immediate sheet updates, delayed HP updates, debounced local storage, lifecycle flushes, and cloud opening.
+- `activeCharacterNormalization.ts` normalizes affected parts of the character after edits.
 
-The second layer is the runtime derivation layer in `app/src/pages/CharactersPage/classFeatures/`. Each class runtime module takes the unlocked features plus stored feature state and turns them into actual sheet behavior. Runtime normalizers keep class-specific feature state valid for the current class and level. Per-class modules expose derived outputs such as actions, indicators, bonuses, proficiencies, statuses, spell access, always-prepared spells, wild shape state, and feature choices.
+The sheet contains profile, gameplay, companions, skills/proficiencies, equipment, features/feats, stats, and conditional spellcasting. Layout and visibility vary; inspect the components rather than assuming a fixed visual order.
 
-The public `app/src/pages/CharactersPage/classFeatures/index.ts` barrel exposes the runtime system, while the real aggregation work lives across modules such as `runtime.ts`, `modules.ts`, `actions.ts`, and `resources.ts`. This is inheritance by derivation, not by class-component subclassing: the sheet asks the class-feature runtime what the current character gains, rather than hardcoding each class directly into each UI section.
+Persistence code lives in `app/src/pages/CharactersPage/storage.ts`, `portableCharacterSheet*.ts`, and `resolvePortableCharacterSheet.ts`; background cloud synchronization lives in `app/src/characterSync/`. Preserve saved-sheet compatibility, ownership boundaries, and unsaved edits. A delayed response must not silently replace a newer local edit. Failed writes must not be treated as successful saves.
 
-### Runtime Lookup Guide
+## Rules and content ownership
 
-When adding or changing class behavior, check these layers in order:
-- codex progression tables for level-based unlocks, counts, and base feature metadata
-- `app/src/pages/CharactersPage/classFeatures/<class>/<class>.ts` for normalized state, core actions, stat effects, and rest/round reset behavior
-- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/*.ts` for additive subclass actions, reactions, granted spells, decorators, and derived statuses
-- `app/src/codex/classes/subclassSpellcasting.ts` only when subclass spellcasting progression, spell lists, or spellbook usage changes
+1. **Codex:** `app/src/codex/` owns static content, progression tables, unlock levels, and reference descriptions. Most categories are local; monsters and items also have API-backed browsing.
+2. **Class runtime:** `app/src/pages/CharactersPage/classFeatures/` derives actions, choices, grants, bonuses, resources, and effects from unlocked features and stored state. The public barrel is `index.ts`; aggregation is spread across runtime/modules/actions/resources and related helpers.
+3. **Subclass runtime:** keep subclass-specific behavior under `<class>/subclasses/`, with class-local registration/delegation. Reuse an existing subclass's pattern. Keep the shared dispatcher thin, and do not infer lack of behavior from an empty derived-state object.
+4. **Contributions:** `app/src/pages/CharactersPage/featureContributions/` declares reusable outputs through `FeatureContributionSpec`. Use existing source constructors, compilation, and projection helpers. Check that a lane is consumed by the actual sheet before relying on it. Prefer transforms when modifying an existing action/spell instead of adding a duplicate.
+5. **State transitions:** activation, spending, recovery, normalization, and specialized roll execution may require local runtime hooks. Do not force every transition into contribution declarations.
+6. **Spell implementations:** intrinsic spell roll/apply behavior belongs in the spell implementation registry. Feature contributions can grant or modify spells without taking ownership of the spell itself.
 
-Composition rules:
-- base class outputs are collected first, then subclass outputs are layered on top
-- use transform hooks when a subclass should modify an existing action, spell, or weapon entry instead of creating a parallel one
+Base-class contributions are generally collected before subclass contributions. Preserve ordering and deduplication when extending or migrating a feature family.
 
-Reusable mechanics:
-- tracked resources belong in `classFeatureState`, not page-local UI state
-- rest and round cleanup belongs in runtime reset helpers and module wiring
-- persistent gameplay effects should usually become derived status entries or status-backed effects
-- granted spells should usually flow through `alwaysPreparedSpellIds`; use subclass spellcasting data only for real progression changes
-- action cards need both card creation and execution wiring
+## Gameplay invariants
 
-Warnings:
-- an empty subclass derived-state object does not mean the subclass has no runtime behavior
-- do not hardcode class behavior in page components
-- do not duplicate resource counters outside runtime state
+- Keep persistent class resources in `classFeatureState`, with the runtime's spend/restore helpers. Generic charges use the existing blue-dot/card usage presentation; named pools use their existing resource presentation. A fallback-resource action spends its ordinary use first and remains available while either payment path is valid.
+- An actionable card needs both display data and execution wiring. `action`, `bonus_action`, and `free` features belong in the Gameplay Actions widget unless requested otherwise.
+- Default card title: feature name. Use `cardUsage` for costs, a short `breakdown` for the effect, and the existing blank subheader when there is no cost. Reuse feature descriptions and default confirmation labels unless custom controls are needed.
+- Dice-confirm footers use the shared dice footer pattern with the d20 icon and settings control.
+- Rest recoveries must appear explicitly in the camp options (`GameplayForm/widgets/restOptions.ts`, with short/long-rest helpers). Avoid silently restoring resources that the player should choose.
+- Activation-created timed traits must be visible in Traits & Conditions and persist with their duration. Passive derived benefits can remain derived. Block reuse while active only when the mechanic requires it.
+- Concentration is a status entry with linked effects. Replacing or ending concentration must remove linked effects; duration and rest flows must preserve this relationship.
+- Always-prepared spells do not consume preparation capacity, but ordinarily still spend slots. Ritual casting does not spend a slot. Keep subclass spellcasting progression in `app/src/codex/classes/subclassSpellcasting.ts` when applicable.
+- Extra action capacity uses the shared action-economy model and the owning runtime's counters; showing an extra action does not itself spend it.
+- Add feature-derived reference text as sourced `descriptionAdditions`/`additionalDescription`, using `actionModalDescriptions.ts` helpers. Preserve the original base description and deduplicate sourced additions.
+- Proficiency choices use `SelectInput` and shared option builders. New choices start empty; unavailable or already-selected choices remain visible but disabled.
 
-### Subclass Runtime Pattern
+## Shared surfaces and server-backed flows
 
-When a class gains subclass-specific runtime behavior, split that behavior into one file per codex subclass instead of growing the main class runtime file.
+Reuse existing modals, drawers, and the dice roller. Drawers can include actionable footers as well as reference text; inspect the existing flow before choosing a surface.
 
-Preferred layout:
-- `app/src/pages/CharactersPage/classFeatures/<class>/<class>.ts`: class-wide runtime only. This file should own the base class behavior and delegate subclass work out.
-- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/index.ts`: class-local subclass registry and delegation helpers such as `get<Class>SubclassDerivedFeatureState`, subclass state normalizers, or subclass action handlers.
-- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/<class><SubclassName>.ts`: one runtime file per codex subclass.
+Companions live in `Character.companions`; normalization and gameplay transitions are in `app/src/pages/CharactersPage/companions.ts`. Reuse `CompanionsSection`, `MonsterRecord`, `useMonsterEntries`, and the monster renderer/drawer for monster-backed companions and wild shape.
 
-Implementation expectations:
-- Keep `app/src/pages/CharactersPage/classFeatures/subclasses.ts` thin. It should expose shared subclass runtime types/helpers and the public dispatcher, not a giant cross-class map of concrete subclass logic.
-- Move subclass-only logic out of `<class>.ts` and into subclass files. That includes prepared spells, actions, action options, indicators, statuses, derived bonuses, transform hooks, recovery hooks, state normalization, and resource-specific behavior.
-- If subclass behavior still needs to be exposed through the main class module for compatibility with the rest of the sheet, keep thin wrapper exports in `<class>.ts` that delegate to the subclass registry instead of reimplementing the logic there.
-- Keep shared subclass helpers in the parent `classFeatures` directory only when they are reused across multiple classes. If the helper only serves one class or one subclass family, keep it local to that class directory.
-- Every codex subclass should have a matching runtime file, even if its initial implementation is only a small prepared-spell or empty derived-state module. This keeps ownership explicit and prevents future subclass logic from drifting back into mixed files.
+For monster queries, coordinate `server/src/middleware/validateMonsterListQuery.ts`, `server/src/services/monsterService.ts`, and frontend consumers. Keep filters, sort, pagination, and record shapes in agreement.
 
-### Runtime Mechanics Reference
-
-- `Always-prepared spells`: class and subclass runtimes contribute `alwaysPreparedSpellIds`, and the spell-preparation flow excludes those ids from `normalizePreparedSpellIds`. They do not consume prepared-spell selection capacity, but they still spend spell slots when cast unless another feature explicitly grants a free cast or ritual cast.
-- `Ritual spells`: ritual support is driven by `spell.ritual`. `CharacterSpellDrawer` exposes a ritual toggle when the current spell can be cast that way, and the ritual cast path applies the spell's normal action/concentration behavior without incrementing `spellSlotsExpended`. Wizard spellbook-only rituals also flow through this path when Ritual Adept allows them.
-- `Concentration`: concentration is modeled as a status entry, not a loose boolean. `applySpellConcentrationToStatusEntries` removes the old concentration anchor and any concentration-linked effects before adding the new one, and rest/status update flows prune linked entries when concentration ends or durations expire.
-- `Action cards and modals`: classes and subclasses create `FeatureActionCard[]` and optional `FeatureActionOptionCard[]` through their derived runtime state. `combatActions.ts` converts those cards into `GameplayActionDefinition` drawer/execute configs, and `ActionsWidget/index.tsx` opens `GameplayActionDrawer` or `CharacterSpellDrawer` from the selected card. Any actionable feature card needs both display data and execution wiring.
-- `Multi actions`: extra action or bonus-action capacity is represented with `economyMultiCount`. `getEconomyShapeState` keeps a card usable after the normal round-tracker action is spent when extra counts remain, and the action shape shows that overflow capacity. The owning class runtime must also decrement its own extra-action state when the card is used.
-- `Generic charges vs class resources`: the blue-dot tracker UI is the generic action/resource presentation for `usesRemaining` and `usesTotal` or `FeatureActionResource` tracker badges. Class-specific pools like Rage, Focus Points, Sorcery Points, Channel Divinity, Wild Shape, Lay On Hands, and similar resources should remain in `classFeatureState` with dedicated total, remaining, spend, and restore helpers. Action cards can display those pools, but they should not invent duplicate counters outside the class runtime.
-- `Rest modal contract`: `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/restOptions.ts` is the source of truth for Short Rest and Long Rest recovery checkboxes. If a generic blue-dot charge tracker or a named class/subclass resource recharges on a rest, it needs an explicit `RestOption` entry there with the correct label and `apply` function, even when the class module already has restore helpers. Recoverable resources should always be visible in the camp modal instead of being restored silently.
-- `Visible activated statuses`: when an activated feature is supposed to create a temporary visible trait/effect in Traits & Conditions, prefer a persisted status entry that actually renders in the widget. In practice, activation-created timed effects should usually be stored as status-backed entries that remain visible and decrement over time; passive always-on benefits are the better fit for derived status entries.
-- `Drawer description injections`: when an unlocked feature adds rules text to an existing drawer, spell, action, trait, skill, stat, item, weapon, or other reference, inject it as a sourced additional-description section instead of appending it to the base description. Keep the target's `description` as the base text, and put feature-derived sections in `descriptionAdditions` or the surface's existing `additionalDescription` field. Use the shared helpers in `app/src/pages/CharactersPage/actionModalDescriptions.ts`, especially `createFeatureSourcedDescriptionEntries`, `appendFeatureSourcedDescriptionAddition`, or the lower-level dedupe helpers, so injected text is labeled and ordered by feature level. Ranger Favored Enemy and Hunter's Mark are the reference pattern: derive the unlocked feature text in the class runtime, create sourced sections, and let the drawer render them separately.
-
-### FeatureContributionSpec Runtime Framework
-
-`FeatureContributionSpec` in `app/src/pages/CharactersPage/featureContributions/` is the shared declaration language for feature-derived sheet behavior. Use it for selected sources that contribute reusable outputs to the sheet, including feats, species, Eldritch Invocations, future class features, future subclass features, items, and spell-compatible feature effects. Source metadata supports `class`, `subclass`, `feat`, `species`, `item`, `invocation`, and `spell`.
-
-Preferred contribution lanes:
-- `actions`, `actionOptions`, `reactions`, `statuses`, `resources`, `equipmentEntries`, and `weaponActions` for visible sheet entries.
-- proficiency lanes for skills, saves, armor, weapons, tools, and languages.
-- `descriptionAdditions` for sourced drawer/reference injections.
-- spell lanes for grants, always-prepared spells, spellbook-only spells, ritual-only spells, spellcasting abilities, free casts, spell transforms, spell action paths, spell damage bonuses, spell formula overrides, and cast effects.
-- bonus and indicator lanes for ability scores, hit point maximums, speed, initiative, saves, skills, armor class, inventory attunement limits, weapon damage, spell damage, saving throw indicators, ability check indicators, core stat indicators, skill indicators, and weapon attack indicators.
-- transform lanes when a feature modifies an existing common action, feature action, weapon action, item description, or spell entry instead of creating a duplicate.
-- `classMechanics` only for narrow class/subclass compatibility facts such as weapon mastery, magic temporary hit points, Bardic Inspiration die, Monk Martial Arts die, Rogue Sneak Attack values, Monk unarmed strike config, and Monk Martial Arts eligibility.
-
-Local hooks remain correct for behavior that mutates character state or requires custom execution: feature activation, resource spending, rest and round cleanup, choice normalization, inventory tagging, complex weapon/spell resolution, dice roll resolution, and highly feature-specific branching. A good runtime can declare most sheet outputs through contributions while still using local hooks for the few things that actually change state.
-
-Runtime migration expectations:
-- Existing public selectors may remain in place as compatibility wrappers over compiled contributions.
-- Classes and subclasses should migrate one class or subclass family at a time, preserving the current order where base class outputs are collected before subclass outputs.
-- Use `createClassContributionSource`, `createSubclassContributionSource`, `compileFeatureContributions`, and the class/subclass projection helpers instead of hand-filtering raw contribution arrays.
-- Split future contribution declarations into per-feature, per-class, or per-subclass modules before growing large runtime files.
-- Do not force behavior into the spec if doing so makes the spec magical. Add a small explicit lane only when the same output shape appears across multiple runtime sources.
-
-Spell implementation note: intrinsic spell behavior belongs in the spell implementation runtime adapter, not in ordinary selected-feature contributions. Feature sources can grant spells, alter spell descriptions, add spell action paths, force spell implementation options, and register cast effects, but the spell implementation registry should own spell-specific roll/apply behavior such as Mage Armor or False Life.
-
-### Gameplay Card Defaults For Class Features
-
-When a future request says to create an `action`, `bonus_action`, or `free` card for a class feature, treat that as a request to create a gameplay card in the `ActionsWidget` inside the Gameplay section.
-
-- `Card naming`: by default, the card name should exactly match the class feature name being implemented.
-- `Card placement`: `action`, `bonus_action`, and `free` map to the corresponding gameplay action type/card shape in the Gameplay action widget.
-- `Card line 1`: `FeatureActionCard.name` should be the feature name.
-- `Card line 2`: use `cardUsage` for charges, named resources, mixed costs, or fallback costs. When the feature has no visible charges/resource line, leave this line visually blank by relying on the existing card subheader placeholder instead of stuffing in filler text.
-- `Card line 3`: set `FeatureActionCard.breakdown` to a relevant 3-6 word phrase that says what the action does, such as `Gain advantage this turn` or `Teleport after striking`. Do not use long rules text here.
-- `Drawer defaults`: clicking the card should open the standard gameplay action drawer. Unless the request explicitly asks for custom inputs, selectors, dropdowns, toggles, opt-in checkboxes, or other controls, the drawer description should reuse the class feature description by default through `sourceFeature` or the existing `description` fields.
-- `Footer defaults`: leave `drawer.confirmLabel` and `execute.label` unset unless the feature genuinely needs a special button label. The normal fallback is `Use <feature name>`, which is usually the desired primary action text.
-- `Dice roller footers`: any drawer footer button that opens the dice roller must include `d20.svg` in the button and place `DiceRollerSettingsButton` beside it, preferably through shared footer components such as `ActionDiceConfirmFooter` or the existing weapon/dice footer patterns.
-- `Generic charges`: if the request says the feature has X charges and does not name a different resource pool, represent that with the generic blue-dot tracker UI (`Charges - - -`) using `cardUsage`, normally via `createChargesCardUsage`, while keeping the backed values in the appropriate runtime state.
-- `Named resources`: if the request specifies a different resource, do not add blue dots. Instead, wire the card to spend/show that existing class resource using `cardUsage` helpers such as `createNamedResourceCardUsage` and the appropriate `classFeatureState` helpers.
-- `Fallback resources`: if the request says a feature has a normal charge/use but can spend another named resource when depleted, the card should stay clickable whenever either the normal use or the fallback resource is available. Show the fallback cost inline on the card and in the drawer with `cardUsage` helpers such as `createChargesOrResourceCardUsage`, spend the normal use first, then spend the fallback resource only after the normal use is gone, and disable the card only when neither path is available.
-- `Rest recovery`: if the request says charges recover `per short rest`, `per long rest`, or `per short or long rest`, wire the recovery through runtime rest helpers and add the matching explicit checkbox entry to `GameplayForm/widgets/restOptions.ts`.
-- `Activation-created traits`: if the request says `upon activation it creates a feature trait with X duration`, treat the drawer's primary blue activation button as creating a feature trait/status entry in the Traits and Conditions widget under the `feature` list.
-- `Trait defaults`: unless stated otherwise, that created trait should reuse the class feature name as its title, reuse the class feature description as its description, and apply the requested duration exactly as specified in the feature request.
-- `Trait visibility`: when I ask for a trait/effect/status to be created by a feature activation, I mean a visible entry in the Traits & Conditions widget that the player can inspect immediately after activation. Do not implement that as a hidden internal flag or as a non-rendering derived override.
-- `Active-state gating`: only mark the card as active and block reuse while active when the feature text or my request implies an ongoing state that should not stack or be reactivated during its duration. If the feature resolves immediately and does not create an ongoing visible state, do not block reuse beyond its resource limits.
-
-## Companions and Monster-backed Flows
-
-Companions are now a first-class part of character state.
-
-- `Character.companions` stores custom or inherited companion records.
-- A companion can either be fully custom or inherit a `MonsterRecord` as its creature reference.
-- `app/src/pages/CharactersPage/companions.ts` owns normalization and ID creation for persisted companion data.
-- `CompanionsSection` is the main editor/inspection surface for companions and reuses the monster codex browsing pipeline.
-
-Monster-backed flows are shared across multiple surfaces:
-- the codex monster browser
-- companion inheritance selection
-- monster inspection drawers
-- druid wild shape form selection and inspection
-
-When adding new monster-powered UX, reuse the existing `MonsterRecord` shape, `useMonsterEntries`, and monster renderer/drawer components instead of building parallel data flows.
-
-## Codex and Data Model
-
-Codex data is still the main static rules and content source of truth for most categories. It is exported through `app/src/codex/entries` and consumed by the sheet, codex pages, and derived systems.
-
-Main codex categories from `ENTRY_CATEGORIES`:
-- spells
-- weapons
-- armor
-- items
-- backgrounds
-- species
-- classes
-- rules
-- monsters
-
-There are also codex-adjacent registries that behave like structured game content even though they are not part of the main category enum:
-- feats
-- divinities
-- reactions
-
-Important current nuance:
-- most codex categories are local/static in the app
-- monster browsing is API-backed through the server and Mongo/Open5e import pipeline
-- the frontend still uses shared monster types and renderers so monsters feel like a first-class codex category
-
-Classes themselves are codex entries, and their level progression tables are part of that class data.
-
-## Server-backed Monster Pipeline
-
-Monster data now has a dedicated client/server flow.
-
-- `server/src/middleware/validateMonsterListQuery.ts` normalizes and validates monster list query params.
-- `server/src/services/monsterService.ts` builds Mongo filters/sorts and returns paginated monster list results plus single-monster lookups.
-- `app/src/pages/CodexPage/useMonsterEntries.ts` is the shared frontend hook for loading paginated monster data.
-- `MonsterCodexTable`, `MonsterEntryRenderer`, and `MonsterEntryDrawer` are the main shared UI surfaces for displaying monster records.
-
-If a change affects monster filters, sorting, pagination, or record shapes, update both the server query pipeline and the frontend consumers together.
-
-## Interaction Surfaces and Shared Mechanics
-
-The app uses a few shared interaction surfaces repeatedly across the sheet.
-
-- `Modals` are for management and selection flows that change character state.
-- `Drawers` are for inspection and reference flows for spells, feats, weapons, divinities, keywords, monsters, and other sheet details.
-- The `Dice Roller Popup` is the shared rolling surface used by stats, spellcasting, gameplay actions, and formula-driven interactions.
-
-The intended distinction is simple:
-- modals are for choosing and editing
-- drawers are for reading and inspecting
-- the dice roller is for executing a roll from an already-resolved formula
-
-Other shared mechanics worth knowing about:
-- keyword linking and reference descriptions connect many rules terms to reusable explanations
-- rest flows fan out into resource recovery systems across classes and statuses
-- derived status and trait systems let gameplay and class features surface passive or temporary effects in one place
-- monster records now feed both codex reference surfaces and live character features such as companions and wild shape
-
-### Proficiency Choice Inputs
-
-When adding feat, class-feature, or similar proficiency choice inputs, reuse the existing sheet dropdown component (`SelectInput`) and the shared option helpers such as `buildSkillSelectOptions`, `buildToolSelectOptions`, and `getSelectableUnproficientToolOptions` where applicable. Choice dropdowns should start empty with a `-` option unless an existing saved choice is being edited. Options that are unavailable because the character already has that proficiency, has expertise, or selected the option in another slot should stay visible but disabled instead of being hidden.
-
-## Editing Expectations
-
-- Split large files instead of letting them grow. Prefer targeted helper files over adding another 100 lines to an existing hotspot.
-- Do not reintroduce Vitest, Jest, Testing Library, Supertest, `server/tests`, `app/src/test`, or similar testing scaffolding without explicit user direction.
-- When updating architecture docs, keep them aligned with the actual render order, feature surfaces, and data flow that exist in the codebase now.
+Master Chest transfers use operation batches, revision guards, and idempotency. Preserve conflict handling and authoritative character adoption; consult the dedicated document before changing this flow.

@@ -105,3 +105,10 @@ Read the repository's licensing boundary before reusing material:
 This repository is actively maintained as a portfolio centerpiece and a real application. The codebase
 prioritizes feature-derived character behavior, reusable interaction surfaces, and practical session
 workflows over demo-only scaffolding.
+
+## Tests
+
+Run `npm test` for rule, component, persistence, and backend/database checks. Run `npm run test:e2e`
+for desktop/mobile browser journeys, and `npm run test:types` to type-check the test code.
+See [the testing guide](docs/testing.md) for installation, isolated test services, coverage, and
+failure artifacts. Pull requests run these checks through `.github/workflows/tests.yml`.

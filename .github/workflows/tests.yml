@@ -1,0 +1,49 @@
+name: Tests and builds
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MONGOMS_DISABLE_POSTINSTALL: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+            server/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix app
+      - run: npm ci --prefix server
+      - name: Install browser
+        working-directory: app
+        run: npx playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ../.cache/playwright
+      - run: npm run lint
+      - run: npm run test:types
+      - run: npm test
+      - run: npm --prefix app run build
+      - run: npm --prefix server run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-artifacts
+          path: |
+            app/playwright-report
+            app/test-results
+          retention-days: 7

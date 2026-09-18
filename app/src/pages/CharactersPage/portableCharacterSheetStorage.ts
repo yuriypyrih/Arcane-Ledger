@@ -58,7 +58,6 @@ export function replaceRawStoredCharacterRecords(characters: unknown[]) {
     return;
   }
 
-  storedCharacterRecordsCache = characters;
   try {
     window.localStorage.setItem(CHARACTERS_STORAGE_KEY, JSON.stringify(characters));
   } catch (error) {
@@ -72,6 +71,7 @@ export function replaceRawStoredCharacterRecords(characters: unknown[]) {
     });
     throw error;
   }
+  storedCharacterRecordsCache = characters;
   dispatchCharacterStorageChanged();
 }
 
