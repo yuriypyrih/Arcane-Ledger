@@ -1,3 +1,4 @@
+import { hasCharacterClass } from "../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
@@ -36,7 +37,7 @@ export function hasBarbarianRecklessAttackFeature(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return (
-    character.className === "Barbarian" &&
+    hasCharacterClass(character, "Barbarian") &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.RECKLESS_ATTACK).length > 0
   );
 }

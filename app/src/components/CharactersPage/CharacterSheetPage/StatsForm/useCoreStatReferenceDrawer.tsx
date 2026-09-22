@@ -1,4 +1,7 @@
+import { getClassLevel, getClassSubclassId } from "../../../../pages/CharactersPage/multiclass";
 import { useState } from "react";
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import { getClassHitDicePools } from "../../../../pages/CharactersPage/hitDice";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import type { Character } from "../../../../types";
 import {
@@ -12,19 +15,14 @@ import {
   hasRogueThiefThiefsReflexesForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import { setArmorClassFormulaSelectionForCharacter } from "../../../../pages/CharactersPage/armor";
-import {
-  getHitDiceRemainingForCharacter,
-  getHitDiceTotalForCharacter
-} from "../../../../pages/CharactersPage/hitDice";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
 import {
-  getBoonOfBountifulHealthHitDiceDescriptionAdditionsForCharacter,
   getPurpleDragonRookRallyingCryStateForCharacter,
   hasZhentarimRuffianForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
-import ResourceManagementModal from "../ResourceManagementModal";
+import HitDiceManagementModal from "./HitDiceManagementModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
 import StatReferenceDrawer, { type SelectedStatReference } from "./StatReferenceDrawer";
@@ -40,6 +38,7 @@ export function useCoreStatReferenceDrawer(
   character: Character,
   onPersistCharacter: PersistCharacterUpdater
 ): CoreStatReferenceDrawerResult {
+  const readOnly = useReadOnlySheet();
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
@@ -76,9 +75,8 @@ export function useCoreStatReferenceDrawer(
   const zhentarimRuffianFamilyFirstAvailable =
     hasZhentarimRuffianFamilyFirst && character.heroicInspiration;
   const hasTandemFootwork =
-    character.className === "Bard" &&
-    character.subclassId === "bard-college-of-dance" &&
-    character.level >= 6;
+    getClassSubclassId(character, "Bard") === "bard-college-of-dance" &&
+    getClassLevel(character, "Bard") >= 6;
   const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
   const bardicInspirationUsesRemaining = getBardicInspirationUsesRemainingForCharacter(character);
   const tandemFootworkAvailable =
@@ -86,11 +84,6 @@ export function useCoreStatReferenceDrawer(
   const initiativeBreakdown = coreStats.initiativeBreakdown;
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const hasThiefsReflexes = hasRogueThiefThiefsReflexesForCharacter(character);
-  const hitDiceRemaining = coreStats.hitDiceSummary.remaining;
-  const hitDiceTotal = coreStats.hitDiceSummary.total;
-  const hitDieLabel = coreStats.hitDiceSummary.label;
-  const hitDiceAdditionalDescription =
-    getBoonOfBountifulHealthHitDiceDescriptionAdditionsForCharacter(character);
   const resolvedSelectedStatReference =
     selectedStatReference?.keyword === "Armor Class"
       ? {
@@ -113,7 +106,17 @@ export function useCoreStatReferenceDrawer(
   function openCoreStatReference(card: CoreStatCard) {
     if (card.key === "hitDice") {
       closeCoreStatReference();
-      setIsHitDiceManagementOpen(true);
+      if (readOnly) {
+        setSelectedStatReference({
+          ...coreStats.getReferenceForCard(card),
+          detailCards: getClassHitDicePools(character).map((pool) => ({
+            label: `${pool.className} ${pool.die.toUpperCase()}`,
+            value: `${pool.remaining}/${pool.total} remaining`
+          }))
+        });
+      } else {
+        setIsHitDiceManagementOpen(true);
+      }
       return;
     }
 
@@ -141,41 +144,15 @@ export function useCoreStatReferenceDrawer(
     setSelectedStatReference(coreStats.getReferenceForCard(card));
   }
 
-  function updateHitDiceRemaining(getNextRemaining: (remaining: number, total: number) => number) {
-    onPersistCharacter((currentCharacter) => {
-      const total = getHitDiceTotalForCharacter(currentCharacter);
-      const remaining = getHitDiceRemainingForCharacter(currentCharacter);
-      const nextRemaining = Math.max(
-        0,
-        Math.min(total, Math.floor(getNextRemaining(remaining, total)))
-      );
-
-      return {
-        ...currentCharacter,
-        hitDiceRemaining: nextRemaining
-      };
-    });
-  }
-
-  function useHitDie() {
-    updateHitDiceRemaining((remaining) => remaining - 1);
-  }
-
-  function resetHitDie() {
-    updateHitDiceRemaining((remaining) => remaining + 1);
-  }
-
-  function resetAllHitDice() {
-    updateHitDiceRemaining((_remaining, total) => total);
-  }
-
   function selectArmorClassFormula(formulaKey: string) {
+    if (readOnly) return;
     onPersistCharacter((currentCharacter) =>
       setArmorClassFormulaSelectionForCharacter(currentCharacter, formulaKey)
     );
   }
 
   function rollInitiative() {
+    if (readOnly) return;
     onPersistCharacter((currentCharacter) => {
       return applyInitiativeRollCharacterEffects(currentCharacter, {
         usePersistentRageOnInitiative,
@@ -222,35 +199,11 @@ export function useCoreStatReferenceDrawer(
 
   const coreStatReferenceDrawer = (
     <>
-      {isHitDiceManagementOpen ? (
-        <ResourceManagementModal
-          titleId="hit-dice-resource-management-title"
-          title={`Hit Dice ${hitDiceRemaining}/${hitDiceTotal}`}
-          closeLabel="Close hit dice resource management"
+      {!readOnly && isHitDiceManagementOpen ? (
+        <HitDiceManagementModal
+          character={character}
+          onPersistCharacter={onPersistCharacter}
           onClose={() => setIsHitDiceManagementOpen(false)}
-          description="Manually spend or restore Hit Dice outside of a rest."
-          additionalDescription={hitDiceAdditionalDescription}
-          titleAccessory={hitDieLabel}
-          actions={[
-            {
-              label: "Use 1",
-              onClick: useHitDie,
-              disabled: hitDiceRemaining <= 0,
-              ariaLabel: "Use 1 Hit Die"
-            },
-            {
-              label: "Reset 1",
-              onClick: resetHitDie,
-              disabled: hitDiceRemaining >= hitDiceTotal,
-              ariaLabel: "Reset 1 Hit Die"
-            },
-            {
-              label: "Reset All",
-              onClick: resetAllHitDice,
-              disabled: hitDiceRemaining >= hitDiceTotal,
-              ariaLabel: "Reset all Hit Dice"
-            }
-          ]}
         />
       ) : null}
       {resolvedSelectedStatReference ? (
@@ -290,9 +243,7 @@ export function useCoreStatReferenceDrawer(
                   setUsePurpleDragonRookRallyingCryOnInitiative
                 }
                 hasZhentarimRuffianFamilyFirst={hasZhentarimRuffianFamilyFirst}
-                zhentarimRuffianFamilyFirstAvailable={
-                  zhentarimRuffianFamilyFirstAvailable
-                }
+                zhentarimRuffianFamilyFirstAvailable={zhentarimRuffianFamilyFirstAvailable}
                 useZhentarimRuffianFamilyFirstOnInitiative={
                   useZhentarimRuffianFamilyFirstOnInitiative
                 }
@@ -312,7 +263,7 @@ export function useCoreStatReferenceDrawer(
           onClose={closeCoreStatReference}
         />
       ) : null}
-      {diceRollerPopup}
+      {!readOnly && diceRollerPopup}
     </>
   );
 

@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -35,7 +37,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -201,9 +203,7 @@ export type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey =
 export function isPaladinOathOfTheNobleGeniesElementalSmiteOptionKey(
   value: string | null | undefined
 ): value is PaladinOathOfTheNobleGeniesElementalSmiteOptionKey {
-  return paladinOathOfTheNobleGeniesElementalSmiteOptions.some(
-    (option) => option.key === value
-  );
+  return paladinOathOfTheNobleGeniesElementalSmiteOptions.some((option) => option.key === value);
 }
 
 const elementalRebukeDescription = getOathOfTheNobleGeniesFeatureDescriptionEntries(
@@ -233,9 +233,9 @@ const minorWishReactionEntry: ReactionEntry = {
 
 function isPaladinOathOfTheNobleGenies(character: PaladinOathOfTheNobleGeniesCharacter): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheNobleGeniesSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheNobleGeniesSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 3
   );
 }
 
@@ -255,9 +255,9 @@ export function hasPaladinOathOfTheNobleGeniesAuraOfElementalShielding(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheNobleGeniesSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheNobleGeniesSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 7
   );
 }
 
@@ -265,9 +265,9 @@ export function hasPaladinOathOfTheNobleGeniesElementalRebukeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheNobleGeniesSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheNobleGeniesSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 15
   );
 }
 
@@ -275,9 +275,9 @@ export function hasPaladinOathOfTheNobleGeniesNobleScionFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheNobleGeniesSubclassId &&
-    (character.level ?? 0) >= 20
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheNobleGeniesSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 20
   );
 }
 
@@ -418,11 +418,7 @@ function getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotSummary(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -448,8 +444,8 @@ function getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotLevel(
 function getPaladinAuraRangeFeet(character: PaladinOathOfTheNobleGeniesCharacter): number {
   return hasPaladinFeature(
     {
-      className: character.className,
-      level: character.level ?? 0
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0
     },
     CLASS_FEATURE.AURA_EXPANSION
   )
@@ -563,8 +559,8 @@ function getPaladinOathOfTheNobleGeniesDerivedStatusEntries(
 ): DerivedFeatureStatusEntry[] {
   const derivedStatusEntries: DerivedFeatureStatusEntry[] = [];
   const hasAuraOfProtection = hasActivePaladinAuraOfProtection({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     statusEntries: character.statusEntries ?? []
   });
 
@@ -705,8 +701,8 @@ function hasActivePaladinOathOfTheNobleGeniesMinorWishAura(
   return (
     hasActivePaladinOathOfTheNobleGeniesNobleScion(character) &&
     hasActivePaladinAuraOfProtection({
-      className: character.className,
-      level: character.level ?? 0,
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0,
       statusEntries: character.statusEntries ?? []
     })
   );
@@ -784,10 +780,7 @@ function getFeatureActionByKey(
   return actions.filter((action) => action.key === actionKey);
 }
 
-function getReactionEntryById(
-  reactions: ReactionEntry[],
-  reactionId: string
-): ReactionEntry[] {
+function getReactionEntryById(reactions: ReactionEntry[], reactionId: string): ReactionEntry[] {
   return reactions.filter((reaction) => reaction.id === reactionId);
 }
 
@@ -869,11 +862,7 @@ export function activatePaladinOathOfTheNobleGeniesNobleScion(character: Charact
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    );
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -925,8 +914,8 @@ function collectPaladinOathOfTheNobleGeniesContributions(
 
   const featureActions = getPaladinOathOfTheNobleGeniesFeatureActions(character);
   const channelDivinityCharacter = {
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState
   };
   const derivedStatusEntries = getPaladinOathOfTheNobleGeniesDerivedStatusEntries(character);
@@ -939,7 +928,7 @@ function collectPaladinOathOfTheNobleGeniesContributions(
         entryId: CLASS_FEATURE.GENIE_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Paladin") ?? 0,
         oathOfTheNobleGeniesSpellIdsByLevel
       )
     },
@@ -955,8 +944,7 @@ function collectPaladinOathOfTheNobleGeniesContributions(
             key: paladinChannelDivinityOptionKeys.elementalSmite,
             name: elementalSmiteSource,
             summary: "Invoke an elemental smite",
-            detail:
-              "Spend 1 Channel Divinity after Divine Smite to choose a genie smite effect.",
+            detail: "Spend 1 Channel Divinity after Divine Smite to choose a genie smite effect.",
             economyType: ECONOMY_TYPE.BONUS_ACTION,
             actionCategory: ACTION_CATEGORY.MAGIC,
             resultLabel: "Effect",

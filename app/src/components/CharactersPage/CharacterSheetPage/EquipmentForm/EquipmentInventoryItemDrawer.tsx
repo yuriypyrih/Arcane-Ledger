@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { createPortal } from "react-dom";
 import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
 import { useExplicitBackdropClick } from "../../../Overlay";
@@ -10,6 +10,7 @@ import CustomTraitEffectList from "../GameplayForm/widgets/TraitsConditionsWidge
 import styles from "./EquipmentInventoryItemDrawer.module.css";
 
 type EquipmentInventoryItemDrawerProps = {
+  panelRef?: Ref<HTMLElement>;
   item: ItemRecord | null;
   status: CodexStatus;
   onClose: () => void;
@@ -30,6 +31,7 @@ type EquipmentInventoryItemDrawerProps = {
 };
 
 function EquipmentInventoryItemDrawer({
+  panelRef,
   item,
   status,
   onClose,
@@ -68,6 +70,7 @@ function EquipmentInventoryItemDrawer({
       onPointerDown={onBackdropPointerDown}
     >
       <section
+        ref={panelRef}
         className={`${sheetStyles.spellDrawer} ${styles.drawer} ${drawerClassName ?? ""}`}
         role="dialog"
         aria-modal="true"

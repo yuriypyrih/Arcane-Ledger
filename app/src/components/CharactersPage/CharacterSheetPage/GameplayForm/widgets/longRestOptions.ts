@@ -1,3 +1,10 @@
+import { createChannelDivinityRestOptions } from "./channelDivinityRestOptions";
+import { getSheetSpellSlotTotals } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
+import { restoreHitDice } from "../../../../../pages/CharactersPage/hitDice";
+import {
+  getCharacterSpellSlotPools,
+  recoverSlotPools
+} from "../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
@@ -117,14 +124,12 @@ import {
   restoreBardicInspirationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
-  getClericChannelDivinityUsesTotal,
   getClericCoronaOfLightUsesTotal,
   getClericWarPriestUsesTotal,
   getClericWardingFlareUsesTotal,
   getDivineForeknowledgeUsesTotal,
   hasClericImprovedWardingFlareFeature,
   hasClericDivineInterventionFeature,
-  restoreClericChannelDivinityOnLongRest,
   restoreClericChannelDivinityOnShortRest,
   restoreClericCoronaOfLightOnLongRest,
   restoreClericDivineForeknowledgeOnLongRest,
@@ -192,10 +197,8 @@ import {
   getNobleScionUsesTotal,
   getAvengingAngelUsesTotal,
   getPaladinHealingPoolTotal,
-  getPaladinChannelDivinityUsesTotal,
   getPaladinsSmiteUsesTotal,
   getUndyingSentinelUsesTotal,
-  restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
   restoreElderChampionOnLongRest,
   restoreElementalRebukeOnLongRest,
@@ -375,7 +378,7 @@ import {
   restoreSpellfireSparkSpellfireFlameForCharacter,
   restoreTelepathicDetectThoughtsFreeCastForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
-import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
+import {} from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
   applyShortRestToCharacterStatusEntries,
@@ -413,13 +416,7 @@ import type { RestOption } from "./restOptionTypes";
 import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
 
 export function createLongRestOptions(character: Character): RestOption[] {
-  const spellSlotTotal = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
-  ).reduce((sum, value) => sum + value, 0);
+  const spellSlotTotal = getSheetSpellSlotTotals(character).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
   const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(
@@ -466,8 +463,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
     featDerivedState.boonOfRecoveryLastStandTotal;
   const boonOfRecoveryIsFull = boonOfRecoveryDiceAreFull && boonOfRecoveryLastStandIsFull;
   const boonOfTerrorFleeFoolsIsFull =
-    featDerivedState.boonOfTerrorFleeFoolsRemaining >=
-    featDerivedState.boonOfTerrorFleeFoolsTotal;
+    featDerivedState.boonOfTerrorFleeFoolsRemaining >= featDerivedState.boonOfTerrorFleeFoolsTotal;
   const boonOfSoulDrinkerSiphonLifeIsFull =
     featDerivedState.boonOfSoulDrinkerSiphonLifeRemaining >=
     featDerivedState.boonOfSoulDrinkerSiphonLifeTotal;
@@ -498,8 +494,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const artificerTinkersMagicUsesTotal = getArtificerTinkersMagicUsesTotal(character);
   const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
   const artificerEldritchCannonUsesTotal = getArtificerEldritchCannonUsesTotal(character);
-  const artificerEldritchCannonUsesRemaining =
-    getArtificerEldritchCannonUsesRemaining(character);
+  const artificerEldritchCannonUsesRemaining = getArtificerEldritchCannonUsesRemaining(character);
   const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
   const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
   const artificerArcaneJoltUsesTotal = getArtificerArcaneJoltUsesTotal(character);
@@ -510,15 +505,13 @@ export function createLongRestOptions(character: Character): RestOption[] {
     getArtificerIlluminatedCartographyUsesRemaining(character);
   const artificerUnerringPathUsesTotal = getArtificerUnerringPathUsesTotal(character);
   const artificerUnerringPathUsesRemaining = getArtificerUnerringPathUsesRemaining(character);
-  const artificerRestorativeReagentsUsesTotal =
-    getArtificerRestorativeReagentsUsesTotal(character);
+  const artificerRestorativeReagentsUsesTotal = getArtificerRestorativeReagentsUsesTotal(character);
   const artificerRestorativeReagentsUsesRemaining =
     getArtificerRestorativeReagentsUsesRemaining(character);
   const artificerConjuredCauldronUsesTotal = getArtificerConjuredCauldronUsesTotal(character);
   const artificerConjuredCauldronUsesRemaining =
     getArtificerConjuredCauldronUsesRemaining(character);
-  const artificerArmorerGiantStatureUsesTotal =
-    getArtificerArmorerGiantStatureUsesTotal(character);
+  const artificerArmorerGiantStatureUsesTotal = getArtificerArmorerGiantStatureUsesTotal(character);
   const artificerArmorerGiantStatureUsesRemaining =
     getArtificerArmorerGiantStatureUsesRemaining(character);
   const artificerArmorerPerfectedArmorGuardianUsesTotal =
@@ -619,8 +612,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const sorcererClockworkCavalcadeUsesTotal =
     getSorcererSubclassClockworkCavalcadeUsesTotal(character);
   const sorcererCrownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
-  const sorcererDragonCompanionUsesTotal =
-    getSorcererSubclassDragonCompanionUsesTotal(character);
+  const sorcererDragonCompanionUsesTotal = getSorcererSubclassDragonCompanionUsesTotal(character);
   const sorcererDragonWingsUsesTotal = getSorcererSubclassDragonWingsUsesTotal(character);
   const sorcererRestoreBalanceUsesTotal = getSorcererSubclassRestoreBalanceUsesTotal(character);
   const sorcererTamedSurgeUsesTotal = getSorcererSubclassTamedSurgeUsesTotal(character);
@@ -662,8 +654,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const dwarfStonecunningUsesTotal = getDwarfStonecunningUsesTotal(character);
   const genasiLineageFreeCastUsesTotal = getGenasiLineageFreeCastUsesTotal(character);
   const genasiLineageFreeCastUsesRemaining = getGenasiLineageFreeCastUsesRemaining(character);
-  const genasiBladeWardBonusActionUsesTotal =
-    getGenasiBladeWardBonusActionUsesTotal(character);
+  const genasiBladeWardBonusActionUsesTotal = getGenasiBladeWardBonusActionUsesTotal(character);
   const genasiBladeWardBonusActionUsesRemaining =
     getGenasiBladeWardBonusActionUsesRemaining(character);
   const gnomeSpeakWithAnimalsUsesTotal = getGnomeSpeakWithAnimalsUsesTotal(character);
@@ -672,8 +663,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const hexbloodEerieTokenUsesTotal = getHexbloodEerieTokenUsesTotal(character);
   const hexbloodHexMagicUsesTotal = getHexbloodHexMagicUsesTotal(character);
   const lupinHowlUsesTotal = getLupinHowlUsesTotal(character);
-  const rebornKnowledgeFromPastLifeUsesTotal =
-    getRebornKnowledgeFromPastLifeUsesTotal(character);
+  const rebornKnowledgeFromPastLifeUsesTotal = getRebornKnowledgeFromPastLifeUsesTotal(character);
   const shifterShiftingUsesTotal = getShifterShiftingUsesTotal(character);
   const orcAdrenalineRushUsesTotal = getOrcAdrenalineRushUsesTotal(character);
   const tieflingFiendishLegacyUsesTotal = getTieflingFiendishLegacyUsesTotal(character);
@@ -683,15 +673,10 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const monkHandOfUltimateJusticeUsesTotal = getMonkHandOfUltimateJusticeUsesTotal(character);
   const monkWholenessOfBodyUsesTotal = getMonkWholenessOfBodyUsesTotal(character);
   const hasUncannyMetabolism = hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
-  const channelDivinityUsesTotal = Math.max(
-    getClericChannelDivinityUsesTotal(character),
-    getPaladinChannelDivinityUsesTotal(character)
-  );
   const hasTimedStatuses =
     normalizeCharacterStatusEntries(character.statusEntries).some(
       (entry) => entry.runtimeOverride !== true
-    ) ||
-    hasFiniteCompanionDuration(character.companions);
+    ) || hasFiniteCompanionDuration(character.companions);
   const hasLongRestConjuredItems = hasLongRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "long");
@@ -742,14 +727,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
       id: "restore-all-hit-dice",
       label: "Restore all Hit Dice",
       detail: "Restore all level-based Hit Dice.",
-      apply: (currentCharacter: Character) => {
-        const totalHitDice = Math.max(1, Math.floor(currentCharacter.level));
-
-        return {
-          ...currentCharacter,
-          hitDiceRemaining: totalHitDice
-        };
-      }
+      apply: restoreHitDice
     },
     ...(isHumanSpecies(character.species)
       ? [
@@ -926,8 +904,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-lupin-howl",
             label: "Restore Howl",
-            apply: (currentCharacter: Character) =>
-              restoreLupinHowlOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreLupinHowlOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -979,17 +956,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
         roundTracker: createDefaultRoundTracker()
       })
     },
-    ...(spellSlotTotal > 0
+    ...(spellSlotTotal > 0 ||
+    (character.multiclass &&
+      getCharacterSpellSlotPools(character).some((pool) => pool.totals.some((n) => n > 0)))
       ? [
           {
             id: "restore-spell-slots",
             label: hasWarlockPactMagic
               ? "Restore all Pact Magic spell slots"
               : "Restore all spell slots",
-            apply: (currentCharacter: Character) => ({
-              ...currentCharacter,
-              spellSlotsExpended: Array.from({ length: 9 }, () => 0)
-            })
+            apply: (currentCharacter: Character) => recoverSlotPools(currentCharacter, "long-rest")
           } satisfies RestOption
         ]
       : []),
@@ -1477,8 +1453,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
               total: artificerRestorativeReagentsUsesTotal
             },
             disabled:
-              artificerRestorativeReagentsUsesRemaining >=
-              artificerRestorativeReagentsUsesTotal,
+              artificerRestorativeReagentsUsesRemaining >= artificerRestorativeReagentsUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerRestorativeReagentsOnLongRest(currentCharacter)
           } satisfies RestOption
@@ -1493,8 +1468,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
               current: artificerConjuredCauldronUsesRemaining,
               total: artificerConjuredCauldronUsesTotal
             },
-            disabled:
-              artificerConjuredCauldronUsesRemaining >= artificerConjuredCauldronUsesTotal,
+            disabled: artificerConjuredCauldronUsesRemaining >= artificerConjuredCauldronUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerConjuredCauldronOnLongRest(currentCharacter)
           } satisfies RestOption
@@ -1510,8 +1484,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
               total: artificerArmorerGiantStatureUsesTotal
             },
             disabled:
-              artificerArmorerGiantStatureUsesRemaining >=
-              artificerArmorerGiantStatureUsesTotal,
+              artificerArmorerGiantStatureUsesRemaining >= artificerArmorerGiantStatureUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerArmorerGiantStatureOnLongRest(currentCharacter)
           } satisfies RestOption
@@ -2508,18 +2481,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
-    ...(channelDivinityUsesTotal > 0
-      ? [
-          {
-            id: "restore-channel-divinity",
-            label: "Restore all Channel Divinity",
-            apply: (currentCharacter: Character) =>
-              currentCharacter.className === "Paladin"
-                ? restorePaladinChannelDivinityOnLongRest(currentCharacter)
-                : restoreClericChannelDivinityOnLongRest(currentCharacter)
-          } satisfies RestOption
-        ]
-      : []),
+    ...createChannelDivinityRestOptions(character, "long"),
     ...(wardingFlareUsesTotal > 0
       ? [
           {

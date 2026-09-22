@@ -1,3 +1,11 @@
+import { useCallback, useMemo } from "react";
+import {
+  getCharacterSpellSlotPools,
+  getSpellcastingClassView,
+  applySpellcastingClassChange
+} from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
+import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
+import SelectInput from "../../../../FormInputs/SelectInput";
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -30,10 +38,7 @@ type EditableCustomTraitEntry = CharacterStatusEntry & {
   customEffects: NonNullable<CharacterStatusEntry["customEffects"]>;
 };
 
-function TraitsConditionsWidget({
-  character,
-  onPersistCharacter
-}: TraitsConditionsWidgetProps) {
+function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditionsWidgetProps) {
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -41,8 +46,8 @@ function TraitsConditionsWidget({
     classSpellEntriesById,
     selectedReactionEntry,
     selectedStatusEntry,
-    spellSlotTotals,
-    spellSlotsRemaining,
+    spellSlotTotals: baseSpellSlotTotals,
+    spellSlotsRemaining: baseSpellSlotsRemaining,
     statusSections
   } = useTraitsConditionsSections({
     character,
@@ -65,10 +70,39 @@ function TraitsConditionsWidget({
     selectedStatusEntryId,
     setSelectedStatusEntryId
   });
+  const [reactionPoolId, setReactionPoolId] = useState("");
+  const reactionOwner = selectedStatusEntry?.sourceClassEntryId;
+  const reactionPools = getCharacterSpellSlotPools(character).filter((pool) =>
+    pool.totals.some((n) => n > 0)
+  );
+  const reactionPool = reactionPools.find((pool) => pool.id === reactionPoolId) ?? reactionPools[0];
+  const selectedPool = reactionPool?.id ?? "standard";
+  const reactionCharacter = useMemo(
+    () =>
+      character.multiclass && reactionOwner
+        ? getSpellcastingClassView(character, reactionOwner, selectedPool)
+        : character,
+    [character, reactionOwner, selectedPool]
+  );
+  const persistReaction: PersistCharacterUpdater = useCallback(
+    (update, options) =>
+      onPersistCharacter(
+        (current) =>
+          reactionOwner
+            ? applySpellcastingClassChange(current, reactionOwner, selectedPool, update)
+            : update(current),
+        options
+      ),
+    [onPersistCharacter, reactionOwner, selectedPool]
+  );
+  const reactionSlots =
+    reactionCharacter !== character ? getCharacterRuntime(reactionCharacter).spellcasting : null;
+  const spellSlotTotals = reactionSlots?.spellSlotTotals ?? baseSpellSlotTotals;
+  const spellSlotsRemaining = reactionSlots?.spellSlotsRemaining ?? baseSpellSlotsRemaining;
   const reactionDrawerState = useReactionDrawerState({
-    character,
+    character: reactionCharacter,
     classSpellEntriesById,
-    onPersistCharacter,
+    onPersistCharacter: persistReaction,
     openDiceRoller,
     roundTracker,
     selectedReactionEntry,
@@ -114,9 +148,7 @@ function TraitsConditionsWidget({
         </header>
 
         {statusSections.length === 0 ? (
-          <p className={clsx(shared.emptyText, styles.emptyStateText)}>
-            No traits or conditions.
-          </p>
+          <p className={clsx(shared.emptyText, styles.emptyStateText)}>No traits or conditions.</p>
         ) : (
           <TraitsConditionsSections
             sections={statusSections}
@@ -136,7 +168,25 @@ function TraitsConditionsWidget({
 
       {reactionDrawerState.selectedReactionSpell ? (
         <CharacterSpellDrawer
-          character={character}
+          character={reactionCharacter}
+          slotPoolControl={
+            character.multiclass && reactionPools.length > 1 ? (
+              <label>
+                Cast using
+                <SelectInput
+                  aria-label="Reaction spell slot pool"
+                  value={selectedPool}
+                  onChange={(event) => setReactionPoolId(event.target.value)}
+                >
+                  {reactionPools.map((pool) => (
+                    <option key={pool.id} value={pool.id}>
+                      {pool.label}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+            ) : null
+          }
           spell={reactionDrawerState.selectedReactionSpell}
           mode="standard"
           spellSlotTotals={spellSlotTotals}

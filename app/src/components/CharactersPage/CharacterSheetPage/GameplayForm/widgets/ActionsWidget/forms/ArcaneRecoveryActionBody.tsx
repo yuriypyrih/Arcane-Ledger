@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { Minus, Plus } from "lucide-react";
 import { useMemo } from "react";
 import type { Character } from "../../../../../../../types";
@@ -7,10 +8,7 @@ import {
   getArcaneRecoverySelectionLevelTotal,
   getArcaneRecoveryRecoveryLevelLimit
 } from "../../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../../pages/CharactersPage/spellcasting";
+import { normalizeSpellSlotsExpended } from "../../../../../../../pages/CharactersPage/spellcasting";
 import styles from "../ArcaneRecoveryModal.module.css";
 
 type ArcaneRecoveryActionBodyProps = {
@@ -25,13 +23,7 @@ function ArcaneRecoveryActionBody({
   onSelectionChange
 }: ArcaneRecoveryActionBodyProps) {
   const recoveryLimit = getArcaneRecoveryRecoveryLevelLimit(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals

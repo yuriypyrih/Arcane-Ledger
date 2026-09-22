@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type {
   SubclassDerivedFeatureState,
   SubclassRuntimeCharacter,
@@ -37,21 +38,21 @@ const rogueSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
 export function getRogueSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Rogue" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Rogue") || !getClassSubclassId(character, "Rogue")) {
     return {};
   }
 
-  return rogueSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return rogueSubclassRuntimeRegistry[getClassSubclassId(character, "Rogue")]?.(character) ?? {};
 }
 
 export function suppressesRogueSteadyAimSpeedReduction(
   character: Pick<SubclassRuntimeCharacter, "className" | "level" | "subclassId">
 ): boolean {
-  if (character.className !== "Rogue" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Rogue") || !getClassSubclassId(character, "Rogue")) {
     return false;
   }
 
-  return character.subclassId === assassinSubclassId
+  return getClassSubclassId(character, "Rogue") === assassinSubclassId
     ? hasRogueAssassinInfiltrationExpertise(character)
     : false;
 }
@@ -60,11 +61,11 @@ export function getRogueSneakAttackEffectReferenceDescriptionAdditions(
   character: Pick<SubclassRuntimeCharacter, "className" | "level" | "subclassId">,
   effectKey: RogueSneakAttackEffectKey
 ): string[] {
-  if (character.className !== "Rogue" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Rogue") || !getClassSubclassId(character, "Rogue")) {
     return [];
   }
 
-  return character.subclassId === assassinSubclassId
+  return getClassSubclassId(character, "Rogue") === assassinSubclassId
     ? getRogueAssassinSneakAttackEffectDescriptionAdditions(character, effectKey)
     : [];
 }
@@ -72,13 +73,13 @@ export function getRogueSneakAttackEffectReferenceDescriptionAdditions(
 export function getRogueSubclassSneakAttackEffectDefinitions(
   character: Pick<SubclassRuntimeCharacter, "className" | "level" | "subclassId">
 ): RogueSneakAttackEffectDefinition[] {
-  if (character.className !== "Rogue" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Rogue") || !getClassSubclassId(character, "Rogue")) {
     return [];
   }
 
-  return character.subclassId === scionOfTheThreeSubclassId
+  return getClassSubclassId(character, "Rogue") === scionOfTheThreeSubclassId
     ? getRogueScionOfTheThreeSneakAttackEffectDefinitions(character)
-    : character.subclassId === thiefSubclassId
+    : getClassSubclassId(character, "Rogue") === thiefSubclassId
       ? getRogueThiefSneakAttackEffectDefinitions(character)
-    : [];
+      : [];
 }

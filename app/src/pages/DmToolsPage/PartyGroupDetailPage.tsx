@@ -1,3 +1,4 @@
+import CharacterInspectionModal from "../../components/CharactersPage/CharacterInspection/CharacterInspectionModal";
 import { Check, Copy, Link as LinkIcon, RefreshCcw, Toolbox, Users, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -45,6 +46,7 @@ function PartyGroupDetailPage() {
   const error = useAppSelector(
     (state) => state.dmTools.selectedPartyGroupErrorById[partyGroupId] ?? null
   );
+  const [inspectedCharacterId, setInspectedCharacterId] = useState<string | null>(null);
   const [didCopyInvite, setDidCopyInvite] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMasterChestOpen, setIsMasterChestOpen] = useState(false);
@@ -263,6 +265,7 @@ function PartyGroupDetailPage() {
                   {partyGroup.members.map((member) => (
                     <CharacterRowBase
                       key={member.characterId}
+                      onInspect={() => setInspectedCharacterId(member.characterId)}
                       avatarUrl={member.avatar?.imageUrl}
                       className={member.summary.className}
                       level={member.summary.level}
@@ -289,6 +292,7 @@ function PartyGroupDetailPage() {
               )}
             </section>
 
+            {inspectedCharacterId ? <CharacterInspectionModal target={{ kind: "party", partyGroupId: partyGroup.id, characterId: inspectedCharacterId }} onClose={() => setInspectedCharacterId(null)} /> : null}
             {isEditModalOpen ? (
               <EditPartyGroupModal
                 partyGroup={partyGroup}

@@ -1,3 +1,4 @@
+import { isSpellFromClass } from "../../multiclass";
 import { sorcererFeatureMap } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -34,7 +35,11 @@ export function isInnateSorceryActiveForSpell(
   character: InnateSorcerySpellCharacter,
   spell: InnateSorcerySpellCandidate
 ): boolean {
-  return hasActiveInnateSorcery(character) && isInnateSorcerySpellCandidate(spell);
+  return (
+    (!(character as Character).multiclass || isSpellFromClass(character, "Sorcerer")) &&
+    hasActiveInnateSorcery(character) &&
+    isInnateSorcerySpellCandidate(spell)
+  );
 }
 
 export function getSorcererSpellEntry(

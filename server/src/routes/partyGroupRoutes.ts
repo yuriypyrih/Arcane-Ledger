@@ -1,3 +1,4 @@
+import { inspectPartyCharacter } from "../controllers/characterInspectionController.js";
 import { Router } from "express";
 import {
   createPartyGroupMasterChestTransaction,
@@ -21,6 +22,8 @@ import {
 import { requireAuth } from "../middleware/authMiddleware.js";
 
 const partyGroupRoutes = Router();
+
+partyGroupRoutes.get("/:partyGroupId/characters/:characterSheetId", requireAuth, inspectPartyCharacter);
 
 partyGroupRoutes.get("/", requireAuth, listPartyGroups);
 partyGroupRoutes.post("/", requireAuth, createPartyGroup);

@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { sorcererFeatures } from "../../../../../codex/classes";
 import { CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -75,8 +76,8 @@ function getSorcererFeatureRow(level: number | undefined) {
 function getSorcererSpellfireSorceryPointsTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  return character.className === "Sorcerer"
-    ? Math.max(0, getSorcererFeatureRow(character.level)?.sorceryPoints ?? 0)
+  return hasCharacterClass(character, "Sorcerer")
+    ? Math.max(0, getSorcererFeatureRow(getClassLevel(character, "Sorcerer"))?.sorceryPoints ?? 0)
     : 0;
 }
 
@@ -152,9 +153,9 @@ export const spellfireCrownOfSpellfireDescription = getSpellfireFeatureDescripti
 
 function hasSorcererSpellfireBurstFeature(character: SpellfireSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === spellfireSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
@@ -166,16 +167,17 @@ export function hasSorcererSpellfireBurstFeatureForCharacter(
 
 function hasSorcererSpellfireHonedSpellfireFeature(character: SpellfireSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === spellfireSorcerySubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 14
   );
 }
 
 function getSorcererSpellfireBurstDescriptionAdditions(
   character: SpellfireSorceryCharacter
 ): FeatureActionCard["descriptionAdditions"] {
-  return hasSorcererSpellfireHonedSpellfireFeature(character) && honedSpellfireDescription.length > 0
+  return hasSorcererSpellfireHonedSpellfireFeature(character) &&
+    honedSpellfireDescription.length > 0
     ? [
         createFeatureSourcedDescriptionEntries(
           character,
@@ -189,9 +191,9 @@ function getSorcererSpellfireBurstDescriptionAdditions(
 
 function hasSorcererSpellfireAbsorbSpellsFeature(character: SpellfireSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === spellfireSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
@@ -199,9 +201,9 @@ function hasSorcererSpellfireCrownOfSpellfireFeature(
   character: SpellfireSorceryCharacter
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === spellfireSorcerySubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 18
   );
 }
 
@@ -215,7 +217,7 @@ function getSorcererSpellfireBurstBolsteringFlamesFormula(
   character: SpellfireSorceryCharacter
 ): SpellfireBurstFormula {
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
-  const sorcererLevel = Math.max(1, Math.floor(character.level ?? 1));
+  const sorcererLevel = Math.max(1, Math.floor(getClassLevel(character, "Sorcerer") ?? 1));
   const honedBonus = hasSorcererSpellfireHonedSpellfireFeature(character) ? sorcererLevel : 0;
   const formulaTerms = [
     "1d4",
@@ -286,8 +288,7 @@ function getSorcererSpellfireBurstAction(
   }
 
   const usedThisTurn = character.classFeatureState?.sorcerer?.spellfireBurstUsedThisTurn === true;
-  const bolsteringFlamesFormula =
-    getSorcererSpellfireBurstBolsteringFlamesFormula(character).fact;
+  const bolsteringFlamesFormula = getSorcererSpellfireBurstBolsteringFlamesFormula(character).fact;
   const radiantFireFormula = getSorcererSpellfireBurstRadiantFireFormula(character).fact;
   const descriptionAdditions = getSorcererSpellfireBurstDescriptionAdditions(character);
 
@@ -548,7 +549,7 @@ function createSorcererSpellfireSpellsContribution(
       entryId: CLASS_FEATURE.SPELLFIRE_SPELLS
     }),
     alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
+      getClassLevel(character, "Sorcerer") ?? 0,
       spellfireSorcerySpellIdsByLevel
     )
   };
@@ -596,9 +597,9 @@ function collectSorcererSpellfireSorceryContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Sorcerer" ||
-    character.subclassId !== spellfireSorcerySubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Sorcerer") ||
+    getClassSubclassId(character, "Sorcerer") !== spellfireSorcerySubclassId ||
+    (getClassLevel(character, "Sorcerer") ?? 0) < 3
   ) {
     return [];
   }

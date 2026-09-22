@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../../../pages/CharactersPage/multiclass";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { Character } from "../../../../../types";
 import d20Icon from "../../../../../assets/svg/d20.svg";
@@ -139,7 +140,7 @@ function LifeAndDeathLedgerModal({
   const relentlessRageDc = getLifeAndDeathRelentlessRageDc(character);
   const relentlessRageConModifier = getAbilityModifierForCharacter(character, "CON");
   const relentlessRageFormula = formatD20Formula(relentlessRageConModifier);
-  const relentlessRageHitPoints = Math.max(0, 2 * (character.level ?? 0));
+  const relentlessRageHitPoints = Math.max(0, 2 * getClassLevel(character, "Barbarian"));
 
   useEffect(() => {
     setSelectedItemIds((currentIds) => {
@@ -231,8 +232,7 @@ function LifeAndDeathLedgerModal({
 
   function useBoonOfRecoveryLastStand() {
     onPersistCharacter(
-      (currentCharacter) =>
-        applyLifeAndDeathBoonOfRecoveryLastStandForCharacter(currentCharacter),
+      (currentCharacter) => applyLifeAndDeathBoonOfRecoveryLastStandForCharacter(currentCharacter),
       classResourcePersistOptions
     );
     onClose();
@@ -358,9 +358,7 @@ function LifeAndDeathLedgerModal({
             <section className={styles.cheatDeathSection} aria-label="Cheat Death magic items">
               <div className={styles.cheatDeathHeader}>
                 <h4>Cheat Death</h4>
-                {selectedEligibleItemIds.length > 0 ? (
-                  <span>{restoredHitPoints} HP</span>
-                ) : null}
+                {selectedEligibleItemIds.length > 0 ? <span>{restoredHitPoints} HP</span> : null}
               </div>
               <div className={styles.itemGrid}>
                 {eligibleItems.map((option) => (
@@ -372,7 +370,9 @@ function LifeAndDeathLedgerModal({
                     header={option.label}
                     subheader={`${option.rarityLabel} | Replicate Magic Item`}
                     breakdown={
-                      option.kind === "container" ? `Inside ${option.containerName}` : "In inventory"
+                      option.kind === "container"
+                        ? `Inside ${option.containerName}`
+                        : "In inventory"
                     }
                     actionBadge="20 HP"
                     className={styles.itemOption}

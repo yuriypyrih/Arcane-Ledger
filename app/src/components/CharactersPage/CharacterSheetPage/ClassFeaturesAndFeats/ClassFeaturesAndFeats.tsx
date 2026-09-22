@@ -1,6 +1,13 @@
+import { withReadOnlySheet } from "../withReadOnlySheet";
+import {
+  applyClassEditorChange,
+  getCharacterClasses,
+  getCharacterLevel,
+  getClassEditorCharacter
+} from "../../../../pages/CharactersPage/multiclass";
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CLASS_FEATURE,
   ELDRITCH_INVOCATION,
@@ -71,7 +78,8 @@ import {
   isCustomClassName,
   normalizeCharacterClassRulesConfig
 } from "../../../../pages/CharactersPage/customClass";
-import { seedClassRulesDefaultsForCharacter } from "../../../../pages/CharactersPage/classRulesDefaults";
+import { applyClassDefinitions, type ClassDefinitionsDraft } from "../../../../pages/CharactersPage/classDefinitions";
+import { preservePreMulticlassCharacter } from "../../../../pages/CharactersPage/multiclassProgression";
 import {
   getCharacterSubclassDisplayName,
   isCustomSpeciesName
@@ -182,6 +190,8 @@ import type {
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 
 type ClassFeaturesAndFeatsProps = {
+  inspectionClassId?: string;
+  inspectionClassOnly?: boolean;
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
@@ -238,10 +248,29 @@ function doesDraftCharacterKnowCantrip(
 }
 
 function ClassFeaturesAndFeats({
-  character,
+  character: rootCharacter,
+  inspectionClassId,
+  inspectionClassOnly = false,
   className,
-  onPersistCharacter
+  onPersistCharacter: persistRoot
 }: ClassFeaturesAndFeatsProps) {
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(inspectionClassId ?? null);
+  const selectedClass =
+    getCharacterClasses(rootCharacter).find((entry) => entry.id === selectedClassId) ??
+    getCharacterClasses(rootCharacter)[0];
+  const character = useMemo(
+    () =>
+      rootCharacter.multiclass
+        ? getClassEditorCharacter(rootCharacter, selectedClass)
+        : rootCharacter,
+    [rootCharacter, selectedClass]
+  );
+  const onPersistCharacter = useCallback<PersistCharacterUpdater>(
+    (update, options) => {
+      persistRoot((current) => applyClassEditorChange(current, selectedClass.id, update), options);
+    },
+    [persistRoot, selectedClass.id]
+  );
   const [isFutureFeaturesVisible, setIsFutureFeaturesVisible] = useState(false);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const [isSpeciesModalOpen, setIsSpeciesModalOpen] = useState(false);
@@ -643,7 +672,7 @@ function ClassFeaturesAndFeats({
   ) {
     const sourceContext = getClassFeatureSourceContext();
 
-    return createFeatEntryForContext(feat, sourceContext?.level ?? character.level, {
+    return createFeatEntryForContext(feat, getCharacterLevel(character), {
       source: sourceContext ?? undefined,
       ...options
     });
@@ -664,7 +693,13 @@ function ClassFeaturesAndFeats({
     feature: CLASS_FEATURE
   ): CharacterFeatEntry | null {
     return (
-      selectedFeats.find((entry) => isFeatFromClassFeatureSource(entry, level, feature)) ?? null
+      selectedFeats.find(
+        (entry) =>
+          isFeatFromClassFeatureSource(entry, level, feature, character.classEntryId) &&
+          (entry.source.type !== "class-feature" ||
+            (entry.source.classEntryId ?? rootCharacter.multiclass?.startingClassId) ===
+              (character.classEntryId ?? rootCharacter.multiclass?.startingClassId))
+      ) ?? null
     );
   }
 
@@ -802,65 +837,10 @@ function ClassFeaturesAndFeats({
     });
   }
 
-  function saveSubclass({
-    subclassId,
-    classRulesEnforced: nextClassRulesEnforced,
-    customClass,
-    customSubclass
-  }: {
-    subclassId: string;
-    classRulesEnforced: boolean;
-    customClass?: Character["customClass"];
-    customSubclass?: Character["customSubclass"];
-  }) {
+  function saveSubclass(draft: ClassDefinitionsDraft) {
+    if (draft.progression.classes.length > 1) preservePreMulticlassCharacter(rootCharacter);
+    persistRoot((current) => applyClassDefinitions(current, draft), { flush: true });
     setIsSubclassModalOpen(false);
-    onPersistCharacter((currentCharacter) => {
-      const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
-      const isCurrentCustomClass = isCustomClassName(currentCharacter.className);
-      const nextClassRulesInput = {
-        ...currentClassRules,
-        classRulesEnforced: isCurrentCustomClass ? false : nextClassRulesEnforced
-      };
-      const nextClassRules = normalizeCharacterClassRulesConfig(
-        !isCurrentCustomClass && currentClassRules.classRulesEnforced && !nextClassRulesEnforced
-          ? seedClassRulesDefaultsForCharacter(
-              {
-                className: currentCharacter.className,
-                subclassId
-              },
-              nextClassRulesInput
-            )
-          : nextClassRulesInput,
-        {
-          className: currentCharacter.className,
-          legacyCustomClass: customClass ?? currentCharacter.customClass
-        }
-      );
-      const nextSubclassId = isCurrentCustomClass ? "" : subclassId;
-      const nextCustomClass = isCurrentCustomClass
-        ? (customClass ?? currentCharacter.customClass)
-        : currentCharacter.customClass;
-      const nextCustomSubclass =
-        !isCurrentCustomClass && customSubclass?.id === subclassId ? customSubclass : undefined;
-
-      return {
-        ...currentCharacter,
-        subclassId: nextSubclassId,
-        customClass: nextCustomClass,
-        customSubclass: nextCustomSubclass,
-        classRules: nextClassRules,
-        classFeatureState: normalizeCharacterClassFeatureState(currentCharacter.classFeatureState, {
-          className: currentCharacter.className,
-          level: currentCharacter.level,
-          subclassId: nextSubclassId,
-          classRules: nextClassRules,
-          customClass: nextCustomClass,
-          abilities: currentCharacter.abilities,
-          cantripIds: currentCharacter.cantripIds,
-          feats: currentCharacter.feats
-        })
-      };
-    });
   }
 
   function openFeatEditor() {
@@ -975,7 +955,10 @@ function ClassFeaturesAndFeats({
     resetFeatEditorDraft();
     setFeatEditorContext({
       mode: "class-feature",
-      source: createClassFeatureFeatSource(level, feature)
+      source: {
+        ...createClassFeatureFeatSource(level, feature),
+        ...(character.classEntryId ? { classEntryId: character.classEntryId } : {})
+      }
     });
     setActiveFeatCategory(
       linkedFeatDefinition?.category ?? getDefaultFeatCategoryForFeature(feature)
@@ -1573,7 +1556,7 @@ function ClassFeaturesAndFeats({
       return;
     }
 
-    const ritualCaster = decodePendingRitualCasterChoice(choice, character.level);
+    const ritualCaster = decodePendingRitualCasterChoice(choice, getCharacterLevel(character));
 
     if (!ritualCaster) {
       return;
@@ -2318,6 +2301,7 @@ function ClassFeaturesAndFeats({
         </div>
 
         <div className={styles.sectionStack}>
+          {!inspectionClassOnly ? <>
           <section className={styles.subsection} aria-labelledby="character-species-title">
             <div className={styles.subsectionHeader}>
               <h3 id="character-species-title" className={styles.subsectionTitle}>
@@ -2355,12 +2339,13 @@ function ClassFeaturesAndFeats({
             />
           </section>
 
+          </> : null}
           <section className={styles.subsection} aria-labelledby="character-class-features-title">
             <div className={styles.subsectionHeader}>
               <div className={styles.subsectionHeaderText}>
                 <div className={styles.subsectionTitleRow}>
                   <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                    Class Features
+                    {inspectionClassId ? `${selectedClass.className} Features` : "Class Features"}
                   </h3>
                   {hasExpandedVisibleClassFeature ? (
                     <InlineToggleButton
@@ -2381,6 +2366,26 @@ function ClassFeaturesAndFeats({
                 Edit
               </SheetActionButton>
             </div>
+
+            {getCharacterClasses(rootCharacter).length > 1 ? (
+              <label className={styles.classBuildField}>
+                <span>Class build</span>
+                <SelectInput
+                  aria-label="Class build"
+                  value={selectedClass.id}
+                  onChange={(event) => {
+                    setSelectedClassId(event.target.value);
+                    setExpandedFeatureKeys([]);
+                  }}
+                >
+                  {getCharacterClasses(rootCharacter).map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.customClass?.name || entry.className} {entry.level}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+            ) : null}
 
             {renderClassNeutralMechanicsPanel()}
 
@@ -2472,7 +2477,7 @@ function ClassFeaturesAndFeats({
 
       {isSubclassModalOpen ? (
         <SubclassEditorModal
-          character={character}
+          character={rootCharacter}
           onCancel={() => setIsSubclassModalOpen(false)}
           onSave={saveSubclass}
         />
@@ -2482,7 +2487,7 @@ function ClassFeaturesAndFeats({
         <FeatEditorModal
           context={featEditorContext}
           activeFeatCategory={activeFeatCategory}
-          characterLevel={character.level}
+          characterLevel={getCharacterLevel(character)}
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
           featEligibilityByFeat={featEligibilityByFeat}
@@ -2639,4 +2644,5 @@ function ClassFeaturesAndFeats({
   );
 }
 
-export default ClassFeaturesAndFeats;
+const ClassFeaturesAndFeatsSection = withReadOnlySheet(ClassFeaturesAndFeats);
+export default ClassFeaturesAndFeatsSection;

@@ -61,11 +61,7 @@ function formatDescription(value: string | null | undefined): SpellDescriptionEn
     return [];
   }
 
-  return value
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter((paragraph) => paragraph.length > 0)
-    .map((paragraph) => normalizeItemDescriptionInlineMarkup(paragraph));
+  return value.trim() ? [normalizeItemDescriptionInlineMarkup(value)] : [];
 }
 
 function formatWeight(value: string | null | undefined, unit: string | null | undefined) {

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import SheetReferenceButton from "../CharactersPage/CharacterSheetPage/SheetReferenceButton";
 import { ChevronDown } from "lucide-react";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import FeatureDisclosureBody from "./FeatureDisclosureBody";
@@ -58,7 +59,7 @@ function FeatureDisclosureRow<TElement extends ElementType = "div">({
       {...rest}
     >
       <div className={styles.featureHeadingRow}>
-        <button
+        <SheetReferenceButton
           type="button"
           className={clsx(
             styles.featureToggleButton,
@@ -84,7 +85,7 @@ function FeatureDisclosureRow<TElement extends ElementType = "div">({
               {headerMeta}
             </>
           )}
-        </button>
+        </SheetReferenceButton>
         {trackingButton ? <div className={styles.featureHeaderActions}>{trackingButton}</div> : null}
       </div>
 

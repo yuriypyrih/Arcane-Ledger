@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
@@ -303,7 +304,6 @@ import {
 } from "../../../../../../pages/CharactersPage/shared";
 import {
   getSpellLevel,
-  getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../../../../../pages/CharactersPage/spellcasting";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -328,9 +328,7 @@ import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer
-} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
@@ -1397,13 +1395,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       }
 
       onPersistCharacter((currentCharacter) => {
-        const spellSlotTotals = getSpellSlotTotalsForCharacter(
-          currentCharacter.className,
-          currentCharacter.level,
-          currentCharacter.subclassId,
-          currentCharacter.customClass,
-          currentCharacter.classRules
-        );
+        const spellSlotTotals = getSheetSpellSlotTotals(currentCharacter);
         const spellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
           spellSlotTotals
@@ -1699,8 +1691,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       }
 
       onPersistCharacter((currentCharacter) => {
-        const nextCharacter =
-          spendCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter);
+        const nextCharacter = spendCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter);
 
         if (nextCharacter === currentCharacter) {
           return currentCharacter;
@@ -1887,8 +1878,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         formula: rebornKnowledgeFromPastLifeRollFormula,
         formulaDisplay: rebornKnowledgeFromPastLifeRollFormula,
         description: action.detail,
-        getFullManualToastText: ({ result }) =>
-          `Rolled ${result.total} Knowledge from a Past Life.`
+        getFullManualToastText: ({ result }) => `Rolled ${result.total} Knowledge from a Past Life.`
       });
       closeActionDrawer();
       return;
@@ -2048,7 +2038,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     const vowOfEnmityIsActive = selectedWeaponVowOfEnmityState?.active === true;
     const useSacredWeapon =
       selectedWeaponSacredWeaponState !== null &&
-      (sacredWeaponIsActive || (isSacredWeaponSelected && !selectedWeaponSacredWeaponToggleDisabled));
+      (sacredWeaponIsActive ||
+        (isSacredWeaponSelected && !selectedWeaponSacredWeaponToggleDisabled));
     const useVowOfEnmity =
       selectedWeaponVowOfEnmityState !== null &&
       (vowOfEnmityIsActive || (isVowOfEnmitySelected && !selectedWeaponVowOfEnmityToggleDisabled));

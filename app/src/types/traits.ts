@@ -154,78 +154,78 @@ type CharacterCustomTraitDefenseValue<Value extends string> = {
 };
 
 export type CharacterCustomTraitEffect =
-  | {
+  | ({
       type: "actualMaxHitPoints";
     } & CharacterCustomTraitNumericValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "armorClass";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "initiative";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "passivePerception";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "speed";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "spellAttack";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "spellDc";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "abilityScore";
       ability: AbilityKey;
     } & CharacterCustomTraitNumericValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "abilityModifier";
       ability: AbilityKey;
     } & CharacterCustomTraitNumericValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "savingThrow";
       ability: AbilityKey;
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "savingThrows";
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "skill";
       skill: SkillName;
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "skillGroup";
       ability: CharacterCustomTraitSkillGroupAbility;
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "weaponDamage";
       attackKind: "unarmed" | WEAPON_COMBAT_TYPE.MELEE | WEAPON_COMBAT_TYPE.RANGED;
       weaponFormulaTarget?: CharacterCustomTraitWeaponFormulaTarget;
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll
-  | {
+      CharacterCustomTraitEffectRoll)
+  | ({
       type: "resistance";
-    } & CharacterCustomTraitDefenseValue<ResistanceValue>
-  | {
+    } & CharacterCustomTraitDefenseValue<ResistanceValue>)
+  | ({
       type: "vulnerability";
-    } & CharacterCustomTraitDefenseValue<VulnerabilityValue>
-  | {
+    } & CharacterCustomTraitDefenseValue<VulnerabilityValue>)
+  | ({
       type: "immunity";
-    } & CharacterCustomTraitDefenseValue<ImmunityValue>;
+    } & CharacterCustomTraitDefenseValue<ImmunityValue>);
 
 export type CharacterStatusDuration =
   | {
@@ -275,6 +275,9 @@ export type CharacterStatusEntrySpellFormula = {
 };
 
 export type CharacterStatusEntry = {
+  sourceClassEntryId?: string;
+  sourceClassLevel?: number;
+  sourceSubclassId?: string;
   id: string;
   group: STATUS_ENTRY_GROUP;
   value: CharacterStatusValue;

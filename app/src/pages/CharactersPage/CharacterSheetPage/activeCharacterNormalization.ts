@@ -316,10 +316,12 @@ function normalizeSpellRuntime(character: Character): Character {
       ...getSpeciesAlwaysPreparedSpellIdsForCharacter(character)
     ]
   );
-  const normalizedCustomSpellSnapshotsForSelectedIds = pruneCharacterCustomSpellSnapshotsForSelectedIds(
-    normalizedCustomSpellSnapshots,
-    [...normalizedCantripIds, ...normalizedSpellbookSpellIds, ...normalizedPreparedSpellIds]
-  );
+  const normalizedCustomSpellSnapshotsForSelectedIds =
+    pruneCharacterCustomSpellSnapshotsForSelectedIds(normalizedCustomSpellSnapshots, [
+      ...normalizedCantripIds,
+      ...normalizedSpellbookSpellIds,
+      ...normalizedPreparedSpellIds
+    ]);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
@@ -379,6 +381,11 @@ export function normalizeCharacterRuntimeUpdate(
   character: Character,
   domains: readonly CharacterSheetDomain[] = characterSheetDomains
 ): Character {
+  if (character.multiclass) {
+    if (domains.every((domain) => ["resources", "statuses"].includes(domain)))
+      return normalizeStatusRuntime(character);
+    return normalizeCharacter(character) ?? character;
+  }
   const shouldUseFullNormalization =
     hasDomain(domains, "profile") || hasDomain(domains, "companions");
 

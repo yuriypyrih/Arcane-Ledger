@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type {
   SubclassDerivedFeatureState,
   SubclassRuntimeCharacter,
@@ -7,10 +8,7 @@ import {
   alchemistSubclassId,
   getArtificerAlchemistDerivedFeatureState
 } from "./artificerAlchemist";
-import {
-  armorerSubclassId,
-  getArtificerArmorerDerivedFeatureState
-} from "./artificerArmorer";
+import { armorerSubclassId, getArtificerArmorerDerivedFeatureState } from "./artificerArmorer";
 import {
   artilleristSubclassId,
   getArtificerArtilleristDerivedFeatureState
@@ -35,9 +33,11 @@ const artificerSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
 export function getArtificerSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Artificer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Artificer") || !getClassSubclassId(character, "Artificer")) {
     return {};
   }
 
-  return artificerSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return (
+    artificerSubclassRuntimeRegistry[getClassSubclassId(character, "Artificer")]?.(character) ?? {}
+  );
 }

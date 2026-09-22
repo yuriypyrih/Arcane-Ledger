@@ -1,8 +1,5 @@
-import {
-  CLASS_FEATURE,
-  MAGIC_SCHOOL,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
+import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import { getPreparedSpellSelectionOptionsForCharacter } from "../../preparedSpellSelection";
 
@@ -84,25 +81,25 @@ export function hasWizardSavantFeature(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    getWizardSavantConfigForSubclassId(character.subclassId) !== null &&
-    getWizardSavantSelectionCount(character.level) > 0
+    hasCharacterClass(character, "Wizard") &&
+    getWizardSavantConfigForSubclassId(getClassSubclassId(character, "Wizard")) !== null &&
+    getWizardSavantSelectionCount(getClassLevel(character, "Wizard")) > 0
   );
 }
 
 export function getWizardSavantSpellOptions(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): SpellEntry[] {
-  const savantConfig = getWizardSavantConfigForSubclassId(character.subclassId);
+  const savantConfig = getWizardSavantConfigForSubclassId(getClassSubclassId(character, "Wizard"));
 
-  if (character.className !== "Wizard" || !savantConfig) {
+  if (!hasCharacterClass(character, "Wizard") || !savantConfig) {
     return [];
   }
 
   return getPreparedSpellSelectionOptionsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId
+    "Wizard",
+    getClassLevel(character, "Wizard"),
+    getClassSubclassId(character, "Wizard")
   )
     .filter((spell) => spell.magicSchool === savantConfig.school)
     .sort((left, right) => {
@@ -122,7 +119,7 @@ export function normalizeWizardSavantSpellIds(
     return [];
   }
 
-  const selectionCount = getWizardSavantSelectionCount(character.level);
+  const selectionCount = getWizardSavantSelectionCount(getClassLevel(character, "Wizard"));
   const availableSpellIds = new Set(
     getWizardSavantSpellOptions(character).map((spell) => spell.id)
   );
@@ -141,5 +138,8 @@ export function getWizardSavantSpellIdsFromFeatureState(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "classFeatureState" | "subclassId">>
 ): string[] {
-  return normalizeWizardSavantSpellIds(character.classFeatureState?.wizard?.savantSpellIds, character);
+  return normalizeWizardSavantSpellIds(
+    character.classFeatureState?.wizard?.savantSpellIds,
+    character
+  );
 }

@@ -23,11 +23,7 @@ import {
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiencyOptions";
 import { SKILL } from "../../../../types";
-import type {
-  CharacterFeatEntry,
-  CharacterFeatSource,
-  SkillName
-} from "../../../../types";
+import type { CharacterFeatEntry, CharacterFeatSource, SkillName } from "../../../../types";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { renderCodexRichText } from "../../../../utils/codex/renderCodexRichText";
 
@@ -104,12 +100,14 @@ export function createClassFeatureFeatSource(
 export function isFeatFromClassFeatureSource(
   entry: CharacterFeatEntry,
   level: number,
-  feature: CLASS_FEATURE
+  feature: CLASS_FEATURE,
+  classEntryId?: string
 ): boolean {
   return (
     entry.source.type === "class-feature" &&
     entry.source.level === level &&
-    entry.source.feature === feature
+    entry.source.feature === feature &&
+    entry.source.classEntryId === classEntryId
   );
 }
 

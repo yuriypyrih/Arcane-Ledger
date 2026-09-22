@@ -1,3 +1,10 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -17,7 +24,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
 import {
   createCharacterStatusEntry,
@@ -132,41 +139,41 @@ function getCharismaModifier(character: Partial<Pick<Character, "abilities">>): 
 
 function getChannelDivinityUsesRemaining(character: PaladinOathOfDevotionCharacter): number {
   return getPaladinChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState ?? {}
   });
 }
 
 function isPaladinOathOfDevotion(character: PaladinOathOfDevotionCharacter): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfDevotionSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfDevotionSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 3
   );
 }
 
 function hasPaladinOathOfDevotionAuraOfDevotion(
   character: PaladinOathOfDevotionCharacter
 ): boolean {
-  return isPaladinOathOfDevotion(character) && (character.level ?? 0) >= 7;
+  return isPaladinOathOfDevotion(character) && (getClassLevel(character, "Paladin") ?? 0) >= 7;
 }
 
 export function hasPaladinOathOfDevotionHolyNimbusFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfDevotionSubclassId &&
-    (character.level ?? 0) >= 20
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfDevotionSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 20
   );
 }
 
 function getPaladinAuraRangeFeet(character: PaladinOathOfDevotionCharacter): number {
   return hasPaladinFeature(
     {
-      className: character.className,
-      level: character.level ?? 0
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0
     },
     CLASS_FEATURE.AURA_EXPANSION
   )
@@ -193,11 +200,7 @@ function getPaladinOathOfDevotionHolyNimbusFallbackSlotSummary(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -291,7 +294,7 @@ export function getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula(
   character: Pick<Character, "className"> & Partial<Pick<Character, "abilities" | "level">>
 ): string {
   const wisdomModifier = getWisdomModifier(character);
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const totalRadiantDamage = wisdomModifier + proficiencyBonus;
 
   return `${totalRadiantDamage} Radiant Damage = ${wisdomModifier} WIS + ${proficiencyBonus} Prof Bonus`;
@@ -390,11 +393,7 @@ export function activatePaladinOathOfDevotionHolyNimbus(character: Character): C
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    );
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -569,8 +568,8 @@ function getPaladinOathOfDevotionDerivedStatusEntries(
   if (
     !hasPaladinOathOfDevotionAuraOfDevotion(character) ||
     !hasActivePaladinAuraOfProtection({
-      className: character.className,
-      level: character.level ?? 0,
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0,
       statusEntries: character.statusEntries ?? []
     })
   ) {
@@ -607,7 +606,7 @@ function getPaladinOathOfDevotionDerivedStatusEntries(
 function hasPaladinOathOfDevotionSmiteOfProtection(
   character: PaladinOathOfDevotionCharacter
 ): boolean {
-  return isPaladinOathOfDevotion(character) && (character.level ?? 0) >= 15;
+  return isPaladinOathOfDevotion(character) && (getClassLevel(character, "Paladin") ?? 0) >= 15;
 }
 
 function getPaladinOathOfDevotionFeatureActions(
@@ -724,8 +723,8 @@ function collectPaladinOathOfDevotionContributions(
 
   const featureActions = getPaladinOathOfDevotionFeatureActions(character);
   const channelDivinityCharacter = {
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState
   };
   const contributions: FeatureContributionSpec[] = [
@@ -736,7 +735,7 @@ function collectPaladinOathOfDevotionContributions(
         entryId: CLASS_FEATURE.OATH_OF_DEVOTION_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Paladin") ?? 0,
         oathOfDevotionSpellIdsByLevel
       )
     },

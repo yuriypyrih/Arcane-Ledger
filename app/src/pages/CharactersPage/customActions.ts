@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type {
   Character,
@@ -168,9 +169,13 @@ function normalizeCustomAction(value: unknown, fallbackId: string): CharacterCus
         ? sanitizeUserInput(value.id)
         : fallbackId,
     name,
-    description: normalizeCustomActionText(value.description, CUSTOM_ACTION_DESCRIPTION_MAX_LENGTH, {
-      multiline: true
-    }),
+    description: normalizeCustomActionText(
+      value.description,
+      CUSTOM_ACTION_DESCRIPTION_MAX_LENGTH,
+      {
+        multiline: true
+      }
+    ),
     economy: normalizeCustomActionEconomy(value.economy),
     ...(customEffects.length > 0
       ? {
@@ -268,7 +273,7 @@ export function getCustomActionChargesMaxForCharacter(
   }
 
   return clampInteger(
-    getProficiencyBonus(character.level),
+    getProficiencyBonus(getCharacterLevel(character)),
     1,
     CUSTOM_ACTION_CHARGES_MAX,
     fallbackMax
@@ -381,7 +386,10 @@ function spendCustomActionCharge(
   };
 }
 
-export function activateCustomActionForCharacter(character: Character, actionKey: string): Character {
+export function activateCustomActionForCharacter(
+  character: Character,
+  actionKey: string
+): Character {
   const actionId = getCustomActionIdFromActionKey(actionKey);
 
   if (!actionId) {
@@ -477,9 +485,7 @@ export function restoreCustomActionChargesForRest(
 
     const charges = getCustomActionChargeStateForCharacter(character, action);
     const recovery =
-      restType === "short"
-        ? (charges?.shortRestRecovery ?? 0)
-        : (charges?.longRestRecovery ?? 0);
+      restType === "short" ? (charges?.shortRestRecovery ?? 0) : (charges?.longRestRecovery ?? 0);
 
     if (!charges || recovery <= 0 || charges.current >= charges.max) {
       return action;

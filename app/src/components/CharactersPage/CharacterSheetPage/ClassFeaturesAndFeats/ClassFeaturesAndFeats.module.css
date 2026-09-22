@@ -372,3 +372,16 @@
     flex-wrap: wrap;
   }
 }
+
+.classBuildField {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+}
+.classBuildField > span {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

@@ -62,7 +62,7 @@ export function syncAutomaticHitPointsForCharacter(character: Character): Charac
   const hitPointDelta = nextAutomaticHitPoints - character.hitPoints;
   const nextEffectiveHitPoints = getEffectiveHitPointsForBase(character, nextAutomaticHitPoints);
   const nextCurrentHitPoints = clampNumber(
-    character.currentHitPoints + hitPointDelta,
+    character.currentHitPoints + (character.multiclass ? 0 : hitPointDelta),
     0,
     nextEffectiveHitPoints,
     character.currentHitPoints
@@ -128,8 +128,7 @@ export function applyDamageToCharacter(character: Character, amount: number): Ch
   const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
   const remainingDamage = damageAfterMagicTemporaryHitPoints - absorbedByTemporaryHitPoints;
   const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
-  const isInstantDeath =
-    remainingDamage >= character.currentHitPoints + nextEffectiveHitPoints;
+  const isInstantDeath = remainingDamage >= character.currentHitPoints + nextEffectiveHitPoints;
   const nextCurrentHitPoints = clampNumber(
     character.currentHitPoints - remainingDamage,
     0,

@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { rangerFeatures } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -132,11 +133,11 @@ export function hasRangerFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Ranger") {
+  if (!hasCharacterClass(character, "Ranger")) {
     return false;
   }
 
-  return getUnlockedRangerFeatures(character.level).has(feature);
+  return getUnlockedRangerFeatures(getClassLevel(character, "Ranger")).has(feature);
 }
 
 function hasRangerDeftExplorerFeature(character: Pick<Character, "className" | "level">): boolean {
@@ -231,7 +232,7 @@ function getRangerHuntersMarkFeatureDescriptionAdditions(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   features: CLASS_FEATURE[]
 ): SpellDescriptionEntry[][] {
-  if (character.className !== "Ranger") {
+  if (!hasCharacterClass(character, "Ranger")) {
     return [];
   }
 
@@ -400,7 +401,7 @@ export function normalizeRangerFeatureState(
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterRangerFeatureState>) : {};
   const favoredEnemyTotal = hasFavoredEnemy
-    ? (getRangerFeatureRow(character.level)?.favoredEnemy ?? 0)
+    ? (getRangerFeatureRow(getClassLevel(character, "Ranger"))?.favoredEnemy ?? 0)
     : 0;
   const tirelessTotal = hasTireless ? getRangerTirelessUsesTotal(character) : 0;
   const naturesVeilTotal = hasNaturesVeil ? getRangerNaturesVeilUsesTotal(character) : 0;
@@ -858,7 +859,7 @@ export function getRangerFavoredEnemyUsesTotal(
     return 0;
   }
 
-  return getRangerFeatureRow(character.level)?.favoredEnemy ?? 0;
+  return getRangerFeatureRow(getClassLevel(character, "Ranger"))?.favoredEnemy ?? 0;
 }
 
 export function getRangerFavoredEnemyUsesRemaining(
@@ -1774,7 +1775,7 @@ export function getRangerSpeedBonuses(
 }
 
 export function consumeRangerWeaponAttack(character: Character): Character {
-  if (character.className !== "Ranger") {
+  if (!hasCharacterClass(character, "Ranger")) {
     return isRoundTrackerResourceAvailable(character.roundTracker, "action")
       ? {
           ...character,

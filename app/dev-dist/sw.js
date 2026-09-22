@@ -82,7 +82,7 @@ define(['./workbox-bce2e11c'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "/index.html",
-    "revision": "0.cefn262t86"
+    "revision": "0.q2l76bli6go"
   }], {
     "ignoreURLParametersMatching": [/^utm_/, /^fbclid$/, /^v$/]
   });

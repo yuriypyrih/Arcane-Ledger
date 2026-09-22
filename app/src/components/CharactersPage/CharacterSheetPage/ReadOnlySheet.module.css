@@ -1,0 +1,12 @@
+.boundary {
+  display: grid;
+  gap: 0.7rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.boundary :disabled {
+  cursor: default;
+}

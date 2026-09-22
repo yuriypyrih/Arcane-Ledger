@@ -1,4 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import {
+  isTopInspectionDialog,
+  useInspectionFocus
+} from "../../CharacterInspection/useInspectionFocus";
 import type { CharacterBackgroundTextureSelection } from "../../../../api/characterBackgroundTextures";
 import {
   cropAndScaleBackgroundTextureFile,
@@ -62,10 +67,15 @@ function CharacterPortraitModal({
   portraitUrl,
   unavailableMessage
 }: CharacterPortraitModalProps) {
+  const readOnly = useReadOnlySheet();
+  const panelRef = useRef<HTMLElement>(null);
+  useInspectionFocus(panelRef, readOnly, readOnly);
   const [activeTab, setActiveTab] = useState<CharacterPortraitModalTab>("portrait");
   const [backgroundDraftSelection, setBackgroundDraftSelection] =
     useState<CharacterBackgroundTextureSelection | null>(null);
-  const [backgroundDraftErrorMessage, setBackgroundDraftErrorMessage] = useState<string | null>(null);
+  const [backgroundDraftErrorMessage, setBackgroundDraftErrorMessage] = useState<string | null>(
+    null
+  );
   const [isProcessingBackgroundDraft, setIsProcessingBackgroundDraft] = useState(false);
   const resolvedName = characterName.trim() || "Character Portrait";
   const isModalSaving = isSaving || isBackgroundSaving || isProcessingBackgroundDraft;
@@ -88,16 +98,19 @@ function CharacterPortraitModal({
   }
 
   function stageBackgroundSelection(selection: CharacterBackgroundTextureSelection) {
+    if (readOnly) return;
     clearBackgroundErrors();
     setBackgroundDraftSelection(isBackgroundSelectionCurrent(selection) ? null : selection);
   }
 
   function stageCurrentUploadedBackground() {
+    if (readOnly) return;
     clearBackgroundErrors();
     setBackgroundDraftSelection(null);
   }
 
   async function stageBackgroundUpload(file: File, crop?: Partial<CharacterPortraitCropSettings>) {
+    if (readOnly) return false;
     clearBackgroundErrors();
     setIsProcessingBackgroundDraft(true);
     setBackgroundDraftSelection(null);
@@ -130,7 +143,7 @@ function CharacterPortraitModal({
   }
 
   async function saveBackgroundDraftSelection() {
-    if (!backgroundDraftSelection || isModalSaving) {
+    if (readOnly || !backgroundDraftSelection || isModalSaving) {
       return false;
     }
 
@@ -192,8 +205,17 @@ function CharacterPortraitModal({
 
   return (
     <SheetModal
+      panelRef={panelRef}
+      readOnlyReference={readOnly}
       titleId="character-portrait-modal-title"
       onClose={closeModal}
+      onEscape={
+        readOnly
+          ? () => {
+              if (isTopInspectionDialog(panelRef.current)) closeModal();
+            }
+          : undefined
+      }
       size="medium"
       panelClassName={styles.portraitModalPanel}
       isBusy={isModalSaving}

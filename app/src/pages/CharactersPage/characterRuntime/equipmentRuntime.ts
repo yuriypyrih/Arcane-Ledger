@@ -1,3 +1,4 @@
+import { getClassLevel, getClassSubclassId } from "../multiclass";
 import type { Character } from "../../../types";
 import { collectActiveClassFeatureState } from "../classFeatures/modules";
 import {
@@ -24,19 +25,17 @@ const rogueThiefSubclassId = "rogue-thief";
 export function getInventoryAttunementLimit(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
-  const classFeatureLimit =
-    collectActiveClassFeatureState(character).getInventoryAttunementLimit?.(
-      defaultInventoryAttunementLimit
-    );
+  const classFeatureLimit = collectActiveClassFeatureState(character).getInventoryAttunementLimit?.(
+    defaultInventoryAttunementLimit
+  );
 
   if (typeof classFeatureLimit === "number" && Number.isFinite(classFeatureLimit)) {
     return classFeatureLimit;
   }
 
   if (
-    character.className === "Rogue" &&
-    character.subclassId === rogueThiefSubclassId &&
-    character.level >= 13
+    getClassSubclassId(character, "Rogue") === rogueThiefSubclassId &&
+    getClassLevel(character, "Rogue") >= 13
   ) {
     return 4;
   }
@@ -48,18 +47,21 @@ function createEquipmentRuntime(character: Character): EquipmentRuntime {
   const inventoryIndex = createInventoryRuntimeIndex(character.inventoryItems);
   let heldInventoryCopies: InventoryItemCopyReference[] | null = null;
   let heldInventoryDescriptors: HeldWeaponDescriptor[] | null = null;
-  const inventoryWeight = Math.round(
-    inventoryIndex.groups.reduce(
-      (totalWeight, item) => totalWeight + getInventoryItemTotalWeightValue(item.stack),
-      0
-    ) * 100
-  ) / 100;
+  const inventoryWeight =
+    Math.round(
+      inventoryIndex.groups.reduce(
+        (totalWeight, item) => totalWeight + getInventoryItemTotalWeightValue(item.stack),
+        0
+      ) * 100
+    ) / 100;
 
   return {
     inventoryIndex,
     get heldInventoryCopies() {
       if (!heldInventoryCopies) {
-        heldInventoryCopies = character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
+        heldInventoryCopies = character.inventoryItems.flatMap(
+          createHeldInventoryItemCopyReferences
+        );
       }
 
       return heldInventoryCopies;

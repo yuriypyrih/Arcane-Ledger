@@ -1,9 +1,12 @@
-import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
+import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
 import {
-  CLASS_FEATURE,
-  getSpellEntryById,
-  type SpellEntry
-} from "../../../../codex/entries";
+  hasCharacterClass,
+  getClassLevel,
+  getClassSpellbookIds,
+  getClassSubclassId
+} from "../../multiclass";
+import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
+import { CLASS_FEATURE, getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
   CharacterWizardFeatureState,
@@ -20,7 +23,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { getPreparedSpellSelectionOptionsForCharacter } from "../../preparedSpellSelection";
 import { getSpellLevel } from "../../spellLevels";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../spellSlots";
 import type {
   FeatureActionCard,
   FeatureSkillProficiencyEntry,
@@ -167,7 +170,7 @@ function normalizeWizardTrackedSpellIds(value: unknown, limit: number): string[]
 }
 
 function getWizardPreparedSpellSelectionOptions(character: Pick<Character, "className" | "level">) {
-  return getPreparedSpellSelectionOptionsForCharacter(character.className, character.level);
+  return getPreparedSpellSelectionOptionsForCharacter("Wizard", getClassLevel(character, "Wizard"));
 }
 
 function isWizardSpellMasterySpellIdValid(
@@ -181,8 +184,8 @@ function isWizardSpellMasterySpellIdValid(
   }
 
   const spellbookSpellIdSet = new Set([
-    ...(Array.isArray(character.spellbookSpellIds)
-      ? character.spellbookSpellIds
+    ...(Array.isArray(getClassSpellbookIds(character, "Wizard"))
+      ? getClassSpellbookIds(character, "Wizard")
           .filter((entry): entry is string => typeof entry === "string")
           .map((entry) => entry.trim())
       : []),
@@ -216,8 +219,8 @@ function isWizardSignatureSpellIdValid(
   }
 
   const spellbookSpellIdSet = new Set([
-    ...(Array.isArray(character.spellbookSpellIds)
-      ? character.spellbookSpellIds
+    ...(Array.isArray(getClassSpellbookIds(character, "Wizard"))
+      ? getClassSpellbookIds(character, "Wizard")
           .filter((entry): entry is string => typeof entry === "string")
           .map((entry) => entry.trim())
       : []),
@@ -244,7 +247,7 @@ function isWizardSignatureSpellIdValid(
 function getArcaneRecoveryEligibleExpendedSlotCount(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -259,7 +262,7 @@ function normalizeArcaneRecoverySelection(
   value: ArcaneRecoverySelection,
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): ArcaneRecoverySelection {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -283,11 +286,11 @@ export function hasWizardFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Wizard") {
+  if (!hasCharacterClass(character, "Wizard")) {
     return false;
   }
 
-  return getUnlockedWizardFeatures(character.level).has(feature);
+  return getUnlockedWizardFeatures(getClassLevel(character, "Wizard")).has(feature);
 }
 
 export function normalizeWizardFeatureState(
@@ -295,7 +298,7 @@ export function normalizeWizardFeatureState(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterWizardFeatureState {
-  if (character.className !== "Wizard") {
+  if (!hasCharacterClass(character, "Wizard")) {
     return {};
   }
 
@@ -311,8 +314,12 @@ export function normalizeWizardFeatureState(
   const rawPhantasmalCreaturesUsesExpended = Number(record?.phantasmalCreaturesUsesExpended);
   const rawIllusorySelfUsesExpended = Number(record?.illusorySelfUsesExpended);
   const rawOverchannelUsesSinceLongRest = Number(record?.overchannelUsesSinceLongRest);
-  const hasArcaneWard = character.subclassId === "wizard-abjurer" && (character.level ?? 0) >= 3;
-  const hasOverchannel = character.subclassId === "wizard-evoker" && (character.level ?? 0) >= 14;
+  const hasArcaneWard =
+    getClassSubclassId(character, "Wizard") === "wizard-abjurer" &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 3;
+  const hasOverchannel =
+    getClassSubclassId(character, "Wizard") === "wizard-evoker" &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 14;
 
   return {
     arcaneRecoveryUsesExpended:
@@ -332,7 +339,7 @@ export function normalizeWizardFeatureState(
     ...normalizeWizardBladesingerFeatureState(record ?? {}, character),
     scholar: hasScholar ? normalizeWizardScholarSelection(record?.scholar) : undefined,
     savantSpellIds:
-      character.subclassId === undefined
+      getClassSubclassId(character, "Wizard") === undefined
         ? normalizeWizardTrackedSpellIds(record?.savantSpellIds, wizardSavantMaxSelectionCount)
         : hasWizardSavantFeature(character)
           ? normalizeWizardSavantSpellIds(record?.savantSpellIds, character)
@@ -433,8 +440,8 @@ export function setWizardSavantSpellIds(character: Character, spellIds: string[]
   const wizardState = getWizardFeatureState(character);
   const normalizedSpellIds = normalizeWizardSavantSpellIds(spellIds, character);
   const savantSpellIdSet = new Set(normalizedSpellIds);
-  const nextSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds
+  const nextSpellbookSpellIds = Array.isArray(getClassSpellbookIds(character, "Wizard"))
+    ? getClassSpellbookIds(character, "Wizard")
         .filter((spellId) => !savantSpellIdSet.has(spellId.trim()))
         .map((spellId) => spellId.trim())
     : [];
@@ -792,7 +799,7 @@ export function getArcaneRecoveryRecoveryLevelLimit(
   character: Pick<Character, "className" | "level">
 ): number {
   return hasWizardFeature(character, CLASS_FEATURE.ARCANE_RECOVERY)
-    ? Math.max(0, Math.ceil(clampWizardLevel(character.level) / 2))
+    ? Math.max(0, Math.ceil(clampWizardLevel(getClassLevel(character, "Wizard")) / 2))
     : 0;
 }
 
@@ -884,7 +891,7 @@ export function activateArcaneRecovery(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -951,5 +958,7 @@ export function restoreArcaneRecoveryOnLongRest(character: Character): Character
 export function getWizardFeatureRowForCharacter(
   character: Pick<Character, "className" | "level">
 ): WizardFeatureClassObj | null {
-  return character.className === "Wizard" ? getWizardFeatureRow(character.level) : null;
+  return hasCharacterClass(character, "Wizard")
+    ? getWizardFeatureRow(getClassLevel(character, "Wizard"))
+    : null;
 }

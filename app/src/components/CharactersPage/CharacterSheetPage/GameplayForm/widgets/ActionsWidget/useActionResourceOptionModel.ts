@@ -8,16 +8,13 @@ import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/char
 import type { SpellSlotRuntimeOption } from "../../../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
 
 export function useActionResourceOptionModel(character: Character) {
-  const { classFeatureState, className, level, spellSlotsExpended, subclassId } = character;
-  const druidFeatureState = classFeatureState?.druid;
   const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
   const spellcastingRuntime = characterRuntime.spellcastingWithoutSubclassSlots;
   const fixedSpellSlotTotals = spellcastingRuntime.spellSlotTotals;
   const fixedSpellSlotsExpended = spellcastingRuntime.spellSlotsExpended;
   const fixedSpellSlotsRemaining = spellcastingRuntime.spellSlotsRemaining;
   const wildCompanionSpellSlotOptions = spellcastingRuntime.spellSlotOptions;
-  const bardicInspirationFallbackSpellSlotOptions =
-    spellcastingRuntime.availableSpellSlotOptions;
+  const bardicInspirationFallbackSpellSlotOptions = spellcastingRuntime.availableSpellSlotOptions;
   const beastMasterReviveSpellSlotOptions = spellcastingRuntime.availableSpellSlotOptions;
   const firstAvailableBardicInspirationSpellSlotLevel =
     bardicInspirationFallbackSpellSlotOptions[0]?.level ?? null;
@@ -26,15 +23,8 @@ export function useActionResourceOptionModel(character: Character) {
   const firstAvailableWildCompanionSpellSlotLevel =
     wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const wildResurgenceAvailableSpellSlotLevels = useMemo(
-    () =>
-      getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter({
-        classFeatureState: { druid: druidFeatureState },
-        className,
-        level,
-        spellSlotsExpended,
-        subclassId
-      }),
-    [className, druidFeatureState, level, spellSlotsExpended, subclassId]
+    () => getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(character),
+    [character]
   );
   const wildResurgenceSpellSlotOptions = useMemo<SpellSlotRuntimeOption[]>(
     () =>
@@ -54,15 +44,8 @@ export function useActionResourceOptionModel(character: Character) {
   const firstAvailableWildResurgenceSpellSlotLevel =
     wildResurgenceSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const natureMagicianOptions = useMemo(
-    () =>
-      getDruidNatureMagicianOptionsForCharacter({
-        classFeatureState: { druid: druidFeatureState },
-        className,
-        level,
-        spellSlotsExpended,
-        subclassId
-      }),
-    [className, druidFeatureState, level, spellSlotsExpended, subclassId]
+    () => getDruidNatureMagicianOptionsForCharacter(character),
+    [character]
   );
 
   return {

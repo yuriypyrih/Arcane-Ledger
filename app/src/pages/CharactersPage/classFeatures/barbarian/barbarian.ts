@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { barbarianFeatures } from "../../../../codex/classes";
 import { barbarianStarterPack } from "../../../../codex/classes/starterPack";
 import { CLASS_FEATURE, DAMAGE_TYPE, WEAPON_MASTERY } from "../../../../codex/entries";
@@ -87,10 +88,8 @@ export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
 export const barbarianBrutalStrikeActionKey = "barbarian-brutal-strike";
 export const barbarianIntimidatingPresenceActionKey =
   berserkerSubclass.barbarianIntimidatingPresenceActionKey;
-export const barbarianZealousPresenceActionKey =
-  zealotSubclass.barbarianZealousPresenceActionKey;
-export const barbarianWarriorOfTheGodsActionKey =
-  zealotSubclass.barbarianWarriorOfTheGodsActionKey;
+export const barbarianZealousPresenceActionKey = zealotSubclass.barbarianZealousPresenceActionKey;
+export const barbarianWarriorOfTheGodsActionKey = zealotSubclass.barbarianWarriorOfTheGodsActionKey;
 export const barbarianTravelAlongTheTreeActionKey =
   worldTreeSubclass.barbarianTravelAlongTheTreeActionKey;
 type BrutalStrikeEffectDefinition = {
@@ -191,11 +190,11 @@ function hasBarbarianFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ) {
-  if (character.className !== "Barbarian") {
+  if (!hasCharacterClass(character, "Barbarian")) {
     return false;
   }
 
-  return getUnlockedBarbarianFeatures(character.level).has(feature);
+  return getUnlockedBarbarianFeatures(getClassLevel(character, "Barbarian")).has(feature);
 }
 
 function hasActiveCondition(
@@ -236,7 +235,7 @@ function hasBarbarianImprovedBrutalStrike(
 function hasBarbarianImprovedBrutalStrikeDamageUpgrade(
   character: Pick<Character, "className" | "level">
 ): boolean {
-  return hasBarbarianImprovedBrutalStrike(character) && character.level >= 17;
+  return hasBarbarianImprovedBrutalStrike(character) && getClassLevel(character, "Barbarian") >= 17;
 }
 
 export function hasBarbarianRelentlessRageFeature(
@@ -254,10 +253,7 @@ export function hasBarbarianIndomitableMightFeature(
 export function getBarbarianIndomitableMightDescriptionAdditions(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ) {
-  const description = getFeatureDescriptionForCharacter(
-    character,
-    CLASS_FEATURE.INDOMITABLE_MIGHT
-  );
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT);
 
   return description.length > 0
     ? [
@@ -282,9 +278,7 @@ export function getBarbarianIndomitableMightMinimumAbilityForSkillRoll(
   character: Pick<Character, "className" | "level">,
   skill: SkillName
 ): AbilityKey | null {
-  return hasBarbarianIndomitableMightFeature(character) && skill === SKILL.ATHLETICS
-    ? "STR"
-    : null;
+  return hasBarbarianIndomitableMightFeature(character) && skill === SKILL.ATHLETICS ? "STR" : null;
 }
 
 function getBarbarianAdditionalAttackCount(
@@ -380,10 +374,10 @@ export function normalizeBarbarianRageState(
   value: unknown,
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterRageFeatureState {
-  const featureRow = getBarbarianFeatureRow(character.level);
+  const featureRow = getBarbarianFeatureRow(getClassLevel(character, "Barbarian"));
   const canRage =
-    character.className === "Barbarian" &&
-    getUnlockedBarbarianFeatures(character.level).has(CLASS_FEATURE.RAGE) &&
+    hasCharacterClass(character, "Barbarian") &&
+    getUnlockedBarbarianFeatures(getClassLevel(character, "Barbarian")).has(CLASS_FEATURE.RAGE) &&
     typeof featureRow?.rages === "number" &&
     featureRow.rages > 0;
 
@@ -474,7 +468,7 @@ export function getBarbarianRageUsesTotal(
     return 0;
   }
 
-  return getBarbarianFeatureRow(character.level)?.rages ?? 0;
+  return getBarbarianFeatureRow(getClassLevel(character, "Barbarian"))?.rages ?? 0;
 }
 
 export function getBarbarianRageUsesRemaining(
@@ -579,7 +573,7 @@ export function getBarbarianWeaponMasterySelectionCount(
     return 0;
   }
 
-  return getBarbarianFeatureRow(character.level)?.weaponMastery ?? 0;
+  return getBarbarianFeatureRow(getClassLevel(character, "Barbarian"))?.weaponMastery ?? 0;
 }
 
 export function getBarbarianWeaponMasteryOptions(): WEAPON_PROFICIENCY[] {
@@ -740,7 +734,7 @@ export function getBarbarianRageDamageBonus(
     return 0;
   }
 
-  return getBarbarianFeatureRow(character.level)?.rageDamage ?? 0;
+  return getBarbarianFeatureRow(getClassLevel(character, "Barbarian"))?.rageDamage ?? 0;
 }
 
 export function getBarbarianRecklessAttackRoundsRemaining(
@@ -1368,8 +1362,7 @@ export function activateBarbarianRage(
     character.statusEntries
   );
   const nextNormalizedStatusEntries = normalizeCharacterStatusEntries(nextStatusEntries).filter(
-    (entry) =>
-      entry.sourceId !== instinctivePounceStatusSourceId
+    (entry) => entry.sourceId !== instinctivePounceStatusSourceId
   );
   const nextRageStatusEntries = hasBarbarianInstinctivePounce(character)
     ? [
@@ -1488,10 +1481,7 @@ export function activateBarbarianRecklessAttack(character: Character): Character
         recklessAttackUsedThisTurn: true,
         brutalStrikePending: false,
         brutalStrikeUsedThisTurn: false,
-        ...berserkerSubclass.getBarbarianPathOfTheBerserkerRecklessAttackPatch(
-          character,
-          rageState
-        )
+        ...berserkerSubclass.getBarbarianPathOfTheBerserkerRecklessAttackPatch(character, rageState)
       }
     }
   };
@@ -1805,7 +1795,7 @@ export function getBarbarianWeaponAttackMultiCount(
 }
 
 export function consumeBarbarianWeaponAttack(character: Character): Character {
-  if (character.className !== "Barbarian") {
+  if (!hasCharacterClass(character, "Barbarian")) {
     return isRoundTrackerResourceAvailable(character.roundTracker, "action")
       ? {
           ...character,
@@ -2069,7 +2059,6 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
 export function isBarbarianFeatureCondition(conditionName: string): boolean {
   const normalizedCondition = conditionName.trim();
   return (
-    normalizedCondition === rageConditionName ||
-    normalizedCondition === barbarianRecklessAttackName
+    normalizedCondition === rageConditionName || normalizedCondition === barbarianRecklessAttackName
   );
 }

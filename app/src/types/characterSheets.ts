@@ -11,6 +11,7 @@ import type {
   CharacterCompanion,
   CharacterCurrencies,
   CharacterClassRulesConfig,
+  CharacterMulticlass,
   CharacterCustomClassConfig,
   CharacterCustomSpeciesConfig,
   CharacterCustomSubclassConfig,
@@ -36,6 +37,7 @@ import type {
 import type { CharacterStatusEntry } from "./traits";
 
 export const PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION = 2;
+export const MULTICLASS_CHARACTER_SHEET_SCHEMA_VERSION = 3;
 
 export type PortableCharacterSheetIdentity = {
   localId: number;
@@ -54,6 +56,7 @@ export type PortableCharacterSheetOrigin = {
 };
 
 export type PortableCharacterSheetProgression = {
+  multiclass?: CharacterMulticlass;
   className: string;
   subclassId?: string;
   customSubclass?: CharacterCustomSubclassConfig;
@@ -206,7 +209,7 @@ export type PortableCharacterSheetSummary = {
 };
 
 export type PortableCharacterSheet = {
-  schemaVersion: typeof PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION;
+  schemaVersion: 2 | 3;
   identity: PortableCharacterSheetIdentity;
   origin: PortableCharacterSheetOrigin;
   progression: PortableCharacterSheetProgression;

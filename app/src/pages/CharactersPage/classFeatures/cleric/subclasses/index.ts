@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type {
   SubclassDerivedFeatureState,
   SubclassRuntimeCharacter,
@@ -29,9 +30,9 @@ const clericSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
 export function getClericSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Cleric" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Cleric") || !getClassSubclassId(character, "Cleric")) {
     return {};
   }
 
-  return clericSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return clericSubclassRuntimeRegistry[getClassSubclassId(character, "Cleric")]?.(character) ?? {};
 }

@@ -95,6 +95,7 @@ function CodexResults({
           <span>{totalEntriesLabel}</span>
           {status === "ready" && entries.length > 0 && isSpellCategory ? (
             <TablePagination
+              ariaLabel={`${entriesTitle} pagination (top)`}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={onPageChange}
@@ -195,6 +196,14 @@ function CodexResults({
             );
           })}
         </div>
+      ) : null}
+      {status === "ready" && entries.length > 0 && isSpellCategory ? (
+        <TablePagination
+          ariaLabel={`${entriesTitle} pagination (bottom)`}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       ) : null}
     </>
   );

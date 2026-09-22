@@ -76,7 +76,7 @@ function useCharacterPortrait({
   );
 
   const resetPortrait = useCallback(async () => {
-    if (!characterSheetId) {
+    if (!isUploadEnabled || !characterSheetId) {
       return;
     }
 
@@ -96,7 +96,7 @@ function useCharacterPortrait({
     } finally {
       setIsSaving(false);
     }
-  }, [characterSheetId, createSyncPayload, onMutationComplete]);
+  }, [characterSheetId, createSyncPayload, isUploadEnabled, onMutationComplete]);
 
   const clearError = useCallback(() => {
     setErrorMessage(null);

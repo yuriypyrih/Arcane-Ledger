@@ -11,7 +11,7 @@ export type CharacterSheetCloudDocument = {
   ownerId: string;
   clientId: string;
   localId?: number;
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   revision: number;
   summary: PortableCharacterSheetSummary;
   avatar: CharacterAvatarMetadata | null;
@@ -92,11 +92,7 @@ export function shareCharacterSheet(characterSheetId: string, options?: ApiReque
   return apiPost<SharedCharacterLinkEnvelope>(`/characters/${characterSheetId}/share`, {}, options);
 }
 
-export function importSharedCharacter(
-  link: string,
-  localId: number,
-  options?: ApiRequestOptions
-) {
+export function importSharedCharacter(link: string, localId: number, options?: ApiRequestOptions) {
   return apiPost<SharedCharacterImportEnvelope>(
     "/characters/shared/import",
     { link, localId },

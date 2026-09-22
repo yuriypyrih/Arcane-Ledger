@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import {
   aquaticAffinityWrathOfTheSeaDescription,
   wrathOfTheSeaDescription
@@ -16,7 +17,7 @@ const oceanicGiftSource = "Oceanic Gift";
 export function getDruidCircleOfTheSeaWrathOfTheSeaDescription(
   character: DruidCircleOfTheSeaDescriptionCharacter
 ): SpellDescriptionEntry[] {
-  return character.level >= 6
+  return getClassLevel(character, "Druid") >= 6
     ? [...aquaticAffinityWrathOfTheSeaDescription]
     : [...wrathOfTheSeaDescription];
 }
@@ -26,7 +27,7 @@ export function getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
-  if (character.level >= 10) {
+  if (getClassLevel(character, "Druid") >= 10) {
     const stormbornDescription = getFeatureDescriptionForCharacter(
       character,
       CLASS_FEATURE.STORMBORN
@@ -44,7 +45,7 @@ export function getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions(
     }
   }
 
-  if (character.level >= 14) {
+  if (getClassLevel(character, "Druid") >= 14) {
     const oceanicGiftDescription = getFeatureDescriptionForCharacter(
       character,
       CLASS_FEATURE.OCEANIC_GIFT

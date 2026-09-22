@@ -1,1 +1,1 @@
-export { default } from "./SpellCastingForm";
+export { default } from "./MulticlassSpellCastingForm";

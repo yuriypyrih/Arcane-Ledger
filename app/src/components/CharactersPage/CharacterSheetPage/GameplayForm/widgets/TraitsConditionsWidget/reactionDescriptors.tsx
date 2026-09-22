@@ -1,9 +1,8 @@
+import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../pages/CharactersPage/spellcasting";
+import { normalizeSpellSlotsExpended } from "../../../../../../pages/CharactersPage/spellcasting";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import SearchField from "../../../../../SearchField";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -234,13 +233,7 @@ function spendSongOfDefenseSpellSlot(
     1,
     Math.min(9, Math.floor(context.selectedSongOfDefenseSpellSlotLevel || 1))
   );
-  const spellSlotTotalsForCurrentCharacter = getSpellSlotTotalsForCharacter(
-    currentCharacter.className,
-    currentCharacter.level,
-    currentCharacter.subclassId,
-    currentCharacter.customClass,
-    currentCharacter.classRules
-  );
+  const spellSlotTotalsForCurrentCharacter = getSheetSpellSlotTotals(currentCharacter);
   const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
     currentCharacter.spellSlotsExpended,
     spellSlotTotalsForCurrentCharacter
@@ -511,7 +504,7 @@ function createInterceptionDamageReductionFormula(level: number): {
 
 function createEnergyRedirectionSavingThrowFormula(character: Character): FeatureActionFact {
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const saveDc = 8 + constitutionModifier + proficiencyBonus;
   const formulaCell = formatFormulaCell({
     formula: String(saveDc),
@@ -554,7 +547,9 @@ function createEnergyRedirectionDamageFormula(character: Character): {
   };
 }
 
-function getEnergyRedirectionReactionFacts(context: ReactionDescriptorContext): FeatureActionFact[] {
+function getEnergyRedirectionReactionFacts(
+  context: ReactionDescriptorContext
+): FeatureActionFact[] {
   return [
     createEnergyRedirectionSavingThrowFormula(context.character),
     {
@@ -589,7 +584,7 @@ function getBoonOfTerrorFleeFoolsReactionFacts(
   context: ReactionDescriptorContext
 ): FeatureActionFact[] {
   const charismaModifier = getAbilityModifierForCharacter(context.character, "CHA");
-  const proficiencyBonus = getProficiencyBonus(context.character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(context.character));
   const saveDc = 8 + charismaModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -614,8 +609,8 @@ function getBoonOfTerrorFleeFoolsReactionFacts(
 
 function getMythalTouchedMythalWardAbility(character: Character) {
   return (
-    character.feats?.find((entry) => entry.feat === FEATS.MYTHAL_TOUCHED)
-      ?.epicBoonAbilityChoice?.ability ?? "INT"
+    character.feats?.find((entry) => entry.feat === FEATS.MYTHAL_TOUCHED)?.epicBoonAbilityChoice
+      ?.ability ?? "INT"
   );
 }
 
@@ -624,7 +619,7 @@ function getMythalTouchedMythalWardReactionFacts(
 ): FeatureActionFact[] {
   const ability = getMythalTouchedMythalWardAbility(context.character);
   const abilityModifier = getAbilityModifierForCharacter(context.character, ability);
-  const proficiencyBonus = getProficiencyBonus(context.character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(context.character));
   const saveDc = 8 + abilityModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -667,7 +662,7 @@ function getInterceptionReactionFacts(context: ReactionDescriptorContext): Featu
   return [
     {
       label: "Damage Reduction Formula",
-      value: createInterceptionDamageReductionFormula(context.character.level).value,
+      value: createInterceptionDamageReductionFormula(getCharacterLevel(context.character)).value,
       fullWidth: true
     }
   ];
@@ -676,7 +671,7 @@ function getInterceptionReactionFacts(context: ReactionDescriptorContext): Featu
 function createInterceptionReactionRollRequest(
   context: ReactionDescriptorContext
 ): DiceRollerRequest {
-  const formula = createInterceptionDamageReductionFormula(context.character.level);
+  const formula = createInterceptionDamageReductionFormula(getCharacterLevel(context.character));
 
   return {
     title: "Interception",

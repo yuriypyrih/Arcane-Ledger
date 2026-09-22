@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
@@ -54,23 +55,26 @@ function EldritchInvocationList({
         const isRepeatable = Boolean(firstOption.invocation.repeatable);
 
         return (
-          <BuildSummaryCard
-            key={key}
-            title={firstOption.invocation.name}
-            meta="Eldritch Invocation"
-            summary={isRepeatable ? null : firstOption.displaySubtitle}
-            selectedItems={
-              isRepeatable
-                ? options.map((option) => option.displaySubtitle ?? option.displayName)
-                : undefined
-            }
-            isRepeatable={isRepeatable}
-            onClick={() => onOpenInvocationReference(firstOption)}
-            headerActions={renderTrackingButton(
-              firstOption.invocation.trackingState,
-              firstOption.invocation.trackingMessage
-            )}
-          />
+          <Fragment key={key}>
+            <BuildSummaryCard
+              key={key}
+              title={firstOption.invocation.name}
+              meta="Eldritch Invocation"
+              summary={isRepeatable ? null : firstOption.displaySubtitle}
+              selectedItems={
+                isRepeatable
+                  ? options.map((option) => option.displaySubtitle ?? option.displayName)
+                  : undefined
+              }
+              isRepeatable={isRepeatable}
+              onClick={() => onOpenInvocationReference(firstOption)}
+              headerActions={renderTrackingButton(
+                firstOption.invocation.trackingState,
+                firstOption.invocation.trackingMessage
+              )}
+            />
+
+          </Fragment>
         );
       })}
     </ul>

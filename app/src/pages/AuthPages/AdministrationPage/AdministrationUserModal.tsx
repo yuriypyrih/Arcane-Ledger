@@ -1,3 +1,5 @@
+import CharacterInspectionModal from "../../../components/CharactersPage/CharacterInspection/CharacterInspectionModal";
+import AdministrationUserCharacters from "./AdministrationUserCharacters";
 import { type FormEvent, useId, useState } from "react";
 import { Save } from "lucide-react";
 import ActionButton from "../../../components/ActionButton";
@@ -32,6 +34,8 @@ function AdministrationUserModal({
   onSave,
   user
 }: AdministrationUserModalProps) {
+  const [inspectedCharacterId, setInspectedCharacterId] = useState<string | null>(null);
+  const [focusCharacterId, setFocusCharacterId] = useState<string | null>(null);
   const titleId = useId();
   const [role, setRole] = useState<UserRole>(user.role);
   const isAdmin = user.role === "admin";
@@ -43,6 +47,11 @@ function AdministrationUserModal({
     if (canSave) {
       onSave(role);
     }
+  }
+
+  if (inspectedCharacterId) {
+    return <CharacterInspectionModal target={{ kind: "admin", userId: user.id, characterId: inspectedCharacterId }}
+      onClose={() => { setFocusCharacterId(inspectedCharacterId); setInspectedCharacterId(null); }} />;
   }
 
   return (
@@ -61,7 +70,7 @@ function AdministrationUserModal({
         <OverlayCloseButton label="Close user details modal" disabled={isBusy} onClick={onClose} />
       </OverlayHeader>
 
-      <form onSubmit={handleSubmit}>
+      <form className={styles.modalForm} onSubmit={handleSubmit}>
         <OverlayBody className={styles.modalBody}>
           <div className={styles.modalFieldGrid}>
             <div className={styles.modalField}>
@@ -99,6 +108,7 @@ function AdministrationUserModal({
             <p className={styles.modalText}>Admin roles are protected and cannot be changed.</p>
           ) : null}
           {error ? <p className={styles.modalError}>{error}</p> : null}
+          <AdministrationUserCharacters userId={user.id} onInspect={setInspectedCharacterId} focusCharacterId={focusCharacterId} />
         </OverlayBody>
 
         <OverlayFooter>

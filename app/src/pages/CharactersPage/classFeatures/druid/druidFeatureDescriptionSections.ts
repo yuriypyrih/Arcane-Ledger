@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
@@ -17,12 +18,14 @@ export function hasDruidFeature(
   character: Partial<Pick<Character, "className" | "level">>,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Druid") {
+  if (!hasCharacterClass(character, "Druid")) {
     return false;
   }
 
   const minimumLevel = druidFeatureMinimumLevels[feature];
-  return typeof minimumLevel === "number" ? (character.level ?? 0) >= minimumLevel : false;
+  return typeof minimumLevel === "number"
+    ? (getClassLevel(character, "Druid") ?? 0) >= minimumLevel
+    : false;
 }
 
 export function getDruidFeatureDescription(

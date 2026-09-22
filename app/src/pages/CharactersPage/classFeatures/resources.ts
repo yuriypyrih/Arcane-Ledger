@@ -20,9 +20,7 @@ import {
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../combat";
-import {
-  removeCharacterStatusEntry
-} from "../statusEntries";
+import { removeCharacterStatusEntry } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
   getCustomTraitArmorClassBonuses,
@@ -389,8 +387,7 @@ import {
   setWarlockMysticArcanumSpellId,
   setWarlockInvocationSelectionIds,
   getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIds,
-  warlockFiendPatronFiendishResilienceDamageTypeOptions,
-  warlockBeguilingDefenseReactionId
+  warlockFiendPatronFiendishResilienceDamageTypeOptions
 } from "./warlock/warlock";
 import { getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions } from "./warlock/subclasses/warlockFiendPatron";
 import {
@@ -1226,9 +1223,7 @@ export function getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForC
   return getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(character);
 }
 
-export {
-  sorcererClockworkRestoreBalanceReactionId as sorcererRestoreBalanceReactionEntryId
-} from "./sorcerer/subclasses/sorcererClockworkSorcery";
+export { sorcererClockworkRestoreBalanceReactionId as sorcererRestoreBalanceReactionEntryId } from "./sorcerer/subclasses/sorcererClockworkSorcery";
 export { sorcererBendLuckReactionEntryId };
 
 export function getSorcererRestoreBalanceUsesTotalForCharacter(
@@ -1510,7 +1505,7 @@ export function consumeWarlockLifedrinkerHitDieForCharacter(character: Character
   return consumeWarlockLifedrinkerHitDie(character);
 }
 
-export const warlockBeguilingDefenseReactionEntryId = warlockBeguilingDefenseReactionId;
+export { warlockBeguilingDefenseReactionId as warlockBeguilingDefenseReactionEntryId } from "./warlock/warlock";
 
 export function getWarlockMysticArcanumSelectionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">

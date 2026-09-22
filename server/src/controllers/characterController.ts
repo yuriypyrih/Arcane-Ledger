@@ -1,3 +1,11 @@
+import {
+  toAvatarResponse,
+  toCloudRecord,
+  toCloudRosterRecord,
+  type CharacterSheetCloudSource,
+  type CharacterSheetRosterSource
+} from "./characterSheetResponses.js";
+import { validateMulticlassSheet } from "../services/multiclassValidation.js";
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import { getAppConfig } from "../config/env.js";
@@ -9,13 +17,10 @@ import type {
 } from "../middleware/authMiddleware.js";
 import {
   CharacterSheet,
-  type CharacterAvatarRecord,
   type CharacterCompanionDeathSavesRecord,
   type CharacterEncounterCompanionSummaryRecord,
-  type CharacterBackgroundTextureRecord,
   type CharacterEncounterStatBlockRecord,
-  type CharacterSheetDocument,
-  type CharacterSheetSummaryRecord
+  type CharacterSheetDocument
 } from "../models/CharacterSheet.js";
 import { PartyGroup } from "../models/PartyGroup.js";
 import {
@@ -27,8 +32,7 @@ import {
   createBackgroundTextureRecord,
   getUploadedBackgroundTextureObjectKey,
   readBackgroundTextureMutationBody,
-  toBackgroundTextureResponse,
-  type CharacterBackgroundTextureResponse
+  toBackgroundTextureResponse
 } from "./characterBackgroundTextureControllerHelpers.js";
 import {
   deleteCharacterBackgroundTextureFromS3,
@@ -49,60 +53,6 @@ import {
 } from "../services/sharedCharacterService.js";
 
 type ObjectRecord = Record<string, unknown>;
-
-type CharacterAvatarSource = {
-  objectKey: string;
-  imageUrl: string;
-  mimeType: string;
-  sizeBytes: number;
-  updatedAt: Date | string;
-};
-
-type CharacterAvatarResponse = {
-  objectKey: string;
-  imageUrl: string;
-  mimeType: string;
-  sizeBytes: number;
-  updatedAt: string;
-};
-
-type CharacterSheetCloudDocument = {
-  id: string;
-  ownerId: string;
-  clientId: string;
-  localId?: number;
-  schemaVersion: 2;
-  revision: number;
-  summary: CharacterSheetDocument["summary"];
-  sheet: Record<string, unknown>;
-  avatar: CharacterAvatarResponse | null;
-  backgroundTexture: CharacterBackgroundTextureResponse | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-};
-
-type CharacterSheetCloudRosterDocument = Omit<CharacterSheetCloudDocument, "sheet">;
-
-type CharacterSheetCloudSource = {
-  _id?: Types.ObjectId | { toString(): string };
-  id?: string;
-  ownerId: Types.ObjectId | { toString(): string } | string;
-  clientId: string;
-  localId?: number | null;
-  schemaVersion: 2;
-  revision: number;
-  summary: CharacterSheetSummaryRecord;
-  sheet: Record<string, unknown>;
-  avatar?: CharacterAvatarRecord | null;
-  backgroundTexture?: CharacterBackgroundTextureRecord | null;
-  deletedAt?: Date | string | null;
-  createdAt?: Date | string | null;
-  updatedAt?: Date | string | null;
-};
-
-type CharacterSheetRosterSource = Omit<CharacterSheetCloudSource, "sheet"> & {
-  sheet?: unknown;
-};
 
 function isObjectRecord(value: unknown): value is ObjectRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -177,8 +127,12 @@ async function findOwnedCharacterSheetLean(characterSheetId: string, ownerId: Ty
 }
 
 function readPortableCharacterSheet(value: unknown): Record<string, unknown> {
-  if (!isObjectRecord(value) || value.schemaVersion !== 2) {
-    throw new AppError("Portable character sheet must use schemaVersion 2.", 400, "INVALID_SHEET");
+  if (!isObjectRecord(value) || (value.schemaVersion !== 2 && value.schemaVersion !== 3)) {
+    throw new AppError(
+      "Portable character sheet must use schemaVersion 2 or 3.",
+      400,
+      "INVALID_SHEET"
+    );
   }
 
   const requiredGroups = [
@@ -676,7 +630,7 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
   };
 }
 
-function stripLocalSyncMetadata(sheet: Record<string, unknown>) {
+function stripLocalSyncMetadata(sheet: Record<string, unknown>): Record<string, unknown> {
   const metadata = getSheetGroup(sheet, "metadata");
   const {
     avatar: _avatar,
@@ -691,75 +645,13 @@ function stripLocalSyncMetadata(sheet: Record<string, unknown>) {
   };
 }
 
-function toIsoTimestamp(value: Date | string | null | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  return value instanceof Date ? value.toISOString() : value;
-}
-
-function toAvatarResponse(
-  avatar: CharacterAvatarSource | null | undefined
-): CharacterAvatarResponse | null {
-  if (!avatar) {
-    return null;
-  }
-
-  return {
-    objectKey: avatar.objectKey,
-    imageUrl: avatar.imageUrl,
-    mimeType: avatar.mimeType,
-    sizeBytes: avatar.sizeBytes,
-    updatedAt: toIsoTimestamp(avatar.updatedAt) ?? new Date().toISOString()
-  };
-}
-
-function getDocumentId(document: Pick<CharacterSheetCloudSource, "_id" | "id">) {
-  return document.id ?? document._id?.toString() ?? "";
-}
-
-function toCloudRecord(document: CharacterSheetCloudSource): CharacterSheetCloudDocument {
-  return {
-    id: getDocumentId(document),
-    ownerId: document.ownerId.toString(),
-    clientId: document.clientId,
-    ...(document.localId ? { localId: document.localId } : {}),
-    schemaVersion: document.schemaVersion,
-    revision: document.revision,
-    summary: document.summary,
-    sheet: document.sheet,
-    avatar: toAvatarResponse(document.avatar),
-    backgroundTexture: toBackgroundTextureResponse(document.backgroundTexture),
-    createdAt: toIsoTimestamp(document.createdAt),
-    updatedAt: toIsoTimestamp(document.updatedAt)
-  };
-}
-
-function toCloudRosterRecord(
-  document: CharacterSheetRosterSource
-): CharacterSheetCloudRosterDocument {
-  return {
-    id: getDocumentId(document),
-    ownerId: document.ownerId.toString(),
-    clientId: document.clientId,
-    ...(document.localId ? { localId: document.localId } : {}),
-    schemaVersion: document.schemaVersion,
-    revision: document.revision,
-    summary: document.summary,
-    avatar: toAvatarResponse(document.avatar),
-    backgroundTexture: toBackgroundTextureResponse(document.backgroundTexture),
-    createdAt: toIsoTimestamp(document.createdAt),
-    updatedAt: toIsoTimestamp(document.updatedAt)
-  };
-}
-
 function readSheetPayload(value: unknown) {
   if (!isObjectRecord(value)) {
     throw new AppError("Request body must be a JSON object.", 400, "INVALID_SHEET_INPUT");
   }
 
   const sheet = readPortableCharacterSheet(value.sheet);
+  validateMulticlassSheet(sheet);
   const clientId = readSheetClientId(value, sheet);
 
   return {
@@ -778,6 +670,13 @@ function assertCanApplyCharacterSheetPayload(
   character: CharacterSheetDocument,
   payload: CharacterSheetPayload
 ) {
+  if (character.schemaVersion === 3 && payload.sheet.schemaVersion !== 3) {
+    throw new AppError(
+      "Update the app to save this multiclass character.",
+      409,
+      "SHEET_VERSION_CONFLICT"
+    );
+  }
   if (payload.clientId !== character.clientId) {
     throw new AppError("Character sheet clientId cannot change.", 400, "CLIENT_ID_MISMATCH");
   }
@@ -793,6 +692,9 @@ function applyCharacterSheetPayload(
   character: CharacterSheetDocument,
   payload: CharacterSheetPayload
 ) {
+  if (character.schemaVersion === 2 && payload.sheet.schemaVersion === 3)
+    character.preMulticlassBackup = character.sheet;
+  character.schemaVersion = payload.sheet.schemaVersion as 2 | 3;
   character.localId = payload.localId;
   character.summary = payload.summary;
   character.sheet = payload.sheet;
@@ -966,7 +868,7 @@ export const importCharacterSheets = asyncHandler(
           ownerId,
           clientId: payload.clientId,
           localId: payload.localId,
-          schemaVersion: 2,
+          schemaVersion: payload.sheet.schemaVersion as 2 | 3,
           revision: 1,
           summary: payload.summary,
           sheet: payload.sheet
@@ -992,10 +894,32 @@ export const saveCharacterSheet = asyncHandler(
     const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     assertCanApplyCharacterSheetPayload(character, payload);
-    applyCharacterSheetPayload(character, payload);
-    character.revision += 1;
+    // The revision predicate must be part of the write: two requests can both
+    // pass the read-time check before either one saves.
+    const savedCharacter = await CharacterSheet.findOneAndUpdate(
+      { _id: character._id, ownerId: character.ownerId, revision: character.revision },
+      {
+        $set: {
+          schemaVersion: payload.sheet.schemaVersion,
+          localId: payload.localId,
+          summary: payload.summary,
+          sheet: payload.sheet,
+          ...(character.schemaVersion === 2 && payload.sheet.schemaVersion === 3
+            ? { preMulticlassBackup: character.sheet }
+            : {})
+        },
+        $inc: { revision: 1 }
+      },
+      { new: true, runValidators: true }
+    );
+    if (!savedCharacter) {
+      const latest = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
+      throw new AppError("Character sheet has changed on the server.", 409, "REVISION_CONFLICT", {
+        serverRevision: latest.revision
+      });
+    }
 
-    response.json({ character: toCloudRecord(await character.save()) });
+    response.json({ character: toCloudRecord(savedCharacter) });
   }
 );
 
@@ -1309,5 +1233,26 @@ export const updateCharacterBackgroundTexture = asyncHandler(
       backgroundTexture: toBackgroundTextureResponse(savedCharacter.backgroundTexture),
       character: toCloudRecord(savedCharacter)
     });
+  }
+);
+
+export const getPreMulticlassBackup = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    const character = await CharacterSheet.findOne({
+      _id: readCharacterSheetId(request.params.characterSheetId),
+      ownerId: response.locals.authUser._id,
+      deletedAt: null
+    })
+      .select("+preMulticlassBackup")
+      .exec();
+    if (!character)
+      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
+    if (!character.preMulticlassBackup)
+      throw new AppError(
+        "No pre-multiclass backup exists for this character.",
+        404,
+        "BACKUP_NOT_FOUND"
+      );
+    response.json({ sheet: character.preMulticlassBackup });
   }
 );

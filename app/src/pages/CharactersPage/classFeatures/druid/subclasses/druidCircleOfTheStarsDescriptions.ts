@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   getSpellEntryByName,
@@ -38,9 +39,9 @@ function hasDruidCircleOfTheStarsStarMapFeature(
   character: DruidCircleOfTheStarsDescriptionCharacter
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 3
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === "druid-circle-of-the-stars" &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 1))) >= 3
   );
 }
 
@@ -93,9 +94,9 @@ function hasDruidCircleOfTheStarsTwinklingConstellationsFeature(
   character: DruidCircleOfTheStarsDescriptionCharacter
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 10
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === "druid-circle-of-the-stars" &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 1))) >= 10
   );
 }
 
@@ -176,9 +177,9 @@ function hasDruidCircleOfTheStarsCosmicOmenFeature(
   character: DruidCircleOfTheStarsDescriptionCharacter
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 6
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === "druid-circle-of-the-stars" &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 1))) >= 6
   );
 }
 

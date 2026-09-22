@@ -2,13 +2,26 @@
   gap: 1rem;
 }
 
-.section {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.sectionText {
+.intro,
+.sectionText,
+.steps {
   margin: 0;
   color: var(--theme-text-secondary);
   line-height: 1.55;
+}
+
+.intro,
+.steps strong {
+  color: var(--theme-text-primary);
+  font-weight: 700;
+}
+
+.steps {
+  display: grid;
+  gap: 0.85rem;
+  padding-inline-start: 1.4rem;
+}
+
+.steps li {
+  padding-inline-start: 0.2rem;
 }

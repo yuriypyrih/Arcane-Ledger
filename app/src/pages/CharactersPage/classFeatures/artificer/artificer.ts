@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../multiclass";
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
 import type {
   ClassFeatureDerivedState,
@@ -300,7 +301,7 @@ function getArtificerProjectedDerivedState(
 ): ClassFeatureDerivedState {
   return getArtificerClassFeatureDerivedState({
     ...character,
-    level: character.level ?? 0
+    level: getClassLevel(character, "Artificer") ?? 0
   } as Parameters<typeof getArtificerClassFeatureDerivedState>[0]);
 }
 
@@ -394,7 +395,7 @@ export function getSoulOfArtificeLifeAndDeathDescriptionAdditions(
   return getArtificerContributionDescriptionAdditions(
     {
       ...character,
-      level: character.level ?? 0
+      level: getClassLevel(character, "Artificer") ?? 0
     } as Parameters<typeof getArtificerContributionDescriptionAdditions>[0],
     "custom",
     artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey

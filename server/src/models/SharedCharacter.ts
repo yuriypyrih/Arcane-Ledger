@@ -8,7 +8,7 @@ export type SharedCharacterRecord = {
   link: string;
   sourceCharacterSheetId: Types.ObjectId;
   originalOwnerId: Types.ObjectId;
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
   expiresAt: Date;
@@ -89,7 +89,7 @@ const sharedCharacterSchema = new Schema<SharedCharacterRecord>(
     },
     schemaVersion: {
       type: Number,
-      enum: [2],
+      enum: [2, 3],
       default: 2,
       required: true
     },

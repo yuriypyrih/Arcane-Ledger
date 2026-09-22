@@ -13,6 +13,7 @@ import ActionButton from "../../../ActionButton";
 import { OverlayBody, OverlayFooter } from "../../../Overlay";
 import { DefaultCharacterPortraitIcon } from "../../CharacterPortrait";
 import CharacterImageCropControls from "./CharacterImageCropControls";
+import { useReadOnlySheet } from "../readOnlySheetContext";
 import styles from "./CharacterProfileForm.module.css";
 
 const defaultCropSettings: CharacterPortraitCropSettings = {
@@ -53,6 +54,7 @@ function CharacterPortraitPanel({
   portraitUrl,
   unavailableMessage
 }: CharacterPortraitPanelProps) {
+  const readOnly = useReadOnlySheet();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
@@ -69,7 +71,7 @@ function CharacterPortraitPanel({
       }%) rotate(${cropSettings.rotationDegrees}deg) scale(${previewScale})`
     };
   }, [cropSettings]);
-  const portraitNotice = !isUploadEnabled ? unavailableMessage : null;
+  const portraitNotice = !readOnly && !isUploadEnabled ? unavailableMessage : null;
 
   useEffect(
     () => () => {
@@ -81,6 +83,7 @@ function CharacterPortraitPanel({
   );
 
   function openFilePicker() {
+    if (readOnly || !isUploadEnabled) return;
     fileInputRef.current?.click();
   }
 
@@ -95,6 +98,7 @@ function CharacterPortraitPanel({
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    if (readOnly || !isUploadEnabled) return;
     const file = event.currentTarget.files?.[0] ?? null;
 
     event.currentTarget.value = "";
@@ -114,6 +118,7 @@ function CharacterPortraitPanel({
   }
 
   function updateCropSetting(key: keyof CharacterPortraitCropSettings, value: string) {
+    if (readOnly) return;
     const numericValue = Number(value);
 
     setCropSettings((current) => ({
@@ -123,7 +128,7 @@ function CharacterPortraitPanel({
   }
 
   async function savePendingCrop() {
-    if (!pendingFile) {
+    if (readOnly || !isUploadEnabled || !pendingFile) {
       return;
     }
 
@@ -136,6 +141,7 @@ function CharacterPortraitPanel({
   }
 
   function resetCropSettings() {
+    if (readOnly) return;
     setCropSettings(defaultCropSettings);
   }
 
@@ -168,7 +174,7 @@ function CharacterPortraitPanel({
             <DefaultCharacterPortraitIcon className={styles.portraitPreviewDefaultIcon} />
           )}
         </div>
-        {pendingPreviewUrl ? (
+        {!readOnly && pendingPreviewUrl ? (
           <CharacterImageCropControls
             cropSettings={cropSettings}
             label="Adjust portrait crop"
@@ -181,69 +187,73 @@ function CharacterPortraitPanel({
           </p>
         ) : null}
         {portraitNotice ? <p className={styles.portraitNotice}>{portraitNotice}</p> : null}
-        <input
-          ref={fileInputRef}
-          className={styles.portraitFileInput}
-          type="file"
-          accept="image/*"
-          disabled={!isAuthenticated || !isUploadEnabled}
-          onChange={handleFileChange}
-        />
+        {!readOnly ? (
+          <input
+            ref={fileInputRef}
+            className={styles.portraitFileInput}
+            type="file"
+            accept="image/*"
+            disabled={!isAuthenticated || !isUploadEnabled}
+            onChange={handleFileChange}
+          />
+        ) : null}
       </OverlayBody>
 
-      <OverlayFooter
-        className={[
-          styles.portraitModalFooter,
-          pendingPreviewUrl ? styles.portraitModalFooterEditing : ""
-        ]
-          .join(" ")
-          .trim()}
-      >
-        {pendingPreviewUrl ? (
-          <>
-            <ActionButton
-              fullWidth={false}
-              icon={<Save size={16} />}
-              loading={isSaving}
-              disabled={!isUploadEnabled}
-              onClick={() => void savePendingCrop()}
-            >
-              Save image
-            </ActionButton>
-            <ActionButton
-              fullWidth={false}
-              icon={<RotateCcw size={16} />}
-              variant="OUTLINE"
-              onClick={resetCropSettings}
-            >
-              Reset crop
-            </ActionButton>
-          </>
-        ) : isAuthenticated ? (
-          <>
-            <ActionButton
-              fullWidth={false}
-              icon={<Upload size={16} />}
-              loading={isSaving}
-              disabled={!isUploadEnabled}
-              onClick={openFilePicker}
-            >
-              Upload image
-            </ActionButton>
-            {isUploadEnabled && hasCustomPortrait ? (
+      {!readOnly ? (
+        <OverlayFooter
+          className={[
+            styles.portraitModalFooter,
+            pendingPreviewUrl ? styles.portraitModalFooterEditing : ""
+          ]
+            .join(" ")
+            .trim()}
+        >
+          {pendingPreviewUrl ? (
+            <>
               <ActionButton
-                actionType="ERROR"
+                fullWidth={false}
+                icon={<Save size={16} />}
+                loading={isSaving}
+                disabled={!isUploadEnabled}
+                onClick={() => void savePendingCrop()}
+              >
+                Save image
+              </ActionButton>
+              <ActionButton
                 fullWidth={false}
                 icon={<RotateCcw size={16} />}
                 variant="OUTLINE"
-                onClick={() => void onReset()}
+                onClick={resetCropSettings}
               >
-                Reset to default
+                Reset crop
               </ActionButton>
-            ) : null}
-          </>
-        ) : null}
-      </OverlayFooter>
+            </>
+          ) : isAuthenticated ? (
+            <>
+              <ActionButton
+                fullWidth={false}
+                icon={<Upload size={16} />}
+                loading={isSaving}
+                disabled={!isUploadEnabled}
+                onClick={openFilePicker}
+              >
+                Upload image
+              </ActionButton>
+              {isUploadEnabled && hasCustomPortrait ? (
+                <ActionButton
+                  actionType="ERROR"
+                  fullWidth={false}
+                  icon={<RotateCcw size={16} />}
+                  variant="OUTLINE"
+                  onClick={() => void onReset()}
+                >
+                  Reset to default
+                </ActionButton>
+              ) : null}
+            </>
+          ) : null}
+        </OverlayFooter>
+      ) : null}
     </>
   );
 }

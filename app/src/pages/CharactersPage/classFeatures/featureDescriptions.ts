@@ -1,3 +1,4 @@
+import { getCharacterClasses, getClassEditorCharacter } from "../multiclass";
 import {
   getClassEntryByName,
   type CLASS_FEATURE,
@@ -129,6 +130,20 @@ export function getFeatureDescriptionMetadataForCharacter(
   character: FeatureDescriptionCharacter,
   feature: CLASS_FEATURE
 ): FeatureDescriptionMetadata | null {
+  if (
+    (character as Partial<Character>).multiclass &&
+    !(character as Partial<Character>).classEntryId
+  )
+    return (
+      getCharacterClasses(character)
+        .map((entry) =>
+          getFeatureDescriptionMetadataForCharacter(
+            getClassEditorCharacter(character, entry),
+            feature
+          )
+        )
+        .find((value) => value?.description.length) ?? null
+    );
   return (
     getSubclassFeatureMetadata(character, feature) ?? getBaseFeatureMetadata(character, feature)
   );
@@ -138,6 +153,17 @@ export function getFeatureDescriptionForCharacter(
   character: FeatureDescriptionCharacter,
   feature: CLASS_FEATURE
 ): SpellDescriptionEntry[] {
+  if (
+    (character as Partial<Character>).multiclass &&
+    !(character as Partial<Character>).classEntryId
+  )
+    return (
+      getCharacterClasses(character)
+        .map((entry) =>
+          getFeatureDescriptionForCharacter(getClassEditorCharacter(character, entry), feature)
+        )
+        .find((value) => value.length) ?? []
+    );
   if (typeof character.className !== "string") {
     return [];
   }

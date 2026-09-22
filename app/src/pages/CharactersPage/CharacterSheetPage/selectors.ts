@@ -30,6 +30,7 @@ function createCharacterFieldsSelector(fields: CharacterField[], domains: Charac
       previousSelected &&
       previousSource.id === character.id &&
       domainRevisionsMatch &&
+      Object.is(previousSource.multiclass, character.multiclass) &&
       fields.every((field) => Object.is(previousSource?.[field], character[field]))
     ) {
       return previousSelected;

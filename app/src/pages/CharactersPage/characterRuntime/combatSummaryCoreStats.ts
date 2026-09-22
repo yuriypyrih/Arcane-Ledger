@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../codex/entries";
 import type { AbilityKey, Character, CoreStats } from "../../../types";
 import {
@@ -5,10 +6,7 @@ import {
   type ArmorClassBreakdown,
   type ArmorClassResolution
 } from "../armor";
-import {
-  getCoreStatIndicatorsForCharacter,
-  type FeatureIndicator
-} from "../classFeatures";
+import { getCoreStatIndicatorsForCharacter, type FeatureIndicator } from "../classFeatures";
 import { getArtificerCartographerPortalJumpSpeedDescriptionAdditions } from "../classFeatures/artificer/artificer";
 import { getInvestitureSpeedDescriptionAdditionsForCharacter } from "./spellImplementations/investitures";
 import { getFeatureDescriptionForCharacter } from "../classFeatures/featureDescriptions";
@@ -26,8 +24,7 @@ import { getSpeciesDescriptionAdditionsForCharacter } from "../species";
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
-  getHitDieLabelForCharacter,
-  getHitDieLabelForClass
+  getHitDicePools
 } from "../hitDice";
 import { getKeywordDescription } from "../keywordDescriptions";
 import { parseFormulaRange, formatSignedFormulaTerm } from "../shared/formulas";
@@ -318,10 +315,7 @@ export function formatInitiativeDisplayValue(
   return formatAbilityModifier(total);
 }
 
-export function formatInitiativeFormula(
-  total: number,
-  entries: InitiativeFormulaEntry[]
-): string {
+export function formatInitiativeFormula(total: number, entries: InitiativeFormulaEntry[]): string {
   const terms = entries.map(
     (entry) =>
       formatCustomTraitBonusFormulaTerm(entry) ??
@@ -386,7 +380,7 @@ export function createBaseCoreStatCards(
 ): CombatSummaryCoreStatCardsResult {
   const armorClassResolution = getArmorClassResolutionForCharacter(character);
   const armorClassBreakdown = armorClassResolution.activeFormula.breakdown;
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
   const hitDiceTotal = getHitDiceTotalForCharacter(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
@@ -400,11 +394,9 @@ export function createBaseCoreStatCards(
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
     proficiencyBonus: formatAbilityModifier(proficiencyBonus),
-    hitDice: getHitDieLabelForClass(
-      character.className,
-      character.customClass,
-      character.classRules
-    )
+    hitDice: getHitDicePools(character)
+      .map((pool) => pool.die.toUpperCase())
+      .join(" + ")
   };
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
@@ -515,8 +507,8 @@ function createProfileRows(
   const [armorClass, initiative, speed, passivePerception, proficiencyBonus, hitDice] = baseCards;
   const [seventhStat, eighthStat, ...remainingStats] = additionalCards;
   const rows: CombatSummaryCoreStatCard[][] = [
-    [armorClass, initiative, speed, seventhStat].filter(
-      (card): card is CombatSummaryCoreStatCard => Boolean(card)
+    [armorClass, initiative, speed, seventhStat].filter((card): card is CombatSummaryCoreStatCard =>
+      Boolean(card)
     ),
     [passivePerception, proficiencyBonus, hitDice, eighthStat].filter(
       (card): card is CombatSummaryCoreStatCard => Boolean(card)
@@ -536,11 +528,11 @@ function createProfileColumns(
 ): CombatSummaryCoreStatCard[][] {
   const [armorClass, initiative, speed, passivePerception, proficiencyBonus, hitDice] = baseCards;
   const columns: CombatSummaryCoreStatCard[][] = [
-    [armorClass, speed, passivePerception].filter(
-      (card): card is CombatSummaryCoreStatCard => Boolean(card)
+    [armorClass, speed, passivePerception].filter((card): card is CombatSummaryCoreStatCard =>
+      Boolean(card)
     ),
-    [initiative, proficiencyBonus, hitDice].filter(
-      (card): card is CombatSummaryCoreStatCard => Boolean(card)
+    [initiative, proficiencyBonus, hitDice].filter((card): card is CombatSummaryCoreStatCard =>
+      Boolean(card)
     )
   ];
 
@@ -614,7 +606,9 @@ export function createCoreStatReference(
   };
 }
 
-export function createCombatSummaryCoreStats(character: Character): CharacterCombatSummaryCoreStats {
+export function createCombatSummaryCoreStats(
+  character: Character
+): CharacterCombatSummaryCoreStats {
   const baseResult = createBaseCoreStatCards(character, profileCoreStatFields);
   const baseCards = baseResult.cards;
   const additionalCards = createAdditionalCoreStatCards(character);
@@ -631,7 +625,7 @@ export function createCombatSummaryCoreStats(character: Character): CharacterCom
     profileColumns: createProfileColumns(baseCards, additionalCards),
     broadProfileRows: createChunkedCoreStatRows([...baseCards, ...additionalCards], 2),
     armorClassDetailCards,
-    proficiencyBonus: getProficiencyBonus(character.level),
+    proficiencyBonus: getProficiencyBonus(getCharacterLevel(character)),
     passivePerception: getPassivePerceptionForCharacter(character),
     speed: getSpeedForCharacter(character),
     speedBreakdown,
@@ -641,7 +635,9 @@ export function createCombatSummaryCoreStats(character: Character): CharacterCom
     hitDiceSummary: {
       remaining: getHitDiceRemainingForCharacter(character),
       total: getHitDiceTotalForCharacter(character),
-      label: getHitDieLabelForCharacter(character)
+      label: getHitDicePools(character)
+        .map((pool) => pool.die.toUpperCase())
+        .join(" + ")
     },
     getReferenceForCard: (card) => createCoreStatReference(character, card)
   };

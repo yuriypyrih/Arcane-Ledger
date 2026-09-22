@@ -373,6 +373,11 @@
   background: var(--theme-control-subtle-hover);
 }
 
+.multiclassHelpButton:focus-visible {
+  outline: 2px solid var(--theme-accent-strong);
+  outline-offset: 3px;
+}
+
 .field {
   display: grid;
   gap: 0.45rem;

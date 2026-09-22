@@ -1,3 +1,4 @@
+import SheetReferenceButton from "../SheetReferenceButton";
 import type { CSSProperties } from "react";
 import { ChessRook, Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
 import CollaborationIcon from "../../../../assets/svg/collaboration.svg";
@@ -88,7 +89,7 @@ function CreatureCard({
 
   return (
     <SheetSurface as="article" borderSize="lg" hasBorder hoverBorder className={styles.card}>
-      <button
+      <SheetReferenceButton
         type="button"
         className={styles.portraitButton}
         onClick={onInspect}
@@ -100,10 +101,10 @@ function CreatureCard({
             style={getCreatureIconStyle(predisposition)}
           />
         </span>
-      </button>
+      </SheetReferenceButton>
 
       <span className={styles.main}>
-        <button
+        <SheetReferenceButton
           type="button"
           className={styles.inspectButton}
           onClick={onInspect}
@@ -131,10 +132,10 @@ function CreatureCard({
               {isModified ? <span className={styles.moddedTag}>Modded</span> : null}
             </span>
           </span>
-        </button>
+        </SheetReferenceButton>
 
         <span className={styles.vitalsActionsRow}>
-          <button
+          <SheetReferenceButton
             type="button"
             className={styles.vitalsInspectButton}
             onClick={onInspect}
@@ -169,7 +170,7 @@ function CreatureCard({
               <span className={styles.vitalsDivider}>·</span>
               <span className={styles.status}>{statusLabel}</span>
             </span>
-          </button>
+          </SheetReferenceButton>
 
           <span className={styles.actions}>
             {onEditVisibility ? (

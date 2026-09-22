@@ -1,3 +1,11 @@
+import {
+  getCharacterClasses,
+  getClassEditorCharacter,
+  applyClassEditorChange,
+  getClassLevel,
+  getClassSubclassId,
+  hasCharacterClass
+} from "../multiclass";
 import { ACTION_TYPE, type SpellEntry } from "../../../codex/entries";
 import type { Character } from "../../../types";
 import {
@@ -154,16 +162,16 @@ function getAccessiblePoolCount(
 }
 
 function hasFighterExtraAttackPool(character: Pick<Character, "className" | "level">): boolean {
-  return character.className === "Fighter" && character.level >= 5;
+  return getClassLevel(character, "Fighter") >= 5;
 }
 
 function hasFighterWarMagic(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === eldritchKnightSubclassId &&
-    character.level >= 7
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === eldritchKnightSubclassId &&
+    getClassLevel(character, "Fighter") >= 7
   );
 }
 
@@ -175,7 +183,7 @@ function hasStandardExtraAttackPool(
   character: Pick<Character, "className" | "level">,
   className: Character["className"]
 ): boolean {
-  return character.className === className && character.level >= 5;
+  return getClassLevel(character, className) >= 5;
 }
 
 function createAttackAccessRule(): FeatureEconomyMultiAccessRule {
@@ -310,7 +318,10 @@ function createBardValorExtraAttackPool(
 }
 
 function consumeBardPoolRemaining(character: SharedEconomyMultiCharacter): number {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfValorSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfValorSubclassId
+  ) {
     return 0;
   }
 
@@ -418,7 +429,10 @@ function createCustomClassExtraAttackPool(
 function createWarlockPactBladeExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
-  if (character.className !== "Warlock" || !hasWarlockPactBladeExtraAttackFeature(character)) {
+  if (
+    !hasCharacterClass(character, "Warlock") ||
+    !hasWarlockPactBladeExtraAttackFeature(character)
+  ) {
     return null;
   }
 
@@ -442,9 +456,9 @@ function createWizardBladesingerExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
   if (
-    character.className !== "Wizard" ||
-    character.subclassId !== "wizard-bladesinger" ||
-    character.level < 6
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== "wizard-bladesinger" ||
+    getClassLevel(character, "Wizard") < 6
   ) {
     return null;
   }
@@ -521,12 +535,7 @@ function createSpellExtraAttackPool(
         };
       }
 
-      if (
-        getRoundTrackerSpellExtraAttackUses(
-          nextCharacter.roundTracker,
-          options.spellId
-        ) >= 1
-      ) {
+      if (getRoundTrackerSpellExtraAttackUses(nextCharacter.roundTracker, options.spellId) >= 1) {
         return nextCharacter;
       }
 
@@ -564,6 +573,31 @@ function createTensersTransformationExtraAttackPool(
 function getSharedEconomyMultiPools(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool[] {
+  if ((character as Character).multiclass && !(character as Character).classEntryId) {
+    const pools = getCharacterClasses(character).flatMap((entry) => {
+      const view = getClassEditorCharacter(character, entry);
+      // Resolve only this class's attack alternatives; the persisted view still keeps total level.
+      return getSharedEconomyMultiPools({ ...view, multiclass: undefined } as Character)
+        .filter(
+          (pool) =>
+            ![
+              "tashas-otherworldly-guise-extra-attack",
+              "tensers-transformation-extra-attack"
+            ].includes(pool.id)
+        )
+        .map((pool) => ({
+          ...pool,
+          id: entry.className === "Custom" ? `${entry.id}:${pool.id}` : pool.id,
+          consume: (next: Character, context: EconomyMultiActionContext) =>
+            applyClassEditorChange(next, entry.id, (scoped) => pool.consume(scoped, context))
+        }));
+    });
+    const spellPools = [
+      createTashasOtherworldlyGuiseExtraAttackPool(character),
+      createTensersTransformationExtraAttackPool(character)
+    ].filter((pool): pool is SharedEconomyMultiPool => pool !== null);
+    return [...pools, ...spellPools].sort((left, right) => left.priority - right.priority);
+  }
   const hasCustomExtraAttackOverride = getCharacterClassRulesExtraAttackCount(character) > 0;
   const pools = [
     hasCustomExtraAttackOverride ? null : createFighterExtraAttackPool(character),
@@ -681,9 +715,20 @@ export function getSharedEconomyMultiCountForCharacterAction(
     return 0;
   }
 
-  return getSharedEconomyMultiPools(character).reduce(
-    (total, pool) => total + getAccessiblePoolCount(pool, context),
-    0
+  const pools = getSharedEconomyMultiPools(character);
+  if (!(character as Character).multiclass)
+    return pools.reduce((total, pool) => total + getAccessiblePoolCount(pool, context), 0);
+  // Extra Attack features offer alternatives for one Attack action; they never add together.
+  return (
+    Math.max(
+      0,
+      ...pools
+        .filter((pool) => pool.id !== "fighter-action-surge")
+        .map((pool) => getAccessiblePoolCount(pool, context))
+    ) +
+    pools
+      .filter((pool) => pool.id === "fighter-action-surge")
+      .reduce((total, pool) => total + getAccessiblePoolCount(pool, context), 0)
   );
 }
 
@@ -701,5 +746,40 @@ export function consumeSharedEconomyMultiForCharacterAction(
     return character;
   }
 
-  return matchingPool.consume(character, context);
+  const result = matchingPool.consume(character, context);
+  if (!character.multiclass || matchingPool.id === "fighter-action-surge") return result;
+  // Keep each feature's attack counters in step, while retaining its own restrictions
+  // (Pact weapon, cantrip replacement, and so on). All see the same pre-action state.
+  let classFeatureState = { ...result.classFeatureState };
+  const classes = new Map(result.multiclass!.classes.map((entry) => [entry.id, entry]));
+  for (const pool of getSharedEconomyMultiPools(character)) {
+    if (pool.id === "fighter-action-surge" || pool === matchingPool) continue;
+    const consumptionContext = getFirstMatchingRule(pool, context)
+      ? context
+      : {
+          ...context,
+          actionCategory: ACTION_CATEGORY.ATTACK,
+          attackKind: "weapon" as const,
+          spellLevel: undefined
+        };
+    const consumed = pool.consume(character, consumptionContext);
+    for (const entry of consumed.multiclass?.classes ?? []) {
+      const previous = character.multiclass.classes.find((item) => item.id === entry.id);
+      if (entry.customFeatureState !== previous?.customFeatureState) classes.set(entry.id, entry);
+    }
+    classFeatureState = {
+      ...classFeatureState,
+      ...Object.fromEntries(
+        Object.entries(consumed.classFeatureState ?? {}).filter(
+          ([key, state]) =>
+            state !== character.classFeatureState?.[key as keyof typeof character.classFeatureState]
+        )
+      )
+    };
+  }
+  return {
+    ...result,
+    classFeatureState,
+    multiclass: { ...result.multiclass!, classes: [...classes.values()] }
+  };
 }

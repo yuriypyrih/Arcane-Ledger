@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   BODY_SIZE,
   DAMAGE_TYPE,
@@ -1533,7 +1534,7 @@ export function normalizeSpeciesStatusEntriesForCharacter(
 ): CharacterStatusEntry[] {
   let statusEntries = normalizeCharacterStatusEntries(character.statusEntries);
 
-  if (isAasimarSpecies(character.species) && character.level >= 3) {
+  if (isAasimarSpecies(character.species) && getCharacterLevel(character) >= 3) {
     statusEntries = statusEntries.map((entry) =>
       isAasimarCelestialRevelationStatusEntry(entry)
         ? normalizeAasimarCelestialRevelationStatusEntry(entry)
@@ -1545,7 +1546,7 @@ export function normalizeSpeciesStatusEntriesForCharacter(
     );
   }
 
-  if (isDragonbornSpecies(character.species) && character.level >= 5) {
+  if (isDragonbornSpecies(character.species) && getCharacterLevel(character) >= 5) {
     statusEntries = statusEntries.map((entry) =>
       isDragonbornDraconicFlightStatusEntry(entry)
         ? normalizeDragonbornDraconicFlightStatusEntry(entry)
@@ -1581,7 +1582,7 @@ export function normalizeSpeciesStatusEntriesForCharacter(
     statusEntries = statusEntries.filter((entry) => !isDwarfStonecunningStatusEntry(entry));
   }
 
-  if (isGoliathSpecies(character.species) && character.level >= 5) {
+  if (isGoliathSpecies(character.species) && getCharacterLevel(character) >= 5) {
     statusEntries = statusEntries.map((entry) =>
       isGoliathLargeFormStatusEntry(entry) ? normalizeGoliathLargeFormStatusEntry(entry) : entry
     );
@@ -1601,11 +1602,11 @@ export function normalizeSpeciesStatusEntriesForCharacter(
 }
 
 export function getAasimarHealingHandsFormula(character: Pick<Character, "level">): string {
-  return `${getSpeciesProficiencyBonus(character.level)}d4`;
+  return `${getSpeciesProficiencyBonus(getCharacterLevel(character))}d4`;
 }
 
 function getAasimarHealingHandsFormulaFact(character: Pick<Character, "level">): FeatureActionFact {
-  const proficiencyBonus = getSpeciesProficiencyBonus(character.level);
+  const proficiencyBonus = getSpeciesProficiencyBonus(getCharacterLevel(character));
   const formula = getAasimarHealingHandsFormula(character);
   const formulaCell = formatFormulaCell({
     formula,
@@ -1683,7 +1684,9 @@ export function restoreAasimarHealingHandsOnLongRest(character: Character): Char
 export function getAasimarCelestialRevelationUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
-  return character.species && isAasimarSpecies(character.species) && (character.level ?? 1) >= 3
+  return character.species &&
+    isAasimarSpecies(character.species) &&
+    (getCharacterLevel(character) ?? 1) >= 3
     ? aasimarCelestialRevelationUsesTotal
     : 0;
 }
@@ -1873,7 +1876,7 @@ function getAasimarFeatureContributionsForCharacter(
 
   const entry = getSpeciesEntry(character.species);
   const light = getSpellEntryById(aasimarLightCantripId);
-  const canCreateActions = typeof character.level === "number";
+  const canCreateActions = typeof getCharacterLevel(character) === "number";
   const hasHeavenlyWingsActive = normalizeCharacterStatusEntries(character.statusEntries).some(
     (statusEntry) => getAasimarCelestialRevelationStatusOptionKey(statusEntry) === "heavenly-wings"
   );
@@ -1904,7 +1907,7 @@ function getAasimarFeatureContributionsForCharacter(
       actions: canCreateActions
         ? [
             getAasimarHealingHandsAction(character as SpeciesFeatureRuntimeCharacter),
-            ...((character.level ?? 1) >= 3
+            ...((getCharacterLevel(character) ?? 1) >= 3
               ? [getAasimarCelestialRevelationAction(character as SpeciesFeatureRuntimeCharacter)]
               : [])
           ]

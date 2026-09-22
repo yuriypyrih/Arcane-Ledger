@@ -1,3 +1,4 @@
+import { withReadOnlySheet } from "../withReadOnlySheet";
 import clsx from "clsx";
 import { ArrowLeft, CircleCheck, CircleHelp, RefreshCw, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -449,7 +450,10 @@ function GameplayForm({
         </CharacterSheetSectionProfiler>
 
         <CharacterSheetSectionProfiler id="gameplay-actions">
-          <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <ActionsWidget
+            character={character}
+            onPersistCharacter={onPersistCharacter}
+          />
         </CharacterSheetSectionProfiler>
 
         <CharacterSheetSectionProfiler id="gameplay-traits-conditions">
@@ -485,4 +489,5 @@ function GameplayForm({
   );
 }
 
-export default GameplayForm;
+const GameplayFormSection = withReadOnlySheet(GameplayForm);
+export default GameplayFormSection;

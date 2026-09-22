@@ -1,3 +1,4 @@
+import { readMulticlass } from "./multiclass";
 import type {
   CharacterAvatarMetadata,
   CharacterBackgroundTextureMetadata,
@@ -59,7 +60,8 @@ function createCharacterSyncClientId() {
 }
 
 function normalizeCharacterSheetSyncStatus(value: unknown): CharacterSheetSyncStatus {
-  return typeof value === "string" && characterSheetSyncStatuses.has(value as CharacterSheetSyncStatus)
+  return typeof value === "string" &&
+    characterSheetSyncStatuses.has(value as CharacterSheetSyncStatus)
     ? (value as CharacterSheetSyncStatus)
     : "local-only";
 }
@@ -74,9 +76,7 @@ function normalizeIsoTimestamp(value: unknown): string | undefined {
   return Number.isNaN(Date.parse(timestamp)) ? undefined : timestamp;
 }
 
-export function normalizeCharacterSyncMetadata(
-  value: unknown
-): CharacterSyncMetadata | undefined {
+export function normalizeCharacterSyncMetadata(value: unknown): CharacterSyncMetadata | undefined {
   if (!isObjectRecord(value)) {
     return undefined;
   }
@@ -218,7 +218,8 @@ export function ensurePortableCharacterSheetSyncMetadata(
 ): PortableCharacterSheet {
   const existingSync = normalizeCharacterSyncMetadata(record.metadata?.sync);
   const ownerId = readString(options.ownerId) ?? existingSync?.ownerId;
-  const syncStatus = options.syncStatus ?? existingSync?.syncStatus ?? (ownerId ? "dirty" : "local-only");
+  const syncStatus =
+    options.syncStatus ?? existingSync?.syncStatus ?? (ownerId ? "dirty" : "local-only");
 
   return {
     ...record,
@@ -336,7 +337,8 @@ export function applyCloudSyncMetadataToPortableCharacterSheet(
       ...(record.metadata ?? {}),
       sheetSizeBytes: getRecordSheetSizeBytes(record) ?? 0,
       sync: {
-        clientId: readString(options.clientId) ?? existingSync?.clientId ?? createCharacterSyncClientId(),
+        clientId:
+          readString(options.clientId) ?? existingSync?.clientId ?? createCharacterSyncClientId(),
         ownerId: options.ownerId,
         remoteId: options.remoteId,
         localRevision: existingSync?.localRevision ?? 1,
@@ -477,12 +479,22 @@ function withSheetSizeMetadata(record: PortableCharacterSheet): PortableCharacte
 }
 
 export function isPortableCharacterSheet(value: unknown): value is PortableCharacterSheet {
+  const multiclass =
+    isObjectRecord(value) && isObjectRecord(value.progression)
+      ? readMulticlass(value.progression.multiclass)
+      : null;
   return (
     isObjectRecord(value) &&
-    value.schemaVersion === PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION &&
+    (value.schemaVersion === PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION ||
+      value.schemaVersion === 3) &&
     isObjectRecord(value.identity) &&
     isObjectRecord(value.origin) &&
     isObjectRecord(value.progression) &&
+    (value.schemaVersion === 3
+      ? Boolean(multiclass) &&
+        multiclass!.classes.reduce((total, entry) => total + entry.level, 0) ===
+          value.progression.level
+      : value.progression.multiclass === undefined) &&
     isObjectRecord(value.abilities) &&
     isObjectRecord(value.vitals) &&
     isObjectRecord(value.resources) &&
@@ -531,7 +543,7 @@ export function withPortableCharacterSheetLocalId(
 
 export function createPortableCharacterSheet(character: HydratedCharacter): PortableCharacterSheet {
   return withSheetSizeMetadata({
-    schemaVersion: PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION,
+    schemaVersion: character.multiclass ? 3 : PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION,
     identity: {
       localId: character.id,
       name: character.name,
@@ -547,6 +559,7 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
       backgroundNotes: character.backgroundNotes
     },
     progression: {
+      ...(character.multiclass ? { multiclass: character.multiclass } : {}),
       className: character.className,
       subclassId: character.subclassId,
       customSubclass: character.customSubclass,
@@ -643,9 +656,7 @@ export function createHydratedCharacterInputFromPortableSheet(
   record: PortableCharacterSheet
 ): Partial<HydratedCharacter> & { id: number } {
   const localId =
-    readNumber(record.identity.localId) ??
-    readNumber(record.summary.localId) ??
-    Number.NaN;
+    readNumber(record.identity.localId) ?? readNumber(record.summary.localId) ?? Number.NaN;
   const sheetSizeBytes = getRecordSheetSizeBytes(record) ?? getSerializedJsonSizeBytes(record);
 
   return {
@@ -656,6 +667,7 @@ export function createHydratedCharacterInputFromPortableSheet(
     speciesChoices: record.origin.speciesChoices,
     customSpecies: record.origin.customSpecies,
     speciesFeatureState: record.features.speciesFeatureState,
+    multiclass: record.progression.multiclass,
     className: record.progression.className ?? record.summary.className,
     subclassId: record.progression.subclassId ?? record.summary.subclassId ?? undefined,
     customSubclass: record.progression.customSubclass,

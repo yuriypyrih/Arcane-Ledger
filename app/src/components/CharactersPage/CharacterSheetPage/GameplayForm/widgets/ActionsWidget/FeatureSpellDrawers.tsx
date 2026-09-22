@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import CharacterSpellDrawer, {
   type CharacterSpellDrawerActionOptions
 } from "../../../SpellCastingForm/CharacterSpellDrawer";
@@ -45,6 +45,7 @@ type SpellSlotSelectOption = {
 };
 
 type FeatureSpellDrawersProps = {
+  slotPoolControl?: ReactNode;
   character: Character;
   isFixedSpellDrawerOpen: boolean;
   fixedSpellEntry: SpellEntry | null;
@@ -196,6 +197,7 @@ function getGoliathDamageDetailOverride(
 }
 
 function FeatureSpellDrawers({
+  slotPoolControl,
   character,
   isFixedSpellDrawerOpen,
   fixedSpellEntry,
@@ -352,6 +354,7 @@ function FeatureSpellDrawers({
     <>
       {isFixedSpellDrawerOpen && fixedSpellDisplay && fixedSpellExecute ? (
         <CharacterSpellDrawer
+          slotPoolControl={slotPoolControl}
           character={character}
           spell={fixedSpellDisplay}
           damageDetailOverride={fixedSpellDamageDetailOverride}
@@ -464,6 +467,7 @@ function FeatureSpellDrawers({
 
       {divineInterventionSpellDisplay && selectedFeatureAction ? (
         <CharacterSpellDrawer
+          slotPoolControl={slotPoolControl}
           character={character}
           spell={divineInterventionSpellDisplay}
           damageDetailOverride={divineInterventionDamageDetailOverride}
@@ -500,6 +504,7 @@ function FeatureSpellDrawers({
 
       {mysticArcanumSpellDisplay ? (
         <CharacterSpellDrawer
+          slotPoolControl={slotPoolControl}
           character={character}
           spell={mysticArcanumSpellDisplay}
           damageDetailOverride={mysticArcanumDamageDetailOverride}

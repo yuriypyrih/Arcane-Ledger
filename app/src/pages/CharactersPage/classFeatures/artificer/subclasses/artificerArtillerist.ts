@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { WEAPON_PROFICIENCY } from "../../../../../types";
 import type { Character } from "../../../../../types";
@@ -7,10 +8,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import {
-  getPreparedSpellIdsByLevel,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
   artificerEldritchCannonActionKey,
   artilleristSubclassId,
@@ -85,7 +83,7 @@ export function collectArtificerArtilleristContributions(
   const eldritchCannonAction = getArtificerEldritchCannonAction(character);
   const arcaneFirearmAction = getArtificerArcaneFirearmAction(character);
   const artilleristSpellIds = getPreparedSpellIdsByLevel(
-    character.level ?? 0,
+    getClassLevel(character, "Artificer") ?? 0,
     artilleristSpellIdsByLevel
   );
 
@@ -147,9 +145,7 @@ export function collectArtificerArtilleristContributions(
   ];
 }
 
-export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
     compileFeatureContributions(collectArtificerArtilleristContributions(character)),
     {

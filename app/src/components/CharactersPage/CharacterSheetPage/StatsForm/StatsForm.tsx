@@ -1,3 +1,5 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import { withReadOnlySheet } from "../withReadOnlySheet";
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -329,6 +331,7 @@ function CharacterStatsForm({
   className,
   onPersistCharacter
 }: CharacterStatsFormProps) {
+  const readOnly = useReadOnlySheet();
   const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
@@ -444,6 +447,7 @@ function CharacterStatsForm({
   }
 
   function openAbilityEditor() {
+    if (readOnly) return;
     syncAbilityDraftFromCharacter();
     setIsAbilityModalOpen(true);
   }
@@ -454,6 +458,7 @@ function CharacterStatsForm({
   }
 
   function saveAbilities() {
+    if (readOnly) return;
     const nextAbilities =
       abilitiesDraft.attributeMode === "pointBuy"
         ? normalizePointBuyAbilities(cloneAbilityScores(abilitiesDraft.abilities))
@@ -536,6 +541,7 @@ function CharacterStatsForm({
     minimumTotal?: number,
     minimumLabel?: string
   ) {
+    if (readOnly) return;
     const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
     const totalModifier = modifier + exhaustionPenalty;
     const rollFormula = formatD20Formula(totalModifier);
@@ -564,6 +570,7 @@ function CharacterStatsForm({
   }
 
   function changeMageSlayerGuardedMindSelection(checked: boolean) {
+    if (readOnly) return;
     if (!checked) {
       setIsMageSlayerGuardedMindSelected(false);
       return;
@@ -580,6 +587,7 @@ function CharacterStatsForm({
   }
 
   function rollSavingThrowReference() {
+    if (readOnly) return;
     const saveRoll = resolvedSelectedStatReference?.rollActions?.save;
 
     if (!saveRoll) {
@@ -845,16 +853,18 @@ function CharacterStatsForm({
         {renderAbilitySavingThrowsSection()}
       </div>
 
-      <AbilityScoresModal
-        isOpen={isAbilityModalOpen}
-        draft={abilitiesDraft}
-        pointBuyRemaining={pointBuyRemaining}
-        canSave={canSaveAbilityDraft}
-        onClose={cancelAbilityEditing}
-        onSave={saveAbilities}
-        onSetAttributeMode={setAbilityDraftMode}
-        onUpdateAbilityScore={updateAbilityScore}
-      />
+      {!readOnly ? (
+        <AbilityScoresModal
+          isOpen={isAbilityModalOpen}
+          draft={abilitiesDraft}
+          pointBuyRemaining={pointBuyRemaining}
+          canSave={canSaveAbilityDraft}
+          onClose={cancelAbilityEditing}
+          onSave={saveAbilities}
+          onSetAttributeMode={setAbilityDraftMode}
+          onUpdateAbilityScore={updateAbilityScore}
+        />
+      ) : null}
 
       {isGuideOpen ? <CharacterStatsGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
 
@@ -895,9 +905,10 @@ function CharacterStatsForm({
           onClose={closeSelectedStatReference}
         />
       ) : null}
-      {diceRollerPopup}
+      {!readOnly && diceRollerPopup}
     </article>
   );
 }
 
-export default CharacterStatsForm;
+const CharacterStatsFormSection = withReadOnlySheet(CharacterStatsForm);
+export default CharacterStatsFormSection;

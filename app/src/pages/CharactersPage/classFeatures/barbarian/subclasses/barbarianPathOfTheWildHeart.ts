@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { DAMAGE_TYPE, TRACKER, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   EFFECT_NAME,
@@ -141,9 +142,9 @@ const wildHeartAspectDefinitions = [
 
 export function isBarbarianPathOfTheWildHeart(character: BarbarianSubclassCharacter): boolean {
   return (
-    character.className === "Barbarian" &&
-    character.subclassId === pathOfTheWildHeartSubclassId &&
-    character.level >= 3
+    hasCharacterClass(character, "Barbarian") &&
+    getClassSubclassId(character, "Barbarian") === pathOfTheWildHeartSubclassId &&
+    getClassLevel(character, "Barbarian") >= 3
   );
 }
 
@@ -156,13 +157,13 @@ export function hasBarbarianPathOfTheWildHeartRageOfTheWilds(
 export function hasBarbarianPathOfTheWildHeartAspectOfTheWilds(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheWildHeart(character) && character.level >= 6;
+  return isBarbarianPathOfTheWildHeart(character) && getClassLevel(character, "Barbarian") >= 6;
 }
 
 export function hasBarbarianPathOfTheWildHeartPowerOfTheWilds(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheWildHeart(character) && character.level >= 14;
+  return isBarbarianPathOfTheWildHeart(character) && getClassLevel(character, "Barbarian") >= 14;
 }
 
 export function normalizeBarbarianPathOfTheWildHeartRageOption(
@@ -186,7 +187,10 @@ export function normalizeBarbarianPathOfTheWildHeartPowerOption(
 export function normalizeBarbarianPathOfTheWildHeartRageState(
   value: Partial<CharacterRageFeatureState>,
   character: BarbarianSubclassCharacter
-): Pick<CharacterRageFeatureState, "wildHeartRageOption" | "wildHeartPowerOption" | "wildHeartAspect"> {
+): Pick<
+  CharacterRageFeatureState,
+  "wildHeartRageOption" | "wildHeartPowerOption" | "wildHeartAspect"
+> {
   return {
     wildHeartRageOption: hasBarbarianPathOfTheWildHeartRageOfTheWilds(character)
       ? normalizeBarbarianPathOfTheWildHeartRageOption(value.wildHeartRageOption)
@@ -534,12 +538,10 @@ export function getBarbarianPathOfTheWildHeartActivationSelection(
   character: BarbarianSubclassCharacter,
   rageOptionKey: string,
   powerOptionKey?: string
-):
-  | {
-      rageOption: WildHeartRageOption;
-      powerOption?: WildHeartPowerOption;
-    }
-  | null {
+): {
+  rageOption: WildHeartRageOption;
+  powerOption?: WildHeartPowerOption;
+} | null {
   if (!hasBarbarianPathOfTheWildHeartRageOfTheWilds(character)) {
     return null;
   }
@@ -565,7 +567,7 @@ function getWildHeartRageOptionDescriptionEntries(
 
   const definition =
     sourceId === rageOfTheWildsBearStatusSourceId
-      ? wildHeartRageOptionDefinitions.find((option) => option.key === "bear") ?? null
+      ? (wildHeartRageOptionDefinitions.find((option) => option.key === "bear") ?? null)
       : sourceId.startsWith(`${rageOfTheWildsEffectSourceId}-`)
         ? (wildHeartRageOptionDefinitions.find(
             (option) => option.key === sourceId.slice(`${rageOfTheWildsEffectSourceId}-`.length)
@@ -622,7 +624,7 @@ function getAnimalSpeakerSpellIds(): string[] {
 }
 
 function getNatureSpeakerSpellIds(character: Partial<Pick<Character, "level">>): string[] {
-  return (character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [];
+  return (getClassLevel(character, "Barbarian") ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [];
 }
 
 function getWildHeartDerivedConditionsBySource(
@@ -631,11 +633,9 @@ function getWildHeartDerivedConditionsBySource(
   isRaging: boolean,
   source: "Rage of the Wilds" | "Aspect of the Wilds" | "Power of the Wilds"
 ): DerivedFeatureStatusEntry[] {
-  return getBarbarianPathOfTheWildHeartDerivedConditions(
-    character,
-    rageState,
-    isRaging
-  ).filter((entry) => entry.source === source);
+  return getBarbarianPathOfTheWildHeartDerivedConditions(character, rageState, isRaging).filter(
+    (entry) => entry.source === source
+  );
 }
 
 function getWildHeartAspectSpeedBonuses(
@@ -644,12 +644,9 @@ function getWildHeartAspectSpeedBonuses(
   context: SpeedFeatureContext,
   isRaging: boolean
 ): FeatureSpeedBonus[] {
-  return getBarbarianPathOfTheWildHeartSpeedBonuses(
-    character,
-    rageState,
-    context,
-    isRaging
-  ).filter((entry) => entry.label === "Panther" || entry.label === "Salmon");
+  return getBarbarianPathOfTheWildHeartSpeedBonuses(character, rageState, context, isRaging).filter(
+    (entry) => entry.label === "Panther" || entry.label === "Salmon"
+  );
 }
 
 function getWildHeartPowerSpeedBonuses(
@@ -658,28 +655,25 @@ function getWildHeartPowerSpeedBonuses(
   context: SpeedFeatureContext,
   isRaging: boolean
 ): FeatureSpeedBonus[] {
-  return getBarbarianPathOfTheWildHeartSpeedBonuses(
-    character,
-    rageState,
-    context,
-    isRaging
-  ).filter((entry) => entry.label === "Falcon");
+  return getBarbarianPathOfTheWildHeartSpeedBonuses(character, rageState, context, isRaging).filter(
+    (entry) => entry.label === "Falcon"
+  );
 }
 
 export function collectBarbarianPathOfTheWildHeartContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Barbarian" ||
-    character.subclassId !== pathOfTheWildHeartSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Barbarian") ||
+    getClassSubclassId(character, "Barbarian") !== pathOfTheWildHeartSubclassId ||
+    (getClassLevel(character, "Barbarian") ?? 0) < 3
   ) {
     return [];
   }
 
   const runtimeCharacter = {
     ...character,
-    level: character.level ?? 0
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
   const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
   const isRaging = isBarbarianSubclassContributionRaging(runtimeCharacter, rageState);

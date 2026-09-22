@@ -1,3 +1,4 @@
+import { isSpellFromClass, hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type { Character } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,
@@ -105,72 +106,74 @@ export {
 export function getSorcererSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return {};
   }
 
-  return sorcererSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return (
+    sorcererSubclassRuntimeRegistry[getClassSubclassId(character, "Sorcerer")]?.(character) ?? {}
+  );
 }
 
 export function activateSorcererSubclassFeatureAction(
   character: Character,
   actionKey: string
 ): Character | null {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return null;
   }
 
   if (
-    character.subclassId === aberrantSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
     actionKey === sorcererTelepathicSpeechActionKey
   ) {
     return activateSorcererAberrantTelepathicSpeech(character);
   }
 
   if (
-    character.subclassId === aberrantSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
     actionKey === sorcererWarpingImplosionActionKey
   ) {
     return activateSorcererAberrantWarpingImplosion(character);
   }
 
   if (
-    character.subclassId === draconicSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId &&
     actionKey === sorcererDragonWingsActionKey
   ) {
     return activateSorcererDragonWings(character);
   }
 
   if (
-    character.subclassId === clockworkSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
     actionKey === sorcererTranceOfOrderActionKey
   ) {
     return activateSorcererClockworkTranceOfOrder(character);
   }
 
   if (
-    character.subclassId === clockworkSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
     actionKey === sorcererClockworkCavalcadeActionKey
   ) {
     return activateSorcererClockworkCavalcade(character);
   }
 
   if (
-    character.subclassId === spellfireSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId &&
     actionKey === sorcererSpellfireBurstActionKey
   ) {
     return activateSorcererSpellfireBurst(character);
   }
 
   if (
-    character.subclassId === wildMagicSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
     actionKey === sorcererWildMagicSurgeActionKey
   ) {
     return activateSorcererWildMagicSurge(character);
   }
 
   if (
-    character.subclassId === wildMagicSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
     actionKey === sorcererTidesOfChaosActionKey
   ) {
     return activateSorcererWildMagicTidesOfChaos(character);
@@ -184,12 +187,12 @@ export function activateSorcererSubclassFeatureActionOptions(
   actionKey: string,
   optionKeys: string[]
 ): Character | null {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return null;
   }
 
   if (
-    character.subclassId === aberrantSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
     actionKey === sorcererRevelationInFleshActionKey
   ) {
     return activateSorcererAberrantRevelationInFlesh(character, optionKeys);
@@ -203,12 +206,12 @@ export function activateSorcererSubclassFeatureActionOption(
   actionKey: string,
   optionKey: string
 ): Character | null {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return null;
   }
 
   if (
-    character.subclassId === clockworkSorcerySubclassId &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
     actionKey === sorcererBastionOfLawActionKey
   ) {
     return activateSorcererClockworkBastionOfLaw(character, optionKey);
@@ -221,11 +224,11 @@ export function canUseSorcererSubclassPsionicSorceryForSpell(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   spellId: string
 ): boolean {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return false;
   }
 
-  return character.subclassId === aberrantSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId
     ? canUseSorcererAberrantPsionicSorceryForSpell(character, spellId)
     : false;
 }
@@ -233,11 +236,11 @@ export function canUseSorcererSubclassPsionicSorceryForSpell(
 export function getSorcererSubclassWarpingImplosionUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === aberrantSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId
     ? getSorcererAberrantWarpingImplosionUsesTotal(character)
     : 0;
 }
@@ -245,7 +248,8 @@ export function getSorcererSubclassWarpingImplosionUsesTotal(
 export function hasSorcererSubclassSpellfireBurstFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
-  return character.className === "Sorcerer" && character.subclassId === spellfireSorcerySubclassId
+  return hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId
     ? hasSorcererSpellfireBurstFeatureForCharacter(character)
     : false;
 }
@@ -253,7 +257,8 @@ export function hasSorcererSubclassSpellfireBurstFeature(
 export function hasSorcererSubclassWildMagicSurgeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
-  return character.className === "Sorcerer" && character.subclassId === wildMagicSorcerySubclassId
+  return hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? hasSorcererWildMagicSurgeFeatureForCharacter(character)
     : false;
 }
@@ -261,11 +266,11 @@ export function hasSorcererSubclassWildMagicSurgeFeature(
 export function getSorcererSubclassTranceOfOrderUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === clockworkSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId
     ? getSorcererClockworkTranceOfOrderUsesTotal(character)
     : 0;
 }
@@ -273,11 +278,11 @@ export function getSorcererSubclassTranceOfOrderUsesTotal(
 export function getSorcererSubclassClockworkCavalcadeUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === clockworkSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId
     ? getSorcererClockworkCavalcadeUsesTotal(character)
     : 0;
 }
@@ -285,11 +290,11 @@ export function getSorcererSubclassClockworkCavalcadeUsesTotal(
 export function getSorcererSubclassDragonWingsUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === draconicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId
     ? getSorcererDraconicDragonWingsUsesTotal(character)
     : 0;
 }
@@ -297,11 +302,11 @@ export function getSorcererSubclassDragonWingsUsesTotal(
 export function getSorcererSubclassDragonCompanionUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === draconicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId
     ? getSorcererDraconicDragonCompanionUsesTotal(character)
     : 0;
 }
@@ -310,11 +315,11 @@ export function getSorcererSubclassDragonCompanionUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === draconicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId
     ? getSorcererDraconicDragonCompanionUsesRemaining(character)
     : 0;
 }
@@ -323,11 +328,11 @@ export function canUseSorcererSubclassDragonCompanionForSpell(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   spellId: string
 ): boolean {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return false;
   }
 
-  return character.subclassId === draconicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId
     ? canUseSorcererDraconicDragonCompanionForSpell(character, spellId)
     : false;
 }
@@ -335,11 +340,11 @@ export function canUseSorcererSubclassDragonCompanionForSpell(
 export function consumeSorcererSubclassDragonCompanionUseForCharacter(
   character: Character
 ): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  return character.subclassId === draconicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId
     ? consumeSorcererDragonCompanionUse(character)
     : character;
 }
@@ -347,11 +352,11 @@ export function consumeSorcererSubclassDragonCompanionUseForCharacter(
 export function getSorcererSubclassCrownOfSpellfireUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === spellfireSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId
     ? getSorcererSpellfireCrownOfSpellfireUsesTotal(character)
     : 0;
 }
@@ -360,11 +365,11 @@ export function getSorcererSubclassCrownOfSpellfireUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === spellfireSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId
     ? getSorcererSpellfireCrownOfSpellfireUsesRemaining(character)
     : 0;
 }
@@ -372,11 +377,11 @@ export function getSorcererSubclassCrownOfSpellfireUsesRemaining(
 export function getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === spellfireSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId
     ? getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCost(character)
     : 0;
 }
@@ -384,11 +389,11 @@ export function getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(
 export function getSorcererSubclassTidesOfChaosUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? getSorcererWildMagicTidesOfChaosUsesTotal(character)
     : 0;
 }
@@ -396,11 +401,11 @@ export function getSorcererSubclassTidesOfChaosUsesTotal(
 export function getSorcererSubclassTamedSurgeUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? getSorcererWildMagicTamedSurgeUsesTotal(character)
     : 0;
 }
@@ -409,11 +414,11 @@ export function getSorcererSubclassTamedSurgeUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? getSorcererWildMagicTamedSurgeUsesRemaining(character)
     : 0;
 }
@@ -422,21 +427,21 @@ export function canUseSorcererSubclassTamedSurgeForSpell(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   spell: Parameters<typeof canUseSorcererWildMagicTamedSurgeForSpell>[1]
 ): boolean {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return false;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? canUseSorcererWildMagicTamedSurgeForSpell(character, spell)
     : false;
 }
 
 export function consumeSorcererSubclassTamedSurgeUseForCharacter(character: Character): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? consumeSorcererWildMagicTamedSurgeUse(character)
     : character;
 }
@@ -450,11 +455,11 @@ export function getSorcererSubclassRestoreBalanceUsesTotal(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "abilities" | "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === clockworkSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId
     ? getSorcererClockworkRestoreBalanceUsesTotal(character)
     : 0;
 }
@@ -463,71 +468,76 @@ export function getSorcererSubclassRestoreBalanceUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
 ): number {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return 0;
   }
 
-  return character.subclassId === clockworkSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId
     ? getSorcererClockworkRestoreBalanceUsesRemaining(character)
     : 0;
 }
 
 export function consumeSorcererSubclassRestoreBalanceUse(character: Character): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  return character.subclassId === clockworkSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId
     ? consumeSorcererClockworkRestoreBalanceUse(character)
     : character;
 }
 
 export function restoreSorcererSubclassFeaturesOnLongRest(character: Character): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  if (character.subclassId === clockworkSorcerySubclassId) {
+  if (getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId) {
     return restoreSorcererClockworkFeaturesOnLongRest(character);
   }
 
-  if (character.subclassId === draconicSorcerySubclassId) {
+  if (getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId) {
     return restoreSorcererDragonCompanionOnLongRest(
       restoreSorcererDragonWingsOnLongRest(character)
     );
   }
 
-  return character.subclassId === aberrantSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId
     ? restoreSorcererAberrantWarpingImplosionOnLongRest(character)
-    : character.subclassId === spellfireSorcerySubclassId
+    : getClassSubclassId(character, "Sorcerer") === spellfireSorcerySubclassId
       ? restoreSorcererSpellfireCrownOfSpellfireOnLongRest(character)
-      : character.subclassId === wildMagicSorcerySubclassId
+      : getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
         ? restoreSorcererWildMagicFeaturesOnLongRest(character)
         : character;
 }
 
 export function restoreSorcererSubclassFeaturesOnSpellSlotCast(character: Character): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (character.multiclass && !isSpellFromClass(character, "Sorcerer")) return character;
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? restoreSorcererWildMagicTidesOfChaosOnSpellCast(character)
     : character;
 }
 
 export function restoreSorcererSubclassFeaturesOnSpellCast(character: Character): Character {
-  if (character.className !== "Sorcerer" || !character.subclassId) {
+  if (character.multiclass && !isSpellFromClass(character, "Sorcerer")) return character;
+  if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return character;
   }
 
-  return character.subclassId === wildMagicSorcerySubclassId
+  return getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId
     ? restoreSorcererWildMagicTidesOfChaosOnSpellCast(character)
     : character;
 }
 
 export function activateSorcererSubclassCrownOfSpellfire(character: Character): Character {
-  if (character.className !== "Sorcerer" || character.subclassId !== spellfireSorcerySubclassId) {
+  if (
+    !hasCharacterClass(character, "Sorcerer") ||
+    getClassSubclassId(character, "Sorcerer") !== spellfireSorcerySubclassId
+  ) {
     return character;
   }
 

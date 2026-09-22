@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
+import { hasCharacterClass, getCharacterLevel, getClassLevel } from "../../multiclass";
 import {
   getReactionEntryById,
   CLASS_FEATURE,
@@ -27,7 +29,7 @@ import {
   createNamedUsageHeaderTags
 } from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../spellSlots";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -82,11 +84,11 @@ const bardSourceMetadataSeparator = "::";
 type BardExpertiseTier = "level2" | "level9";
 
 function hasBardLevel2Expertise(character: Pick<Character, "className" | "level">): boolean {
-  return character.className === "Bard" && character.level >= 2;
+  return hasCharacterClass(character, "Bard") && getClassLevel(character, "Bard") >= 2;
 }
 
 function hasBardLevel9Expertise(character: Pick<Character, "className" | "level">): boolean {
-  return character.className === "Bard" && character.level >= 9;
+  return hasCharacterClass(character, "Bard") && getClassLevel(character, "Bard") >= 9;
 }
 
 function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
@@ -455,7 +457,7 @@ export function consumeBardWeaponAttack(
 ): Character {
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-  if (character.className !== "Bard") {
+  if (!hasCharacterClass(character, "Bard")) {
     return roundTrackerResource &&
       isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
       ? {
@@ -717,7 +719,9 @@ export function getBardSkillBonuses(
   return [
     {
       label: "Jack of All Trades",
-      value: Math.floor((Math.floor((Math.max(1, Math.min(20, character.level)) - 1) / 4) + 2) / 2)
+      value: Math.floor(
+        (Math.floor((Math.max(1, Math.min(20, getCharacterLevel(character))) - 1) / 4) + 2) / 2
+      )
     }
   ];
 }
@@ -807,7 +811,7 @@ function getBardSpellSlotAvailability(
   totalCount: number;
   lowestAvailableLevel: number | null;
 } {
-  const totals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const totals = getSheetSpellSlotTotals(character);
   const expended = normalizeSpellSlotsExpended(character.spellSlotsExpended, totals);
   const remaining = totals.map((total, index) => Math.max(0, total - (expended[index] ?? 0)));
   const remainingCount = remaining.reduce((sum, value) => sum + value, 0);

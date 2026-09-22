@@ -1,6 +1,9 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import { withReadOnlySheet } from "../withReadOnlySheet";
+import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import InputRequiredBadge from "../../../InputRequiredBadge";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
@@ -17,11 +20,7 @@ import {
   getSpellEntryById,
   type SpellEntry
 } from "../../../../codex/entries";
-import type {
-  Character,
-  CharacterCompanion,
-  CharacterCustomTraitEffect
-} from "../../../../types";
+import type { Character, CharacterCompanion, CharacterCustomTraitEffect } from "../../../../types";
 import {
   normalizeRoundTracker,
   shouldTrackRoundScopedResources,
@@ -236,6 +235,7 @@ import {
 type SpellCastingFormProps = {
   character: Character;
   className?: string;
+  sourceControls?: ReactNode;
   onPersistCharacter: PersistCharacterUpdater;
 };
 
@@ -274,7 +274,12 @@ const mistyStepSpellId = "spell-misty-step";
 const summonFeySpellId = "spell-summon-fey";
 const telekinesisSpellId = "spell-telekinesis";
 
-function SpellCastingForm({ character, className, onPersistCharacter }: SpellCastingFormProps) {
+function SpellCastingForm({
+  character,
+  className,
+  sourceControls,
+  onPersistCharacter
+}: SpellCastingFormProps) {
   const isCustomClass = isCustomClassName(character.className);
   const hasBuiltInSpellcastingRules = hasBuiltInSpellcastingForCharacter(
     character.className,
@@ -345,8 +350,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell
   ] = useState(false);
-  const [useDragonCompanionOnSelectedSpell, setUseDragonCompanionOnSelectedSpell] =
-    useState(false);
+  const [useDragonCompanionOnSelectedSpell, setUseDragonCompanionOnSelectedSpell] = useState(false);
   const [
     useDragonCompanionWithoutConcentrationOnSelectedSpell,
     setUseDragonCompanionWithoutConcentrationOnSelectedSpell
@@ -368,8 +372,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [activeSpellSlotSheetLevel, setActiveSpellSlotSheetLevel] = useState<number | null>(null);
   const [isSpellManagementModalOpen, setIsSpellManagementModalOpen] = useState(false);
   const [isSpellcastingGuideOpen, setIsSpellcastingGuideOpen] = useState(false);
+  const readOnly = useReadOnlySheet();
   const [activeWizardSpellFilter, setActiveWizardSpellFilter] =
-    useState<WizardSpellViewFilter>("prepared");
+    useState<WizardSpellViewFilter>(readOnly ? "all" : "prepared");
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
@@ -496,9 +501,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [closeSpellSlotActionSheet, spellcastingState.blocked]);
   const classSpellEntries = useMemo(
     () =>
-      hasClassSpellcasting
-        ? baseClassSpellEntries.map((spell) => transformSpellEntry(spell))
-        : [],
+      hasClassSpellcasting ? baseClassSpellEntries.map((spell) => transformSpellEntry(spell)) : [],
     [baseClassSpellEntries, hasClassSpellcasting, transformSpellEntry]
   );
   const preparedSpellPoolEntries = useMemo(
@@ -773,9 +776,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedManualSpellbookSpellIds = useMemo(
     () =>
       usesSpellbook
-        ? normalizeSpellbookSpellIds(character.spellbookSpellIds, allSpellPreparationOptions).filter(
-            (spellId) => !alwaysSpellbookSpellIdSet.has(spellId)
-          )
+        ? normalizeSpellbookSpellIds(
+            character.spellbookSpellIds,
+            allSpellPreparationOptions
+          ).filter((spellId) => !alwaysSpellbookSpellIdSet.has(spellId))
         : [],
     [
       allSpellPreparationOptions,
@@ -900,9 +904,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               spellbookSpellEntriesById.get(spellId) ?? knownSpellEntriesById.get(spellId)
           )
           .filter((spell): spell is SpellEntry => spell !== undefined)
-      : alwaysPreparedSpellEntries.length > 0
-        ? alwaysPreparedSpellEntries
-        : allSpellPreparationOptions;
+      : (alwaysPreparedSpellEntries.length > 0
+          ? alwaysPreparedSpellEntries
+          : allSpellPreparationOptions
+        ).filter((spell) => getSpellLevel(spell) > 0);
 
     return usesPreparedSpells
       ? preparedSpells.map((spell) =>
@@ -1351,8 +1356,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         )
       : null;
   const selectedSpellGoliathAncestryState =
-    selectedSpell?.isAttackSpell === true &&
-    !shouldSuppressSpellCastAttackRoll(selectedSpell)
+    selectedSpell?.isAttackSpell === true && !shouldSuppressSpellCastAttackRoll(selectedSpell)
       ? getGoliathAttackOptionStateForCharacter(character)
       : null;
   const selectedSpellSupportsGoliathAncestry = selectedSpellGoliathAncestryState !== null;
@@ -1422,8 +1426,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell) ||
     (selectedSpellSupportsEmeraldEnclaveFledgling &&
       useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
-    (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-      useTwoHeartsOneMindOnSelectedSpell) ||
+    (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind && useTwoHeartsOneMindOnSelectedSpell) ||
     (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
     (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
     (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
@@ -1476,12 +1479,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsEmeraldEnclaveFledgling &&
         useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
       useTwoHeartsOneMind:
-        selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-        useTwoHeartsOneMindOnSelectedSpell,
+        selectedSpellSupportsEnclaveMagicTwoHeartsOneMind && useTwoHeartsOneMindOnSelectedSpell,
       usePsionicSorcery: selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell,
       useStepsOfTheFey: selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell,
-      useBewitchingMagic:
-        selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell,
+      useBewitchingMagic: selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell,
       useMistyWanderer: selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell,
       useFeyReinforcements:
         selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell,
@@ -2034,13 +2035,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const updateSpellSlotsExpended = useCallback(
     (slotLevel: number, delta: number) => {
       onPersistCharacter((currentCharacter) => {
-        const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
-          currentCharacter.className,
-          currentCharacter.level,
-          currentCharacter.subclassId,
-          currentCharacter.customClass,
-          currentCharacter.classRules
-        );
+        const currentSpellSlotTotals = getSheetSpellSlotTotals(currentCharacter);
         const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
           currentSpellSlotTotals
@@ -2074,13 +2069,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const resetAllSpellSlotsAtLevel = useCallback(
     (slotLevel: number) => {
       onPersistCharacter((currentCharacter) => {
-        const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
-          currentCharacter.className,
-          currentCharacter.level,
-          currentCharacter.subclassId,
-          currentCharacter.customClass,
-          currentCharacter.classRules
-        );
+        const currentSpellSlotTotals = getSheetSpellSlotTotals(currentCharacter);
         const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
           currentSpellSlotTotals
@@ -2541,6 +2530,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       ? (spellSlotsExpended[activeSpellSlotSheetLevel - 1] ?? 0)
       : 0;
   return renderSpellCastingForm({
+    readOnly,
+    sourceControls,
     ActionButton,
     CharacterSpellDrawer,
     CircleHelp,
@@ -2817,4 +2808,5 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   });
 }
 
-export default SpellCastingForm;
+const SpellCastingFormSection = withReadOnlySheet(SpellCastingForm);
+export default SpellCastingFormSection;

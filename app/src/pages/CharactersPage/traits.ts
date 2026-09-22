@@ -1,4 +1,10 @@
 import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "./multiclass";
+import {
   barbarianFeatureMap,
   monkFeatureMap,
   paladinFeatureMap,
@@ -274,13 +280,13 @@ function getMonkElementalAttunementDescriptionContent(
   descriptionAdditions: SpellDescriptionEntry[][];
 } {
   const useCurrentSubclassLevel =
-    character?.className === "Monk" && character.subclassId === monkWarriorOfTheElementsSubclassId;
+    character && getClassSubclassId(character, "Monk") === monkWarriorOfTheElementsSubclassId;
   const hasStrideOfTheElements = useCurrentSubclassLevel
-    ? (character.level ?? 0) >= 11
+    ? getClassLevel(character!, "Monk") >= 11
     : entry.sourceId === monkElementalAttunementStrideStatusSourceId ||
       entry.sourceId === monkElementalAttunementEpitomeStatusSourceId;
   const hasElementalEpitome = useCurrentSubclassLevel
-    ? (character.level ?? 0) >= 17
+    ? getClassLevel(character!, "Monk") >= 17
     : entry.sourceId === monkElementalAttunementEpitomeStatusSourceId;
 
   return {
@@ -652,18 +658,18 @@ export function getEffectiveHitPointMaximumForCharacter(
     Partial<
       Pick<
         Character,
-        "customSpecies" | "feats" | "inventoryItems" | "level" | "species" | "subclassId"
+        "customSpecies" | "feats" | "inventoryItems" | "level" | "multiclass" | "species" | "subclassId"
       >
     >
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
   const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);
   const featHitPointMaximumBonus = getFeatHitPointMaximumBonusForCharacter({
-    level: character.level ?? 1,
+    level: getCharacterLevel(character),
     feats: character.feats
   });
   const speciesHitPointMaximumBonus = getDwarvenToughnessHitPointMaximumBonus({
-    level: character.level,
+    level: getCharacterLevel(character),
     species: character.species
   });
   const customEffectHitPointMaximumBonus = getCustomTraitActualMaxHitPointBonuses(
@@ -700,7 +706,7 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     CONDITION_NAME.INCAPACITATED
   );
   const shouldEndRageFromIncapacitated =
-    reconciledCharacter.className === "Barbarian" &&
+    hasCharacterClass(reconciledCharacter, "Barbarian") &&
     rageState?.active === true &&
     hasIncapacitated;
   const nextStatusEntries = hasIncapacitated
@@ -1306,7 +1312,8 @@ export function getStatusEntryDescriptionContent(
 } {
   if (
     entry.sourceId === paladinOathOfDevotionSacredWeaponStatusSourceId &&
-    character?.className === "Paladin"
+    character &&
+    hasCharacterClass(character, "Paladin")
   ) {
     const descriptionEntries = getFeatureDescriptionForCharacter(
       character,
@@ -1323,7 +1330,8 @@ export function getStatusEntryDescriptionContent(
 
   if (
     entry.sourceId === paladinOathOfVengeanceVowOfEnmityStatusSourceId &&
-    character?.className === "Paladin"
+    character &&
+    hasCharacterClass(character, "Paladin")
   ) {
     const descriptionEntries = getFeatureDescriptionForCharacter(
       character,
@@ -1338,7 +1346,11 @@ export function getStatusEntryDescriptionContent(
     }
   }
 
-  if (entry.sourceId === paladinHolyNimbusStatusSourceId && character?.className === "Paladin") {
+  if (
+    entry.sourceId === paladinHolyNimbusStatusSourceId &&
+    character &&
+    hasCharacterClass(character, "Paladin")
+  ) {
     const descriptionEntries = getFeatureDescriptionForCharacter(
       character,
       CLASS_FEATURE.HOLY_NIMBUS
@@ -1495,7 +1507,8 @@ export function getStatusEntryDescriptionContent(
   }
 
   if (
-    character?.className === "Paladin" &&
+    character &&
+    hasCharacterClass(character, "Paladin") &&
     (entry.sourceId === "feature-paladin-aura-of-protection" ||
       entry.sourceId === paladinAuraOfAlacrityProtectionStatusSourceId)
   ) {

@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
+import { getClassLevel } from "../../multiclass";
 import { druidFeatureMap } from "../../../../codex/classes";
 import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
 import type {
@@ -26,7 +28,7 @@ import {
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type { WeaponAction } from "../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../spellSlots";
 import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
 import { clampNumber } from "../../shared";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
@@ -185,7 +187,7 @@ function getWildShapeRulesForCharacter(
     return null;
   }
 
-  const baseRules = getWildShapeRulesForLevel(character.level);
+  const baseRules = getWildShapeRulesForLevel(getClassLevel(character, "Druid"));
 
   if (!baseRules) {
     return null;
@@ -197,7 +199,7 @@ function getWildShapeRulesForCharacter(
 function getDruidWildShapeTemporaryHitPoints(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
-  const normalizedLevel = Math.max(1, Math.floor(character.level));
+  const normalizedLevel = Math.max(1, Math.floor(getClassLevel(character, "Druid")));
 
   return moonSubclass.getDruidCircleOfTheMoonWildShapeTemporaryHitPoints(
     character,
@@ -256,7 +258,7 @@ function getDruidWildResurgenceDescription() {
 function getDruidSpellSlotsRemaining(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number[] {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -277,7 +279,9 @@ function getWildShapeKnownFormsForState(
         .filter((monster): monster is MonsterRecord => monster !== null)
         .filter(
           (monster, index, monsters) =>
-            monsters.findIndex((currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)) === index
+            monsters.findIndex(
+              (currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)
+            ) === index
         )
         .slice(0, knownFormLimit)
     : undefined;
@@ -317,7 +321,7 @@ export function normalizeDruidFeatureState(
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterDruidFeatureState>) : {};
   const wildShapeUsesTotal = wildShapeRules
-    ? Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0))
+    ? Math.max(0, Math.floor(getDruidFeatureRow(getClassLevel(character, "Druid"))?.wildShape ?? 0))
     : 0;
   const normalizedWildShapeKnownForms = wildShapeRules
     ? getWildShapeKnownFormsForState(record, wildShapeRules.knownForms)
@@ -606,7 +610,7 @@ export function getDruidNatureMagicianOptions(
     return [];
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -639,7 +643,9 @@ export function setDruidWildShapeKnownForms(
   const normalizedKnownForms = wildShapeKnownForms
     .filter(
       (monster, index, monsters) =>
-        monsters.findIndex((currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)) === index
+        monsters.findIndex(
+          (currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)
+        ) === index
     )
     .slice(0, wildShapeRules.knownForms);
 
@@ -864,7 +870,7 @@ export function activateDruidWildResurgenceWildShapeRecovery(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -895,7 +901,7 @@ export function activateDruidWildResurgenceLevelOneSpellSlotRecovery(
 ): Character {
   const usesRemaining = getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
   const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -952,7 +958,7 @@ export function activateDruidWildCompanion(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -1002,7 +1008,7 @@ export function activateDruidNatureMagician(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -1107,7 +1113,7 @@ export function getDruidDerivedStatusEntries(
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
         kind: STATUS_DURATION_KIND.HOURS,
-        amount: Math.max(1, Math.floor(character.level / 2))
+        amount: Math.max(1, Math.floor(getClassLevel(character, "Druid") / 2))
       },
       sourceId,
       rangeFeet: null
@@ -1182,7 +1188,7 @@ export function getDruidWildCompanionAction(
   const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
   const wildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const availableSpellSlotLevels = getDruidWildCompanionAvailableSpellSlotLevels(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotCount = spellSlotTotals.reduce((sum, value) => sum + value, 0);
   const remainingSpellSlotCount = getDruidSpellSlotsRemaining(character).reduce(
     (sum, value) => sum + value,
@@ -1270,7 +1276,7 @@ export function getDruidWildResurgenceAction(
     getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
   const spellSlotRecoveryUsesTotal = getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
   const availableSpellSlotLevels = getDruidWildResurgenceAvailableSpellSlotLevels(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsRemaining = getDruidSpellSlotsRemaining(character);
   const levelOneSlotTotal = spellSlotTotals[0] ?? 0;
   const levelOneSlotRemaining = spellSlotsRemaining[0] ?? 0;
@@ -1553,7 +1559,10 @@ export function getDruidWildCompanionSpellEntry(
   character: Pick<Character, "className" | "level">,
   spell: SpellEntry
 ): SpellEntry {
-  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION) || spell.id !== findFamiliarSpellId) {
+  if (
+    !hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION) ||
+    spell.id !== findFamiliarSpellId
+  ) {
     return spell;
   }
 

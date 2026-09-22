@@ -1,4 +1,10 @@
 import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CLASS_FEATURE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
@@ -62,9 +68,9 @@ function isBatteringRootsEligibleWeapon(context: BatteringRootsWeaponContext): b
 
 export function isBarbarianPathOfTheWorldTree(character: BarbarianSubclassCharacter): boolean {
   return (
-    character.className === "Barbarian" &&
-    character.subclassId === pathOfTheWorldTreeSubclassId &&
-    character.level >= 3
+    hasCharacterClass(character, "Barbarian") &&
+    getClassSubclassId(character, "Barbarian") === pathOfTheWorldTreeSubclassId &&
+    getClassLevel(character, "Barbarian") >= 3
   );
 }
 
@@ -77,19 +83,19 @@ export function hasBarbarianPathOfTheWorldTreeVitalityOfTheTree(
 export function hasBarbarianPathOfTheWorldTreeBatteringRoots(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheWorldTree(character) && character.level >= 10;
+  return isBarbarianPathOfTheWorldTree(character) && getClassLevel(character, "Barbarian") >= 10;
 }
 
 export function hasBarbarianPathOfTheWorldTreeTravelAlongTheTree(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheWorldTree(character) && character.level >= 14;
+  return isBarbarianPathOfTheWorldTree(character) && getClassLevel(character, "Barbarian") >= 14;
 }
 
 export function hasBarbarianPathOfTheWorldTreeBranchesOfTheTree(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheWorldTree(character) && character.level >= 6;
+  return isBarbarianPathOfTheWorldTree(character) && getClassLevel(character, "Barbarian") >= 6;
 }
 
 export function getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact(
@@ -100,7 +106,7 @@ export function getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact(
   }
 
   const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const dc = 8 + strengthModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -212,7 +218,7 @@ export function getBarbarianPathOfTheWorldTreeRageTemporaryHitPointsAssignment(
   const vitalityOfTheTreeTemporaryHitPoints = hasBarbarianPathOfTheWorldTreeVitalityOfTheTree(
     character
   )
-    ? Math.floor(Math.max(0, character.level))
+    ? Math.floor(Math.max(0, getClassLevel(character, "Barbarian")))
     : 0;
 
   if (vitalityOfTheTreeTemporaryHitPoints <= 0) {
@@ -249,15 +255,15 @@ export function collectBarbarianPathOfTheWorldTreeContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   const normalizedCharacter = {
-    className: character.className,
-    subclassId: character.subclassId,
-    level: character.level ?? 0
+    className: "Barbarian",
+    subclassId: getClassSubclassId(character, "Barbarian"),
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
 
   if (
-    normalizedCharacter.className !== "Barbarian" ||
-    normalizedCharacter.subclassId !== pathOfTheWorldTreeSubclassId ||
-    normalizedCharacter.level < 6
+    !hasCharacterClass(normalizedCharacter, "Barbarian") ||
+    getClassSubclassId(normalizedCharacter, "Barbarian") !== pathOfTheWorldTreeSubclassId ||
+    getClassLevel(normalizedCharacter, "Barbarian") < 6
   ) {
     return [];
   }
@@ -270,7 +276,7 @@ export function collectBarbarianPathOfTheWorldTreeContributions(
     : [];
   const runtimeCharacter = {
     ...character,
-    level: character.level ?? 0
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
   const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
   const rageUsesRemaining = getBarbarianSubclassContributionRageUsesRemaining(
@@ -315,11 +321,7 @@ export function collectBarbarianPathOfTheWorldTreeContributions(
         entryId: CLASS_FEATURE.TRAVEL_ALONG_THE_TREE
       }),
       actions: [
-        getBarbarianPathOfTheWorldTreeFeatureAction(
-          runtimeCharacter,
-          rageState,
-          rageUsesRemaining
-        )
+        getBarbarianPathOfTheWorldTreeFeatureAction(runtimeCharacter, rageState, rageUsesRemaining)
       ].filter((action): action is FeatureActionCard => action !== null)
     }
   ];

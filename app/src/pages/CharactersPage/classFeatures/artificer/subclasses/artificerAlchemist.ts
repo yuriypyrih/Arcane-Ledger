@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import {
@@ -62,7 +63,7 @@ export function collectArtificerAlchemistContributions(
         entryId: CLASS_FEATURE.ALCHEMIST_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Artificer") ?? 0,
         alchemistSpellIdsByLevel
       )
     },

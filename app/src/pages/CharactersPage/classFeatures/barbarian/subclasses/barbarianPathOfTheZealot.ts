@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import {
   EFFECT_NAME,
@@ -63,9 +64,9 @@ type BarbarianSubclassCharacter = Pick<Character, "className" | "level"> &
 
 export function isBarbarianPathOfTheZealot(character: BarbarianSubclassCharacter): boolean {
   return (
-    character.className === "Barbarian" &&
-    character.subclassId === pathOfTheZealotSubclassId &&
-    character.level >= 3
+    hasCharacterClass(character, "Barbarian") &&
+    getClassSubclassId(character, "Barbarian") === pathOfTheZealotSubclassId &&
+    getClassLevel(character, "Barbarian") >= 3
   );
 }
 
@@ -84,19 +85,19 @@ export function hasBarbarianPathOfTheZealotWarriorOfTheGods(
 export function hasBarbarianPathOfTheZealotFanaticalFocus(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheZealot(character) && character.level >= 6;
+  return isBarbarianPathOfTheZealot(character) && getClassLevel(character, "Barbarian") >= 6;
 }
 
 export function hasBarbarianPathOfTheZealotRageOfTheGods(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheZealot(character) && character.level >= 14;
+  return isBarbarianPathOfTheZealot(character) && getClassLevel(character, "Barbarian") >= 14;
 }
 
 export function hasBarbarianPathOfTheZealotZealousPresence(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheZealot(character) && character.level >= 10;
+  return isBarbarianPathOfTheZealot(character) && getClassLevel(character, "Barbarian") >= 10;
 }
 
 export function hasBarbarianPathOfTheZealotRageOfTheGodsTrait(
@@ -165,15 +166,15 @@ export function getBarbarianPathOfTheZealotWarriorOfTheGodsUsesTotal(
     return 0;
   }
 
-  if (character.level >= 17) {
+  if (getClassLevel(character, "Barbarian") >= 17) {
     return 7;
   }
 
-  if (character.level >= 12) {
+  if (getClassLevel(character, "Barbarian") >= 12) {
     return 6;
   }
 
-  if (character.level >= 6) {
+  if (getClassLevel(character, "Barbarian") >= 6) {
     return 5;
   }
 
@@ -191,7 +192,7 @@ export function getBarbarianPathOfTheZealotWarriorOfTheGodsUsesRemaining(
 export function getBarbarianPathOfTheZealotWarriorOfTheGodsHealingFormula(
   character: Pick<Character, "level">
 ): string {
-  const levelBonus = Math.floor(clampNumber(character.level, 0, 20, 0) / 2);
+  const levelBonus = Math.floor(clampNumber(getClassLevel(character, "Barbarian"), 0, 20, 0) / 2);
   return levelBonus > 0 ? `1d6 + ${levelBonus}` : "1d6";
 }
 
@@ -354,7 +355,9 @@ export function getBarbarianPathOfTheZealotWeaponDamageBonuses(
     return [];
   }
 
-  const divineFuryLevelBonus = Math.floor(clampNumber(character.level, 0, 20, 0) / 2);
+  const divineFuryLevelBonus = Math.floor(
+    clampNumber(getClassLevel(character, "Barbarian"), 0, 20, 0) / 2
+  );
   const divineFuryFormula = divineFuryLevelBonus > 0 ? `1d6+${divineFuryLevelBonus}` : "1d6";
   const divineFuryDisplayLabel =
     divineFuryLevelBonus > 0
@@ -693,9 +696,9 @@ export function collectBarbarianPathOfTheZealotContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   const normalizedCharacter = {
-    className: character.className,
-    subclassId: character.subclassId,
-    level: character.level ?? 0
+    className: "Barbarian",
+    subclassId: getClassSubclassId(character, "Barbarian"),
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
 
   if (!hasBarbarianPathOfTheZealotDivineFury(normalizedCharacter)) {
@@ -704,7 +707,7 @@ export function collectBarbarianPathOfTheZealotContributions(
 
   const runtimeCharacter = {
     ...character,
-    level: character.level ?? 0
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
   const divineFuryDescription = getFeatureDescriptionForCharacter(
     normalizedCharacter,

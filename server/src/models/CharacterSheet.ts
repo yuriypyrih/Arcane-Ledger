@@ -101,10 +101,11 @@ export type CharacterSheetRecord = {
   clientId: string;
   localId?: number;
   partyGroupId?: Types.ObjectId | null;
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   revision: number;
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
+  preMulticlassBackup?: Record<string, unknown>;
   avatar?: CharacterAvatarRecord | null;
   backgroundTexture?: CharacterBackgroundTextureRecord | null;
   deletedAt?: Date | null;
@@ -654,7 +655,7 @@ const characterSheetSchema = new Schema<CharacterSheetRecord>(
     },
     schemaVersion: {
       type: Number,
-      enum: [2],
+      enum: [2, 3],
       default: 2,
       required: true
     },
@@ -672,6 +673,7 @@ const characterSheetSchema = new Schema<CharacterSheetRecord>(
       type: Schema.Types.Mixed,
       required: true
     },
+    preMulticlassBackup: { type: Schema.Types.Mixed, select: false },
     avatar: {
       type: characterAvatarSchema,
       default: null

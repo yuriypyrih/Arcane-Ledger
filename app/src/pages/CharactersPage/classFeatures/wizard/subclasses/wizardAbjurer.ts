@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -27,7 +29,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createMagicTemporaryHitPointsAssignment,
   gainMagicTemporaryHitPointsAssignment,
@@ -85,9 +87,9 @@ export function hasWizardAbjurerArcaneWardFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === abjurerSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === abjurerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 3
   );
 }
 
@@ -95,9 +97,9 @@ function hasWizardAbjurerSpellBreakerFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === abjurerSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === abjurerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 10
   );
 }
 
@@ -105,9 +107,9 @@ function hasWizardAbjurerSpellResistanceFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === abjurerSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === abjurerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 14
   );
 }
 
@@ -126,7 +128,7 @@ function hasWizardAbjurerArcaneWardBeenCreated(
 function getWizardAbjurerAvailableSpellSlotCount(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): number {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -223,7 +225,10 @@ export function getWizardAbjurerArcaneWardMaximumHitPoints(
 
   return Math.max(
     0,
-    Math.floor((character.level ?? 0) * 2 + getAbilityModifierForCharacter(character, "INT"))
+    Math.floor(
+      (getClassLevel(character, "Wizard") ?? 0) * 2 +
+        getAbilityModifierForCharacter(character, "INT")
+    )
   );
 }
 
@@ -346,8 +351,8 @@ function getWizardAbjurerArcaneWardFeatureActions(
   }
 
   const availableSpellSlotCount = getWizardAbjurerAvailableSpellSlotCount({
-    className: character.className,
-    level: character.level,
+    className: "Wizard",
+    level: getClassLevel(character, "Wizard"),
     spellSlotsExpended: character.spellSlotsExpended
   });
   const disabledReason =
@@ -412,11 +417,7 @@ export function restoreWizardAbjurerArcaneWardOnLongRest(character: Character): 
   };
 }
 
-function createWizardAbjurerSource(input: {
-  id: string;
-  label: string;
-  entryId: CLASS_FEATURE;
-}) {
+function createWizardAbjurerSource(input: { id: string; label: string; entryId: CLASS_FEATURE }) {
   return createSubclassContributionSource({
     ...input,
     id: `wizard-abjurer-${input.id}`
@@ -427,9 +428,9 @@ export function collectWizardAbjurerContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Wizard" ||
-    character.subclassId !== abjurerSubclassId ||
-    typeof character.level !== "number"
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== abjurerSubclassId ||
+    typeof getClassLevel(character, "Wizard") !== "number"
   ) {
     return [];
   }
@@ -442,9 +443,9 @@ export function collectWizardAbjurerContributions(
         entryId: CLASS_FEATURE.ABJURATION_SAVANT
       }),
       alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-        className: character.className,
-        level: character.level,
-        subclassId: character.subclassId,
+        className: "Wizard",
+        level: getClassLevel(character, "Wizard"),
+        subclassId: getClassSubclassId(character, "Wizard"),
         classFeatureState: character.classFeatureState
       })
     }
@@ -464,7 +465,7 @@ export function collectWizardAbjurerContributions(
     });
   }
 
-  if (character.level >= 6) {
+  if (getClassLevel(character, "Wizard") >= 6) {
     contributions.push({
       source: createWizardAbjurerSource({
         id: "projected-ward",

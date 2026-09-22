@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   CURRENCY_TYPE,
@@ -40,18 +41,14 @@ import {
 import { createCustomItemRecordFromMods } from "../../../itemMods";
 import { createChargesCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
-import {
-  getPreparedSpellIdsByLevel,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
 import { hasArtificerSubclassFeature } from "./artificerSubclassHelpers";
 import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfTheTrade";
 
 export const cartographerSubclassId = "artificer-cartographer";
 export const artificerAdventurersAtlasActionKey = "artificer-adventurers-atlas";
-export const artificerIlluminatedCartographyActionKey =
-  "artificer-illuminated-cartography";
+export const artificerIlluminatedCartographyActionKey = "artificer-illuminated-cartography";
 export const artificerUnerringPathActionKey = "artificer-unerring-path";
 export const artificerCartographerLifeAndDeathLedgerDescriptionTargetKey =
   "artificer-cartographer-life-and-death-ledger";
@@ -92,16 +89,11 @@ type ArtificerAdventurersAtlasCharacter = Pick<Character, "className"> &
 
 type ArtificerMappingMagicCharacter = Pick<Character, "className"> &
   Partial<
-    Pick<
-      Character,
-      "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId"
-    >
+    Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
   >;
 
 type ArtificerSuperiorAtlasCharacter = Pick<Character, "className"> &
-  Partial<
-    Pick<Character, "classFeatureState" | "inventoryItems" | "level" | "subclassId">
-  >;
+  Partial<Pick<Character, "classFeatureState" | "inventoryItems" | "level" | "subclassId">>;
 
 type AdventurersAtlasInventoryEntry = Pick<
   CharacterInventoryItem,
@@ -125,15 +117,11 @@ const adventurersAtlasBaseItemMods: CharacterItemMods = {
   ]
 };
 
-function isArtificerAdventurersAtlasInventoryEntry(
-  entry: AdventurersAtlasInventoryEntry
-): boolean {
+function isArtificerAdventurersAtlasInventoryEntry(entry: AdventurersAtlasInventoryEntry): boolean {
   return getInventoryItemConjuredSource(entry) === INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS;
 }
 
-function formatDescriptionEntriesForInventoryItem(
-  entries: SpellDescriptionEntry[]
-): string[] {
+function formatDescriptionEntriesForInventoryItem(entries: SpellDescriptionEntry[]): string[] {
   return entries.flatMap((entry) => (typeof entry === "string" ? [entry] : entry.items));
 }
 
@@ -212,9 +200,7 @@ export function getArtificerAdventurersAtlasInventoryMapCount(
   }, 0);
 }
 
-export function consumeArtificerAdventurersAtlasMapForCharacter(
-  character: Character
-): Character {
+export function consumeArtificerAdventurersAtlasMapForCharacter(character: Character): Character {
   const inventoryItems = character.inventoryItems ?? [];
   const inventoryMap = inventoryItems.find((entry) =>
     isArtificerAdventurersAtlasInventoryEntry(entry)
@@ -235,11 +221,7 @@ export function consumeArtificerAdventurersAtlasMapForCharacter(
     if (contentIndex >= 0) {
       return {
         ...character,
-        inventoryItems: removeOneContainerContentItemByIndex(
-          inventoryItems,
-          entry.id,
-          contentIndex
-        )
+        inventoryItems: removeOneContainerContentItemByIndex(inventoryItems, entry.id, contentIndex)
       };
     }
   }
@@ -279,8 +261,8 @@ function getMappingMagicDescriptionSection(
   character: ArtificerMappingMagicCharacter,
   heading: string
 ): SpellDescriptionEntry[] {
-  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MAPPING_MAGIC).filter(
-    (entry) => descriptionEntryIncludesText(entry, heading)
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MAPPING_MAGIC).filter((entry) =>
+    descriptionEntryIncludesText(entry, heading)
   );
 }
 
@@ -342,9 +324,7 @@ export function getArtificerAdventurersAtlasMapCount(
     "INT"
   );
 
-  return hasArtificerAdventurersAtlasFeature(character)
-    ? 1 + Math.max(1, intelligenceModifier)
-    : 0;
+  return hasArtificerAdventurersAtlasFeature(character) ? 1 + Math.max(1, intelligenceModifier) : 0;
 }
 
 export function getArtificerAdventurersAtlasAction(
@@ -383,9 +363,7 @@ export function getArtificerIlluminatedCartographyUsesTotal(
     "INT"
   );
 
-  return hasArtificerMappingMagicFeature(character)
-    ? Math.max(1, intelligenceModifier)
-    : 0;
+  return hasArtificerMappingMagicFeature(character) ? Math.max(1, intelligenceModifier) : 0;
 }
 
 export function normalizeArtificerIlluminatedCartographyState(
@@ -561,9 +539,7 @@ export function getArtificerUnerringPathAction(
   };
 }
 
-export function createArtificerAdventurersAtlasMapsForCharacter(
-  character: Character
-): Character {
+export function createArtificerAdventurersAtlasMapsForCharacter(character: Character): Character {
   if (!hasArtificerAdventurersAtlasFeature(character)) {
     return character;
   }
@@ -854,7 +830,7 @@ export function collectArtificerCartographerContributions(
         entryId: CLASS_FEATURE.CARTOGRAPHER_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Artificer") ?? 0,
         cartographerSpellIdsByLevel
       )
     },

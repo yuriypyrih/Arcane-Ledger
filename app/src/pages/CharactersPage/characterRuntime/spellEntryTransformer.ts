@@ -1,3 +1,7 @@
+import { getSpellFeatureCharacter } from "../multiclass";
+import { collectActiveClassFeatureState } from "../classFeatures/modules";
+import { getSubclassDerivedFeatureState } from "../classFeatures/subclasses";
+import { scaleCantripForCharacter } from "./spellImplementations/cantripScaling";
 import type { SpellEntry } from "../../../codex/entries";
 import type { Character } from "../../../types";
 import type { ClassFeatureDerivedState } from "../classFeatures/types";
@@ -40,7 +44,13 @@ export function createCharacterSpellEntryTransformer({
   subclassFeatures,
   feats
 }: CharacterSpellEntryTransformerOptions): CharacterSpellEntryTransformer {
+  const allClasses = getSpellFeatureCharacter(character);
+  if (allClasses !== character) {
+    classFeatures = collectActiveClassFeatureState(allClasses);
+    subclassFeatures = getSubclassDerivedFeatureState(allClasses);
+  }
   const transformSpellEntry = (spell: SpellEntry): SpellEntry => {
+    spell = scaleCantripForCharacter(character, spell);
     const classSpellEntry = classFeatures.transformSpellEntry
       ? classFeatures.transformSpellEntry(spell)
       : spell;

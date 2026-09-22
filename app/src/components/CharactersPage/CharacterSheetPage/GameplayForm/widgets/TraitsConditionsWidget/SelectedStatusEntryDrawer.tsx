@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
 import { Pencil } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -66,10 +67,7 @@ import {
   QuiveringPalmStatusDrawerFormula
 } from "./QuiveringPalmStatusDrawerExtras";
 import StatusEntryDrawer from "./StatusEntryDrawer";
-import {
-  TraitNotesBody,
-  TraitNotesFooterControls
-} from "./TraitNotesSection";
+import { TraitNotesBody, TraitNotesFooterControls } from "./TraitNotesSection";
 import { useTraitNotesEditor } from "./useTraitNotesEditor";
 import styles from "./TraitsConditionsWidget.module.css";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
@@ -115,7 +113,7 @@ type SelectedStatusEntryDrawerContentProps = Omit<
 
 function getActorInsightDcFormula(character: Character): string {
   const charismaModifier = getAbilityModifierBreakdownForCharacter(character, "CHA").total;
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const insightDc = 8 + charismaModifier + proficiencyBonus;
 
   return `Insight DC ${insightDc} = ${formatFormulaTerms([
@@ -135,7 +133,7 @@ function getAasimarCelestialRevelationStatusFormula(
     return null;
   }
 
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
 
   if (option.key === "inner-radiance") {
     return {
@@ -214,8 +212,10 @@ function SelectedStatusEntryDrawerContent({
     selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
       ? getRoundTrackerActionWarning("action", roundTracker)
       : null;
-  const selectedAasimarCelestialRevelationFormula =
-    getAasimarCelestialRevelationStatusFormula(character, selectedStatusEntry);
+  const selectedAasimarCelestialRevelationFormula = getAasimarCelestialRevelationStatusFormula(
+    character,
+    selectedStatusEntry
+  );
   const isSelectedCustomFeatureTrait = isCustomFeatureTraitStatusEntry(selectedStatusEntry);
   const wildShapeNotesEditor = useTraitNotesEditor({
     entry: selectedStatusEntry,
@@ -464,10 +464,7 @@ function SelectedStatusEntryDrawer(props: SelectedStatusEntryDrawerProps) {
   }
 
   return (
-    <SelectedStatusEntryDrawerContent
-      {...props}
-      selectedStatusEntry={props.selectedStatusEntry}
-    />
+    <SelectedStatusEntryDrawerContent {...props} selectedStatusEntry={props.selectedStatusEntry} />
   );
 }
 

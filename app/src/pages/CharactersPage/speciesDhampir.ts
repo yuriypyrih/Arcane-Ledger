@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -207,7 +208,7 @@ export function getDhampirVampiricBiteUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDhampirSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 

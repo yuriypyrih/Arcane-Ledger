@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { sorcererFeatures } from "../../../../codex/classes";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
@@ -26,7 +27,8 @@ function hasSorcererFeature(
   feature: CLASS_FEATURE
 ): boolean {
   return (
-    character.className === "Sorcerer" && getUnlockedSorcererFeatures(character.level).has(feature)
+    hasCharacterClass(character, "Sorcerer") &&
+    getUnlockedSorcererFeatures(getClassLevel(character, "Sorcerer")).has(feature)
   );
 }
 

@@ -36,7 +36,10 @@ function getClassEntry(className: string): ClassEntry | undefined {
   return getClassEntryByName(className) ?? undefined;
 }
 
-function getClassFeatureRowsUpToLevel(className: string, level: number): SpellSlotFeatureClassObj[] {
+function getClassFeatureRowsUpToLevel(
+  className: string,
+  level: number
+): SpellSlotFeatureClassObj[] {
   const normalizedLevel = clampCharacterLevel(level);
   const classEntry = getClassEntry(className);
 
@@ -97,6 +100,22 @@ export function getSpellSlotTotalsForCharacter(
   customClass?: CharacterCustomClassConfig,
   classRules?: CharacterClassRulesConfig
 ): number[] {
+  if (
+    isCustomClassName(className) &&
+    customClass?.castingProgression &&
+    customClass.castingProgression !== "manual"
+  ) {
+    const casting = customClass.castingProgression;
+    if (casting === "none" || (casting === "third" && level < 3)) return [...emptySpellSlotRow];
+    if (casting === "pact") return getSpellSlotTotalsForCharacter("Warlock", level);
+    const casterLevel =
+      casting === "full"
+        ? level
+        : casting === "half"
+          ? Math.ceil(level / 2)
+          : Math.floor(level / 3);
+    return getSpellSlotTotalsForCharacter("Wizard", casterLevel);
+  }
   if (usesManualSpellSlots(className, level, subclassId, customClass, classRules)) {
     return normalizeCustomClassSpellSlotMaximums(
       getCharacterClassRulesSpellSlotMaximums({ className, classRules, customClass })

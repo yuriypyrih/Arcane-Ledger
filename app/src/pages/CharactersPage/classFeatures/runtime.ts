@@ -1,3 +1,10 @@
+import {
+  getSpellFeatureCharacter,
+  applyClassEditorChange,
+  getCharacterClasses,
+  hasCharacterClass
+} from "../multiclass";
+import { scaleCantripForCharacter } from "../characterRuntime/spellImplementations/cantripScaling";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
@@ -17,10 +24,7 @@ import {
   recordLightWeaponAttackTrigger,
   shouldTrackRoundScopedResources
 } from "../combat";
-import {
-  hasActiveNickMasteryForWeaponAction,
-  isLightWeaponAction
-} from "../weaponLightProperty";
+import { hasActiveNickMasteryForWeaponAction, isLightWeaponAction } from "../weaponLightProperty";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime/spellcasting";
 import { activateBoonOfBrightSunDaylightPresenceForCharacter } from "../feats/runtime/brightSun";
 import { activateFeatActionForCharacter } from "../feats/runtime/resources";
@@ -734,8 +738,9 @@ export function getSpellEntryForCharacter(
     >,
   spell: SpellEntry
 ): SpellEntry {
-  const baseFeatureState = collectActiveClassFeatureState(character);
-  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  spell = scaleCantripForCharacter(character, spell);
+  const baseFeatureState = collectActiveClassFeatureState(getSpellFeatureCharacter(character));
+  const subclassDerivedState = getSubclassDerivedFeatureState(getSpellFeatureCharacter(character));
   const baseSpellEntry = baseFeatureState.transformSpellEntry
     ? baseFeatureState.transformSpellEntry(spell)
     : spell;
@@ -773,7 +778,7 @@ export function getSpellbookSpellEntryForCharacter(
 ): SpellEntry {
   const transformedSpellEntry = transformFeatSpellEntryForCharacter(
     character,
-    character.className === "Wizard" ? getWizardSpellbookSpellEntry(character, spell) : spell
+    hasCharacterClass(character, "Wizard") ? getWizardSpellbookSpellEntry(character, spell) : spell
   );
 
   return character.species
@@ -813,8 +818,8 @@ export function getSpellDamageFormulaOverrideForCharacter(
     Partial<Pick<Character, "classRules" | "customClass">>,
   spell: Pick<SpellEntry, "id">
 ): string | null {
-  const baseFeatureState = collectActiveClassFeatureState(character);
-  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseFeatureState = collectActiveClassFeatureState(getSpellFeatureCharacter(character));
+  const subclassDerivedState = getSubclassDerivedFeatureState(getSpellFeatureCharacter(character));
   return (
     subclassDerivedState.spellDamageFormulaOverrides?.[spell.id] ??
     subclassDerivedState.getSpellDamageFormulaOverride?.(spell) ??
@@ -843,7 +848,7 @@ export function activateFeatureActionForCharacter(
     activateBoonOfBrightSunDaylightPresenceForCharacter(
       activateFeatActionForCharacter(
         activateSpeciesFeatureActionForCharacter(
-          getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
+          runClassAction(character, (module, view) => module.handleAction?.(view, actionKey)) ??
             character,
           actionKey
         ),
@@ -1272,11 +1277,13 @@ export function restoreAllRogueSoulknifePsionicDiceForCharacter(character: Chara
 export function getChannelDivinityUsesTotalForCharacter(
   character: Pick<Character, "className" | "level">
 ): number {
-  if (character.className === "Cleric") {
+  if (character.className === "Paladin" && hasCharacterClass(character, "Paladin"))
+    return getPaladinChannelDivinityUsesTotal(character);
+  if (hasCharacterClass(character, "Cleric")) {
     return getClericChannelDivinityUsesTotal(character);
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return getPaladinChannelDivinityUsesTotal(character);
   }
 
@@ -1286,11 +1293,13 @@ export function getChannelDivinityUsesTotalForCharacter(
 export function getChannelDivinityUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
-  if (character.className === "Cleric") {
+  if (character.className === "Paladin" && hasCharacterClass(character, "Paladin"))
+    return getPaladinChannelDivinityUsesRemaining(character);
+  if (hasCharacterClass(character, "Cleric")) {
     return getClericChannelDivinityUsesRemaining(character);
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return getPaladinChannelDivinityUsesRemaining(character);
   }
 
@@ -1298,11 +1307,13 @@ export function getChannelDivinityUsesRemainingForCharacter(
 }
 
 export function expendChannelDivinityUseForCharacter(character: Character): Character {
-  if (character.className === "Cleric") {
+  if (character.className === "Paladin" && hasCharacterClass(character, "Paladin"))
+    return expendPaladinChannelDivinityUse(character);
+  if (hasCharacterClass(character, "Cleric")) {
     return expendClericChannelDivinityUse(character);
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return expendPaladinChannelDivinityUse(character);
   }
 
@@ -1310,11 +1321,11 @@ export function expendChannelDivinityUseForCharacter(character: Character): Char
 }
 
 export function restoreChannelDivinityUseForCharacter(character: Character): Character {
-  if (character.className === "Cleric") {
+  if (hasCharacterClass(character, "Cleric")) {
     return restoreClericChannelDivinityOnShortRest(character);
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return restorePaladinChannelDivinityOnShortRest(character);
   }
 
@@ -1322,11 +1333,11 @@ export function restoreChannelDivinityUseForCharacter(character: Character): Cha
 }
 
 export function restoreAllChannelDivinityUsesForCharacter(character: Character): Character {
-  if (character.className === "Cleric") {
+  if (hasCharacterClass(character, "Cleric")) {
     return restoreClericChannelDivinityOnLongRest(character);
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return restorePaladinChannelDivinityOnLongRest(character);
   }
 
@@ -1726,7 +1737,7 @@ export function consumeWeaponAttackActionForCharacter(
     return finalize(nextCharacterWithSharedMulti);
   }
 
-  if (character.className === "Barbarian") {
+  if (hasCharacterClass(character, "Barbarian")) {
     const nextCharacter = applyLightTrigger(consumeBarbarianWeaponAttack(character));
 
     if (shouldTrackRoundScopedResources(nextCharacter.roundTracker)) {
@@ -1752,15 +1763,15 @@ export function consumeWeaponAttackActionForCharacter(
     };
   }
 
-  if (character.className === "Bard") {
+  if (hasCharacterClass(character, "Bard")) {
     return finalize(consumeBardWeaponAttack(character, action));
   }
 
-  if (character.className === "Artificer") {
+  if (hasCharacterClass(character, "Artificer")) {
     return finalize(consumeArtificerWeaponAttack(character));
   }
 
-  if (character.className === "Cleric") {
+  if (hasCharacterClass(character, "Cleric")) {
     const nextCharacter = consumeClericWeaponAttack(character, action);
 
     if (nextCharacter !== character) {
@@ -1768,31 +1779,31 @@ export function consumeWeaponAttackActionForCharacter(
     }
   }
 
-  if (character.className === "Monk") {
+  if (hasCharacterClass(character, "Monk")) {
     return finalize(consumeMonkWeaponAttack(character, action));
   }
 
-  if (character.className === "Ranger") {
+  if (hasCharacterClass(character, "Ranger")) {
     return finalize(consumeRangerWeaponAttack(character));
   }
 
-  if (character.className === "Paladin") {
+  if (hasCharacterClass(character, "Paladin")) {
     return finalize(consumePaladinWeaponAttack(character));
   }
 
-  if (character.className === "Rogue") {
+  if (hasCharacterClass(character, "Rogue")) {
     return finalize(consumeRogueWeaponAttack(character, action));
   }
 
-  if (character.className === "Fighter") {
+  if (hasCharacterClass(character, "Fighter")) {
     return finalize(consumeFighterWeaponAttack(character, action));
   }
 
-  if (character.className === "Warlock") {
+  if (hasCharacterClass(character, "Warlock")) {
     return finalize(consumeWarlockPactWeaponAttack(character, action));
   }
 
-  if (character.className === "Wizard") {
+  if (hasCharacterClass(character, "Wizard")) {
     const nextCharacter = consumeWizardWeaponAttack(character, action);
 
     if (nextCharacter !== character) {
@@ -1844,10 +1855,8 @@ export function activateFeatureActionOptionForCharacter(
   optionKey: string
 ): Character {
   const classCharacter =
-    getActiveClassFeatureModule(character.className)?.handleActionOption?.(
-      character,
-      actionKey,
-      optionKey
+    runClassAction(character, (module, view) =>
+      module.handleActionOption?.(view, actionKey, optionKey)
     ) ?? character;
 
   return clearRoundScopedFeatureStateIfOutOfCombat(
@@ -1863,10 +1872,8 @@ export function activateFeatureActionOptionsForCharacter(
   optionKeys: string[]
 ): Character {
   return clearRoundScopedFeatureStateIfOutOfCombat(
-    getActiveClassFeatureModule(character.className)?.handleActionOptions?.(
-      character,
-      actionKey,
-      optionKeys
+    runClassAction(character, (module, view) =>
+      module.handleActionOptions?.(view, actionKey, optionKeys)
     ) ?? character
   );
 }
@@ -1906,12 +1913,32 @@ export function removeFeatureStatusEntryForCharacter(
 }
 
 export function applyShortRestToFeatureState(character: Character): Character {
+  if (character.multiclass)
+    return getCharacterClasses(character).reduce(
+      (next, entry) =>
+        applyClassEditorChange(
+          next,
+          entry.id,
+          (view) => getActiveClassFeatureModule(entry.className)?.applyShortRest?.(view) ?? view
+        ),
+      character
+    );
   return getClassFeatureModules().reduce((nextCharacter, module) => {
     return module.applyShortRest ? module.applyShortRest(nextCharacter) : nextCharacter;
   }, character);
 }
 
 export function applyLongRestToFeatureState(character: Character): Character {
+  if (character.multiclass)
+    return getCharacterClasses(character).reduce(
+      (next, entry) =>
+        applyClassEditorChange(
+          next,
+          entry.id,
+          (view) => getActiveClassFeatureModule(entry.className)?.applyLongRest?.(view) ?? view
+        ),
+      character
+    );
   return getClassFeatureModules().reduce((nextCharacter, module) => {
     return module.applyLongRest ? module.applyLongRest(nextCharacter) : nextCharacter;
   }, character);
@@ -1937,7 +1964,38 @@ export function activateArcaneRecoveryForCharacter(
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {
+  if (character.multiclass)
+    return getCharacterClasses(character).reduce(
+      (next, entry) =>
+        applyClassEditorChange(
+          next,
+          entry.id,
+          (view) => getActiveClassFeatureModule(entry.className)?.advanceRound?.(view) ?? view
+        ),
+      character
+    );
   return getClassFeatureModules().reduce((nextCharacter, module) => {
     return module.advanceRound ? module.advanceRound(nextCharacter) : nextCharacter;
   }, character);
+}
+
+function runClassAction(
+  character: Character,
+  run: (
+    module: NonNullable<ReturnType<typeof getActiveClassFeatureModule>>,
+    view: Character
+  ) => Character | null | undefined
+): Character | undefined {
+  for (const entry of getCharacterClasses(character)) {
+    const module = getActiveClassFeatureModule(entry.className);
+    if (!module) continue;
+    let handled = false;
+    const result = applyClassEditorChange(character, entry.id, (view) => {
+      const after = run(module, view);
+      handled = after != null && after !== view;
+      return after ?? view;
+    });
+    if (handled) return result;
+  }
+  return undefined;
 }

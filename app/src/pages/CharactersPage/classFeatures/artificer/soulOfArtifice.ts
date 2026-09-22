@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character, CharacterInventoryItem, ItemRecord } from "../../../../types";
 import {
@@ -87,7 +88,9 @@ function isEligibleCheatDeathItem(
 export function hasArtificerSoulOfArtificeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 20;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 20
+  );
 }
 
 export function isArtificerSoulOfArtificeCheatDeathAvailable(
@@ -188,8 +191,9 @@ export function applySoulOfArtificeCheatDeathForCharacter(
   }
 
   const containerOptions = selectedOptions
-    .filter((option): option is Extract<SoulOfArtificeCheatDeathItemOption, { kind: "container" }> =>
-      option.kind === "container"
+    .filter(
+      (option): option is Extract<SoulOfArtificeCheatDeathItemOption, { kind: "container" }> =>
+        option.kind === "container"
     )
     .sort((left, right) => {
       const containerSort = right.containerStackId.localeCompare(left.containerStackId);

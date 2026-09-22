@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -93,13 +94,13 @@ function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>):
 }
 
 function getMonkMartialArtsDieLabel(character: Partial<Pick<Character, "level">>): string | null {
-  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+  const martialArtsDie = getMonkFeatureRow(getClassLevel(character, "Monk"))?.martialArts;
 
   return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
 }
 
 function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): number {
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 function getMonkFocusPointsRemaining(
@@ -122,28 +123,34 @@ function hasMonkWarriorOfTheOpenHandTechnique(
   character: MonkWarriorOfTheOpenHandCharacter
 ): boolean {
   return (
-    character.className === "Monk" &&
-    character.subclassId === warriorOfTheOpenHandSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Monk") &&
+    getClassSubclassId(character, "Monk") === warriorOfTheOpenHandSubclassId &&
+    (getClassLevel(character, "Monk") ?? 0) >= 3
   );
 }
 
 function hasMonkWarriorOfTheOpenHandWholenessOfBody(
   character: MonkWarriorOfTheOpenHandCharacter
 ): boolean {
-  return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 6;
+  return (
+    hasMonkWarriorOfTheOpenHandTechnique(character) && (getClassLevel(character, "Monk") ?? 0) >= 6
+  );
 }
 
 function hasMonkWarriorOfTheOpenHandFleetStep(
   character: MonkWarriorOfTheOpenHandCharacter
 ): boolean {
-  return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 11;
+  return (
+    hasMonkWarriorOfTheOpenHandTechnique(character) && (getClassLevel(character, "Monk") ?? 0) >= 11
+  );
 }
 
 function hasMonkWarriorOfTheOpenHandQuiveringPalm(
   character: MonkWarriorOfTheOpenHandCharacter
 ): boolean {
-  return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 17;
+  return (
+    hasMonkWarriorOfTheOpenHandTechnique(character) && (getClassLevel(character, "Monk") ?? 0) >= 17
+  );
 }
 
 export function getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(
@@ -462,7 +469,7 @@ export function activateMonkWarriorOfTheOpenHandQuiveringPalmMark(character: Cha
         sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
         duration: {
           kind: STATUS_DURATION_KIND.DAYS,
-          amount: Math.max(1, Math.floor(character.level ?? 1))
+          amount: Math.max(1, Math.floor(getClassLevel(character, "Monk") ?? 1))
         },
         sourceId: monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
       })

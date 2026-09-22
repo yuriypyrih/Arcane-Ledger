@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import {
   coronaOfLightDescription,
@@ -105,9 +106,9 @@ export function hasClericLightDomainFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Cleric" &&
-    character.subclassId === lightDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Cleric") &&
+    getClassSubclassId(character, "Cleric") === lightDomainSubclassId &&
+    (getClassLevel(character, "Cleric") ?? 0) >= minimumLevel
   );
 }
 
@@ -157,12 +158,12 @@ export function getClericLightDomainFeatureActions(
   }
 
   const totalChannelDivinityUses = getClericChannelDivinityUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0
   });
   const channelDivinityUsesRemaining = getClericChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0,
     classFeatureState: character.classFeatureState
   });
   const actions: FeatureActionCard[] = [
@@ -459,7 +460,7 @@ export function collectClericLightDomainContributions(
         entryId: CLASS_FEATURE.LIGHT_DOMAIN_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Cleric") ?? 0,
         lightDomainSpellIdsByLevel
       )
     },

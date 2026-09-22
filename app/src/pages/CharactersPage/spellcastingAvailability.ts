@@ -1,3 +1,5 @@
+import { getCharacterClasses } from "./multiclass";
+import { getCastingProgression } from "../../codex/classes/multiclass";
 import type { Character } from "../../types";
 import { getCharacterRuntime } from "./characterRuntime/characterRuntime";
 import {
@@ -15,6 +17,8 @@ export function hasSpellcastingForCharacter(character: Character): boolean {
   const spellcastingRuntime = getCharacterRuntime(character).spellcasting;
 
   return (
+    (Boolean(character.multiclass) &&
+      getCharacterClasses(character).some((entry) => getCastingProgression(entry) !== "none")) ||
     isSpellcastingClass(
       character.className,
       character.level,

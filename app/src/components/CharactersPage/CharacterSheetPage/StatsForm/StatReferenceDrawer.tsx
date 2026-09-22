@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useReadOnlySheet } from "../readOnlySheetContext";
 import type { ReactNode } from "react";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import CellContainer from "../../../CellContainer/CellContainer";
@@ -80,6 +81,8 @@ type StatReferenceDrawerProps = {
 };
 
 function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenceDrawerProps) {
+  const readOnly = useReadOnlySheet();
+  const visibleFooter = readOnly ? null : footer;
   const descriptionSections = orderDescriptionAdditionSections(
     reference.descriptionAdditions ?? []
   );
@@ -207,14 +210,14 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
         </OverlayBody>
       ) : null}
 
-      {reference.warning || footer ? (
+      {reference.warning || visibleFooter ? (
         <OverlayFooter className={styles.referenceFooter}>
           {reference.warning ? (
             <div className={styles.referenceWarningBlock}>
               <p className={styles.referenceWarningCard}>{reference.warning}</p>
             </div>
           ) : null}
-          {footer}
+          {visibleFooter}
         </OverlayFooter>
       ) : null}
     </SheetDrawer>

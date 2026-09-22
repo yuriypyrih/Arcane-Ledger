@@ -52,9 +52,7 @@ function createSharedCharacterLink() {
   let link = "";
 
   for (let index = 0; index < SHARED_CHARACTER_LINK_LENGTH; index += 1) {
-    link += SHARED_CHARACTER_LINK_ALPHABET[
-      crypto.randomInt(SHARED_CHARACTER_LINK_ALPHABET.length)
-    ];
+    link += SHARED_CHARACTER_LINK_ALPHABET[crypto.randomInt(SHARED_CHARACTER_LINK_ALPHABET.length)];
   }
 
   return link;
@@ -115,7 +113,9 @@ function getImportSummary(
     ...cloneSummaryRecord(summary),
     localId,
     sheetSizeBytes:
-      typeof sheetSummary.sheetSizeBytes === "number" ? sheetSummary.sheetSizeBytes : summary.sheetSizeBytes
+      typeof sheetSummary.sheetSizeBytes === "number"
+        ? sheetSummary.sheetSizeBytes
+        : summary.sheetSizeBytes
   };
 }
 
@@ -176,7 +176,7 @@ export async function createSharedCharacterSnapshot(options: {
         link,
         sourceCharacterSheetId: character._id,
         originalOwnerId: character.ownerId,
-        schemaVersion: 2,
+        schemaVersion: character.schemaVersion,
         summary: getSharedSnapshotSummary(character.summary, snapshotName),
         sheet: getSharedSnapshotSheet(
           character.sheet,
@@ -196,7 +196,11 @@ export async function createSharedCharacterSnapshot(options: {
     }
   }
 
-  throw new AppError("Unable to create a unique shared character link.", 500, "SHARE_LINK_CREATE_FAILED");
+  throw new AppError(
+    "Unable to create a unique shared character link.",
+    500,
+    "SHARE_LINK_CREATE_FAILED"
+  );
 }
 
 export async function importSharedCharacter(options: {
@@ -244,7 +248,7 @@ export async function importSharedCharacter(options: {
     ownerId,
     clientId: crypto.randomUUID(),
     localId: options.localId,
-    schemaVersion: 2,
+    schemaVersion: sharedCharacter.schemaVersion,
     revision: 1,
     summary,
     sheet

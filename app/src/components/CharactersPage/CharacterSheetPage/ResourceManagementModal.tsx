@@ -59,6 +59,7 @@ type ResourceManagementModalProps = {
   additionalDescription?: SpellDescriptionEntry[][];
   titleAccessory?: ReactNode;
   columnCount?: number;
+  children?: ReactNode;
 };
 
 function ResourceManagementModal({
@@ -71,7 +72,8 @@ function ResourceManagementModal({
   eyebrow = "RESOURCE MANAGEMENT",
   description = RESOURCE_MANAGEMENT_DESCRIPTION,
   additionalDescription = [],
-  titleAccessory
+  titleAccessory,
+  children
 }: ResourceManagementModalProps) {
   function handleActionClick(action: ResourceManagementModalAction) {
     action.onClick();
@@ -103,6 +105,7 @@ function ResourceManagementModal({
 
       <OverlayBody className={styles.body}>
         <p className={styles.description}>{description}</p>
+        {children}
         {additionalDescription.length > 0 ? (
           <div className={styles.additionalDescription}>
             {additionalDescription.map((descriptionSection, index) => (
@@ -118,21 +121,23 @@ function ResourceManagementModal({
         ) : null}
       </OverlayBody>
 
-      <OverlayFooter className={styles.footer}>
-        <div className={styles.footerActions} style={footerActionStyle}>
-          {actions.map((action) => (
-            <ActionButton
-              key={action.label}
-              className={styles.footerButton}
-              onClick={() => handleActionClick(action)}
-              disabled={action.disabled}
-              aria-label={action.ariaLabel ?? action.label}
-            >
-              {action.label}
-            </ActionButton>
-          ))}
-        </div>
-      </OverlayFooter>
+      {actions.length > 0 ? (
+        <OverlayFooter className={styles.footer}>
+          <div className={styles.footerActions} style={footerActionStyle}>
+            {actions.map((action) => (
+              <ActionButton
+                key={action.label}
+                className={styles.footerButton}
+                onClick={() => handleActionClick(action)}
+                disabled={action.disabled}
+                aria-label={action.ariaLabel ?? action.label}
+              >
+                {action.label}
+              </ActionButton>
+            ))}
+          </div>
+        </OverlayFooter>
+      ) : null}
     </SheetModal>
   );
 }

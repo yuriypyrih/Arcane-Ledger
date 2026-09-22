@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
@@ -11,7 +13,7 @@ import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { CHARACTER_COMPANION_LIMIT, createCharacterCompanionId } from "../../../companions";
 import { getProficiencyBonus } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { createTextCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureActionCard } from "../../types";
@@ -54,7 +56,7 @@ type BattleSmithSteelDefenderCharacter = Pick<Character, "className"> &
   >;
 
 function getNormalizedCharacterLevel(character: Partial<Pick<Character, "level">>): number {
-  return Math.max(1, Math.floor(character.level ?? 1));
+  return Math.max(1, Math.floor(getClassLevel(character, "Artificer") ?? 1));
 }
 
 function formatSignedNumber(value: number): string {
@@ -95,12 +97,7 @@ function getSteelDefenderDeflectAttackDescription(
 }
 
 function getSpellSlotState(character: BattleSmithSteelDefenderCharacter) {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId,
-    character.customClass
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -123,9 +120,7 @@ function getSteelDefenderMaximumHitPoints(character: BattleSmithSteelDefenderCha
   return Math.max(1, 2 + intelligenceModifier + 5 * level);
 }
 
-function getSteelDefenderSpellAttackModifier(
-  character: BattleSmithSteelDefenderCharacter
-): number {
+function getSteelDefenderSpellAttackModifier(character: BattleSmithSteelDefenderCharacter): number {
   return (
     getAbilityModifierForCharacter(character, "INT") +
     getProficiencyBonus(getNormalizedCharacterLevel(character))
@@ -251,8 +246,7 @@ function consumeSteelDefenderSpellSlot(character: Character, spellSlotLevel: num
   }
 
   const normalizedSpellSlotLevel = Math.max(1, Math.min(9, Math.floor(spellSlotLevel)));
-  const { spellSlotTotals, spellSlotsExpended, spellSlotsRemaining } =
-    getSpellSlotState(character);
+  const { spellSlotTotals, spellSlotsExpended, spellSlotsRemaining } = getSpellSlotState(character);
   const slotIndex = normalizedSpellSlotLevel - 1;
 
   if ((spellSlotTotals[slotIndex] ?? 0) <= 0 || (spellSlotsRemaining[slotIndex] ?? 0) <= 0) {

@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   CLASS_FEATURE,
@@ -156,9 +157,9 @@ function hasRogueScionOfTheThreeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === scionOfTheThreeSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === scionOfTheThreeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 3
   );
 }
 
@@ -178,9 +179,9 @@ export function hasRogueScionOfTheThreeStrikeFearFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === scionOfTheThreeSubclassId &&
-    (character.level ?? 0) >= 9
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === scionOfTheThreeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 9
   );
 }
 
@@ -188,9 +189,9 @@ export function hasRogueScionOfTheThreeAuraOfMalevolenceFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === scionOfTheThreeSubclassId &&
-    (character.level ?? 0) >= 13
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === scionOfTheThreeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 13
   );
 }
 
@@ -198,9 +199,9 @@ export function hasRogueScionOfTheThreeDreadIncarnateFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === scionOfTheThreeSubclassId &&
-    (character.level ?? 0) >= 17
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === scionOfTheThreeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 17
   );
 }
 

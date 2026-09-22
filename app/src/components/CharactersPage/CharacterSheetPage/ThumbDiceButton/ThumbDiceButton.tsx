@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Settings, X } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { preloadD20Viewport } from "../../../D20Viewport/lazy";
 import ActionButton from "../../../ActionButton";
@@ -82,7 +82,7 @@ function buildDiceDescription(selection: DiceSelection, customDiceTerms: CustomD
   return terms.length > 0 ? `Selected: ${terms.join(", ")}` : "No dice selected.";
 }
 
-function ThumbDiceButton() {
+function ThumbDiceButton({ aboveButton }: { aboveButton?: ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
@@ -279,22 +279,25 @@ function ThumbDiceButton() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className={styles.thumbButton}
-          onClick={handleThumbClick}
-          aria-controls="thumb-dice-menu"
-          aria-expanded={isExpanded}
-          aria-label={
-            !isExpanded
-              ? "Open quick dice roller"
-              : totalSelectedDice > 0
-                ? "Roll selected dice"
-                : "Close quick dice roller"
-          }
-        >
-          {triggerLabel}
-        </button>
+        <div className={styles.thumbButtonStack}>
+          {aboveButton}
+          <button
+            type="button"
+            className={styles.thumbButton}
+            onClick={handleThumbClick}
+            aria-controls="thumb-dice-menu"
+            aria-expanded={isExpanded}
+            aria-label={
+              !isExpanded
+                ? "Open quick dice roller"
+                : totalSelectedDice > 0
+                  ? "Roll selected dice"
+                  : "Close quick dice roller"
+            }
+          >
+            {triggerLabel}
+          </button>
+        </div>
       </div>
 
       {isCustomModalOpen ? (

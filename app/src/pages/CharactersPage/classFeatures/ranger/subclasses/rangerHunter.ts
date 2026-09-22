@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -141,9 +142,9 @@ const superiorHuntersDefenseReactionEntry: ReactionEntry = {
 
 function isRangerHunter(character: RangerHunterCharacter): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === hunterSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === hunterSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -163,9 +164,9 @@ export function hasRangerHunterDefensiveTacticsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === hunterSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === hunterSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 7
   );
 }
 
@@ -173,9 +174,9 @@ function hasRangerHunterSuperiorHuntersPreyFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === hunterSubclassId &&
-    (character.level ?? 0) >= 11
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === hunterSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 11
   );
 }
 
@@ -183,9 +184,9 @@ export function hasRangerHunterSuperiorHuntersDefenseFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === hunterSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === hunterSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 15
   );
 }
 
@@ -792,15 +793,13 @@ function collectRangerHunterContributions(
   }
 
   if (hasRangerHunterSuperiorHuntersPreyFeature(character)) {
-    contributions.push(
-      {
-        source: createSubclassContributionSource({
-          id: "ranger-hunter-superior-hunters-prey",
-          label: superiorHuntersPreySource,
-          entryId: CLASS_FEATURE.SUPERIOR_HUNTERS_PREY
-        })
-      }
-    );
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-hunter-superior-hunters-prey",
+        label: superiorHuntersPreySource,
+        entryId: CLASS_FEATURE.SUPERIOR_HUNTERS_PREY
+      })
+    });
   }
 
   if (hasRangerHunterSuperiorHuntersDefenseFeature(character)) {

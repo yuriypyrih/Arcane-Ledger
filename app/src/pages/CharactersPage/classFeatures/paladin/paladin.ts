@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, getDivinityEntryById } from "../../../../codex/entries";
 import { paladinFeatureMap } from "../../../../codex/classes";
 import type {
@@ -20,9 +21,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
-import {
-  createHeaderTagsFromResources
-} from "../cardUsage";
+import { createHeaderTagsFromResources } from "../cardUsage";
 import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -57,7 +56,11 @@ import {
   hasActivePaladinAuraOfProtection,
   hasPaladinFeature
 } from "./base";
-export { faithfulSteedActionKey, paladinLayOnHandsActionKey, paladinsSmiteActionKey } from "./actionKeys";
+export {
+  faithfulSteedActionKey,
+  paladinLayOnHandsActionKey,
+  paladinsSmiteActionKey
+} from "./actionKeys";
 export {
   expendPaladinChannelDivinityUse,
   getPaladinChannelDivinityUsesRemaining,
@@ -162,9 +165,9 @@ export function normalizePaladinFeatureState(
     ancientsSubclass.hasPaladinOathOfTheAncientsUndyingSentinelFeature(character);
   const hasHolyNimbus =
     devotionSubclass.hasPaladinOathOfDevotionHolyNimbusFeature(character) ||
-    (character.className === "Paladin" &&
-      (character.level ?? 0) >= 20 &&
-      character.subclassId === undefined);
+    (hasCharacterClass(character, "Paladin") &&
+      (getClassLevel(character, "Paladin") ?? 0) >= 20 &&
+      getClassSubclassId(character, "Paladin") === undefined);
   const hasGloriousDefense = glorySubclass.hasPaladinOathOfGloryGloriousDefenseFeature(character);
   const hasLivingLegend = glorySubclass.hasPaladinOathOfGloryLivingLegendFeature(character);
   const hasElderChampion =
@@ -219,7 +222,7 @@ export function normalizePaladinFeatureState(
   const nobleScionUsesExpended = Number(record.nobleScionUsesExpended);
   const avengingAngelUsesExpended = Number(record.avengingAngelUsesExpended);
   const channelDivinityTotal = hasChannelDivinity
-    ? (getPaladinFeatureRow(character.level)?.channelDivinity ?? 0)
+    ? (getPaladinFeatureRow(getClassLevel(character, "Paladin"))?.channelDivinity ?? 0)
     : 0;
   const totalPool = hasLayOnHands ? getPaladinHealingPoolTotal(character) : 0;
   return {
@@ -382,7 +385,7 @@ export function getPaladinHealingPoolTotal(
     return 0;
   }
 
-  return Math.max(1, Math.floor(character.level)) * 5;
+  return Math.max(1, Math.floor(getClassLevel(character, "Paladin"))) * 5;
 }
 
 export function getPaladinHealingPoolRemaining(
@@ -1190,7 +1193,7 @@ export function advancePaladinFeaturesForNewRound(character: Character): Charact
 }
 
 export function consumePaladinWeaponAttack(character: Character): Character {
-  if (character.className !== "Paladin") {
+  if (!hasCharacterClass(character, "Paladin")) {
     return isRoundTrackerResourceAvailable(character.roundTracker, "action")
       ? {
           ...character,

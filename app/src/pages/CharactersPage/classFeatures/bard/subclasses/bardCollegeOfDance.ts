@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import type { Character, CharacterBardFeatureState } from "../../../../../types";
 import { SKILL } from "../../../../../types";
@@ -49,9 +50,9 @@ export function hasBardCollegeOfDanceDazzlingFootworkFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfDanceSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfDanceSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -59,9 +60,9 @@ export function hasBardCollegeOfDanceInspiringMovementFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfDanceSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfDanceSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 6
   );
 }
 
@@ -275,9 +276,9 @@ function getBardCollegeOfDanceInspiringMovementReactionEntry(
 ): ReactionEntry {
   const description = getFeatureDescriptionForCharacter(
     {
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Bard",
+      level: getClassLevel(character, "Bard") ?? 0,
+      subclassId: getClassSubclassId(character, "Bard")
     },
     CLASS_FEATURE.INSPIRING_MOVEMENT
   );
@@ -304,7 +305,10 @@ function getBardCollegeOfDanceInspiringMovementReactionEntry(
 }
 
 export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver = (character) => {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfDanceSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfDanceSubclassId
+  ) {
     return {};
   }
 
@@ -319,7 +323,10 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
 export function collectBardCollegeOfDanceContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfDanceSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfDanceSubclassId
+  ) {
     return [];
   }
 
@@ -387,8 +394,8 @@ export function collectBardCollegeOfDanceContributions(
           }
 
           const bardicDie = getBardicInspirationDie({
-            className: character.className,
-            level: character.level ?? 0
+            className: "Bard",
+            level: getClassLevel(character, "Bard") ?? 0
           });
 
           return {

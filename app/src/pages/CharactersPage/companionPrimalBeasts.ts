@@ -1,3 +1,4 @@
+import { getClassLevel } from "./multiclass";
 import type { Character, MonsterListItem, MonsterRecord } from "../../types";
 import {
   getMonsterImageUrl,
@@ -40,7 +41,7 @@ function getPrimalBeastFormulaHitPoints(
   kind: PrimalBeastKind,
   character?: Pick<Character, "level">
 ) {
-  const level = Math.max(1, Math.floor(character?.level ?? 3));
+  const level = Math.max(1, Math.floor(character ? getClassLevel(character, "Ranger") : 3));
 
   return kind === "sky" ? 4 + 4 * level : 5 + 5 * level;
 }
@@ -264,8 +265,9 @@ export function getPrimalBeastKindFromKey(key: string): PrimalBeastKind | null {
   const normalizedKey = key.trim();
 
   return (
-    primalBeastKindOptions.find((option) => `arcane-ledger_primal-beast-${option.value}` === normalizedKey)
-      ?.value ?? null
+    primalBeastKindOptions.find(
+      (option) => `arcane-ledger_primal-beast-${option.value}` === normalizedKey
+    )?.value ?? null
   );
 }
 

@@ -195,7 +195,7 @@
   width: 100%;
   min-height: 42px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.42rem;
   border: 0;
   background: transparent;
@@ -219,6 +219,10 @@
   height: 0.88rem;
   color: var(--theme-text-muted);
   flex: 0 0 auto;
+}
+
+.table th[data-active="true"] .sortIcon {
+  color: var(--theme-state-success);
 }
 
 .nicknameCell strong {
@@ -307,6 +311,14 @@
 
 .accessPanel button {
   margin-top: 0.2rem;
+}
+
+.modalForm {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .modalBody {

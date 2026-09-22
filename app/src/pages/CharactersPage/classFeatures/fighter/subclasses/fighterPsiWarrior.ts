@@ -1,4 +1,10 @@
 import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   getReactionEntryById,
@@ -86,9 +92,9 @@ export function hasFighterPsiWarriorPsionicPower(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === psiWarriorSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === psiWarriorSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 3
   );
 }
 
@@ -96,9 +102,9 @@ function hasFighterPsiWarriorTelekineticAdept(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === psiWarriorSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === psiWarriorSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 7
   );
 }
 
@@ -106,9 +112,9 @@ function hasFighterPsiWarriorGuardedMind(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === psiWarriorSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === psiWarriorSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 10
   );
 }
 
@@ -116,9 +122,9 @@ function hasFighterPsiWarriorBulwarkOfForce(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === psiWarriorSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === psiWarriorSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 15
   );
 }
 
@@ -126,9 +132,9 @@ function hasFighterPsiWarriorTelekineticMaster(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === psiWarriorSubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === psiWarriorSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 18
   );
 }
 
@@ -225,7 +231,7 @@ function formatPsiWarriorBreakdownTerm(value: number, label: string): string {
 
 function getTelekineticThrustDcFact(character: PsiWarriorCharacter): FeatureActionFact {
   const intelligenceModifier = getPsiWarriorIntelligenceModifier(character);
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const telekineticThrustDc = 8 + intelligenceModifier + proficiencyBonus;
   const breakdown = [
     "8 Base",
@@ -253,7 +259,7 @@ export function getFighterPsiWarriorEnergyDiceTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
   return hasFighterPsiWarriorPsionicPower(character)
-    ? getPsionicDiceTotalForLevel(character.level)
+    ? getPsionicDiceTotalForLevel(getClassLevel(character, "Fighter"))
     : 0;
 }
 
@@ -261,7 +267,7 @@ export function getFighterPsiWarriorEnergyDie(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): PsionicDie | null {
   return hasFighterPsiWarriorPsionicPower(character)
-    ? getPsionicDieForLevel(character.level)
+    ? getPsionicDieForLevel(getClassLevel(character, "Fighter"))
     : null;
 }
 

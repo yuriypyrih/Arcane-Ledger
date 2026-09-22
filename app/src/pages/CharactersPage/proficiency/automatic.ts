@@ -1,3 +1,5 @@
+import { multiclassRules } from "../../../codex/classes/multiclass";
+import type { CharacterMulticlass } from "../../../types";
 import type {
   CharacterClassFeatureState,
   CharacterBackgroundChoices,
@@ -141,11 +143,10 @@ export function normalizeToolProficiencySelections(
   selectedToolProficiencies: string[]
 ): ToolProficiency[] {
   return dedupe(
-    selectedToolProficiencies
-      .filter(
-        (toolProficiency): toolProficiency is ToolProficiency =>
-          typeof toolProficiency === "string" && isToolProficiency(toolProficiency)
-      )
+    selectedToolProficiencies.filter(
+      (toolProficiency): toolProficiency is ToolProficiency =>
+        typeof toolProficiency === "string" && isToolProficiency(toolProficiency)
+    )
   );
 }
 
@@ -291,10 +292,9 @@ function getSpeciesGrantedToolProficiencies(
     ...entry.grantedToolProficiencies,
     ...(khoravarTool ? [khoravarTool] : []),
     ...(warforgedTool ? [warforgedTool] : [])
-  ]
-    .filter((toolProficiency): toolProficiency is ToolProficiency =>
-      isToolProficiency(toolProficiency)
-    );
+  ].filter((toolProficiency): toolProficiency is ToolProficiency =>
+    isToolProficiency(toolProficiency)
+  );
 }
 
 function getClassGrantedSkillProficiencies(className: string): SkillName[] {
@@ -497,6 +497,7 @@ function getAutomaticLanguageEntries(
 function getFeatureProficiencyCollectionsForCharacter(
   className: string,
   options?: {
+    multiclass?: CharacterMulticlass;
     level?: number;
     subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
@@ -508,6 +509,7 @@ function getFeatureProficiencyCollectionsForCharacter(
 ): CharacterProficiencyCollections {
   const featureCharacter = {
     className,
+    multiclass: options?.multiclass,
     level: options?.level ?? 1,
     subclassId: options?.subclassId,
     classFeatureState: options?.classFeatureState,
@@ -610,6 +612,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
   background = "",
   options?: {
     backgroundChoices?: CharacterBackgroundChoices;
+    multiclass?: CharacterMulticlass;
     level?: number;
     subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
@@ -621,6 +624,57 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     selectedClassToolProficiencies?: string[];
   }
 ): CharacterProficiencyCollections {
+  const additional = (options?.multiclass?.classes ?? []).filter(
+    (entry) => entry.level > 0 && entry.id !== options?.multiclass?.startingClassId
+  );
+  const multiclassSkills = additional.flatMap((entry) =>
+    normalizeSkillSelectionsForClass(entry.className, entry.skillChoices ?? [])
+      .slice(0, multiclassRules[entry.className]?.skillChoices ?? 0)
+      .map((skill) =>
+        createSkillEntry(
+          getSkillProficiencyForName(skill)!,
+          PROFICIENCY_SOURCE.CLASS,
+          `${entry.className} (multiclass)`,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  );
+  const multiclassArmor = additional.flatMap((entry) =>
+    (multiclassRules[entry.className]?.armor ?? []).map((armor) =>
+      createArmorEntry(
+        armor,
+        PROFICIENCY_SOURCE.CLASS,
+        `${entry.className} (multiclass)`,
+        PROF_LEVEL.PROFICIENT
+      )
+    )
+  );
+  const multiclassWeapons = additional.flatMap((entry) =>
+    (multiclassRules[entry.className]?.weapons ?? []).map((weapon) =>
+      createWeaponEntry(
+        weapon,
+        PROFICIENCY_SOURCE.CLASS,
+        `${entry.className} (multiclass)`,
+        PROF_LEVEL.PROFICIENT
+      )
+    )
+  );
+  const multiclassTools = additional.flatMap((entry) =>
+    [
+      ...(multiclassRules[entry.className]?.tools ?? []),
+      ...normalizeToolSelectionsForClass(entry.className, entry.toolChoices ?? []).slice(
+        0,
+        multiclassRules[entry.className]?.instrumentChoices ?? 0
+      )
+    ].map((tool) =>
+      createToolEntry(
+        tool,
+        PROFICIENCY_SOURCE.CLASS,
+        `${entry.className} (multiclass)`,
+        PROF_LEVEL.PROFICIENT
+      )
+    )
+  );
   const normalizedSelectedClassSkills = normalizeSkillSelectionsForClass(
     className,
     options?.selectedClassSkills ?? [],
@@ -657,6 +711,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
         normalizedSelectedClassSkills,
         options?.speciesChoices
       ),
+      ...multiclassSkills,
       ...featureCollections.skillProficiencies
     ]),
     savingThrowProficiencies: mergeProficiencyEntries([
@@ -665,14 +720,17 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     ]),
     weaponProficiencies: mergeProficiencyEntries([
       ...getAutomaticWeaponEntries(className),
+      ...expandWeaponProficiencyEntries(multiclassWeapons),
       ...featureCollections.weaponProficiencies
     ]),
     armorProficiencies: mergeProficiencyEntries([
       ...getAutomaticArmorEntries(className),
+      ...multiclassArmor,
       ...featureCollections.armorProficiencies
     ]),
     toolProficiencies: mergeProficiencyEntries([
       ...automaticToolEntries,
+      ...multiclassTools,
       ...featureCollections.toolProficiencies
     ]),
     languageProficiencies: mergeProficiencyEntries([

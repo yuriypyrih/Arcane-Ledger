@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getClassLevel,
+  getClassSpellbookIds,
+  getClassSubclassId
+} from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -8,14 +14,13 @@ export const divinerSubclassId = "wizard-diviner";
 const divinerSubclassEntry = getSubclassEntryById(divinerSubclassId);
 
 export function hasWizardDivinerFeature(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>,
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === divinerSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === divinerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= minimumLevel
   );
 }
 
@@ -33,21 +38,24 @@ export function getWizardDivinerSpellbookSpellIds(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "subclassId" | "spellbookSpellIds" | "classFeatureState">>
 ): string[] {
-  if (!hasWizardDivinerFeature(character, 3) || typeof character.level !== "number") {
+  if (
+    !hasWizardDivinerFeature(character, 3) ||
+    typeof getClassLevel(character, "Wizard") !== "number"
+  ) {
     return [];
   }
 
   return [
     ...new Set([
-      ...(Array.isArray(character.spellbookSpellIds)
-        ? character.spellbookSpellIds
+      ...(Array.isArray(getClassSpellbookIds(character, "Wizard"))
+        ? getClassSpellbookIds(character, "Wizard")
             .filter((spellId): spellId is string => typeof spellId === "string")
             .map((spellId) => spellId.trim())
         : []),
       ...getWizardSavantSpellIdsFromFeatureState({
-        className: character.className,
-        level: character.level,
-        subclassId: character.subclassId,
+        className: "Wizard",
+        level: getClassLevel(character, "Wizard"),
+        subclassId: getClassSubclassId(character, "Wizard"),
         classFeatureState: character.classFeatureState
       })
     ])

@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, ToolProficiencyEntry } from "../../../../../types";
@@ -49,9 +55,9 @@ type RogueAssassinCharacter = Pick<Character, "className"> &
 
 function hasRogueAssassinFeature(character: RogueAssassinCharacter, minimumLevel: number): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === assassinSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === assassinSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= minimumLevel
   );
 }
 
@@ -202,7 +208,7 @@ function getRogueAssassinDeathStrikeSavingThrowFormulaFact(
   character: RogueAssassinCharacter
 ): FeatureActionFact {
   const dexterityModifier = getAbilityModifierBreakdownForCharacter(character, "DEX").total;
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const saveDc = 8 + dexterityModifier + proficiencyBonus;
 
   return {

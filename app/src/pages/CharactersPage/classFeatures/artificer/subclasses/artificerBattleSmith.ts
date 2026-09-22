@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { WEAPON_PROFICIENCY } from "../../../../../types";
 import type { Character } from "../../../../../types";
@@ -8,10 +9,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
-import {
-  getPreparedSpellIdsByLevel,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
   createArtificerWeaponProficiencyEntries,
   hasArtificerSubclassFeature
@@ -96,7 +94,7 @@ export function collectArtificerBattleSmithContributions(
         entryId: CLASS_FEATURE.BATTLE_SMITH_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Artificer") ?? 0,
         battleSmithSpellIdsByLevel
       )
     },
@@ -114,10 +112,7 @@ export function collectArtificerBattleSmithContributions(
         {
           id: "artificer-battle-smith-battle-ready-weapon-action",
           transform: (_runtimeCharacter, action) =>
-            transformArtificerBattleSmithBattleReadyWeaponAction(
-              character,
-              action as WeaponAction
-            )
+            transformArtificerBattleSmithBattleReadyWeaponAction(character, action as WeaponAction)
         }
       ]
     },
@@ -140,19 +135,14 @@ export function collectArtificerBattleSmithContributions(
         {
           id: "artificer-battle-smith-arcane-jolt-weapon-action",
           transform: (_runtimeCharacter, action) =>
-            transformArtificerBattleSmithArcaneJoltWeaponAction(
-              character,
-              action as WeaponAction
-            )
+            transformArtificerBattleSmithArcaneJoltWeaponAction(character, action as WeaponAction)
         }
       ]
     }
   ];
 }
 
-export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
     compileFeatureContributions(collectArtificerBattleSmithContributions(character)),
     {

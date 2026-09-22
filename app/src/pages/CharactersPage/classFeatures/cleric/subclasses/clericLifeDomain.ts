@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { preserveLifeDescription } from "../../../../../codex/subclasses/cleric";
 import type { Character } from "../../../../../types";
@@ -35,9 +36,9 @@ export function hasClericLifeDomainFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Cleric" &&
-    character.subclassId === lifeDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Cleric") &&
+    getClassSubclassId(character, "Cleric") === lifeDomainSubclassId &&
+    (getClassLevel(character, "Cleric") ?? 0) >= minimumLevel
   );
 }
 
@@ -50,12 +51,12 @@ export function getClericLifeDomainFeatureActions(
   }
 
   const totalUses = getClericChannelDivinityUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0
   });
   const usesRemaining = getClericChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0,
     classFeatureState: character.classFeatureState
   });
   return [
@@ -108,7 +109,7 @@ export function collectClericLifeDomainContributions(
         entryId: CLASS_FEATURE.LIFE_DOMAIN_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Cleric") ?? 0,
         lifeDomainSpellIdsByLevel
       )
     },

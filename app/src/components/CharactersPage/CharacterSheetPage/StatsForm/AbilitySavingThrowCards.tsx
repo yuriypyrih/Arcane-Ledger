@@ -192,6 +192,7 @@ function AbilitySavingThrowCards({
         return isInteractive ? (
           <SheetSurface
             as="button"
+            readOnlyInteractive
             key={card.ability}
             type="button"
             borderSize="xl"

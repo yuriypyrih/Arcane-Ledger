@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
@@ -13,14 +14,17 @@ export function getClericChannelDivinityUsesTotal(
     return 0;
   }
 
-  return getClericFeatureRow(character.level)?.channelDivinity ?? 0;
+  return getClericFeatureRow(getClassLevel(character, "Cleric"))?.channelDivinity ?? 0;
 }
 
 export function getClericChannelDivinityUsesRemaining(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   const totalUses = getClericChannelDivinityUsesTotal(character);
-  const clericState = normalizeClericBaseFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeClericBaseFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
   const usesExpended = clericState.channelDivinityUsesExpended ?? 0;
 
   return Math.max(0, totalUses - usesExpended);
@@ -31,7 +35,10 @@ export function expendClericChannelDivinityUse(character: Character): Character 
     return character;
   }
 
-  const clericState = normalizeClericBaseFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeClericBaseFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
   const totalUses = getClericChannelDivinityUsesTotal(character);
   const usesExpended = clericState.channelDivinityUsesExpended ?? 0;
 
@@ -56,7 +63,10 @@ export function restoreClericChannelDivinityOnShortRest(character: Character): C
     return character;
   }
 
-  const clericState = normalizeClericBaseFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeClericBaseFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
 
   return {
     ...character,
@@ -76,7 +86,10 @@ export function restoreClericChannelDivinityOnLongRest(character: Character): Ch
     return character;
   }
 
-  const clericState = normalizeClericBaseFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeClericBaseFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
 
   return {
     ...character,

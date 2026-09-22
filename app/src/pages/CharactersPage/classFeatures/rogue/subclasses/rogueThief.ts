@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, SkillName } from "../../../../../types";
@@ -28,9 +29,9 @@ type RogueThiefCharacter = Pick<Character, "className"> &
 
 function hasRogueThiefFeature(character: RogueThiefCharacter, minimumLevel: number): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === thiefSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === thiefSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= minimumLevel
   );
 }
 

@@ -15,6 +15,7 @@ import { getFeatureDescriptionForCharacter } from "../../../../../pages/Characte
 import { getCustomTraitActualMaxHitPointBonuses } from "../../../../../pages/CharactersPage/customTraitEffects";
 import { getFeatDefinition, getFeatLabel } from "../../../../../pages/CharactersPage/feats";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
+import { getCharacterClasses } from "../../../../../pages/CharactersPage/multiclass";
 import {
   getHitDieFormulaForClass,
   getHitDieLabelForCharacter,
@@ -56,6 +57,7 @@ export type HitPointsEditorCharacter = Pick<
       | "backgroundChoices"
       | "feats"
       | "inventoryItems"
+      | "multiclass"
       | "species"
       | "statusEntries"
       | "subclassId"
@@ -82,7 +84,56 @@ function formatHitPointFormulaContent({
   character: HitPointsEditorCharacter;
   mode: MaxHitPointsMode;
 }): { content: string; breakdown: string } {
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const constitutionTerm = formatSignedFormulaTerm(constitutionModifier, "CON");
+  const breakdown =
+    mode === "automatic"
+      ? (formatFormulaBreakdown([`${getAutomaticMaxHitPointsForCharacter(character)} Base HP`]) ??
+        "")
+      : "Roll yourself";
+  if (character.multiclass) {
+    const adjustment = character.multiclass.hitPointsAdjustment ?? 0;
+    let minimum = adjustment;
+    let maximum = adjustment;
+    const terms: string[] = [];
+    function addGain(term: string, dieMinimum: number, dieMaximum: number, count = 1) {
+      if (!count) return;
+      const expression = formatFormulaTerms([term, constitutionTerm]);
+      const gain = dieMinimum + constitutionModifier < 1 ? `max(1, ${expression})` : expression;
+      terms.push(count === 1 && dieMinimum === dieMaximum ? gain : `${count} × (${gain})`);
+      minimum += count * Math.max(1, dieMinimum + constitutionModifier);
+      maximum += count * Math.max(1, dieMaximum + constitutionModifier);
+    }
+    for (const entry of getCharacterClasses(character)) {
+      const die = getHitDieMaximumForClass(entry.className, entry.customClass, entry.classRules);
+      const className = entry.customClass?.name || entry.className;
+      const isStarting = entry.id === character.multiclass.startingClassId;
+      if (isStarting) addGain(`${die} ${className} D${die}`, die, die);
+      const rolls = new Map<number, number>();
+      let unrolledLevels = 0;
+      for (let index = isStarting ? 1 : 0; index < entry.level; index += 1) {
+        const roll = entry.hitPointRolls?.[index];
+        if (typeof roll === "number" && Number.isInteger(roll) && roll >= 1 && roll <= die)
+          rolls.set(roll, (rolls.get(roll) ?? 0) + 1);
+        else unrolledLevels += 1;
+      }
+      for (const [roll, count] of rolls)
+        addGain(`${roll} ${className} D${die} roll`, roll, roll, count);
+      addGain(`1d${die} ${className}`, 1, die, unrolledLevels);
+    }
+    if (adjustment) terms.push(formatSignedFormulaTerm(adjustment, "Adjustment"));
+    let formula = formatFormulaTerms(terms);
+    if (minimum < 1) formula = `max(1, ${formula})`;
+    if (maximum > MAX_HIT_POINTS) formula = `min(${MAX_HIT_POINTS}, ${formula})`;
+    const minimumBaseHitPoints = Math.max(1, Math.min(MAX_HIT_POINTS, minimum));
+    const maximumBaseHitPoints = Math.max(1, Math.min(MAX_HIT_POINTS, maximum));
+    return {
+      content: `${minimumBaseHitPoints}~${maximumBaseHitPoints} MAX HP = ${formula}`,
+      breakdown
+    };
+  }
   const hitDieLabel = getHitDieLabelForCharacter(character);
+  const className = character.customClass?.name || character.className;
   const hitDieFormula = getHitDieFormulaForClass(
     character.className,
     character.customClass,
@@ -93,10 +144,8 @@ function formatHitPointFormulaContent({
     character.customClass,
     character.classRules
   );
-  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
   const level = Math.max(1, Math.floor(character.level));
   const laterLevelCount = Math.max(0, level - 1);
-  const constitutionTerm = formatSignedFormulaTerm(constitutionModifier, "CON");
   const minimumBaseHitPoints = Math.max(
     1,
     hitDieMaximum + constitutionModifier + laterLevelCount * (1 + constitutionModifier)
@@ -106,15 +155,10 @@ function formatHitPointFormulaContent({
     hitDieMaximum + constitutionModifier + laterLevelCount * (hitDieMaximum + constitutionModifier)
   );
   const formula = formatFormulaTerms([
-    `${hitDieMaximum} (${hitDieLabel})`,
+    `${hitDieMaximum} ${className} ${hitDieLabel}`,
     constitutionTerm,
-    `+ ${laterLevelCount} × (${hitDieFormula} ${constitutionTerm})`
+    `+ ${laterLevelCount} × (${hitDieFormula} ${className} ${constitutionTerm})`
   ]);
-  const breakdown =
-    mode === "automatic"
-      ? (formatFormulaBreakdown([`${getAutomaticMaxHitPointsForCharacter(character)} Base HP`]) ??
-        "")
-      : "Roll yourself";
 
   return {
     content: `${minimumBaseHitPoints}~${maximumBaseHitPoints} MAX HP = ${formula}`,
@@ -220,7 +264,10 @@ function HitPointsEditorContent({
       <div className={styles.modeSwitch} role="group" aria-label="Max HP mode">
         <button
           type="button"
-          className={clsx(styles.modeSwitchButton, mode === "automatic" && styles.modeSwitchButtonActive)}
+          className={clsx(
+            styles.modeSwitchButton,
+            mode === "automatic" && styles.modeSwitchButtonActive
+          )}
           onClick={() => onSetMode("automatic")}
           aria-pressed={mode === "automatic"}
         >
@@ -228,7 +275,10 @@ function HitPointsEditorContent({
         </button>
         <button
           type="button"
-          className={clsx(styles.modeSwitchButton, mode === "custom" && styles.modeSwitchButtonActive)}
+          className={clsx(
+            styles.modeSwitchButton,
+            mode === "custom" && styles.modeSwitchButtonActive
+          )}
           onClick={() => onSetMode("custom")}
           aria-pressed={mode === "custom"}
         >

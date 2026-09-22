@@ -4,6 +4,7 @@ import {
   deleteCharacterSheet,
   deleteCharacterPortrait,
   getCharacterSheet,
+  getPreMulticlassBackup,
   importCharacterSheets,
   importSharedCharacter,
   listFullCharacterSheets,
@@ -22,6 +23,11 @@ characterRoutes.get("/full", requireAuth, listFullCharacterSheets);
 characterRoutes.post("/import", requireAuth, importCharacterSheets);
 characterRoutes.post("/shared/import", optionalAuth, importSharedCharacter);
 characterRoutes.post("/:characterSheetId/share", requireAuth, shareCharacterSheet);
+characterRoutes.get(
+  "/:characterSheetId/pre-multiclass-backup",
+  requireAuth,
+  getPreMulticlassBackup
+);
 characterRoutes.get("/:characterSheetId", requireAuth, getCharacterSheet);
 characterRoutes.put("/:characterSheetId", requireAuth, saveCharacterSheet);
 characterRoutes.delete("/:characterSheetId", requireAuth, deleteCharacterSheet);

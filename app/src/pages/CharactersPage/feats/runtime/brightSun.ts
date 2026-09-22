@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../multiclass";
 import { FEATS, type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
@@ -8,10 +9,7 @@ import {
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type { FeatureActionCard } from "../../classFeatures/types";
-import {
-  createCharacterStatusEntry,
-  normalizeCharacterStatusEntries
-} from "../../statusEntries";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatDefinition } from "..";
 import { normalizeCharacterFeats } from "../normalization";
 import {
@@ -33,14 +31,11 @@ export const boonOfBrightSunDaylightPresenceTemporaryHitPointsSource =
 export function getBoonOfBrightSunDaylightPresenceDescription(
   description: SpellDescriptionEntry[]
 ): SpellDescriptionEntry[] {
-  return filterDescriptionEntries(
-    description,
-    isBoonOfBrightSunDaylightPresenceDescriptionEntry
-  );
+  return filterDescriptionEntries(description, isBoonOfBrightSunDaylightPresenceDescriptionEntry);
 }
 
 function hasBoonOfBrightSunForCharacter(character: FeatRuntimeCharacter): boolean {
-  return normalizeCharacterFeats(character.feats, character.level ?? 1).some(
+  return normalizeCharacterFeats(character.feats, getCharacterLevel(character) ?? 1).some(
     (entry) => entry.feat === FEATS.BOON_OF_BRIGHT_SUN
   );
 }

@@ -1,3 +1,4 @@
+import { normalizeMulticlassCharacter } from "./multiclassStorage";
 import type { Character, CharacterDraft, PortableCharacterSheet, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
 import {
@@ -263,6 +264,9 @@ export function normalizeCharacter(value: unknown): Character | null {
     speciesFeatureState?: unknown;
     storageMetadata?: unknown;
   };
+  if (record.multiclass !== undefined) {
+    return normalizeMulticlassCharacter(record, normalizeCharacter);
+  }
   const id = Number(record.id);
 
   if (!Number.isFinite(id)) {
@@ -271,10 +275,7 @@ export function normalizeCharacter(value: unknown): Character | null {
 
   const defaults = createEmptyCharacter();
   const normalizedHitPoints = clampNumber(record.hitPoints, 1, 9999, defaults.hitPoints);
-  const { level: normalizedLevel, xp: normalizedXp } = normalizeLevelAndXp(
-    record.level,
-    record.xp
-  );
+  const { level: normalizedLevel, xp: normalizedXp } = normalizeLevelAndXp(record.level, record.xp);
   const normalizedSpecies =
     typeof record.species === "string" ? record.species.trim() : defaults.species;
   const normalizedCustomSpecies = isCustomSpeciesName(normalizedSpecies)
@@ -407,16 +408,19 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
     .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
-  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
-    className: normalizedClassName,
-    level: normalizedLevel,
-    subclassId: normalizedSubclassId,
-    classRules: normalizedClassRules,
-    customClass: normalizedCustomClass,
-    abilities: normalizedAbilities,
-    cantripIds: normalizedCantripIds,
-    feats: normalizedFeats
-  });
+  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(
+    record.classFeatureState,
+    {
+      className: normalizedClassName,
+      level: normalizedLevel,
+      subclassId: normalizedSubclassId,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
+      abilities: normalizedAbilities,
+      cantripIds: normalizedCantripIds,
+      feats: normalizedFeats
+    }
+  );
   const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
     species: normalizedSpecies,
     level: normalizedLevel,
@@ -541,10 +545,12 @@ export function normalizeCharacter(value: unknown): Character | null {
       })
     ]
   );
-  const normalizedCustomSpellSnapshotsForSelectedIds = pruneCharacterCustomSpellSnapshotsForSelectedIds(
-    normalizedCustomSpellSnapshots,
-    [...normalizedCantripIds, ...normalizedSpellbookSpellIds, ...normalizedPreparedSpellIds]
-  );
+  const normalizedCustomSpellSnapshotsForSelectedIds =
+    pruneCharacterCustomSpellSnapshotsForSelectedIds(normalizedCustomSpellSnapshots, [
+      ...normalizedCantripIds,
+      ...normalizedSpellbookSpellIds,
+      ...normalizedPreparedSpellIds
+    ]);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     normalizedClassName,
     normalizedLevel,
@@ -703,9 +709,7 @@ export function normalizeCharacter(value: unknown): Character | null {
             sheetSizeBytes: normalizeSheetSizeBytes(
               (record.storageMetadata as { sheetSizeBytes?: unknown }).sheetSizeBytes
             ),
-            ...(normalizeCharacterSyncMetadata(
-              (record.storageMetadata as { sync?: unknown }).sync
-            )
+            ...(normalizeCharacterSyncMetadata((record.storageMetadata as { sync?: unknown }).sync)
               ? {
                   sync: normalizeCharacterSyncMetadata(
                     (record.storageMetadata as { sync?: unknown }).sync
@@ -791,7 +795,9 @@ export function loadCharacters(): Character[] {
 
 export function saveCharacters(characters: Character[]) {
   saveStoredCharacterRecords(
-    characters.map((character) => ensurePortableCharacterSheetSyncMetadata(createPortableCharacterSheet(character)))
+    characters.map((character) =>
+      ensurePortableCharacterSheetSyncMetadata(createPortableCharacterSheet(character))
+    )
   );
 }
 
@@ -806,17 +812,18 @@ export function upsertTrustedCharacter(character: Character): Character {
   );
   const existingCharacter =
     existingCharacterRecord === undefined ? null : normalizeCharacter(existingCharacterRecord);
-  const characterInput =
-    existingCharacter?.storageMetadata?.sync
-      ? {
-          ...character,
-          storageMetadata: {
-            ...(character.storageMetadata ?? {}),
-            sync: existingCharacter.storageMetadata.sync
-          }
+  const characterInput = existingCharacter?.storageMetadata?.sync
+    ? {
+        ...character,
+        storageMetadata: {
+          ...(character.storageMetadata ?? {}),
+          sync: existingCharacter.storageMetadata.sync
         }
-      : character;
-  const characterRecord = markPortableCharacterSheetDirty(createPortableCharacterSheet(characterInput));
+      }
+    : character;
+  const characterRecord = markPortableCharacterSheetDirty(
+    createPortableCharacterSheet(characterInput)
+  );
   let didReplaceCharacter = false;
   const nextCharacters = characters.map((entry) => {
     if (getStoredCharacterId(entry) !== character.id) {
@@ -827,7 +834,9 @@ export function upsertTrustedCharacter(character: Character): Character {
     return characterRecord;
   });
 
-  saveStoredCharacterRecords(didReplaceCharacter ? nextCharacters : [characterRecord, ...characters]);
+  saveStoredCharacterRecords(
+    didReplaceCharacter ? nextCharacters : [characterRecord, ...characters]
+  );
   return {
     ...character,
     storageMetadata: characterRecord.metadata

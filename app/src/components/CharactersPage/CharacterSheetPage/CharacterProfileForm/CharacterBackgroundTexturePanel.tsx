@@ -10,15 +10,13 @@ import {
   type ReactNode
 } from "react";
 import type { CharacterBackgroundTextureSelection } from "../../../../api/characterBackgroundTextures";
-import {
-  getClassPageTextureOptions,
-  getClassPageTextureUrl
-} from "../../classSignature";
+import { getClassPageTextureOptions, getClassPageTextureUrl } from "../../classSignature";
 import type { CharacterPortraitCropSettings } from "../../../../pages/CharactersPage/characterPortraits";
 import type { CharacterBackgroundTextureMetadata } from "../../../../types";
 import ActionButton from "../../../ActionButton";
 import { OverlayBody, OverlayFooter } from "../../../Overlay";
 import CharacterImageCropControls from "./CharacterImageCropControls";
+import { useReadOnlySheet } from "../readOnlySheetContext";
 import styles from "./CharacterProfileForm.module.css";
 
 const defaultCropSettings: CharacterPortraitCropSettings = {
@@ -114,6 +112,7 @@ function CharacterBackgroundTexturePanel({
   onSelectCurrentUploaded,
   onUpload
 }: CharacterBackgroundTexturePanelProps) {
+  const readOnly = useReadOnlySheet();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
@@ -137,7 +136,7 @@ function CharacterBackgroundTexturePanel({
       }%) rotate(${cropSettings.rotationDegrees}deg) scale(${previewScale})`
     };
   }, [cropSettings]);
-  const textureNotice = !isUploadEnabled ? unavailableMessage : null;
+  const textureNotice = !readOnly && !isUploadEnabled ? unavailableMessage : null;
 
   useEffect(
     () => () => {
@@ -149,6 +148,7 @@ function CharacterBackgroundTexturePanel({
   );
 
   function openFilePicker() {
+    if (readOnly || !isUploadEnabled) return;
     fileInputRef.current?.click();
   }
 
@@ -163,6 +163,7 @@ function CharacterBackgroundTexturePanel({
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    if (readOnly || !isUploadEnabled) return;
     const file = event.currentTarget.files?.[0] ?? null;
 
     event.currentTarget.value = "";
@@ -182,6 +183,7 @@ function CharacterBackgroundTexturePanel({
   }
 
   function updateCropSetting(key: keyof CharacterPortraitCropSettings, value: string) {
+    if (readOnly) return;
     const numericValue = Number(value);
 
     setCropSettings((current) => ({
@@ -191,7 +193,7 @@ function CharacterBackgroundTexturePanel({
   }
 
   async function savePendingCrop() {
-    if (!pendingFile) {
+    if (readOnly || !isUploadEnabled || !pendingFile) {
       return;
     }
 
@@ -203,6 +205,7 @@ function CharacterBackgroundTexturePanel({
   }
 
   function resetCropSettings() {
+    if (readOnly) return;
     setCropSettings(defaultCropSettings);
   }
 
@@ -218,7 +221,10 @@ function CharacterBackgroundTexturePanel({
       <button
         key={options.key}
         type="button"
-        className={clsx(styles.backgroundTextureOption, selected && styles.backgroundTextureSelected)}
+        className={clsx(
+          styles.backgroundTextureOption,
+          selected && styles.backgroundTextureSelected
+        )}
         disabled={!isUploadEnabled || isSaving}
         aria-pressed={selected}
         onClick={options.onClick}
@@ -253,115 +259,124 @@ function CharacterBackgroundTexturePanel({
             <span className={styles.backgroundTextureEmptyPreview} />
           )}
         </div>
-        {pendingPreviewUrl ? (
-          <CharacterImageCropControls
-            cropSettings={cropSettings}
-            label="Adjust background texture crop"
-            onUpdate={updateCropSetting}
-          />
-        ) : (
-          <div className={styles.backgroundTextureOptions} aria-label="Background texture choices">
-            {renderTextureOption({
-              key: "default",
-              label: "Class default",
-              imageUrl: classDefaultTextureUrl,
-              onClick: () => onSelect({ source: "default" })
-            })}
-            {renderTextureOption({
-              key: "none",
-              label: "No texture",
-              imageUrl: null,
-              onClick: () => onSelect({ source: "none" })
-            })}
-            {backgroundTexture?.source === "uploaded"
-              ? renderTextureOption({
-                  key: "uploaded",
-                  label: "Uploaded texture",
-                  imageUrl: backgroundTexture.imageUrl,
-                  onClick: onSelectCurrentUploaded
+        {!readOnly ? (
+          pendingPreviewUrl ? (
+            <CharacterImageCropControls
+              cropSettings={cropSettings}
+              label="Adjust background texture crop"
+              onUpdate={updateCropSetting}
+            />
+          ) : (
+            <div
+              className={styles.backgroundTextureOptions}
+              aria-label="Background texture choices"
+            >
+              {renderTextureOption({
+                key: "default",
+                label: "Class default",
+                imageUrl: classDefaultTextureUrl,
+                onClick: () => onSelect({ source: "default" })
+              })}
+              {renderTextureOption({
+                key: "none",
+                label: "No texture",
+                imageUrl: null,
+                onClick: () => onSelect({ source: "none" })
+              })}
+              {backgroundTexture?.source === "uploaded"
+                ? renderTextureOption({
+                    key: "uploaded",
+                    label: "Uploaded texture",
+                    imageUrl: backgroundTexture.imageUrl,
+                    onClick: onSelectCurrentUploaded
+                  })
+                : null}
+              {textureOptions.map((texture) =>
+                renderTextureOption({
+                  key: `predefined:${texture.id}`,
+                  label: texture.label,
+                  imageUrl: texture.imageUrl,
+                  onClick: () => onSelect({ source: "predefined", textureId: texture.id })
                 })
-              : null}
-            {textureOptions.map((texture) =>
-              renderTextureOption({
-                key: `predefined:${texture.id}`,
-                label: texture.label,
-                imageUrl: texture.imageUrl,
-                onClick: () => onSelect({ source: "predefined", textureId: texture.id })
-              })
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )
+        ) : null}
         {errorMessage ? (
           <p className={styles.portraitError} role="alert">
             {errorMessage}
           </p>
         ) : null}
         {textureNotice ? <p className={styles.portraitNotice}>{textureNotice}</p> : null}
-        <input
-          ref={fileInputRef}
-          className={styles.portraitFileInput}
-          type="file"
-          accept="image/*"
-          disabled={!isAuthenticated || !isUploadEnabled}
-          onChange={handleFileChange}
-        />
+        {!readOnly ? (
+          <input
+            ref={fileInputRef}
+            className={styles.portraitFileInput}
+            type="file"
+            accept="image/*"
+            disabled={!isAuthenticated || !isUploadEnabled}
+            onChange={handleFileChange}
+          />
+        ) : null}
       </OverlayBody>
 
-      <OverlayFooter
-        className={[
-          styles.portraitModalFooter,
-          pendingPreviewUrl ? styles.portraitModalFooterEditing : ""
-        ]
-          .join(" ")
-          .trim()}
-      >
-        {pendingPreviewUrl ? (
-          <>
-            <ActionButton
-              fullWidth={false}
-              icon={<Save size={16} />}
-              loading={isSaving}
-              disabled={!isUploadEnabled}
-              onClick={() => void savePendingCrop()}
-            >
-              Save texture
-            </ActionButton>
-            <ActionButton
-              fullWidth={false}
-              icon={<RotateCcw size={16} />}
-              variant="OUTLINE"
-              onClick={resetCropSettings}
-            >
-              Reset crop
-            </ActionButton>
-          </>
-        ) : (
-          <>
-            {hasPendingSelectionChange ? (
+      {!readOnly ? (
+        <OverlayFooter
+          className={[
+            styles.portraitModalFooter,
+            pendingPreviewUrl ? styles.portraitModalFooterEditing : ""
+          ]
+            .join(" ")
+            .trim()}
+        >
+          {pendingPreviewUrl ? (
+            <>
               <ActionButton
                 fullWidth={false}
                 icon={<Save size={16} />}
                 loading={isSaving}
                 disabled={!isUploadEnabled}
-                onClick={() => void onSaveSelection()}
+                onClick={() => void savePendingCrop()}
               >
                 Save texture
               </ActionButton>
-            ) : null}
-            {isAuthenticated ? (
               <ActionButton
                 fullWidth={false}
-                icon={<Upload size={16} />}
-                loading={isSaving}
-                disabled={!isUploadEnabled}
-                onClick={openFilePicker}
+                icon={<RotateCcw size={16} />}
+                variant="OUTLINE"
+                onClick={resetCropSettings}
               >
-                Upload texture
+                Reset crop
               </ActionButton>
-            ) : null}
-          </>
-        )}
-      </OverlayFooter>
+            </>
+          ) : (
+            <>
+              {hasPendingSelectionChange ? (
+                <ActionButton
+                  fullWidth={false}
+                  icon={<Save size={16} />}
+                  loading={isSaving}
+                  disabled={!isUploadEnabled}
+                  onClick={() => void onSaveSelection()}
+                >
+                  Save texture
+                </ActionButton>
+              ) : null}
+              {isAuthenticated ? (
+                <ActionButton
+                  fullWidth={false}
+                  icon={<Upload size={16} />}
+                  loading={isSaving}
+                  disabled={!isUploadEnabled}
+                  onClick={openFilePicker}
+                >
+                  Upload texture
+                </ActionButton>
+              ) : null}
+            </>
+          )}
+        </OverlayFooter>
+      ) : null}
     </>
   );
 }

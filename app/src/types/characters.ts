@@ -93,6 +93,40 @@ export type CharacterCustomClassConfig = {
   mechanics: CharacterCustomClassMechanics;
   spellcastingAbility: AbilityKey;
   spellSlotMaximums: number[];
+  castingProgression?: "none" | "full" | "half" | "third" | "pact" | "manual";
+};
+
+/** Stable ownership for class choices; secondary level 0 declares an inactive class. */
+export type CharacterClassEntry = {
+  /** Class-owned feat choices suspended until their granting class levels return. */
+  inactiveFeats?: CharacterFeatEntry[];
+  id: string;
+  className: string;
+  level: number;
+  subclassId?: string;
+  customSubclass?: CharacterCustomSubclassConfig;
+  classRules?: CharacterClassRulesConfig;
+  customClass?: CharacterCustomClassConfig;
+  cantripIds?: string[];
+  spellbookSpellIds?: string[];
+  preparedSpellIds?: string[];
+  skillChoices?: SkillName[];
+  toolChoices?: TOOL_PROFICIENCY[];
+  /** Raw die rolls, indexed by class level minus one; omitted entries use fixed gains. */
+  hitPointRolls?: (number | null)[];
+  customFeatureState?: CharacterClassFeatureState;
+};
+
+export type CharacterMulticlass = {
+  classes: CharacterClassEntry[];
+  startingClassId: string;
+  prerequisiteOverride?: boolean;
+  hitPointsAdjustment?: number;
+  /** Hit Dice spent by stable class entry ID. */
+  hitDiceExpendedByClass?: Record<string, number>;
+  /** Legacy die-size totals, read only when class-owned spending is absent. */
+  hitDiceExpended?: Partial<Record<CharacterCustomHitDie, number>>;
+  slotPoolsExpended?: Record<string, number[]>;
 };
 
 export type CharacterBackgroundAbilityScoreIncrease =
@@ -384,10 +418,7 @@ export type CharacterEquipmentItem = {
   worn: boolean;
 };
 
-export type CharacterInventoryFeatureTag =
-  | "pact-of-the-blade"
-  | "conjured"
-  | "spellcasting-focus";
+export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured" | "spellcasting-focus";
 export type CharacterInventorySpellcastingFocusSource = "manual" | "arcane-firearm";
 export type CharacterInventoryConjuredSource =
   | "manual"
@@ -523,6 +554,9 @@ export type CharacterCustomEquipment =
   | CharacterCustomItem;
 
 export type CharacterCompanion = {
+  sourceClassEntryId?: string;
+  sourceClassLevel?: number;
+  sourceSubclassId?: string;
   id: string;
   name: string;
   description: string;
@@ -600,6 +634,12 @@ export type Character = {
   classRules?: CharacterClassRulesConfig;
   customClass?: CharacterCustomClassConfig;
   level: number;
+  /** Absent for legacy single-class characters; adopting multiclassing is explicit. */
+  multiclass?: CharacterMulticlass;
+  /** Transient editor/casting context, never serialized. */
+  classEntryId?: string;
+  slotPoolId?: string;
+  spellSourceClassEntryId?: string;
   xp: number;
   hitPoints: number;
   currentHitPoints: number;
@@ -650,6 +690,7 @@ export type HydratedCharacter = Character;
 export type ActiveCharacter = HydratedCharacter;
 
 export type CharacterDraft = {
+  multiclass?: CharacterMulticlass;
   name: string;
   species: string;
   speciesChoices?: CharacterSpeciesChoices;

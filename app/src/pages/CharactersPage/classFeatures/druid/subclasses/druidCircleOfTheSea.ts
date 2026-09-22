@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
@@ -12,7 +13,10 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
@@ -21,10 +25,7 @@ import {
   getDruidCircleOfTheSeaWrathOfTheSeaDescription,
   getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions
 } from "./druidCircleOfTheSeaDescriptions";
-import {
-  druidWrathOfTheSeaActionKey,
-  druidWrathOfTheSeaStatusSourceId
-} from "../actionKeys";
+import { druidWrathOfTheSeaActionKey, druidWrathOfTheSeaStatusSourceId } from "../actionKeys";
 import {
   expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
@@ -44,9 +45,9 @@ export function hasDruidCircleOfTheSeaSpellsFeature(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheSeaSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid")))) >= 3
   );
 }
 
@@ -60,9 +61,9 @@ export function hasDruidAquaticAffinityFeature(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheSeaSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid")))) >= 6
   );
 }
 
@@ -124,32 +125,32 @@ export function activateDruidWrathOfTheSea(character: Character): Character {
 
 function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
-    character.className !== "Druid" ||
-    character.subclassId !== circleOfTheSeaSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Druid") ||
+    getClassSubclassId(character, "Druid") !== circleOfTheSeaSubclassId ||
+    (getClassLevel(character, "Druid") ?? 0) < 3
   ) {
     return [];
   }
 
   const usesRemaining = getDruidWildShapeUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
     classFeatureState: character.classFeatureState
   });
   const usesTotal = getDruidWildShapeUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0
   });
   const wrathActive = getActiveWrathOfTheSeaStatusValue(character.statusEntries) !== null;
   const description = getDruidCircleOfTheSeaWrathOfTheSeaDescription({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid")
   });
   const descriptionAdditions = getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid")
   });
   const resources = [
     {
@@ -198,9 +199,9 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
 
 function getCircleOfTheSeaSpeedBonuses(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
-    character.className !== "Druid" ||
-    character.subclassId !== circleOfTheSeaSubclassId ||
-    (character.level ?? 0) < 6
+    !hasCharacterClass(character, "Druid") ||
+    getClassSubclassId(character, "Druid") !== circleOfTheSeaSubclassId ||
+    (getClassLevel(character, "Druid") ?? 0) < 6
   ) {
     return [];
   }
@@ -212,7 +213,7 @@ function getCircleOfTheSeaSpeedBonuses(character: Parameters<SubclassRuntimeReso
       value: 0,
       setBaseFromWalkMultiplier: 1
     },
-    ...((character.level ?? 0) >= 10 &&
+    ...((getClassLevel(character, "Druid") ?? 0) >= 10 &&
     getActiveWrathOfTheSeaStatusValue(character.statusEntries) !== null
       ? [
           {
@@ -228,9 +229,9 @@ function getCircleOfTheSeaSpeedBonuses(character: Parameters<SubclassRuntimeReso
 
 function getCircleOfTheSeaStormbornEntries(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
-    character.className !== "Druid" ||
-    character.subclassId !== circleOfTheSeaSubclassId ||
-    (character.level ?? 0) < 10
+    !hasCharacterClass(character, "Druid") ||
+    getClassSubclassId(character, "Druid") !== circleOfTheSeaSubclassId ||
+    (getClassLevel(character, "Druid") ?? 0) < 10
   ) {
     return [];
   }
@@ -297,9 +298,9 @@ export function collectDruidCircleOfTheSeaContributions(
       speedBonuses: speedBonuses.filter((bonus) => bonus.label === "Stormborn"),
       statuses: getCircleOfTheSeaStormbornEntries(character)
     },
-    ...(character.className === "Druid" &&
-    character.subclassId === circleOfTheSeaSubclassId &&
-    (character.level ?? 0) >= 14
+    ...(hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheSeaSubclassId &&
+    (getClassLevel(character, "Druid") ?? 0) >= 14
       ? [
           {
             source: createSubclassContributionSource({
@@ -325,9 +326,9 @@ export function getDruidCircleOfTheSeaSpellIdsForCharacter(
   character: Parameters<SubclassRuntimeResolver>[0],
   spellIdsByLevel = circleOfTheSeaSpellIdsByLevel
 ): string[] {
-  return character.className === "Druid" &&
-    character.subclassId === circleOfTheSeaSubclassId &&
-    (character.level ?? 0) >= 3
-    ? getPreparedSpellIdsByLevel(character.level ?? 0, spellIdsByLevel)
+  return hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheSeaSubclassId &&
+    (getClassLevel(character, "Druid") ?? 0) >= 3
+    ? getPreparedSpellIdsByLevel(getClassLevel(character, "Druid") ?? 0, spellIdsByLevel)
     : [];
 }

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   BODY_SIZE,
   DAMAGE_TYPE,
@@ -365,7 +366,9 @@ export function normalizeGoliathFeatureState(value: unknown): CharacterGoliathFe
 }
 
 export function getGoliathGiantAncestryUsesTotal(character: GoliathRuntimeCharacter): number {
-  return isGoliathSpecies(character.species) ? getSpeciesProficiencyBonus(character.level ?? 1) : 0;
+  return isGoliathSpecies(character.species)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    : 0;
 }
 
 export function getGoliathGiantAncestryUsesRemaining(character: GoliathRuntimeCharacter): number {
@@ -404,7 +407,7 @@ export function restoreGoliathGiantAncestryOnLongRest(character: Character): Cha
 }
 
 export function getGoliathLargeFormUsesTotal(character: GoliathRuntimeCharacter): number {
-  return isGoliathSpecies(character.species) && (character.level ?? 1) >= 5
+  return isGoliathSpecies(character.species) && (getCharacterLevel(character) ?? 1) >= 5
     ? goliathLargeFormUsesTotal
     : 0;
 }

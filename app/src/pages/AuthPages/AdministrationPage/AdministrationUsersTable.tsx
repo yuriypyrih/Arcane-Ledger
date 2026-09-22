@@ -90,7 +90,7 @@ function SortableHeader({
   const direction = active ? orderingState.direction : "asc";
 
   return (
-    <th data-active={active} aria-sort={getAriaSortValue(active, direction)}>
+    <th scope="col" data-active={active} aria-sort={getAriaSortValue(active, direction)}>
       <button
         type="button"
         className={styles.sortButton}
@@ -225,6 +225,7 @@ function AdministrationUsersTable({
           />
         </label>
         <TablePagination
+          ariaLabel="Users pagination (top)"
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={onPageChange}
@@ -250,6 +251,14 @@ function AdministrationUsersTable({
           <tbody>{renderRows()}</tbody>
         </table>
       </div>
+      <TablePagination
+        ariaLabel="Users pagination (bottom)"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        alwaysVisible
+        totalLabel={`${totalEntries} ${totalEntries === 1 ? "account" : "accounts"}`}
+      />
     </section>
   );
 }

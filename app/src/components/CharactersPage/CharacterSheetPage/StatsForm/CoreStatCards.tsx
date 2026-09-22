@@ -49,6 +49,7 @@ function CoreStatCards({
     return (
       <SheetSurface
         as="button"
+        readOnlyInteractive
         key={card.key}
         type="button"
         borderSize={compact ? "lg" : "xl"}

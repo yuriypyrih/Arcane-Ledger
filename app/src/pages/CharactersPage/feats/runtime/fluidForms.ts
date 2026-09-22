@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../multiclass";
 import { FEATS, type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
@@ -10,15 +11,9 @@ import {
 } from "../../../../types";
 import { getMonsterHitPoints, normalizeMonsterRecord } from "../../../../utils/monsters";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import {
-  createChargesCardUsage,
-  createChargesHeaderTag
-} from "../../classFeatures/cardUsage";
+import { createChargesCardUsage, createChargesHeaderTag } from "../../classFeatures/cardUsage";
 import type { FeatureActionCard } from "../../classFeatures/types";
-import {
-  createCharacterStatusEntry,
-  normalizeCharacterStatusEntries
-} from "../../statusEntries";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatDefinition } from "..";
 import { normalizeCharacterFeats } from "../normalization";
 import {
@@ -57,7 +52,10 @@ export function isBoonOfFluidFormsShapechangerDrawerDescriptionEntry(entry: stri
 export function getBoonOfFluidFormsShapechangerDescription(
   description: SpellDescriptionEntry[]
 ): SpellDescriptionEntry[] {
-  return filterDescriptionEntries(description, isBoonOfFluidFormsShapechangerDrawerDescriptionEntry);
+  return filterDescriptionEntries(
+    description,
+    isBoonOfFluidFormsShapechangerDrawerDescriptionEntry
+  );
 }
 
 function getDefaultBoonOfFluidFormsShapechangerDescription(): SpellDescriptionEntry[] {
@@ -67,7 +65,7 @@ function getDefaultBoonOfFluidFormsShapechangerDescription(): SpellDescriptionEn
 }
 
 function getBoonOfFluidFormsEntries(character: FeatRuntimeCharacter): CharacterFeatEntry[] {
-  return normalizeCharacterFeats(character.feats, character.level ?? 1).filter(
+  return normalizeCharacterFeats(character.feats, getCharacterLevel(character) ?? 1).filter(
     (entry) => entry.feat === FEATS.BOON_OF_FLUID_FORMS
   );
 }
@@ -80,9 +78,7 @@ function isBoonOfFluidFormsShapechangerAvailable(entry: CharacterFeatEntry): boo
   return entry.boonOfFluidForms?.shapechangerExpended !== true;
 }
 
-export function getBoonOfFluidFormsShapechangerStateForCharacter(
-  character: FeatRuntimeCharacter
-): {
+export function getBoonOfFluidFormsShapechangerStateForCharacter(character: FeatRuntimeCharacter): {
   available: boolean;
   expended: boolean;
   usesRemaining: number;
@@ -193,25 +189,27 @@ export function spendBoonOfFluidFormsShapechangerForCharacter(character: Charact
     return character;
   }
 
-  const feats = normalizeCharacterFeats(character.feats, character.level).map((entry) => {
-    if (
-      didSpendShapechanger ||
-      entry.feat !== FEATS.BOON_OF_FLUID_FORMS ||
-      entry.boonOfFluidForms?.shapechangerExpended === true
-    ) {
-      return entry;
-    }
-
-    didSpendShapechanger = true;
-
-    return {
-      ...entry,
-      boonOfFluidForms: {
-        ...(entry.boonOfFluidForms ?? {}),
-        shapechangerExpended: true
+  const feats = normalizeCharacterFeats(character.feats, getCharacterLevel(character)).map(
+    (entry) => {
+      if (
+        didSpendShapechanger ||
+        entry.feat !== FEATS.BOON_OF_FLUID_FORMS ||
+        entry.boonOfFluidForms?.shapechangerExpended === true
+      ) {
+        return entry;
       }
-    };
-  });
+
+      didSpendShapechanger = true;
+
+      return {
+        ...entry,
+        boonOfFluidForms: {
+          ...(entry.boonOfFluidForms ?? {}),
+          shapechangerExpended: true
+        }
+      };
+    }
+  );
 
   return didSpendShapechanger
     ? {
@@ -227,21 +225,23 @@ export function restoreBoonOfFluidFormsShapechangerForCharacter(character: Chara
   }
 
   let didRestoreShapechanger = false;
-  const feats = normalizeCharacterFeats(character.feats, character.level).map((entry) => {
-    if (
-      entry.feat !== FEATS.BOON_OF_FLUID_FORMS ||
-      entry.boonOfFluidForms?.shapechangerExpended !== true
-    ) {
-      return entry;
+  const feats = normalizeCharacterFeats(character.feats, getCharacterLevel(character)).map(
+    (entry) => {
+      if (
+        entry.feat !== FEATS.BOON_OF_FLUID_FORMS ||
+        entry.boonOfFluidForms?.shapechangerExpended !== true
+      ) {
+        return entry;
+      }
+
+      didRestoreShapechanger = true;
+
+      return {
+        ...entry,
+        boonOfFluidForms: undefined
+      };
     }
-
-    didRestoreShapechanger = true;
-
-    return {
-      ...entry,
-      boonOfFluidForms: undefined
-    };
-  });
+  );
 
   return didRestoreShapechanger
     ? {

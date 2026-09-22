@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   banneretBolsteredGroupRecoveryDescription,
   banneretBolsteredRallyingSurgeDescription,
@@ -86,9 +87,9 @@ function hasFighterBanneretFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === banneretSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === banneretSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= minimumLevel
   );
 }
 
@@ -424,7 +425,7 @@ export function getFighterBanneretGroupRecoveryUsesRemaining(
 export function getFighterBanneretGroupRecoveryHealingFormula(
   character: Pick<Character, "level">
 ): string {
-  return `1d4+${Math.max(1, Math.floor(character.level ?? 1))}`;
+  return `1d4+${Math.max(1, Math.floor(getClassLevel(character, "Fighter") ?? 1))}`;
 }
 
 export function applyFighterBanneretTeamTacticsStatus(character: Character): Character {
@@ -515,9 +516,9 @@ export function collectFighterBanneretContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Fighter" ||
-    character.subclassId !== banneretSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Fighter") ||
+    getClassSubclassId(character, "Fighter") !== banneretSubclassId ||
+    (getClassLevel(character, "Fighter") ?? 0) < 3
   ) {
     return [];
   }

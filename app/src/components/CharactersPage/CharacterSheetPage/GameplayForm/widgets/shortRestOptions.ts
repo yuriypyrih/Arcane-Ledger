@@ -1,3 +1,10 @@
+import { createChannelDivinityRestOptions } from "./channelDivinityRestOptions";
+import { getClassLevel } from "../../../../../pages/CharactersPage/multiclass";
+import { getSheetSpellSlotTotals } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
+import {
+  getCharacterSpellSlotPools,
+  recoverSlotPools
+} from "../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
@@ -41,7 +48,6 @@ import {
   restoreBardicInspirationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
-  getClericChannelDivinityUsesTotal,
   getClericCoronaOfLightUsesTotal,
   getClericWarPriestUsesTotal,
   getClericWardingFlareUsesTotal,
@@ -49,7 +55,6 @@ import {
   hasClericImprovedWardingFlareFeature,
   hasClericDivineInterventionFeature,
   restoreClericChannelDivinityOnLongRest,
-  restoreClericChannelDivinityOnShortRest,
   restoreClericCoronaOfLightOnLongRest,
   restoreClericDivineForeknowledgeOnLongRest,
   restoreClericDivineInterventionOnLongRest,
@@ -116,11 +121,9 @@ import {
   getNobleScionUsesTotal,
   getAvengingAngelUsesTotal,
   getPaladinHealingPoolTotal,
-  getPaladinChannelDivinityUsesTotal,
   getPaladinsSmiteUsesTotal,
   getUndyingSentinelUsesTotal,
   restorePaladinChannelDivinityOnLongRest,
-  restorePaladinChannelDivinityOnShortRest,
   restoreElderChampionOnLongRest,
   restoreElementalRebukeOnLongRest,
   restoreFaithfulSteedOnLongRest,
@@ -280,7 +283,7 @@ import {
   restoreMageSlayerGuardedMindForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
-import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
+import {} from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
   applyShortRestToCharacterStatusEntries,
@@ -318,13 +321,7 @@ import type { RestOption } from "./restOptionTypes";
 import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
 
 export function createShortRestOptions(character: Character): RestOption[] {
-  const spellSlotTotal = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
-  ).reduce((sum, value) => sum + value, 0);
+  const spellSlotTotal = getSheetSpellSlotTotals(character).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
@@ -344,18 +341,13 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const telekineticMovementUsesTotal = getFighterPsiWarriorTelekineticMovementUsesTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
-  const channelDivinityUsesTotal = Math.max(
-    getClericChannelDivinityUsesTotal(character),
-    getPaladinChannelDivinityUsesTotal(character)
-  );
   const warPriestUsesTotal = getClericWarPriestUsesTotal(character);
   const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
   const improvedWardingFlareShortRestAvailable = hasClericImprovedWardingFlareFeature(character);
   const hasTimedStatuses =
     normalizeCharacterStatusEntries(character.statusEntries).some(
       (entry) => entry.runtimeOverride !== true
-    ) ||
-    hasFiniteCompanionDuration(character.companions);
+    ) || hasFiniteCompanionDuration(character.companions);
   const hasShortRestConjuredItems = hasShortRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
@@ -393,7 +385,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
     restoreArtificerFlashOfGeniusOnShortRest(character) !== character;
   const artificerFlashOfGeniusShortRestDetail = artificerFlashOfGeniusFullShortRestRecovery
     ? "Soul of Artifice restores all expended Flash of Genius uses because you have at least one attuned item."
-    : character.className === "Artificer" && character.level >= 20
+    : getClassLevel(character, "Artificer") >= 20
       ? "Refreshed Genius restores one expended use. Soul of Artifice restores all instead while you have at least one attuned item."
       : "Refreshed Genius restores one expended Flash of Genius use.";
   const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "short");
@@ -450,8 +442,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
               total: boonOfTerrorFleeFoolsState.usesTotal
             },
             disabled:
-              boonOfTerrorFleeFoolsState.usesRemaining >=
-              boonOfTerrorFleeFoolsState.usesTotal,
+              boonOfTerrorFleeFoolsState.usesRemaining >= boonOfTerrorFleeFoolsState.usesTotal,
             apply: (currentCharacter: Character) =>
               restoreBoonOfTerrorFleeFoolsForCharacter(currentCharacter)
           } satisfies RestOption
@@ -504,13 +495,19 @@ export function createShortRestOptions(character: Character): RestOption[] {
             restoreCustomActionChargesForRest(currentCharacter, entry.id, "short")
         }) satisfies RestOption
     ),
-    ...(hasWarlockPactMagic && spellSlotTotal > 0
+    ...((hasWarlockPactMagic && spellSlotTotal > 0) ||
+    (character.multiclass &&
+      getCharacterSpellSlotPools(character).some(
+        (pool) => pool.recovery === "short-rest" && pool.totals.some((n) => n > 0)
+      ))
       ? [
           {
             id: "restore-pact-magic-spell-slots",
             label: "Restore all Pact Magic spell slots",
             apply: (currentCharacter: Character) =>
-              restoreWarlockPactMagicSpellSlots(currentCharacter)
+              currentCharacter.multiclass
+                ? recoverSlotPools(currentCharacter, "short-rest")
+                : restoreWarlockPactMagicSpellSlots(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -745,18 +742,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
-    ...(channelDivinityUsesTotal > 0
-      ? [
-          {
-            id: "restore-channel-divinity",
-            label: "Restore 1 Channel Divinity",
-            apply: (currentCharacter: Character) =>
-              currentCharacter.className === "Paladin"
-                ? restorePaladinChannelDivinityOnShortRest(currentCharacter)
-                : restoreClericChannelDivinityOnShortRest(currentCharacter)
-          } satisfies RestOption
-        ]
-      : []),
+    ...createChannelDivinityRestOptions(character, "short"),
     ...(improvedWardingFlareShortRestAvailable && wardingFlareUsesTotal > 0
       ? [
           {

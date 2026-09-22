@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,
@@ -58,29 +59,34 @@ export function normalizeFighterSubclassFeatureState(
   value: Partial<CharacterFighterFeatureState>,
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Partial<CharacterFighterFeatureState> {
-  if (character.className !== "Fighter" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Fighter") || !getClassSubclassId(character, "Fighter")) {
     return {};
   }
 
-  return fighterSubclassStateNormalizers[character.subclassId]?.(value, character) ?? {};
+  return (
+    fighterSubclassStateNormalizers[getClassSubclassId(character, "Fighter")]?.(value, character) ??
+    {}
+  );
 }
 
 export function getFighterSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Fighter" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Fighter") || !getClassSubclassId(character, "Fighter")) {
     return {};
   }
 
-  return fighterSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return (
+    fighterSubclassRuntimeRegistry[getClassSubclassId(character, "Fighter")]?.(character) ?? {}
+  );
 }
 
 export function advanceFighterSubclassFeaturesForNewRound(character: Character): Character {
-  if (character.className !== "Fighter" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Fighter") || !getClassSubclassId(character, "Fighter")) {
     return character;
   }
 
-  switch (character.subclassId) {
+  switch (getClassSubclassId(character, "Fighter")) {
     case battleMasterSubclassId:
       return advanceFighterBattleMasterFeaturesForNewRound(character);
     case championSubclassId:

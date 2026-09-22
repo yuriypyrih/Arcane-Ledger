@@ -14,6 +14,7 @@ import type { SpellEntry } from "../../entries/types";
 import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
 
 export const acidSplash: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-acid-splash",
   name: "Acid Splash",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -107,6 +108,7 @@ export const boomingBlade: SpellEntry = {
 };
 
 export const chillTouch: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-chill-touch",
   name: "Chill Touch",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -172,6 +174,7 @@ export const controlFlames: SpellEntry = {
 };
 
 export const createBonfire: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-create-bonfire",
   name: "Create Bonfire",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -278,6 +281,7 @@ export const druidcraft: SpellEntry = {
 };
 
 export const eldritchBlast: SpellEntry = {
+  cantripScaling: "beams",
   id: "spell-eldritch-blast",
   name: "Eldritch Blast",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -372,6 +376,7 @@ export const encodeThoughts: SpellEntry = {
 };
 
 export const fireBolt: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-fire-bolt",
   name: "Fire Bolt",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -433,6 +438,7 @@ export const friends: SpellEntry = {
 };
 
 export const frostbite: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-frostbite",
   name: "Frostbite",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -555,6 +561,7 @@ export const gust: SpellEntry = {
 };
 
 export const handOfRadiance: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-hand-of-radiance",
   name: "Hand of Radiance",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -583,6 +590,7 @@ export const handOfRadiance: SpellEntry = {
 };
 
 export const infestation: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-infestation",
   name: "Infestation",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -651,6 +659,7 @@ export const light: SpellEntry = {
 };
 
 export const lightningLure: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-lightning-lure",
   name: "Lightning Lure",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -815,6 +824,7 @@ export const message: SpellEntry = {
 };
 
 export const mindSliver: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-mind-sliver",
   name: "Mind Sliver",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -933,6 +943,7 @@ export const onOff: SpellEntry = {
 };
 
 export const poisonSpray: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-poison-spray",
   name: "Poison Spray",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1009,6 +1020,7 @@ export const prestidigitation: SpellEntry = {
 };
 
 export const primalSavagery: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-primal-savagery",
   name: "Primal Savagery",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1036,6 +1048,7 @@ export const primalSavagery: SpellEntry = {
 };
 
 export const produceFlame: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-produce-flame",
   name: "Produce Flame",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1067,6 +1080,7 @@ export const produceFlame: SpellEntry = {
 };
 
 export const rayOfFrost: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-ray-of-frost",
   name: "Ray of Frost",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1125,6 +1139,7 @@ export const resistance: SpellEntry = {
 };
 
 export const sacredFlame: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-sacred-flame",
   name: "Sacred Flame",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1156,6 +1171,7 @@ export const sacredFlame: SpellEntry = {
 };
 
 export const sappingSting: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-sapping-sting",
   name: "Sapping Sting",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1244,6 +1260,7 @@ export const shillelagh: SpellEntry = {
 };
 
 export const shockingGrasp: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-shocking-grasp",
   name: "Shocking Grasp",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1274,6 +1291,7 @@ export const shockingGrasp: SpellEntry = {
 };
 
 export const sorcerousBurst: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-sorcerous-burst",
   name: "Sorcerous Burst",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1345,6 +1363,7 @@ export const spareTheDying: SpellEntry = {
 };
 
 export const starryWisp: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-starry-wisp",
   name: "Starry Wisp",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1375,6 +1394,7 @@ export const starryWisp: SpellEntry = {
 };
 
 export const swordBurst: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-sword-burst",
   name: "Sword Burst",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1442,6 +1462,7 @@ export const thaumaturgy: SpellEntry = {
 };
 
 export const thornWhip: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-thorn-whip",
   name: "Thorn Whip",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1469,6 +1490,7 @@ export const thornWhip: SpellEntry = {
 };
 
 export const thunderclap: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-thunderclap",
   name: "Thunderclap",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1504,6 +1526,7 @@ export const thunderclap: SpellEntry = {
 };
 
 export const tollTheDead: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-toll-the-dead",
   name: "Toll the Dead",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1570,6 +1593,7 @@ export const trueStrike: SpellEntry = {
 };
 
 export const viciousMockery: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-vicious-mockery",
   name: "Vicious Mockery",
   category: ENTRY_CATEGORIES.SPELLS,
@@ -1627,6 +1651,7 @@ export const virtue: SpellEntry = {
 };
 
 export const wordOfRadiance: SpellEntry = {
+  cantripScaling: "damage",
   id: "spell-word-of-radiance",
   name: "Word of Radiance",
   category: ENTRY_CATEGORIES.SPELLS,

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -164,13 +165,13 @@ function getLupinHowlSaveDc(
   return (
     8 +
     getAbilityModifierForCharacter(character, "CON") +
-    getSpeciesProficiencyBonus(character.level)
+    getSpeciesProficiencyBonus(getCharacterLevel(character))
   );
 }
 
 function getLupinHowlSaveDcFact(character: LupinActionCharacter): FeatureActionFact {
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
-  const proficiencyBonus = getSpeciesProficiencyBonus(character.level);
+  const proficiencyBonus = getSpeciesProficiencyBonus(getCharacterLevel(character));
   const saveDc = getLupinHowlSaveDc(character);
   const formulaCell = formatFormulaCell({
     formula: String(saveDc),
@@ -264,7 +265,7 @@ export function getLupinHowlUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isLupinSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 

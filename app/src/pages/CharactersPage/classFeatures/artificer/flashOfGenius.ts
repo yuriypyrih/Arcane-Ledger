@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import {
   CLASS_FEATURE,
   REACTION,
@@ -8,9 +9,7 @@ import type { Character, CharacterArtificerFeatureState } from "../../../../type
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { getInventoryAttunementCount } from "../../inventoryItems";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
-import {
-  getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions
-} from "./subclasses/artificerCartographer";
+import { getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions } from "./subclasses/artificerCartographer";
 
 export const artificerFlashOfGeniusReactionEntryId = "reaction-artificer-flash-of-genius";
 
@@ -32,21 +31,25 @@ function normalizeUsesExpended(value: unknown, total: number): number {
 export function hasArtificerFlashOfGeniusFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 7;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 7
+  );
 }
 
 export function hasArtificerFlashOfGeniusShortRestRecoveryFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 14;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 14
+  );
 }
 
 export function hasArtificerFlashOfGeniusFullShortRestRecovery(
   character: Pick<Character, "className"> & Partial<Pick<Character, "inventoryItems" | "level">>
 ): boolean {
   return (
-    character.className === "Artificer" &&
-    (character.level ?? 0) >= 20 &&
+    hasCharacterClass(character, "Artificer") &&
+    (getClassLevel(character, "Artificer") ?? 0) >= 20 &&
     getInventoryAttunementCount(character.inventoryItems ?? []) > 0
   );
 }
@@ -106,9 +109,9 @@ function getArtificerFlashOfGeniusDescription(
 ): SpellDescriptionEntry[] {
   return getFeatureDescriptionForCharacter(
     {
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Artificer",
+      level: getClassLevel(character, "Artificer") ?? 0,
+      subclassId: getClassSubclassId(character, "Artificer")
     },
     CLASS_FEATURE.FLASH_OF_GENIUS
   );

@@ -52,6 +52,8 @@
 
 .body {
   padding-bottom: 0;
+  grid-auto-rows: max-content;
+  align-content: start;
 }
 
 .restOptionGrid {
@@ -61,7 +63,7 @@
 }
 
 .restTypeOption {
-  min-height: 126px;
+  min-height: 96px;
 }
 
 .restChecklistSection {
@@ -74,7 +76,7 @@
   align-items: end;
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: minmax(4.4rem, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .restChecklistHeader {
@@ -139,24 +141,6 @@
   border-top-color: var(--theme-divider);
 }
 
-.hitDiceInputLabel {
-  align-items: start;
-  color: var(--theme-text-secondary);
-  display: grid;
-  flex: 0 0 auto;
-  font-size: 0.78rem;
-  font-weight: 800;
-  gap: 0.3rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.hitDiceInput {
-  max-width: 4.2rem;
-  min-width: 3.6rem;
-  text-align: center;
-}
-
 .hitDiceFormulaCell {
   align-self: end;
 }
@@ -193,6 +177,10 @@
 
   .restOptionGrid {
     grid-template-columns: 1fr;
+  }
+
+  .restTypeOption {
+    min-height: 0;
   }
 
   .footer {

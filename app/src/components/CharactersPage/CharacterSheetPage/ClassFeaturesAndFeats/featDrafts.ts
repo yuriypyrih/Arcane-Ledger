@@ -53,10 +53,7 @@ export function applyFeatEditorDraftToCharacter(
   if (
     areDraftListsEqual(currentCharacter.feats ?? [], draft.feats) &&
     areDraftListsEqual(currentCharacter.armorProficiencies, draft.armorProficiencies) &&
-    areDraftListsEqual(
-      currentCharacter.savingThrowProficiencies,
-      draft.savingThrowProficiencies
-    ) &&
+    areDraftListsEqual(currentCharacter.savingThrowProficiencies, draft.savingThrowProficiencies) &&
     areDraftListsEqual(currentCharacter.skillProficiencies, draft.skillProficiencies) &&
     areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies) &&
     areDraftListsEqual(currentCharacter.weaponProficiencies, draft.weaponProficiencies) &&
@@ -116,7 +113,12 @@ export function upsertFeatInDraft(
 ): FeatEditorDraft {
   const existingEntries = sourceContext
     ? draft.feats.filter((entry) =>
-        isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+        isFeatFromClassFeatureSource(
+          entry,
+          sourceContext.level,
+          sourceContext.feature,
+          sourceContext.classEntryId
+        )
       )
     : [];
   let nextDraft = draft;
@@ -128,7 +130,13 @@ export function upsertFeatInDraft(
   const nextFeats = sourceContext
     ? [
         ...nextDraft.feats.filter(
-          (entry) => !isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+          (entry) =>
+            !isFeatFromClassFeatureSource(
+              entry,
+              sourceContext.level,
+              sourceContext.feature,
+              sourceContext.classEntryId
+            )
         ),
         featEntry
       ]

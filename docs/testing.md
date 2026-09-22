@@ -67,6 +67,12 @@ The root `AGENTS.md` contains the working agreements. This document owns test-sp
 
 ### Character-sheet workflows
 
+Read-only GM/admin inspection is covered by `character-inspection.test.ts` on the server,
+`character-inspection.test.tsx` in frontend integration tests, and `character-inspection.spec.ts`
+in the desktop/mobile browser suite. The browser harness seeds separate synthetic owner, GM,
+and admin accounts in its disposable database. See [Character inspection](character-inspection.md)
+for access boundaries and interaction coverage.
+
 The browser suite runs each scenario on both desktop and mobile. Its coverage includes:
 
 - Profile validation, cancelled edits, rename and notes; ability edits updating AC and skills.
@@ -77,11 +83,29 @@ The browser suite runs each scenario on both desktop and mobile. Its coverage in
 - Equipping/removing armor and updating AC, currency edits, and durable inventory state.
 - Creating, duplicating and deleting companions, including cancellation and retained HP.
 - Wizard spellbook/prepared-list edits and preparation-capacity refusal/recovery.
+- The Spellcasting thumb button on xs/sm screens: a vertical pill centered above the dice button,
+  stacked sparkles/double-chevron icons, a 128px offscreen reveal buffer, remaining visible until
+  clicked or Spellcasting enters view, scrolling and keyboard focus in both themes, reduced motion,
+  breakpoint transitions, non-caster absence, and continued quick-dice operation.
 - Always-prepared domain spells remaining selected without entering the manual prepared list, and
   consuming a spell slot when cast.
+- Warrior of the Elements displaying Elementalism once, retaining casting and reload behavior;
+  Diviner Portent ready/used cards adapting to dark mode and preserving recorded rolls.
+- Action drawer headers preserving room for the title and source from 320px through desktop,
+  with Moonlight Step charges and alternative costs wrapping below the heading on phones,
+  no horizontal overflow, and an accessible close button at the top right.
+- Rogue Cunning Strike option text retaining dark-mode contrast before and after selection, with
+  theme-aware damage formulas and dice-spent labels and unchanged effect selection behavior.
 - Exhausted spell-slot refusal, Magic Initiate free-use spending and long-rest recovery, ritual
   casting without another slot, and replacement/ending of concentration with linked effects.
 - Local roster persistence and real cookie login/cloud save retrieval through the local API.
+- Top and bottom compendium/administration pagination staying synchronized, and administration
+  defaulting to recent activity with green sort arrows beside their labels in light and dark mode.
+  These list browser tests use synthetic API responses; the backend administration tests separately
+  check actual database ordering, including accounts with no recorded activity.
+- Custom spell, item, and bestiary description edits retaining spaces, indentation, and blank lines
+  through save, preview, and reload against the isolated local API. Component tests also cover
+  supported item emphasis and ensure executable markup remains inert in all three renderers.
 
 `sheet-sections.test.tsx` mounts `CharacterSheetPage` with the real Redux store and persistence.
 It changes one domain at a time while retaining unrelated object references, checking the rendered
@@ -165,3 +189,50 @@ Browser failures retain screenshots and Playwright traces under `app/test-result
 `app/playwright-report/`. CI uploads them on failure. From `app/`, open a local report with
 `npx playwright show-report` or inspect a trace with Playwright's trace viewer.
 Automatic retries are disabled so a flaky failure stays visible.
+
+## Multiclass regression coverage
+
+- `app/e2e/hit-points.spec.ts` checks the HP formula range, class labels, Auto/Manual guidance,
+  manual HP saving, and reloads for legacy, inactive-class, and multiclass characters on desktop
+  and mobile. Gameplay integration tests also cover recorded rolls, custom Hit Dice, negative
+  Constitution, and HP adjustments.
+- `app/tests/rules/class-definitions.test.ts` checks declarations across caster and martial classes,
+  inactive benefits, activation/deactivation, retained spending and suspended feat choices, deletion,
+  replacement cleanup, primary training, milestone XP preservation, and v2 compatibility.
+  Browser tests group class/subclass/training choices in the Build editor and allocate levels separately;
+  backend tests round-trip zero-level entries through cloud saves, sharing, and imports.
+
+- `app/tests/rules/multiclass-profile.test.ts` checks profile edits preserve allocated class levels,
+  manual HP, XP, wounds, and spent resources.
+- `app/tests/rules/class-level-allocation.test.ts` checks level budgets, full redistribution, invalid or
+  incomplete allocations, the starting-class lock, XP changes, automatic single-class allocation,
+  and save/load.
+- `app/tests/rules/hit-dice-pools.test.ts` checks independent class pools even for matching dice,
+  legacy die-size spending, bounds, persistence, class removal, redistribution, and single-class
+  save compatibility. Die-size aggregation remains covered for mechanics that select a die size.
+- `app/e2e/hit-dice.spec.ts` checks each pool's resource controls, compact short-rest counters,
+  cancellation, depleted pools, long-rest recovery, and reloads on desktop and mobile. The controls
+  identify each class separately, including Wizard and Sorcerer pools that both use D6s.
+- `app/tests/rules/multiclass-training.test.ts` checks every requested secondary-class training grant,
+  constrained skill choices, empty initial choices, and absence of extra equipment or saving throws.
+- Browser coverage checks the restored single-class creation layout, central level-up and allocation,
+  XP decreases, class removal, retained training choices, the original single-class XP workflow,
+  direct saving, empty multiclass rows, the red allocation count, compact selectors, independent
+  button hover, and the class editor in light and dark themes. Changing a secondary class clears
+  its previous training choices before saving.
+- `app/tests/rules/multiclass.test.ts` separates total/class level, checks the slot/HP/Hit Dice rules,
+  non-stacking attacks and AC, source-owned feats, and save/load across all 156 ordered built-in pairs.
+- `app/tests/rules/multiclass-edge-cases.test.ts` checks real resource transitions, mixed-die spending,
+  class removal/downgrades, distinct custom states, source-sensitive spell modifiers, companion HP,
+  independent Channel Divinity recovery, editor validation, and backup write failures.
+- `app/e2e/multiclass.spec.ts` exercises opt-in conversion, cancellation, reload, class/source/pool
+  selectors, three-caster preparation and casting, mixed-die camp controls, feature-action slot costs,
+  and loading only the selected build choice module into the page. The loading test excludes shared
+  helpers and uses the normal browser harness with service workers disabled; it makes no assertion
+  about production service-worker precaching.
+- `server/tests/characters.test.ts` covers v3 validation, revision conflicts, original backup privacy,
+  rejected downgrades, and v3 sharing/import through HTTP and disposable MongoDB.
+
+The matrix checks composition and durable state. Add a targeted expected-outcome test when extending
+an individual subclass interaction; a matrix pass alone is not proof that every feature combination
+works. [Multiclass behavior and compatibility](multiclass.md) describes the implemented boundaries.

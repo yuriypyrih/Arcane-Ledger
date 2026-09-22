@@ -83,6 +83,15 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     value.temporaryHitPointsSource
   );
   const baselineCompanion: CharacterCompanion = {
+    ...(typeof value.sourceClassEntryId === "string"
+      ? { sourceClassEntryId: value.sourceClassEntryId }
+      : {}),
+    ...(typeof value.sourceSubclassId === "string"
+      ? { sourceSubclassId: value.sourceSubclassId }
+      : {}),
+    ...(typeof value.sourceClassLevel === "number"
+      ? { sourceClassLevel: value.sourceClassLevel }
+      : {}),
     id: normalizeText(value.id, `companion-${index}-${Date.now().toString(36)}`),
     name,
     description: normalizeText(value.description),

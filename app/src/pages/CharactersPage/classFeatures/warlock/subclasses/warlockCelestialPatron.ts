@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -83,17 +84,17 @@ function hasWarlockCelestialPatronHealingLight(
   character: WarlockCelestialPatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === celestialPatronSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === celestialPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 3
   );
 }
 
 function hasWarlockCelestialPatronRadiantSoul(character: WarlockCelestialPatronCharacter): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === celestialPatronSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === celestialPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 6
   );
 }
 
@@ -101,9 +102,9 @@ function hasWarlockCelestialPatronCelestialResilience(
   character: WarlockCelestialPatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === celestialPatronSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === celestialPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 10
   );
 }
 
@@ -111,9 +112,9 @@ function hasWarlockCelestialPatronSearingVengeance(
   character: WarlockCelestialPatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === celestialPatronSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === celestialPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 14
   );
 }
 
@@ -275,7 +276,7 @@ export function getWarlockCelestialPatronHealingLightDiceTotal(
   character: WarlockCelestialPatronCharacter
 ): number {
   return hasWarlockCelestialPatronHealingLight(character)
-    ? Math.max(0, character.level ?? 0) + 1
+    ? Math.max(0, getClassLevel(character, "Warlock") ?? 0) + 1
     : 0;
 }
 
@@ -524,7 +525,8 @@ export function getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(
 
   return Math.max(
     0,
-    Math.floor(character.level ?? 0) + getAbilityModifierForCharacter(character, "CHA")
+    Math.floor(getClassLevel(character, "Warlock") ?? 0) +
+      getAbilityModifierForCharacter(character, "CHA")
   );
 }
 
@@ -567,7 +569,7 @@ function getWarlockCelestialPatronCelestialResilienceFormulaFact(
     return null;
   }
 
-  const warlockLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const warlockLevel = Math.max(0, Math.floor(getClassLevel(character, "Warlock") ?? 0));
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const temporaryHitPoints =
     getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(character);
@@ -690,9 +692,9 @@ export function collectWarlockCelestialPatronContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Warlock" ||
-    character.subclassId !== celestialPatronSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Warlock") ||
+    getClassSubclassId(character, "Warlock") !== celestialPatronSubclassId ||
+    (getClassLevel(character, "Warlock") ?? 0) < 3
   ) {
     return [];
   }
@@ -705,7 +707,7 @@ export function collectWarlockCelestialPatronContributions(
         entryId: CLASS_FEATURE.CELESTIAL_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Warlock") ?? 0,
         celestialPatronSpellIdsByLevel
       )
     }
@@ -770,9 +772,7 @@ export function collectWarlockCelestialPatronContributions(
   return contributions;
 }
 
-export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) =>
+export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
     compileFeatureContributions(collectWarlockCelestialPatronContributions(character)),
     {

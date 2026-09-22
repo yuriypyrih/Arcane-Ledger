@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../multiclass";
 import {
   DICE,
   WEAPON_BASE,
@@ -80,8 +81,7 @@ export function isShillelaghEligibleWeapon(context: ShillelaghWeaponContext): bo
   return (
     context.attackKind === "weapon" &&
     context.combatType === WEAPON_COMBAT_TYPE.MELEE &&
-    (context.baseWeapon === WEAPON_BASE.CLUB ||
-      context.baseWeapon === WEAPON_BASE.QUARTERSTAFF)
+    (context.baseWeapon === WEAPON_BASE.CLUB || context.baseWeapon === WEAPON_BASE.QUARTERSTAFF)
   );
 }
 
@@ -128,7 +128,7 @@ export function getShillelaghDamageAdjustmentForWeapon(
     return null;
   }
 
-  return applyShillelaghDamageDice(damage, character.level);
+  return applyShillelaghDamageDice(damage, getCharacterLevel(character));
 }
 
 function applyShillelaghSpellImplementation({

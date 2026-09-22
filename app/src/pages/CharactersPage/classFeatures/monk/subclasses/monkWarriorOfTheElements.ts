@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -130,7 +131,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
 }
 
 function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): number {
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 function getMonkFocusPointsRemaining(
@@ -146,7 +147,7 @@ function getMonkFocusPointsRemaining(
 }
 
 function getMonkMartialArtsDieLabel(character: Partial<Pick<Character, "level">>): string | null {
-  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+  const martialArtsDie = getMonkFeatureRow(getClassLevel(character, "Monk"))?.martialArts;
 
   return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
 }
@@ -155,7 +156,7 @@ function getMonkMartialArtsDiceFormula(
   character: Partial<Pick<Character, "level">>,
   diceCount: number
 ): string | null {
-  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+  const martialArtsDie = getMonkFeatureRow(getClassLevel(character, "Monk"))?.martialArts;
 
   if (!martialArtsDie) {
     return null;
@@ -165,7 +166,10 @@ function getMonkMartialArtsDiceFormula(
 }
 
 function hasEmpoweredStrikes(character: Partial<Pick<Character, "level">>): boolean {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(character.level ?? 0)));
+  const normalizedLevel = Math.max(
+    1,
+    Math.min(20, Math.floor(getClassLevel(character, "Monk") ?? 0))
+  );
 
   return monkFeatures
     .filter((row) => row.level <= normalizedLevel)
@@ -192,9 +196,9 @@ function formatFormulaValue(formula: string, terms: string[]): string {
 
 export function isMonkWarriorOfTheElements(character: MonkWarriorOfTheElementsCharacter): boolean {
   return (
-    character.className === "Monk" &&
-    character.subclassId === warriorOfTheElementsSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Monk") &&
+    getClassSubclassId(character, "Monk") === warriorOfTheElementsSubclassId &&
+    (getClassLevel(character, "Monk") ?? 0) >= 3
   );
 }
 
@@ -207,19 +211,19 @@ export function hasMonkWarriorOfTheElementsElementalAttunement(
 export function hasMonkWarriorOfTheElementsElementalBurst(
   character: MonkWarriorOfTheElementsCharacter
 ): boolean {
-  return isMonkWarriorOfTheElements(character) && (character.level ?? 0) >= 6;
+  return isMonkWarriorOfTheElements(character) && (getClassLevel(character, "Monk") ?? 0) >= 6;
 }
 
 export function hasMonkWarriorOfTheElementsStrideOfTheElements(
   character: MonkWarriorOfTheElementsCharacter
 ): boolean {
-  return isMonkWarriorOfTheElements(character) && (character.level ?? 0) >= 11;
+  return isMonkWarriorOfTheElements(character) && (getClassLevel(character, "Monk") ?? 0) >= 11;
 }
 
 export function hasMonkWarriorOfTheElementsElementalEpitome(
   character: MonkWarriorOfTheElementsCharacter
 ): boolean {
-  return isMonkWarriorOfTheElements(character) && (character.level ?? 0) >= 17;
+  return isMonkWarriorOfTheElements(character) && (getClassLevel(character, "Monk") ?? 0) >= 17;
 }
 
 export function isMonkWarriorOfTheElementsElementalAttunementStatusSourceId(

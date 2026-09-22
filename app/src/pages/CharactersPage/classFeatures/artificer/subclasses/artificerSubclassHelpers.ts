@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ARMOR_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
@@ -22,9 +23,9 @@ export function hasArtificerSubclassFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Artificer" &&
-    character.subclassId === subclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Artificer") &&
+    getClassSubclassId(character, "Artificer") === subclassId &&
+    (getClassLevel(character, "Artificer") ?? 0) >= minimumLevel
   );
 }
 

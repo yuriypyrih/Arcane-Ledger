@@ -75,7 +75,10 @@ import {
   normalizeBackgroundChoices
 } from "../../../pages/CharactersPage/backgrounds";
 import { getFeatLabel } from "../../../pages/CharactersPage/feats";
-import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
+import {
+  getMinimumXpForLevel,
+  normalizeLevelAndXp
+} from "../../../pages/CharactersPage/experience";
 import {
   CUSTOM_CLASS_NAME,
   customClassHitDice,
@@ -199,8 +202,12 @@ import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
 import OriginFeatSetupControls from "./OriginFeatSetupControls";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import { sanitizeUserInput } from "../../../utils/userInputSanitization";
-import MulticlassGuideModal from "./MulticlassGuideModal";
+import {
+  applyProfileClassProgression,
+  getProfileClassProgression
+} from "../../../pages/CharactersPage/characterProfileMulticlass";
 import StartingGuideModal from "./StartingGuideModal";
+import MulticlassGuideModal from "./MulticlassGuideModal";
 import CharacterReferenceDrawers, {
   type CharacterReferenceDrawerKind
 } from "./CharacterReferenceDrawers";
@@ -647,6 +654,7 @@ function getEffectiveHitPointMaximumForDraft(
         CharacterDraft,
         | "customClass"
         | "customSpecies"
+        | "multiclass"
         | "level"
         | "species"
         | "subclassId"
@@ -656,6 +664,7 @@ function getEffectiveHitPointMaximumForDraft(
     >
 ): number {
   return getEffectiveHitPointMaximumForCharacter({
+    multiclass: draft.multiclass,
     className: draft.className,
     subclassId: draft.subclassId,
     level: draft.level,
@@ -1074,6 +1083,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
   const [isStartingGuideOpen, setIsStartingGuideOpen] = useState(false);
   const [isMulticlassGuideOpen, setIsMulticlassGuideOpen] = useState(false);
+  const [multiclassError, setMulticlassError] = useState("");
   const [activeReferenceDrawer, setActiveReferenceDrawer] =
     useState<CharacterReferenceDrawerKind | null>(null);
   const [starterPackWarnings, setStarterPackWarnings] = useState<string[]>([]);
@@ -1128,7 +1138,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedStartingEquipmentChoiceIndex,
     selectedStarterPackSelectionValues,
     selectedFeats,
-    selectedClassFeatureState
+    selectedClassFeatureState,
+    selectedMulticlass
   ] = useWatch({
     control,
     name: [
@@ -1157,7 +1168,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "startingEquipmentChoiceIndex",
       "starterPackSelectionValues",
       "feats",
-      "classFeatureState"
+      "classFeatureState",
+      "multiclass"
     ]
   });
   const resolvedName = selectedName ?? initialFormValues.name;
@@ -1598,7 +1610,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         (reference) => reference.type === "selected-tool" && reference.selectionId === selection.id
       ) ?? false
   );
+  const profileProgression = selectedMulticlass
+    ? getProfileClassProgression({
+        ...getValues(),
+        className: resolvedClassName,
+        level: resolvedLevel,
+        multiclass: selectedMulticlass
+      })
+    : undefined;
   const automaticHitPoints = getAutomaticMaxHitPointsForCharacter({
+    multiclass: profileProgression,
     className: resolvedClassName,
     classRules: resolvedClassRules,
     customClass: resolvedCustomClass,
@@ -1609,6 +1630,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     backgroundChoices: resolvedBackgroundChoices
   });
   const hitPointEditorCharacter: HitPointsEditorCharacter = {
+    multiclass: profileProgression,
     abilities: resolvedAbilities,
     background: resolvedBackground,
     backgroundChoices: resolvedBackgroundChoices,
@@ -1905,7 +1927,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     (!hasSubclassSelection || resolvedSubclassId.trim().length > 0) &&
     Number.isFinite(resolvedLevel) &&
     resolvedLevel >= 1 &&
-    resolvedLevel <= 20;
+    resolvedLevel <= (selectedMulticlass ? 100 : 20) &&
+    (!selectedMulticlass ||
+      (selectedMulticlass.classes.every((entry) => entry.className.trim().length > 0) &&
+        (profileProgression?.classes.reduce((sum, entry) => sum + entry.level, 0) ?? 0) <= 100));
   const isNotesSetupReady = alignmentOptions.includes(resolvedAlignment);
 
   useEffect(() => {
@@ -2614,7 +2639,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       starterPackSelectionValues: _unusedStarterPackSelectionValues,
       ...draftValues
     } = values;
-    const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
+    const normalizedProgress = normalizeLevelAndXp(
+      draftValues.level,
+      draftValues.multiclass ? getMinimumXpForLevel(draftValues.level) : draftValues.xp
+    );
     const normalizedClassName = draftValues.className.trim();
     const normalizedCustomClass = isCustomClassName(normalizedClassName)
       ? normalizeCustomClassConfig(draftValues.customClass)
@@ -2658,6 +2686,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedHitPoints =
       draftValues.maxHitPointsMode === "automatic"
         ? getAutomaticMaxHitPointsForCharacter({
+            multiclass: draftValues.multiclass
+              ? getProfileClassProgression(draftValues)
+              : undefined,
             className: normalizedClassName,
             customClass: normalizedCustomClass,
             classRules: normalizedClassRules,
@@ -2696,6 +2727,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       normalizedProgress.level
     );
     const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
+      multiclass: draftValues.multiclass ? getProfileClassProgression(draftValues) : undefined,
       className: normalizedClassName,
       customClass: normalizedCustomClass,
       customSpecies: normalizedCustomSpecies,
@@ -2726,7 +2758,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       feats: normalizedFeats
     });
 
-    return {
+    const normalizedDraft: CharacterDraft = {
       ...draftValues,
       name: sanitizeUserInput(draftValues.name),
       species: normalizedSpecies,
@@ -2745,7 +2777,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       classRules: normalizedClassRules,
       customClass: normalizedCustomClass,
       level: normalizedProgress.level,
-      xp: normalizedProgress.xp,
+      xp: draftValues.multiclass ? draftValues.xp : normalizedProgress.xp,
       hitPoints: normalizedHitPoints,
       currentHitPoints: isEditing
         ? clampNumber(
@@ -2777,10 +2809,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       languageProficiencies: normalizedProficiencies.languageProficiencies,
       feats: normalizedFeats
     };
+    return applyProfileClassProgression(normalizedDraft, {
+      isEditing,
+      previous: initialValues.multiclass
+    });
   }
 
   async function submitResolvedDraft(values: CharacterFormValues) {
-    const normalizedDraft = normalizeDraft(values);
+    let normalizedDraft: CharacterDraft;
+    try {
+      normalizedDraft = normalizeDraft(values);
+      setMulticlassError("");
+    } catch (cause) {
+      setMulticlassError(cause instanceof Error ? cause.message : "Check your class progression.");
+      if (!isEditing) setWizardStep(2);
+      return;
+    }
 
     if (
       !isPointBuyAbilityDistributionReady(normalizedDraft.attributeMode, normalizedDraft.abilities)
@@ -3055,11 +3099,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setWizardStep(step);
   }
 
-  function renderWizardStepBadge(
-    step: CreationStep,
-    label: string,
-    compactLabel = label
-  ) {
+  function renderWizardStepBadge(step: CreationStep, label: string, compactLabel = label) {
     const isActive = wizardStep === step;
     const isDone = wizardStep > step;
     const isPending = !isActive && !isDone;
@@ -3208,12 +3248,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <NumberInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.level)}
+                readOnly={Boolean(selectedMulticlass)}
+                title={
+                  selectedMulticlass ? "Manage class levels from the character sheet" : undefined
+                }
                 min={1}
-                max={20}
+                max={selectedMulticlass ? 100 : 20}
                 {...register("level", {
                   valueAsNumber: true,
                   min: { value: 1, message: "Level must be at least 1" },
-                  max: { value: 20, message: "Level cannot exceed 20" }
+                  max: {
+                    value: selectedMulticlass ? 100 : 20,
+                    message: "Level exceeds the supported maximum"
+                  }
                 })}
               />
               {errors.level ? (
@@ -3241,6 +3288,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             >
               <SelectInput
                 id="character-class-select"
+                disabled={Boolean(selectedMulticlass)}
                 className={styles.fieldInput}
                 invalid={Boolean(errors.className)}
                 {...classRegistration}
@@ -3317,7 +3365,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   <option
                     key={characterClass}
                     value={characterClass}
-                    disabled={!isEditing && disabledCreationClassNames.has(characterClass)}
+                    disabled={
+                      (!isEditing && disabledCreationClassNames.has(characterClass)) ||
+                      selectedMulticlass?.classes.some(
+                        (entry) =>
+                          entry.id !== selectedMulticlass.startingClassId &&
+                          entry.className === characterClass
+                      )
+                    }
                   >
                     {characterClass}
                   </option>
@@ -3516,7 +3571,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </ReferenceSelectField>
           </div>
         </div>
-
         {!isEditing ? (
           <div className={styles.multiclassHelpRow}>
             <span>Want to multiclass?</span>
@@ -3527,7 +3581,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               aria-label="Open multiclass guide"
               title="Open multiclass guide"
             >
-              <CircleHelp size={16} />
+              <CircleHelp size={16} aria-hidden="true" />
             </button>
           </div>
         ) : null}
@@ -6099,6 +6153,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
         {!isEditing && wizardStep === 3 ? renderNotesSection() : null}
 
+        {multiclassError ? (
+          <p className={styles.errorText} role="alert">
+            {multiclassError}
+          </p>
+        ) : null}
         <section className={clsx(styles.sectionCard, styles.actionsCard)}>
           <div
             className={clsx(styles.actions, !isEditing && wizardStep === 1 && styles.actionsSplit)}
@@ -6223,11 +6282,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         subclassEntry={selectedSubclassReferenceEntry}
         onClose={() => setActiveReferenceDrawer(null)}
       />
-      {isMulticlassGuideOpen ? (
-        <MulticlassGuideModal onClose={() => setIsMulticlassGuideOpen(false)} />
-      ) : null}
       {isStartingGuideOpen ? (
         <StartingGuideModal onClose={() => setIsStartingGuideOpen(false)} />
+      ) : null}
+      {isMulticlassGuideOpen ? (
+        <MulticlassGuideModal onClose={() => setIsMulticlassGuideOpen(false)} />
       ) : null}
     </div>
   );

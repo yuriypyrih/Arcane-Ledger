@@ -1,3 +1,5 @@
+import { getCharacterClasses, getClassEditorCharacter, getClassLevel } from "../multiclass";
+import { getCharacterSpellSlotPools } from "../multiclassSpellcasting";
 import {
   ACTION_TYPE,
   getSpellEntryById,
@@ -5,11 +7,7 @@ import {
   type SpellEntry
 } from "../../../codex/entries";
 import type { Character, CharacterStatusDuration, CharacterStatusEntry } from "../../../types";
-import {
-  STATUS_DURATION_KIND,
-  STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE
-} from "../../../types";
+import { STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../types";
 import {
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureReactionEntriesForCharacter,
@@ -160,9 +158,63 @@ function createStatusSections(statusEntries: CharacterStatusEntry[]): StatusRunt
 }
 
 function createStatusRuntime(character: Character): CharacterStatusRuntime {
+  if (character.multiclass && !character.classEntryId) {
+    const states = getCharacterClasses(character).map((entry) => {
+      const state = createStatusRuntime(getClassEditorCharacter(character, entry));
+      const reactionStatuses = state.reactionStatusEntries.map((status) => ({
+        ...status,
+        sourceClassEntryId: entry.id
+      }));
+      return { ...state, reactionStatusEntries: reactionStatuses };
+    });
+    const unique = <T extends { id: string }>(items: T[]): T[] => [
+      ...new Map(items.map((item) => [item.id, item])).values()
+    ];
+    const spellEntriesById = new Map(states.flatMap((state) => [...state.spellEntriesById]));
+    const selectedReactionSpellEntries = unique(
+      states.flatMap((state) => state.selectedReactionSpellEntries)
+    );
+    const featureReactionEntries = unique(states.flatMap((state) => state.featureReactionEntries));
+    const featureReactionEntriesByStatusId =
+      createFeatureReactionEntriesByStatusId(featureReactionEntries);
+    const reactionStatusEntries = unique(states.flatMap((state) => state.reactionStatusEntries));
+    const classDerivedStatusEntries = unique(
+      states.flatMap((state) => state.classDerivedStatusEntries)
+    );
+    const derivedStatusEntries = unique([
+      ...states.flatMap((state) => state.derivedStatusEntries),
+      ...reactionStatusEntries
+    ]);
+    const statusEntries = resolveCharacterStatusEntries(
+      character.statusEntries,
+      derivedStatusEntries
+    );
+    const pool = getCharacterSpellSlotPools(character)[0];
+    return {
+      ...states[0],
+      spellEntriesById,
+      selectedReactionSpellEntries,
+      featureReactionEntries,
+      featureReactionEntriesByStatusId,
+      reactionStatusEntries,
+      classDerivedStatusEntries,
+      derivedStatusEntries,
+      statusEntries,
+      statusSections: createStatusSections(statusEntries),
+      spellSlotTotals: pool.totals,
+      spellSlotsExpended: pool.expended,
+      spellSlotsRemaining: pool.totals.map((total, index) => total - pool.expended[index]),
+      getStatusEntryById: (id) => statusEntries.find((entry) => entry.id === id) ?? null,
+      getReactionEntryForStatus: (entry) =>
+        entry?.sourceId
+          ? (featureReactionEntriesByStatusId.get(entry.sourceId as ReactionEntryStatusId) ?? null)
+          : null
+    };
+  }
+
   const shouldUseClassSpellPools = isSpellcastingClass(
     character.className,
-    character.level,
+    getClassLevel(character, character.className),
     character.subclassId,
     character.customClass,
     character.classRules
@@ -172,7 +224,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     shouldUseClassSpellPools
       ? getCantripSelectionOptionsForCharacter(
           character.className,
-          character.level,
+          getClassLevel(character, character.className),
           character.subclassId,
           character.customClass,
           character.classRules
@@ -196,7 +248,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     shouldUseClassSpellPools
       ? getPreparedSpellSelectionOptionsForCharacter(
           character.className,
-          character.level,
+          getClassLevel(character, character.className),
           character.subclassId,
           character.customClass,
           character.classRules
@@ -205,7 +257,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   );
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
-    character.level,
+    getClassLevel(character, character.className),
     character.classFeatureState,
     character.subclassId,
     character.customClass,
@@ -213,14 +265,14 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   );
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     character.className,
-    character.level,
+    getClassLevel(character, character.className),
     character.subclassId,
     character.customClass,
     character.classRules
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
-    character.level,
+    getClassLevel(character, character.className),
     character.subclassId,
     character.customClass,
     character.classRules
@@ -234,7 +286,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   );
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
-    character.level,
+    getClassLevel(character, character.className),
     character.subclassId,
     character.customClass,
     character.classRules
@@ -243,7 +295,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     ...new Set([
       ...getAlwaysPreparedSpellIds(
         character.className,
-        character.level,
+        getClassLevel(character, character.className),
         character.classFeatureState,
         undefined,
         character.subclassId,
@@ -358,7 +410,10 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     ...customTraitDefenseStatusEntries,
     ...reactionStatusEntries
   ];
-  const statusEntries = resolveCharacterStatusEntries(character.statusEntries, derivedStatusEntries);
+  const statusEntries = resolveCharacterStatusEntries(
+    character.statusEntries,
+    derivedStatusEntries
+  );
   const statusSections = createStatusSections(statusEntries);
 
   function getStatusEntryById(entryId: string | null | undefined): CharacterStatusEntry | null {

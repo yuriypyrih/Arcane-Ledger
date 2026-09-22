@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -15,7 +17,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -152,9 +154,9 @@ export function hasPaladinOathOfVengeanceAvengingAngelFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfVengeanceSubclassId &&
-    (character.level ?? 0) >= 20
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfVengeanceSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 20
   );
 }
 
@@ -162,9 +164,9 @@ export function hasPaladinOathOfVengeanceVowOfEnmity(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfVengeanceSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfVengeanceSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 3
   );
 }
 
@@ -172,9 +174,9 @@ function hasPaladinOathOfVengeanceRelentlessAvengerFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfVengeanceSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfVengeanceSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 7
   );
 }
 
@@ -182,9 +184,9 @@ function hasPaladinOathOfVengeanceSoulOfVengeanceFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfVengeanceSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfVengeanceSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 15
   );
 }
 
@@ -207,11 +209,7 @@ function getPaladinOathOfVengeanceAvengingAngelFallbackSlotSummary(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -237,8 +235,8 @@ function getPaladinOathOfVengeanceAvengingAngelFallbackSlotLevel(
 function getPaladinAuraRangeFeet(character: PaladinOathOfVengeanceCharacter): number {
   return hasPaladinFeature(
     {
-      className: character.className,
-      level: character.level ?? 0
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0
     },
     CLASS_FEATURE.AURA_EXPANSION
   )
@@ -250,8 +248,8 @@ function getPaladinChannelDivinityUsesRemainingForCharacter(
   character: PaladinOathOfVengeanceCharacter
 ): number {
   return getPaladinChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState ?? {}
   });
 }
@@ -341,8 +339,8 @@ function hasActivePaladinOathOfVengeanceFrightfulAura(
   return (
     hasActivePaladinOathOfVengeanceAvengingAngel(character) &&
     hasActivePaladinAuraOfProtection({
-      className: character.className,
-      level: character.level ?? 0,
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0,
       statusEntries: character.statusEntries ?? []
     })
   );
@@ -428,10 +426,7 @@ function getFeatureActionByKey(
   return actions.filter((action) => action.key === actionKey);
 }
 
-function getReactionEntryById(
-  reactions: ReactionEntry[],
-  reactionId: string
-): ReactionEntry[] {
+function getReactionEntryById(reactions: ReactionEntry[], reactionId: string): ReactionEntry[] {
   return reactions.filter((reaction) => reaction.id === reactionId);
 }
 
@@ -588,11 +583,7 @@ export function activatePaladinOathOfVengeanceAvengingAngel(character: Character
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    );
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -639,17 +630,17 @@ function collectPaladinOathOfVengeanceContributions(
   character: PaladinOathOfVengeanceCharacter
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Paladin" ||
-    character.subclassId !== oathOfVengeanceSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Paladin") ||
+    getClassSubclassId(character, "Paladin") !== oathOfVengeanceSubclassId ||
+    (getClassLevel(character, "Paladin") ?? 0) < 3
   ) {
     return [];
   }
 
   const featureActions = getPaladinOathOfVengeanceFeatureActions(character);
   const channelDivinityCharacter = {
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState
   };
   const reactionEntries = getPaladinOathOfVengeanceReactionEntries(character);
@@ -661,7 +652,7 @@ function collectPaladinOathOfVengeanceContributions(
         entryId: CLASS_FEATURE.OATH_OF_VENGEANCE_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Paladin") ?? 0,
         oathOfVengeanceSpellIdsByLevel
       )
     }

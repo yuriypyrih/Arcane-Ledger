@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { useEffect, useMemo, useState } from "react";
 import { type ActionShapeType } from "../../../../../../ActionShape";
 import type { ActionConfirmationToastTrigger } from "../../../../actionConfirmationToast";
@@ -12,10 +13,7 @@ import {
   getArtificerMagicItemTinkerTransmuteItemOptions,
   type MagicItemTinkerInventoryOption
 } from "../../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../../pages/CharactersPage/spellcasting";
+import { normalizeSpellSlotsExpended } from "../../../../../../../pages/CharactersPage/spellcasting";
 import type { Character, ItemRecord } from "../../../../../../../types";
 import { ReplicateMagicItemPlanBrowser } from "./ReplicateMagicItemActionBody";
 import styles from "./TinkersMagicActionBody.module.css";
@@ -45,13 +43,7 @@ type MagicItemTinkerActionBodyProps = {
 function getExpendedSpellSlots(character: Character): number[] {
   return normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
-    getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId,
-      character.customClass,
-      character.classRules
-    )
+    getSheetSpellSlotTotals(character)
   );
 }
 

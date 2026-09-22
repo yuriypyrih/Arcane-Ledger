@@ -11,23 +11,37 @@
 }
 
 .header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   position: relative;
   z-index: 2;
   background: var(--theme-overlay-header-background);
   padding-bottom: 0.25rem;
 }
 
+.headerWithAside {
+  /* Limit tags to half the header so the title and its source retain room. */
+  grid-template-columns: minmax(0, 1fr) fit-content(50%) auto;
+}
+
 .headerContent {
   gap: 0.32rem;
+  overflow-wrap: anywhere;
+}
+
+.closeButton {
+  grid-column: -2 / -1;
+  grid-row: 1;
 }
 
 .headerAside {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.55rem;
   justify-content: flex-end;
-  flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .resourceBadgeRow {
@@ -36,21 +50,29 @@
   flex-wrap: wrap;
   gap: 0.45rem;
   justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .badgeRow {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.45rem;
   justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .resourceBadge,
 .badgePill {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   border-radius: var(--radius-pill);
   min-height: 38px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .resourceBadge {
@@ -84,7 +106,9 @@
 .resourceBadgeValue {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.28rem;
+  min-width: 0;
 }
 
 .resourceBadgeValue svg {
@@ -254,12 +278,20 @@
 }
 
 @media (max-width: 599px) {
-  .header {
-    align-items: flex-start;
+  .headerWithAside {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .headerAside {
+    grid-column: 1 / -1;
+    grid-row: 2;
     gap: 0.45rem;
+  }
+
+  .headerAside,
+  .resourceBadgeRow,
+  .badgeRow {
+    justify-content: flex-start;
   }
 
   .factGrid {

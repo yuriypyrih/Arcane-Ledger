@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { sorcererFeatures } from "../../../../../codex/classes";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -15,7 +16,10 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -35,8 +39,7 @@ export const sorcererClockworkRestoreBalanceReactionId =
   "reaction-sorcerer-clockwork-sorcery-restore-balance";
 export const sorcererBastionOfLawActionKey = "sorcerer-clockwork-sorcery-bastion-of-law";
 export const sorcererTranceOfOrderActionKey = "sorcerer-clockwork-sorcery-trance-of-order";
-export const sorcererClockworkCavalcadeActionKey =
-  "sorcerer-clockwork-sorcery-clockwork-cavalcade";
+export const sorcererClockworkCavalcadeActionKey = "sorcerer-clockwork-sorcery-clockwork-cavalcade";
 export const sorcererClockworkBastionOfLawStatusSourceId =
   "feature-sorcerer-clockwork-sorcery-bastion-of-law";
 export const sorcererClockworkTranceOfOrderStatusSourceId =
@@ -61,7 +64,9 @@ const clockworkCavalcadeUsesTotal = 1;
 const clockworkCavalcadeFallbackSorceryPointCost = 7;
 
 type ClockworkSorceryCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId" | "statusEntries">>;
+  Partial<
+    Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId" | "statusEntries">
+  >;
 
 function getClockworkFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
   return (
@@ -70,9 +75,13 @@ function getClockworkFeatureDescriptionEntries(feature: CLASS_FEATURE): string[]
   ).filter((entry): entry is string => typeof entry === "string");
 }
 
-const restoreBalanceDescription = getClockworkFeatureDescriptionEntries(CLASS_FEATURE.RESTORE_BALANCE);
+const restoreBalanceDescription = getClockworkFeatureDescriptionEntries(
+  CLASS_FEATURE.RESTORE_BALANCE
+);
 const bastionOfLawDescription = getClockworkFeatureDescriptionEntries(CLASS_FEATURE.BASTION_OF_LAW);
-const tranceOfOrderDescription = getClockworkFeatureDescriptionEntries(CLASS_FEATURE.TRANCE_OF_ORDER);
+const tranceOfOrderDescription = getClockworkFeatureDescriptionEntries(
+  CLASS_FEATURE.TRANCE_OF_ORDER
+);
 const clockworkCavalcadeDescription = getClockworkFeatureDescriptionEntries(
   CLASS_FEATURE.CLOCKWORK_CAVALCADE
 );
@@ -98,14 +107,13 @@ function getSorcererFeatureRow(level: number | undefined) {
 function getSorcererClockworkSorceryPointsTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  return character.className === "Sorcerer"
-    ? Math.max(0, getSorcererFeatureRow(character.level)?.sorceryPoints ?? 0)
+  return hasCharacterClass(character, "Sorcerer")
+    ? Math.max(0, getSorcererFeatureRow(getClassLevel(character, "Sorcerer"))?.sorceryPoints ?? 0)
     : 0;
 }
 
 function getSorcererClockworkSorceryPointsRemaining(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "classFeatureState">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "classFeatureState">>
 ): number {
   const totalPoints = getSorcererClockworkSorceryPointsTotal(character);
   const expendedPoints = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
@@ -156,37 +164,39 @@ function spendSorcererClockworkSorceryPoints(character: Character, cost: number)
 
 function hasSorcererClockworkRestoreBalanceFeature(character: ClockworkSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === clockworkSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
 function hasSorcererClockworkBastionOfLawFeature(character: ClockworkSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === clockworkSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
 function hasSorcererClockworkTranceOfOrderFeature(character: ClockworkSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === clockworkSorcerySubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 14
   );
 }
 
 function hasSorcererClockworkCavalcadeFeature(character: ClockworkSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === clockworkSorcerySubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 18
   );
 }
 
-function getSorcererClockworkReactionEntries(character: ClockworkSorceryCharacter): ReactionEntry[] {
+function getSorcererClockworkReactionEntries(
+  character: ClockworkSorceryCharacter
+): ReactionEntry[] {
   return hasSorcererClockworkRestoreBalanceFeature(character) ? [restoreBalanceReactionEntry] : [];
 }
 
@@ -314,9 +324,7 @@ function getSorcererClockworkBastionOfLawOptions(
     actionCategory: ACTION_CATEGORY.MAGIC,
     disabled: cost > remainingPoints,
     disabledReason:
-      cost > remainingPoints
-        ? `You need ${cost} Sorcery Point${cost === 1 ? "" : "s"}.`
-        : undefined
+      cost > remainingPoints ? `You need ${cost} Sorcery Point${cost === 1 ? "" : "s"}.` : undefined
   }));
 }
 
@@ -582,10 +590,7 @@ export function activateSorcererClockworkTranceOfOrder(character: Character): Ch
           ...sorcererState,
           tranceOfOrderUsesExpended: Math.max(
             0,
-            Math.min(
-              tranceOfOrderUsesTotal,
-              (sorcererState.tranceOfOrderUsesExpended ?? 0) + 1
-            )
+            Math.min(tranceOfOrderUsesTotal, (sorcererState.tranceOfOrderUsesExpended ?? 0) + 1)
           )
         }
       }
@@ -757,7 +762,7 @@ function createSorcererClockworkSpellsContribution(
       entryId: CLASS_FEATURE.CLOCKWORK_SPELLS
     }),
     alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
+      getClassLevel(character, "Sorcerer") ?? 0,
       clockworkSorcerySpellIdsByLevel
     )
   };
@@ -830,9 +835,9 @@ function collectSorcererClockworkSorceryContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Sorcerer" ||
-    character.subclassId !== clockworkSorcerySubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Sorcerer") ||
+    getClassSubclassId(character, "Sorcerer") !== clockworkSorcerySubclassId ||
+    (getClassLevel(character, "Sorcerer") ?? 0) < 3
   ) {
     return [];
   }

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -148,7 +149,7 @@ export function getOrcAdrenalineRushUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isOrcSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 
@@ -183,7 +184,7 @@ export function applyOrcAdrenalineRushForCharacter(character: Character): Charac
   }
 
   const orcState = getOrcFeatureState(character);
-  const temporaryHitPoints = getSpeciesProficiencyBonus(character.level);
+  const temporaryHitPoints = getSpeciesProficiencyBonus(getCharacterLevel(character));
   const characterWithSpentCharge = setOrcFeatureState(character, {
     adrenalineRushUsesExpended: clampExpendedUses(orcState.adrenalineRushUsesExpended) + 1
   });

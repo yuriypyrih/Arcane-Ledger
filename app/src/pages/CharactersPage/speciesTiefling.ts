@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -205,7 +206,7 @@ function getTieflingUnlockedLeveledSpellIds(character: TieflingRuntimeCharacter)
     return [];
   }
 
-  const level = Math.max(1, character.level ?? 1);
+  const level = Math.max(1, getCharacterLevel(character) ?? 1);
 
   return legacyOption.spellsByLevel
     .filter((spell) => level >= spell.level)

@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { clericFeatures, type ClericFeatureClassObj } from "../../../../codex/classes/cleric";
 import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterClericFeatureState } from "../../../../types";
@@ -29,11 +30,11 @@ export function hasClericFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Cleric") {
+  if (!hasCharacterClass(character, "Cleric")) {
     return false;
   }
 
-  return getUnlockedClericFeatures(character.level).has(feature);
+  return getUnlockedClericFeatures(getClassLevel(character, "Cleric")).has(feature);
 }
 
 export function normalizeClericBaseFeatureState(
@@ -43,7 +44,7 @@ export function normalizeClericBaseFeatureState(
 ): CharacterClericFeatureState {
   const normalizedCharacter = {
     ...character,
-    level: character.level ?? 1
+    level: getClassLevel(character, "Cleric") ?? 1
   };
   const hasDivineOrder = hasClericFeature(normalizedCharacter, CLASS_FEATURE.DIVINE_ORDER);
   const hasBlessedStrikes = hasClericFeature(normalizedCharacter, CLASS_FEATURE.BLESSED_STRIKES);
@@ -60,7 +61,7 @@ export function normalizeClericBaseFeatureState(
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
   const channelDivinityTotal = hasChannelDivinity
-    ? (getClericFeatureRow(normalizedCharacter.level)?.channelDivinity ?? 0)
+    ? (getClericFeatureRow(getClassLevel(normalizedCharacter, "Cleric"))?.channelDivinity ?? 0)
     : 0;
 
   return {

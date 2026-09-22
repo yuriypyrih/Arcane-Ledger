@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -179,9 +180,9 @@ const frozenHauntImmunityValues = [
 
 function isRangerWinterWalker(character: RangerWinterWalkerCharacter): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === winterWalkerSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === winterWalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -200,7 +201,7 @@ function getPolarStrikesDamageFormula(character: RangerWinterWalkerCharacter): s
     return null;
   }
 
-  return (character.level ?? 0) >= 11 ? "1d6" : "1d4";
+  return (getClassLevel(character, "Ranger") ?? 0) >= 11 ? "1d6" : "1d4";
 }
 
 function createPolarStrikesDamageBonus(
@@ -316,7 +317,7 @@ export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(
     return null;
   }
 
-  return `1d10 + ${Math.max(1, character.level ?? 0)}`;
+  return `1d10 + ${Math.max(1, getClassLevel(character, "Ranger") ?? 0)}`;
 }
 
 export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(
@@ -328,7 +329,7 @@ export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay
 
   return formatFormulaTerms([
     "1d10",
-    formatSignedFormulaTerm(Math.max(1, character.level ?? 0), "Ranger level")
+    formatSignedFormulaTerm(Math.max(1, getClassLevel(character, "Ranger") ?? 0), "Ranger level")
   ]);
 }
 
@@ -367,7 +368,7 @@ export function getRangerWinterWalkerFortifyingSoulHealingFormula(
     return null;
   }
 
-  return `1d10 + ${Math.max(1, character.level ?? 0)}`;
+  return `1d10 + ${Math.max(1, getClassLevel(character, "Ranger") ?? 0)}`;
 }
 
 export function getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(
@@ -379,7 +380,7 @@ export function getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(
 
   return formatFormulaTerms([
     "1d10",
-    formatSignedFormulaTerm(Math.max(1, character.level ?? 0), "Ranger level")
+    formatSignedFormulaTerm(Math.max(1, getClassLevel(character, "Ranger") ?? 0), "Ranger level")
   ]);
 }
 
@@ -420,9 +421,9 @@ export function hasRangerWinterWalkerFortifyingSoulFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === winterWalkerSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === winterWalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 7
   );
 }
 
@@ -430,9 +431,9 @@ export function hasRangerWinterWalkerChillingRetributionFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === winterWalkerSubclassId &&
-    (character.level ?? 0) >= 11
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === winterWalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 11
   );
 }
 
@@ -440,9 +441,9 @@ export function hasRangerWinterWalkerFrozenHauntFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === winterWalkerSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === winterWalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 15
   );
 }
 
@@ -592,9 +593,7 @@ export function applyRangerWinterWalkerFrozenHauntStatusEntries(
   );
 }
 
-export function applyRangerWinterWalkerFortifyingSoulSelfStatus(
-  character: Character
-): Character {
+export function applyRangerWinterWalkerFortifyingSoulSelfStatus(character: Character): Character {
   if (!hasRangerWinterWalkerFortifyingSoulFeature(character)) {
     return character;
   }
@@ -782,7 +781,7 @@ function getRangerWinterWalkerFeatureActions(
   const targetCount = getFortifyingSoulTargetCount(character);
   const healingFormula =
     getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character) ??
-    `1d10 + ${Math.max(1, character.level ?? 0)}`;
+    `1d10 + ${Math.max(1, getClassLevel(character, "Ranger") ?? 0)}`;
   const healingFacts = getRangerWinterWalkerFortifyingSoulHealingFacts(character);
   const creatureLabel = targetCount === 1 ? "creature" : "creatures";
 
@@ -957,7 +956,7 @@ function collectRangerWinterWalkerContributions(
         entryId: CLASS_FEATURE.WINTER_WALKER_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Ranger") ?? 0,
         winterWalkerSpellIdsByLevel
       )
     });

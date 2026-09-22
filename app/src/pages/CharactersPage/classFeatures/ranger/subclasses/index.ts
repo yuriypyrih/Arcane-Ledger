@@ -1,7 +1,5 @@
-import type {
-  SubclassDerivedFeatureState,
-  SubclassRuntimeCharacter
-} from "../../subclassRuntime";
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
+import type { SubclassDerivedFeatureState, SubclassRuntimeCharacter } from "../../subclassRuntime";
 import { getRangerBeastMasterDerivedFeatureState } from "./rangerBeastMaster";
 import { getRangerFeyWandererDerivedFeatureState } from "./rangerFeyWanderer";
 import { getRangerGloomStalkerDerivedFeatureState } from "./rangerGloomStalker";
@@ -11,11 +9,11 @@ import { getRangerWinterWalkerDerivedFeatureState } from "./rangerWinterWalker";
 export function getRangerSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Ranger" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Ranger") || !getClassSubclassId(character, "Ranger")) {
     return {};
   }
 
-  switch (character.subclassId) {
+  switch (getClassSubclassId(character, "Ranger")) {
     case "ranger-beast-master":
       return getRangerBeastMasterDerivedFeatureState(character);
     case "ranger-fey-wanderer":

@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character, CharacterStatusEntry } from "../../../../types";
 import {
@@ -297,7 +298,10 @@ export function collectRogueFeatureContributions(
     contributions.push(createRogueUncannyDodgeContribution(character));
   }
 
-  if (character.level >= 6 && hasRogueFeature(character, CLASS_FEATURE.EXPERTISE)) {
+  if (
+    getClassLevel(character, "Rogue") >= 6 &&
+    hasRogueFeature(character, CLASS_FEATURE.EXPERTISE)
+  ) {
     contributions.push(createRogueExpertiseContribution(character, rogueLevel6ExpertiseSource));
   }
 

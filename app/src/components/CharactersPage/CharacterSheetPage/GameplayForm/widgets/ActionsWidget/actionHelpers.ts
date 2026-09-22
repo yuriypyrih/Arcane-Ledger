@@ -1,3 +1,8 @@
+import {
+  hasCharacterClass,
+  getClassSubclassId,
+  getClassLevel
+} from "../../../../../../pages/CharactersPage/multiclass";
 import type { Character, AbilityKey } from "../../../../../../types";
 import {
   ACTION_TYPE,
@@ -56,9 +61,9 @@ export function shouldGrantMonkFleetStepFollowUp(
   return (
     shouldTrackRoundScopedResources(character.roundTracker) &&
     economyType === ECONOMY_TYPE.BONUS_ACTION &&
-    character.className === "Monk" &&
-    character.subclassId === warriorOfTheOpenHandSubclassId &&
-    character.level >= 11 &&
+    hasCharacterClass(character, "Monk") &&
+    getClassSubclassId(character, "Monk") === warriorOfTheOpenHandSubclassId &&
+    getClassLevel(character, "Monk") >= 11 &&
     actionKey !== monkStepOfTheWindActionKey &&
     actionKey !== "common-action-dash"
   );

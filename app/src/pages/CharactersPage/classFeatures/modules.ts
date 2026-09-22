@@ -1,3 +1,4 @@
+import { getCharacterClasses, getClassEditorCharacter } from "../multiclass";
 import type { Character, CharacterClassFeatureState } from "../../../types";
 import { createDefaultAbilities } from "../constants";
 import {
@@ -294,7 +295,7 @@ function mergeDerivedMaps<T extends Record<string, unknown>>(
   return { ...(base ?? {}), ...(addition ?? {}) } as T;
 }
 
-function mergeClassFeatureDerivedStates(
+export function mergeClassFeatureDerivedStates(
   base: ClassFeatureDerivedState,
   addition: ClassFeatureDerivedState
 ): ClassFeatureDerivedState {
@@ -305,6 +306,22 @@ function mergeClassFeatureDerivedStates(
   return {
     ...base,
     ...addition,
+    weaponMastery:
+      base.weaponMastery && addition.weaponMastery
+        ? {
+            ...base.weaponMastery,
+            selectionCount:
+              base.weaponMastery.selectionCount + addition.weaponMastery.selectionCount,
+            options: [
+              ...new Set([...base.weaponMastery.options, ...addition.weaponMastery.options])
+            ],
+            selections: [
+              ...new Set([...base.weaponMastery.selections, ...addition.weaponMastery.selections])
+            ]
+          }
+        : (addition.weaponMastery ?? base.weaponMastery),
+    getUnarmedStrikeConfig: () =>
+      addition.getUnarmedStrikeConfig?.() ?? base.getUnarmedStrikeConfig?.() ?? null,
     actions: mergeDerivedArrays(base.actions, addition.actions),
     actionOptions: mergeDerivedRecords(base.actionOptions, addition.actionOptions),
     equipmentEntries: mergeDerivedArrays(base.equipmentEntries, addition.equipmentEntries),
@@ -375,10 +392,7 @@ function mergeClassFeatureDerivedStates(
             ...(addition.getSpeedBonuses?.(context) ?? [])
           ]
         : undefined,
-    abilityScoreBonuses: mergeDerivedArrays(
-      base.abilityScoreBonuses,
-      addition.abilityScoreBonuses
-    ),
+    abilityScoreBonuses: mergeDerivedArrays(base.abilityScoreBonuses, addition.abilityScoreBonuses),
     weaponProficiencyEntries: mergeDerivedArrays(
       base.weaponProficiencyEntries,
       addition.weaponProficiencyEntries
@@ -1015,6 +1029,27 @@ export function collectActiveClassFeatureState(
 
   if (cachedState) {
     return cachedState;
+  }
+
+  const progression = character as Partial<Character>;
+  if (progression.multiclass && !progression.classEntryId) {
+    const derived = getCharacterClasses(character).reduce((result, entry) => {
+      const view = getClassEditorCharacter(character, entry);
+      const next = collectActiveClassFeatureState(view);
+      return mergeClassFeatureDerivedStates(result, {
+        ...next,
+        actions: next.actions?.map((action) => ({
+          ...action,
+          sourceClassEntryId: entry.id,
+          actionSource: action.actionSource ?? {
+            type: "class" as const,
+            name: entry.customClass?.name || entry.className
+          }
+        }))
+      });
+    }, emptyFeatureDerivedState);
+    activeClassFeatureStateCache.set(character, derived);
+    return derived;
   }
 
   const activeModule = getActiveClassFeatureModule(character.className);

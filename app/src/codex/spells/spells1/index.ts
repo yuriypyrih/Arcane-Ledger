@@ -2868,36 +2868,6 @@ export const unseenServant: SpellEntry = {
   ritual: true
 };
 
-export const wildCunning: SpellEntry = {
-  id: "spell-wild-cunning",
-  name: "Wild Cunning",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "120 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Instantaneous"],
-  description: [
-    "You call out to the spirits of nature to aid you. When you cast this spell, choose one of the following effects:",
-    "If there are any tracks on the ground within range, you know where they are, and you make Wisdom (Survival) checks to follow these tracks with Advantage for 1 hour or until you cast this spell again.",
-    "If there is edible forage within range, you know it and where to find it.",
-    "If there is clean drinking water within range, you know it and where to find it.",
-    "If there is suitable shelter for you and your companions within range, you know it and where to find it.",
-    "Send the spirits to bring back wood for a fire and to set up a campsite in the area using your supplies. The spirits build the fire in a circle of stones, put up tents, unroll bedrolls, and put out any rations and water for consumption.",
-    "Have the spirits instantly break down a campsite, which includes putting out a fire, taking down tents, packing up bags, and burying any rubbish."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
-  spellLevel: 1
-};
-
 export const witchBolt: SpellEntry = {
   id: "spell-witch-bolt",
   name: "Witch Bolt",
@@ -3077,7 +3047,6 @@ export const spellEntries1: SpellEntry[] = [
   thunderwave,
   unearthlyChorus,
   unseenServant,
-  wildCunning,
   witchBolt,
   wrathfulSmite,
   zephyrStrike

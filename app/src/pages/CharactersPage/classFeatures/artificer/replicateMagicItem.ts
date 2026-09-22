@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import { artificerFeatures } from "../../../../codex/classes/artificer";
 import type {
@@ -48,7 +49,9 @@ function getArtificerProgression(characterLevel: number) {
 export function hasArtificerReplicateMagicItemFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 2;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 2
+  );
 }
 
 function getArtificerReplicateMagicItemBaseLimit(
@@ -58,7 +61,7 @@ function getArtificerReplicateMagicItemBaseLimit(
     return 0;
   }
 
-  const characterLevel = character.level ?? 0;
+  const characterLevel = getClassLevel(character, "Artificer") ?? 0;
   const progression = getArtificerProgression(characterLevel);
 
   return Math.max(0, progression?.magicItems ?? 0);
@@ -86,7 +89,10 @@ export function getArtificerReplicateMagicItemPlansKnown(
     return 0;
   }
 
-  return Math.max(0, getArtificerProgression(character.level ?? 0)?.plansKnown ?? 0);
+  return Math.max(
+    0,
+    getArtificerProgression(getClassLevel(character, "Artificer") ?? 0)?.plansKnown ?? 0
+  );
 }
 
 export function getArtificerReplicateMagicItemAvailablePlanGroups(
@@ -96,7 +102,7 @@ export function getArtificerReplicateMagicItemAvailablePlanGroups(
     return [];
   }
 
-  const characterLevel = character.level ?? 0;
+  const characterLevel = getClassLevel(character, "Artificer") ?? 0;
 
   return artificerReplicateMagicItemPlanGroups
     .map((group) => ({
@@ -133,7 +139,7 @@ export function normalizeArtificerReplicateMagicItemPlanKeys(
     return [];
   }
 
-  const characterLevel = character.level ?? 0;
+  const characterLevel = getClassLevel(character, "Artificer") ?? 0;
   const selectedPlanKeys: string[] = [];
   const selectedPlanKeySet = new Set<string>();
 
@@ -166,7 +172,7 @@ function normalizeArtificerImprovedArmorerArmorReplicationPlanKey(
 
   if (
     !plan ||
-    plan.level > (character.level ?? 0) ||
+    plan.level > (getClassLevel(character, "Artificer") ?? 0) ||
     selectedBasePlanKeys.has(planKey) ||
     !artificerReplicateMagicItemArmorPlanKeySet.has(planKey)
   ) {
@@ -198,9 +204,7 @@ export function normalizeArtificerReplicateMagicItemPlanState(
 
   return {
     ...(replicateMagicItemPlanKeys.length > 0 ? { replicateMagicItemPlanKeys } : {}),
-    ...(armorerImprovedArmorReplicationPlanKey
-      ? { armorerImprovedArmorReplicationPlanKey }
-      : {})
+    ...(armorerImprovedArmorReplicationPlanKey ? { armorerImprovedArmorReplicationPlanKey } : {})
   };
 }
 
@@ -387,8 +391,7 @@ export function getArtificerReplicateMagicItemAction(
   const magicItemsBaseTotal = getArtificerReplicateMagicItemBaseLimit(character);
   const magicItemsBaseCurrent = getArtificerReplicateMagicItemBaseCount(character);
   const armorReplicationTotal = getArtificerImprovedArmorerArmorReplicationLimit(character);
-  const armorReplicationCurrent =
-    getArtificerImprovedArmorerArmorReplicationItemCount(character);
+  const armorReplicationCurrent = getArtificerImprovedArmorerArmorReplicationItemCount(character);
   const armorReplicationPlanKey =
     getArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(character);
   const magicItemsTotal = magicItemsBaseTotal + armorReplicationTotal;
@@ -443,9 +446,7 @@ export function getArtificerReplicateMagicItemAction(
       kind: "custom-form",
       description: replicateMagicItemCreatingDescription,
       descriptionAdditions:
-        armorReplicationDescriptionAddition.length > 0
-          ? [armorReplicationDescriptionAddition]
-          : [],
+        armorReplicationDescriptionAddition.length > 0 ? [armorReplicationDescriptionAddition] : [],
       formKind: "replicate-magic-item"
     },
     execute: {

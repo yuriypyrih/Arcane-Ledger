@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../types";
 import { getSpellFormulaCellsForCharacterSpell } from "../../../../pages/CharactersPage/shared/spellFormulas";
@@ -65,7 +66,6 @@ export function castSelectedSpellWithContext(
     getRoundTrackerResourceForSpell,
     getSorceryPointsRemaining,
     getSpellLevel,
-    getSpellSlotTotalsForCharacter,
     getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
     grantMonkFleetStepFollowUpForSpellCastIfEligible,
     hasWizardRitualAdept,
@@ -152,8 +152,7 @@ export function castSelectedSpellWithContext(
   const useBeguilingMagic = options?.useBeguilingMagic === true;
   const useStarMap = options?.useStarMap === true && selectedSpellSupportsStarMap;
   const useMagicInitiate = options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
-  const useGenasiLineage =
-    options?.useGenasiLineage === true && selectedSpellSupportsGenasiLineage;
+  const useGenasiLineage = options?.useGenasiLineage === true && selectedSpellSupportsGenasiLineage;
   const useForestGnome = options?.useForestGnome === true && selectedSpellSupportsForestGnome;
   const useFiendishLegacy =
     options?.useFiendishLegacy === true && selectedSpellSupportsFiendishLegacy;
@@ -167,8 +166,7 @@ export function castSelectedSpellWithContext(
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
-  const useBoonOfRevelry =
-    options?.useBoonOfRevelry === true && selectedSpellSupportsBoonOfRevelry;
+  const useBoonOfRevelry = options?.useBoonOfRevelry === true && selectedSpellSupportsBoonOfRevelry;
   const useDruidWildCompanion =
     options?.useDruidWildCompanion === true && selectedSpellSupportsDruidWildCompanion;
   const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
@@ -195,15 +193,13 @@ export function castSelectedSpellWithContext(
     options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
   const useTwoHeartsOneMind =
-    options?.useTwoHeartsOneMind === true &&
-    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind;
+    options?.useTwoHeartsOneMind === true && selectedSpellSupportsEnclaveMagicTwoHeartsOneMind;
   const spellImplementationOptions = options?.spellImplementationOptions ?? {};
   const spellImplementationCastSource =
     options?.spellImplementationCastSource ??
     selectedSpellActionPath?.spellImplementationCastSource ??
     "standard";
-  const spellActionPathId =
-    options?.spellActionPathId ?? selectedSpellActionPath?.id ?? null;
+  const spellActionPathId = options?.spellActionPathId ?? selectedSpellActionPath?.id ?? null;
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
   const useStepsOfTheFey =
     options?.useStepsOfTheFey === true &&
@@ -263,30 +259,30 @@ export function castSelectedSpellWithContext(
         trackingMessage: selectedSpell.trackingMessage
       }
     : useFeyReinforcementsNoConcentration
-    ? {
-        id: selectedSpell.id,
-        name: selectedSpell.name,
-        duration: ["1 minute"],
-        description: selectedSpell.description,
-        trackingState: selectedSpell.trackingState,
-        trackingMessage: selectedSpell.trackingMessage
-      }
-    : useDragonCompanionWithoutConcentration
-    ? {
-        id: selectedSpell.id,
-        name: selectedSpell.name,
-        duration: ["1 minute"],
-        description: selectedSpell.description,
-        trackingState: selectedSpell.trackingState,
-        trackingMessage: selectedSpell.trackingMessage
-      }
-    : selectedSpell;
+      ? {
+          id: selectedSpell.id,
+          name: selectedSpell.name,
+          duration: ["1 minute"],
+          description: selectedSpell.description,
+          trackingState: selectedSpell.trackingState,
+          trackingMessage: selectedSpell.trackingMessage
+        }
+      : useDragonCompanionWithoutConcentration
+        ? {
+            id: selectedSpell.id,
+            name: selectedSpell.name,
+            duration: ["1 minute"],
+            description: selectedSpell.description,
+            trackingState: selectedSpell.trackingState,
+            trackingMessage: selectedSpell.trackingMessage
+          }
+        : selectedSpell;
   const selectedCustomSpellSnapshot =
     selectedSpell && customSpellSnapshotsBySpellId instanceof Map
       ? customSpellSnapshotsBySpellId.get(selectedSpell.id)
       : null;
   const applySelectedSpellDurationToStatusEntries = selectedCustomSpellSnapshot
-      ? (
+    ? (
         statusEntries: Character["statusEntries"],
         spell: typeof spellForStatusEntries,
         statusOptions: Parameters<typeof applySpellDurationToStatusEntries>[2]
@@ -422,11 +418,9 @@ export function castSelectedSpellWithContext(
 
         if (nextCharacterWithSharedMulti !== nextCharacterWithFeatCastEffects) {
           return appendSelectedSummonCompanions(
-            applySpellCastFeatureEffectsForCharacter(
-              nextCharacterWithSharedMulti,
-              selectedSpell,
-              { useRadiantSoul }
-            )
+            applySpellCastFeatureEffectsForCharacter(nextCharacterWithSharedMulti, selectedSpell, {
+              useRadiantSoul
+            })
           );
         }
 
@@ -580,8 +574,10 @@ export function castSelectedSpellWithContext(
     selectedSpellIsWizardSpellMastery,
     selectedSpellIsWizardSignatureSpell,
     selectedSpellSupportsNaturalRecovery,
-    hasWizardSignatureSpellFreeCastAvailable:
-      hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id),
+    hasWizardSignatureSpellFreeCastAvailable: hasWizardSignatureSpellFreeCastAvailableForCharacter(
+      character,
+      selectedSpell.id
+    ),
     druidNaturalRecoveryUsesRemaining,
     sorceryPointsRemaining,
     useStarMap,
@@ -645,7 +641,10 @@ export function castSelectedSpellWithContext(
     return;
   }
 
-  if (castsFreeViaDruidWildCompanion && getDruidWildShapeUsesRemainingForCharacter(character) <= 0) {
+  if (
+    castsFreeViaDruidWildCompanion &&
+    getDruidWildShapeUsesRemainingForCharacter(character) <= 0
+  ) {
     return;
   }
 
@@ -662,13 +661,7 @@ export function castSelectedSpellWithContext(
       currentCharacter,
       roundTrackerResource
     );
-    const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
-      preparedCharacter.className,
-      preparedCharacter.level,
-      preparedCharacter.subclassId,
-      preparedCharacter.customClass,
-      preparedCharacter.classRules
-    );
+    const currentSpellSlotTotals = getSheetSpellSlotTotals(preparedCharacter);
     const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
       preparedCharacter.spellSlotsExpended,
       currentSpellSlotTotals

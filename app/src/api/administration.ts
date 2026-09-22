@@ -7,7 +7,7 @@ import type {
 import { apiGet, apiPatch, type ApiRequestOptions } from "./client";
 
 export function fetchAdministrationUsers(
-  { page = 1, search, ordering = "-createdAt" }: AdministrationUserListQuery = {},
+  { page = 1, search, ordering = "-lastActive" }: AdministrationUserListQuery = {},
   options?: ApiRequestOptions
 ) {
   const searchParams = new URLSearchParams();

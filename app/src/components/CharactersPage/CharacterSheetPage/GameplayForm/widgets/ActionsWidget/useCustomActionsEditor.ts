@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
 import { useMemo, useState } from "react";
 import type { Character, CharacterCustomAction } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -36,7 +37,10 @@ export function useCustomActionsEditor({
     () => normalizeCharacterCustomActions(character.customActions),
     [character.customActions]
   );
-  const proficiencyBonus = useMemo(() => getProficiencyBonus(character.level), [character.level]);
+  const proficiencyBonus = useMemo(
+    () => getProficiencyBonus(getCharacterLevel(character)),
+    [character]
+  );
   const [draft, setDraft] = useState<CustomActionDraft | null>(null);
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
 
@@ -134,25 +138,24 @@ export function useCustomActionsEditor({
                   }
                 : current
             ),
-          onEffectValueModeChange: (effectId: string, value: Parameters<
-            typeof updateCustomActionDraftEffectValueMode
-          >[2]) =>
+          onEffectValueModeChange: (
+            effectId: string,
+            value: Parameters<typeof updateCustomActionDraftEffectValueMode>[2]
+          ) =>
             setDraft((current) =>
-              current
-                ? updateCustomActionDraftEffectValueMode(current, effectId, value)
-                : current
+              current ? updateCustomActionDraftEffectValueMode(current, effectId, value) : current
             ),
-          onEffectRollModeChange: (effectId: string, value: Parameters<
-            typeof updateCustomActionDraftEffectRollMode
-          >[2]) =>
+          onEffectRollModeChange: (
+            effectId: string,
+            value: Parameters<typeof updateCustomActionDraftEffectRollMode>[2]
+          ) =>
             setDraft((current) =>
-              current
-                ? updateCustomActionDraftEffectRollMode(current, effectId, value)
-                : current
+              current ? updateCustomActionDraftEffectRollMode(current, effectId, value) : current
             ),
-          onEffectWeaponFormulaTargetChange: (effectId: string, value: Parameters<
-            typeof updateCustomActionDraftEffectWeaponFormulaTarget
-          >[2]) =>
+          onEffectWeaponFormulaTargetChange: (
+            effectId: string,
+            value: Parameters<typeof updateCustomActionDraftEffectWeaponFormulaTarget>[2]
+          ) =>
             setDraft((current) =>
               current
                 ? updateCustomActionDraftEffectWeaponFormulaTarget(current, effectId, value)

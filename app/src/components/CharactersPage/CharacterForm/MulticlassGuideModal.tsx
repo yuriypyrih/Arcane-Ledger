@@ -28,24 +28,29 @@ function MulticlassGuideModal({ onClose }: MulticlassGuideModalProps) {
       </OverlayHeader>
 
       <OverlayBody className={styles.body}>
-        <section className={styles.section}>
-          <p className={styles.sectionText}>
-            We know how much you all love a good multiclass character. And while Arcane Ledger does
-            not provide conventional multiclassing as a direct character-creation path, there are
-            several ways to emulate it depending on the tactic behind your build.
-          </p>
-          <p className={styles.sectionText}>
-            If you are mostly going vertical, choose your primary class and use edits, custom
-            traits, and custom features to add the dip or flavor you need. The app gives you a lot
-            of room to tune the sheet around the exact parts of another class you want to represent.
-          </p>
-          <p className={styles.sectionText}>
-            If you are going horizontal and spreading levels across many classes, Custom class is
-            usually the better starting point. It removes predefined class-feature baggage, keeps
-            the core sheet tools unrestricted, and leaves the build in your hands. Multiclass-style
-            play works best once you are comfortable with Arcane Ledger customization and modding.
-          </p>
-        </section>
+        <p className={styles.intro}>Arcane Ledger now supports proper multiclassing!</p>
+        <p className={styles.sectionText}>
+          Combine classes to create the character you have in mind. Here&apos;s how to get started:
+        </p>
+        <ol className={styles.steps}>
+          <li>
+            <strong>Choose your starting class.</strong> Select your primary class and your total
+            character level here, then finish creating your character.
+          </li>
+          <li>
+            <strong>Add your other classes.</strong> On your character sheet, find the{" "}
+            <strong>Build Section</strong> and press <strong>Edit</strong>. Add your additional
+            classes, choose their subclasses, and select any available proficiencies.
+          </li>
+          <li>
+            <strong>Distribute your levels.</strong> Click the <strong>Level</strong> button beside
+            your character&apos;s name to open character progression. Split your total character
+            level between your classes, then save.
+          </li>
+        </ol>
+        <p className={styles.intro}>
+          Any declared classes with zero levels are inactive until you put levels on them.
+        </p>
       </OverlayBody>
     </SheetModal>
   );

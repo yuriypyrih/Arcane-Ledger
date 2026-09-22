@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import type {
   ArmorProficiencyEntry,
@@ -45,9 +46,9 @@ export function hasBardCollegeOfValorMartialTrainingFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfValorSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfValorSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -55,9 +56,9 @@ export function hasBardCollegeOfValorCombatInspirationFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfValorSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfValorSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -65,9 +66,9 @@ export function hasBardCollegeOfValorExtraAttackFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfValorSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfValorSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 6
   );
 }
 
@@ -75,9 +76,9 @@ export function hasBardCollegeOfValorBattleMagicFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfValorSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfValorSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 14
   );
 }
 
@@ -404,7 +405,10 @@ function appendCombatInspirationDescription(
 export function collectBardCollegeOfValorContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfValorSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfValorSubclassId
+  ) {
     return [];
   }
 
@@ -416,14 +420,14 @@ export function collectBardCollegeOfValorContributions(
         entryId: CLASS_FEATURE.MARTIAL_TRAINING
       }),
       weaponProficiencyEntries: getBardCollegeOfValorWeaponProficiencyEntries({
-        className: character.className,
-        level: character.level ?? 0,
-        subclassId: character.subclassId
+        className: "Bard",
+        level: getClassLevel(character, "Bard") ?? 0,
+        subclassId: getClassSubclassId(character, "Bard")
       }),
       armorProficiencyEntries: getBardCollegeOfValorArmorProficiencyEntries({
-        className: character.className,
-        level: character.level ?? 0,
-        subclassId: character.subclassId
+        className: "Bard",
+        level: getClassLevel(character, "Bard") ?? 0,
+        subclassId: getClassSubclassId(character, "Bard")
       })
     },
     {

@@ -14,18 +14,20 @@ function SpellMainListRow({ row, onOpenSpellDetails }: SpellMainListRowProps) {
   }, [onOpenSpellDetails, row.spell]);
 
   return (
-    <SpellListRow
-      spell={row.spell}
-      onClick={openSpellDetails}
-      valueSummary={row.valueSummary}
-      detailNote={row.detailNote}
-      detailNoteTone={row.detailNoteTone}
-      alwaysPrepared={row.alwaysPrepared}
-      alwaysSpellbook={row.alwaysSpellbook}
-      highlightTone={row.highlightTone}
-      compactConcentrationDuration
-      actionShapes={row.actionShapes}
-    />
+      <SpellListRow
+        spell={row.spell}
+        readOnlyInteractive
+        onClick={openSpellDetails}
+        valueSummary={row.valueSummary}
+        detailNote={row.detailNote}
+        detailNoteTone={row.detailNoteTone}
+        alwaysPrepared={row.alwaysPrepared}
+        alwaysSpellbook={row.alwaysSpellbook}
+        highlightTone={row.highlightTone}
+        compactConcentrationDuration
+        actionShapes={row.actionShapes}
+      />
+
   );
 }
 

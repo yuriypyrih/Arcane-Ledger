@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -281,7 +282,7 @@ function getGenasiUnlockedLeveledSpellIds(character: GenasiRuntimeCharacter): st
     return [];
   }
 
-  const level = Math.max(1, character.level ?? 1);
+  const level = Math.max(1, getCharacterLevel(character) ?? 1);
 
   return lineageOption.spellsByLevel
     .filter((spell) => level >= spell.level)
@@ -293,7 +294,7 @@ function isGenasiSpellWithoutMaterialComponent(
   spellId: string
 ): boolean {
   const lineageOption = getGenasiLineageOption(character);
-  const level = Math.max(1, character.level ?? 1);
+  const level = Math.max(1, getCharacterLevel(character) ?? 1);
 
   return (
     lineageOption?.spellsByLevel.some(
@@ -521,7 +522,9 @@ export function restoreGenasiLineageFreeCastsOnLongRest(character: Character): C
 }
 
 export function getGenasiBladeWardBonusActionUsesTotal(character: GenasiRuntimeCharacter): number {
-  return isEarthGenasi(character) ? getSpeciesProficiencyBonus(character.level ?? 1) : 0;
+  return isEarthGenasi(character)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    : 0;
 }
 
 export function getGenasiBladeWardBonusActionUsesRemaining(

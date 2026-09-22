@@ -1,3 +1,4 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useId, useRef, useState } from "react";
@@ -50,6 +51,7 @@ function CharacterNotesDrawer({
   onClose,
   onPersistCharacter
 }: CharacterNotesDrawerProps) {
+  const readOnly = useReadOnlySheet();
   const titleId = useId();
   const nameInputId = useId();
   const alignmentInputId = useId();
@@ -74,6 +76,7 @@ function CharacterNotesDrawer({
   const characterSummary = getCharacterSummary(character);
 
   function startEditingName() {
+    if (readOnly) return;
     setIsEditingName(true);
     window.requestAnimationFrame(() => {
       nameInputRef.current?.focus();
@@ -82,6 +85,7 @@ function CharacterNotesDrawer({
   }
 
   function startEditingNotes() {
+    if (readOnly) return;
     setIsEditingNotes(true);
     window.requestAnimationFrame(() => {
       notesInputRef.current?.focus();
@@ -89,6 +93,7 @@ function CharacterNotesDrawer({
   }
 
   function startEditingAlignment() {
+    if (readOnly) return;
     setIsEditingAlignment(true);
     window.requestAnimationFrame(() => {
       alignmentInputRef.current?.focus();
@@ -111,6 +116,7 @@ function CharacterNotesDrawer({
   }
 
   function saveChanges() {
+    if (readOnly) return;
     const sanitizedName = sanitizeUserInput(draftName);
     const sanitizedNotes = sanitizeUserInput(draftNotes, { multiline: true });
 
@@ -154,7 +160,7 @@ function CharacterNotesDrawer({
             <label className={styles.fieldLabel} htmlFor={nameInputId}>
               Character name
             </label>
-            {isEditingName ? (
+            {readOnly ? null : isEditingName ? (
               <SheetActionButton onClick={cancelNameEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
@@ -174,7 +180,7 @@ function CharacterNotesDrawer({
             invalid={isNameInvalid}
             readOnly={!isEditingName}
             aria-describedby={isNameInvalid ? `${nameInputId}-error` : undefined}
-            onChange={(event) => setDraftName(event.target.value)}
+            onChange={(event) => { if (!readOnly) setDraftName(event.target.value); }}
           />
           {isNameInvalid ? (
             <span id={`${nameInputId}-error`} className={styles.errorText} role="alert">
@@ -188,7 +194,7 @@ function CharacterNotesDrawer({
             <label className={styles.fieldLabel} htmlFor={alignmentInputId}>
               Character alignment
             </label>
-            {isEditingAlignment ? (
+            {readOnly ? null : isEditingAlignment ? (
               <SheetActionButton onClick={cancelAlignmentEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
@@ -228,7 +234,7 @@ function CharacterNotesDrawer({
             <label className={styles.fieldLabel} htmlFor={notesInputId}>
               Character notes
             </label>
-            {isEditingNotes ? (
+            {readOnly ? null : isEditingNotes ? (
               <SheetActionButton onClick={cancelNotesEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
@@ -248,12 +254,12 @@ function CharacterNotesDrawer({
             value={draftNotes}
             placeholder="No character notes yet."
             readOnly={!isEditingNotes}
-            onChange={(event) => setDraftNotes(event.target.value)}
+            onChange={(event) => { if (!readOnly) setDraftNotes(event.target.value); }}
           />
         </section>
       </OverlayBody>
 
-      <OverlayFooter>
+      {!readOnly ? <OverlayFooter>
         <div className={styles.footerActions}>
           <ActionButton
             fullWidth={false}
@@ -264,7 +270,7 @@ function CharacterNotesDrawer({
             Save changes
           </ActionButton>
         </div>
-      </OverlayFooter>
+      </OverlayFooter> : null}
     </SheetDrawer>
   );
 }

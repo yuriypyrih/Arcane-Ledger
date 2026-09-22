@@ -199,13 +199,25 @@ export function normalizeCustomClassConfig(
     (!("mechanics" in record) &&
       ("hitDie" in record || "spellcastingAbility" in record || "spellSlotMaximums" in record));
 
+  const mechanics = normalizeCustomClassMechanics(record.mechanics, {
+    legacySpellcastingEnabled: hasLegacyCustomClassShape
+  });
+  if (["none", "full", "half", "third", "pact"].includes(String(record.castingProgression))) {
+    mechanics.spellcasting.enabled = record.castingProgression !== "none";
+  }
   return {
+    ...(typeof record.castingProgression === "string" &&
+    ["none", "full", "half", "third", "pact", "manual"].includes(record.castingProgression)
+      ? {
+          castingProgression: record.castingProgression as NonNullable<
+            CharacterCustomClassConfig["castingProgression"]
+          >
+        }
+      : {}),
     id: normalizeCustomClassId(record.id),
     name: normalizeCustomClassName(record.name),
     hitDie: normalizeCustomClassHitDie(record.hitDie),
-    mechanics: normalizeCustomClassMechanics(record.mechanics, {
-      legacySpellcastingEnabled: hasLegacyCustomClassShape
-    }),
+    mechanics,
     spellcastingAbility: normalizeCustomClassSpellcastingAbility(record.spellcastingAbility),
     spellSlotMaximums: normalizeCustomClassSpellSlotMaximums(record.spellSlotMaximums)
   };
@@ -235,7 +247,10 @@ export function normalizeCharacterClassRulesConfig(
   return {
     classRulesEnforced: isCustomClass
       ? false
-      : normalizeBoolean(record.classRulesEnforced, defaultCharacterClassRulesConfig.classRulesEnforced),
+      : normalizeBoolean(
+          record.classRulesEnforced,
+          defaultCharacterClassRulesConfig.classRulesEnforced
+        ),
     spellcastingRulesEnforced: isCustomClass
       ? false
       : normalizeBoolean(
@@ -243,9 +258,7 @@ export function normalizeCharacterClassRulesConfig(
           defaultCharacterClassRulesConfig.spellcastingRulesEnforced
         ),
     hitDie:
-      "hitDie" in record
-        ? normalizeCustomClassHitDie(record.hitDie)
-        : legacyCustomClass.hitDie,
+      "hitDie" in record ? normalizeCustomClassHitDie(record.hitDie) : legacyCustomClass.hitDie,
     spellcastingAbility:
       "spellcastingAbility" in record
         ? normalizeCustomClassSpellcastingAbility(record.spellcastingAbility)
@@ -254,11 +267,21 @@ export function normalizeCharacterClassRulesConfig(
       "spellSlotMaximums" in record
         ? normalizeCustomClassSpellSlotMaximums(record.spellSlotMaximums)
         : legacyCustomClass.spellSlotMaximums,
-    mechanics: normalizeCustomClassMechanics(mechanicsSource, {
-      legacySpellcastingEnabled:
-        options.legacySpellcastingEnabled ??
-        (!hasPersistedRules && legacyCustomClass.mechanics.spellcasting.enabled)
-    })
+    mechanics: normalizeCustomClassMechanics(
+      isCustomClass &&
+        legacyCustomClass.castingProgression &&
+        legacyCustomClass.castingProgression !== "manual"
+        ? {
+            ...normalizeCustomClassMechanics(mechanicsSource),
+            spellcasting: { enabled: legacyCustomClass.castingProgression !== "none" }
+          }
+        : mechanicsSource,
+      {
+        legacySpellcastingEnabled:
+          options.legacySpellcastingEnabled ??
+          (!hasPersistedRules && legacyCustomClass.mechanics.spellcasting.enabled)
+      }
+    )
   };
 }
 
@@ -278,7 +301,10 @@ export function getCharacterClassRulesConfig(
 }
 
 export function areCharacterClassRulesEnforced(character: ClassRulesCharacter): boolean {
-  return !isCustomClassName(character.className) && getCharacterClassRulesConfig(character).classRulesEnforced;
+  return (
+    !isCustomClassName(character.className) &&
+    getCharacterClassRulesConfig(character).classRulesEnforced
+  );
 }
 
 export function areCharacterSpellcastingRulesEnforced(character: ClassRulesCharacter): boolean {
@@ -292,7 +318,9 @@ export function canUseClassNeutralMechanics(character: ClassRulesCharacter): boo
   return isCustomClassName(character.className) || !areCharacterClassRulesEnforced(character);
 }
 
-export function getCharacterClassRulesHitDie(character: ClassRulesCharacter): CharacterCustomHitDie {
+export function getCharacterClassRulesHitDie(
+  character: ClassRulesCharacter
+): CharacterCustomHitDie {
   return getCharacterClassRulesConfig(character).hitDie;
 }
 
@@ -302,9 +330,7 @@ export function getCharacterClassRulesSpellcastingAbility(
   return getCharacterClassRulesConfig(character).spellcastingAbility;
 }
 
-export function getCharacterClassRulesSpellSlotMaximums(
-  character: ClassRulesCharacter
-): number[] {
+export function getCharacterClassRulesSpellSlotMaximums(character: ClassRulesCharacter): number[] {
   return getCharacterClassRulesConfig(character).spellSlotMaximums;
 }
 
@@ -314,15 +340,14 @@ export function getCharacterClassRulesMechanics(
   return getCharacterClassRulesConfig(character).mechanics;
 }
 
-export function isCharacterClassRulesExtraAttacksEnabled(
-  character: ClassRulesCharacter
-): boolean {
-  return canUseClassNeutralMechanics(character) && getCharacterClassRulesMechanics(character).extraAttacks.enabled;
+export function isCharacterClassRulesExtraAttacksEnabled(character: ClassRulesCharacter): boolean {
+  return (
+    canUseClassNeutralMechanics(character) &&
+    getCharacterClassRulesMechanics(character).extraAttacks.enabled
+  );
 }
 
-export function getCharacterClassRulesExtraAttackCount(
-  character: ClassRulesCharacter
-): number {
+export function getCharacterClassRulesExtraAttackCount(character: ClassRulesCharacter): number {
   const mechanics = getCharacterClassRulesMechanics(character);
 
   return isCharacterClassRulesExtraAttacksEnabled(character) ? mechanics.extraAttacks.count : 0;
@@ -347,10 +372,11 @@ export function getCharacterClassRulesEldritchInvocationSelectionIds(
     : [];
 }
 
-export function isCharacterClassRulesSpellcastingEnabled(
-  character: ClassRulesCharacter
-): boolean {
-  return canUseClassNeutralMechanics(character) && getCharacterClassRulesMechanics(character).spellcasting.enabled;
+export function isCharacterClassRulesSpellcastingEnabled(character: ClassRulesCharacter): boolean {
+  return (
+    canUseClassNeutralMechanics(character) &&
+    getCharacterClassRulesMechanics(character).spellcasting.enabled
+  );
 }
 
 export function isCustomClassExtraAttacksEnabled(
@@ -359,9 +385,7 @@ export function isCustomClassExtraAttacksEnabled(
   return normalizeCustomClassConfig(customClass).mechanics.extraAttacks.enabled;
 }
 
-export function getCustomClassExtraAttackCount(
-  customClass?: CharacterCustomClassConfig
-): number {
+export function getCustomClassExtraAttackCount(customClass?: CharacterCustomClassConfig): number {
   const mechanics = normalizeCustomClassConfig(customClass).mechanics;
 
   return mechanics.extraAttacks.enabled ? mechanics.extraAttacks.count : 0;
@@ -378,9 +402,7 @@ export function getCustomClassEldritchInvocationSelectionIds(
 ): string[] {
   const mechanics = normalizeCustomClassConfig(customClass).mechanics;
 
-  return mechanics.eldritchInvocations.enabled
-    ? mechanics.eldritchInvocations.selectionIds
-    : [];
+  return mechanics.eldritchInvocations.enabled ? mechanics.eldritchInvocations.selectionIds : [];
 }
 
 export function isCustomClassSpellcastingEnabled(

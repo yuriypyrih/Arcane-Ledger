@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   REACTION,
   getSpeciesEntryByName,
@@ -163,7 +164,7 @@ function getSpeciesProficiencyBonus(level: number): number {
 }
 
 function getShifterTemporaryHitPoints(character: Partial<Pick<Character, "level">>): number {
-  return getSpeciesProficiencyBonus(character.level ?? 1) * 2;
+  return getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1) * 2;
 }
 
 function getShifterBeasthideTemporaryHitPointsFormula(
@@ -413,7 +414,7 @@ export function getShifterShiftingUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isShifterSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 

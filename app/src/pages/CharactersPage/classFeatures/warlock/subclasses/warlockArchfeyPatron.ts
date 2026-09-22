@@ -1,3 +1,5 @@
+import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   ACTION_TYPE,
@@ -17,7 +19,6 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
@@ -87,11 +88,14 @@ const bewitchingMagicDescription = getArchfeyPatronFeatureDescriptionEntries(
 function getWarlockArchfeyPatronPactMagicSlotLevel(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return 0;
   }
 
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(character.level ?? 1)));
+  const normalizedLevel = Math.max(
+    1,
+    Math.min(20, Math.floor(getClassLevel(character, "Warlock") ?? 1))
+  );
   const matchingRows = warlockFeatures
     .filter((row) => row.level <= normalizedLevel)
     .sort((left, right) => left.level - right.level);
@@ -109,11 +113,8 @@ function getWarlockArchfeyPatronPactMagicSlotsRemaining(
     return 0;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
+  const { totals: spellSlotTotals, expended: spellSlotsExpended } =
+    getWarlockPactSlotState(character);
   const pactMagicSlotTotal = spellSlotTotals[pactMagicSlotLevel - 1] ?? 0;
   const pactMagicSlotsExpended = spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0;
 
@@ -194,9 +195,9 @@ export function hasWarlockArchfeyPatronStepsOfTheFeyFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === archfeyPatronSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === archfeyPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 3
   );
 }
 
@@ -204,9 +205,9 @@ export function hasWarlockArchfeyPatronMistyEscapeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === archfeyPatronSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === archfeyPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 6
   );
 }
 
@@ -214,9 +215,9 @@ export function hasWarlockArchfeyPatronBeguilingDefensesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === archfeyPatronSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === archfeyPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 10
   );
 }
 
@@ -224,9 +225,9 @@ export function hasWarlockArchfeyPatronBewitchingMagicFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === archfeyPatronSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === archfeyPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 14
   );
 }
 
@@ -405,19 +406,7 @@ export function consumeWarlockArchfeyPatronBeguilingDefenseUse(character: Charac
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
-  const nextSpellSlotsExpended = [...spellSlotsExpended];
-  nextSpellSlotsExpended[pactMagicSlotLevel - 1] =
-    (nextSpellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) + 1;
-
-  return {
-    ...character,
-    spellSlotsExpended: nextSpellSlotsExpended
-  };
+  return spendWarlockPactSlot(character, pactMagicSlotLevel);
 }
 
 export function restoreWarlockArchfeyPatronFeaturesOnLongRest(character: Character): Character {
@@ -518,9 +507,9 @@ export function collectWarlockArchfeyPatronContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Warlock" ||
-    character.subclassId !== archfeyPatronSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Warlock") ||
+    getClassSubclassId(character, "Warlock") !== archfeyPatronSubclassId ||
+    (getClassLevel(character, "Warlock") ?? 0) < 3
   ) {
     return [];
   }
@@ -533,7 +522,7 @@ export function collectWarlockArchfeyPatronContributions(
         entryId: CLASS_FEATURE.ARCHFEY_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Warlock") ?? 0,
         archfeyPatronSpellIdsByLevel
       )
     }

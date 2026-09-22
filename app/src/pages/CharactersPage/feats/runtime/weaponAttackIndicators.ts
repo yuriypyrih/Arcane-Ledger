@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../multiclass";
 import { FEATS } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import { isCharacterBloodied } from "../../bloodied";
@@ -27,9 +28,9 @@ export function getFeatAttackRollIndicatorsForCharacter(
     >
 ): FeatureIndicator[] {
   if (
-    typeof character.level !== "number" ||
+    typeof getCharacterLevel(character) !== "number" ||
     !collectFeatDerivedState({
-      level: character.level,
+      level: getCharacterLevel(character),
       feats: character.feats
     }).featSet.has(FEATS.PURPLE_DRAGON_COMMANDANT) ||
     !isCharacterBloodied(character)

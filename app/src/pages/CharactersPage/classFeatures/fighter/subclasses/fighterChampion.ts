@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   fighterChampionImprovedCriticalDescription,
@@ -39,9 +40,9 @@ function hasFighterChampionImprovedCritical(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === championSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === championSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 3
   );
 }
 
@@ -49,9 +50,9 @@ function hasFighterChampionRemarkableAthlete(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === championSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === championSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 3
   );
 }
 
@@ -59,9 +60,9 @@ function hasFighterChampionSuperiorCritical(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === championSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === championSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 15
   );
 }
 
@@ -69,9 +70,9 @@ function hasFighterChampionHeroicWarrior(
   character: Pick<Character, "className" | "subclassId" | "level">
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === championSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === championSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 10
   );
 }
 
@@ -79,9 +80,9 @@ export function hasFighterChampionSurvivorFeature(
   character: Partial<Pick<Character, "className" | "subclassId" | "level">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === championSubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === championSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 18
   );
 }
 
@@ -256,9 +257,9 @@ export function collectFighterChampionContributions(
       ]
     },
     ...(hasFighterChampionHeroicWarrior({
-      className: character.className,
-      subclassId: character.subclassId ?? "",
-      level: character.level ?? 0
+      className: "Fighter",
+      subclassId: getClassSubclassId(character, "Fighter") ?? "",
+      level: getClassLevel(character, "Fighter") ?? 0
     })
       ? [
           {
@@ -282,7 +283,7 @@ export function collectFighterChampionContributions(
         ]
       : [])
   ];
-};
+}
 
 export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(

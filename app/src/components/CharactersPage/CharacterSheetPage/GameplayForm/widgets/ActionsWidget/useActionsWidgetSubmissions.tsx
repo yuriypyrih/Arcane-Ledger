@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -307,7 +308,6 @@ import {
 } from "../../../../../../pages/CharactersPage/shared";
 import {
   getSpellLevel,
-  getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../../../../../pages/CharactersPage/spellcasting";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -332,9 +332,7 @@ import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer
-} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
@@ -2091,13 +2089,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         roundTrackerResource
       );
       let nextCharacter = preparedCharacter;
-      const spellSlotTotals = getSpellSlotTotalsForCharacter(
-        preparedCharacter.className,
-        preparedCharacter.level,
-        preparedCharacter.subclassId,
-        preparedCharacter.customClass,
-        preparedCharacter.classRules
-      );
+      const spellSlotTotals = getSheetSpellSlotTotals(preparedCharacter);
       const spellSlotsExpended = normalizeSpellSlotsExpended(
         preparedCharacter.spellSlotsExpended,
         spellSlotTotals

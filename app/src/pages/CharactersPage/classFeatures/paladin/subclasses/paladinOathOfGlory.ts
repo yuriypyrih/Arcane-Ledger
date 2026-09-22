@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -16,7 +18,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -101,9 +103,9 @@ type PaladinOathOfGloryCharacter = Pick<Character, "className"> &
 
 function isPaladinOathOfGlory(character: PaladinOathOfGloryCharacter): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfGlorySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfGlorySubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 3
   );
 }
 
@@ -143,9 +145,9 @@ export function hasPaladinOathOfGloryAuraOfAlacrity(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfGlorySubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfGlorySubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 7
   );
 }
 
@@ -153,9 +155,9 @@ export function hasPaladinOathOfGloryGloriousDefenseFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfGlorySubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfGlorySubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 15
   );
 }
 
@@ -163,9 +165,9 @@ export function hasPaladinOathOfGloryLivingLegendFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfGlorySubclassId &&
-    (character.level ?? 0) >= 20
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfGlorySubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 20
   );
 }
 
@@ -208,11 +210,7 @@ function getPaladinOathOfGloryLivingLegendFallbackSlotSummary(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -273,13 +271,13 @@ function getPaladinOathOfGloryFeatureActions(
   }
 
   const usesRemaining = getPaladinChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState ?? {}
   });
   const usesTotal = getPaladinChannelDivinityUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0
   });
   const isActive = hasActivePaladinOathOfGloryPeerlessAthlete(character);
   const livingLegendUsesRemaining = getPaladinOathOfGloryLivingLegendUsesRemaining(character);
@@ -394,10 +392,7 @@ function getFeatureActionByKey(
   return actions.filter((action) => action.key === actionKey);
 }
 
-function pickSkillIndicators(
-  indicators: SkillIndicatorMap,
-  skills: SKILL[]
-): SkillIndicatorMap {
+function pickSkillIndicators(indicators: SkillIndicatorMap, skills: SKILL[]): SkillIndicatorMap {
   return skills.reduce<SkillIndicatorMap>((nextIndicators, skill) => {
     const skillIndicators = indicators[skill];
 
@@ -534,11 +529,7 @@ export function activatePaladinOathOfGloryLivingLegend(character: Character): Ch
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    );
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -681,7 +672,7 @@ function collectPaladinOathOfGloryContributions(
         entryId: CLASS_FEATURE.OATH_OF_GLORY_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Paladin") ?? 0,
         oathOfGlorySpellIdsByLevel
       )
     },
@@ -702,8 +693,8 @@ function collectPaladinOathOfGloryContributions(
             economyType: ECONOMY_TYPE.BONUS_ACTION,
             actionCategory: ACTION_CATEGORY.MAGIC,
             resultLabel: "Temp HP",
-            rollFormula: `2d8+${character.level ?? 0}`,
-            rollFormulaDisplay: `2d8 + ${character.level ?? 0} Paladin level`,
+            rollFormula: `2d8+${getClassLevel(character, "Paladin") ?? 0}`,
+            rollFormulaDisplay: `2d8 + ${getClassLevel(character, "Paladin") ?? 0} Paladin level`,
             breakdown: "After Divine Smite",
             description: inspiringSmiteDescription
           }

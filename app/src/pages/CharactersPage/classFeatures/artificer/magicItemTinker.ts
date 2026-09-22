@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type {
   Character,
@@ -14,7 +16,7 @@ import {
   removeOneInventoryItemCopyById,
   resetInventoryItemChargeById
 } from "../../inventoryItems";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../spellSlots";
 import { createChargesCardUsage, createTextCardUsage } from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import type { FeatureActionCard } from "../types";
@@ -102,11 +104,7 @@ function getSpellSlotState(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ) {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -176,9 +174,9 @@ function getMagicItemTinkerOptionDescription(
   const marker = `<strong>${optionName}.</strong>`;
   const matchingEntry = getFeatureDescriptionForCharacter(
     {
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Artificer",
+      level: getClassLevel(character, "Artificer") ?? 0,
+      subclassId: getClassSubclassId(character, "Artificer")
     },
     CLASS_FEATURE.MAGIC_ITEM_TINKER
   ).find((entry) => typeof entry === "string" && entry.startsWith(marker));
@@ -189,7 +187,9 @@ function getMagicItemTinkerOptionDescription(
 export function hasArtificerMagicItemTinkerFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 6;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 6
+  );
 }
 
 export function getArtificerMagicItemTinkerDrainUsesTotal(

@@ -13,7 +13,7 @@
 }
 
 .sneakAttackFormulaValue {
-  color: #2e2017;
+  color: var(--theme-text-primary);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.55;
@@ -21,7 +21,7 @@
 }
 
 .sneakAttackFormulaBreakdown {
-  color: rgba(102, 75, 56, 0.72);
+  color: var(--theme-text-muted);
   font-size: 0.94rem;
   font-weight: 600;
 }
@@ -49,8 +49,8 @@
 
 .sneakAttackEffectSpend {
   border-radius: var(--radius-pill);
-  background: rgba(181, 86, 42, 0.12);
-  color: #8a4d26;
+  background: var(--theme-surface-muted);
+  color: var(--theme-accent-strong);
   font-size: 0.76rem;
   font-weight: 700;
   line-height: 1;
@@ -75,14 +75,14 @@
 
 .sneakAttackEffectDescriptionLine {
   margin: 0;
-  color: rgba(46, 32, 23, 0.78);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   font-weight: 500;
   line-height: 1.45;
 }
 
 .sneakAttackEffectDescriptionStrong {
-  color: #2e2017;
+  color: var(--theme-text-primary);
 }
 
 @media (max-width: 599px) {

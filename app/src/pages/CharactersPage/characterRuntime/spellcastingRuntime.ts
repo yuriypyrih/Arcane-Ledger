@@ -1,3 +1,4 @@
+import { getSheetSpellSlotTotals } from "../multiclassSpellcasting";
 import type { Character } from "../../../types";
 import {
   getAlwaysPreparedSpellIdsForCharacter,
@@ -30,7 +31,10 @@ import {
   type FeatureActionCard
 } from "../classFeatures";
 import type { FeatureSpellcastingState, SpellSourceMap } from "../classFeatures/types";
-import { getSorceryPointsRemaining, getSorceryPointsTotal } from "../classFeatures/sorcerer/sorcerer";
+import {
+  getSorceryPointsRemaining,
+  getSorceryPointsTotal
+} from "../classFeatures/sorcerer/sorcerer";
 import {
   getSorcererSubclassDragonCompanionUsesRemaining,
   getSorcererSubclassDragonCompanionUsesTotal,
@@ -144,13 +148,15 @@ function createSpellcastingRuntime(
   options?: SpellcastingRuntimeOptions
 ): CharacterSpellcastingRuntime {
   const includeSubclassSlots = options?.includeSubclassSlots !== false;
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    includeSubclassSlots ? character.subclassId : undefined,
-    character.customClass,
-    character.classRules
-  );
+  const spellSlotTotals = character.multiclass
+    ? getSheetSpellSlotTotals(character)
+    : getSpellSlotTotalsForCharacter(
+        character.className,
+        character.level,
+        includeSubclassSlots ? character.subclassId : undefined,
+        character.customClass,
+        character.classRules
+      );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -206,8 +212,7 @@ function createSpellcastingRuntime(
     druidStarMapGuidingBoltUsesTotal: getDruidStarMapGuidingBoltUsesTotalForCharacter(character),
     druidStarMapGuidingBoltUsesRemaining:
       getDruidStarMapGuidingBoltUsesRemainingForCharacter(character),
-    rangerFeyReinforcementsUsesTotal:
-      getRangerFeyReinforcementsUsesTotalForCharacter(character),
+    rangerFeyReinforcementsUsesTotal: getRangerFeyReinforcementsUsesTotalForCharacter(character),
     rangerFeyReinforcementsUsesRemaining:
       getRangerFeyReinforcementsUsesRemainingForCharacter(character),
     rangerMistyWandererUsesTotal: getRangerMistyWandererUsesTotalForCharacter(character),

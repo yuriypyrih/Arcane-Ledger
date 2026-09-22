@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DICE,
   DAMAGE_TYPE,
@@ -781,7 +782,7 @@ function getTrueStrikeDamageBonusEntriesForWeaponAction(
     return [];
   }
 
-  const formula = getTrueStrikeExtraRadiantDamageFormulaForLevel(character.level);
+  const formula = getTrueStrikeExtraRadiantDamageFormulaForLevel(getCharacterLevel(character));
 
   return formula
     ? [
@@ -1050,8 +1051,38 @@ export function getMainAbilityForClass(className: string): AbilityKey | null {
 
 export function getAutomaticMaxHitPointsForCharacter(
   character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState"> &
-    Partial<Pick<Character, "background" | "backgroundChoices" | "classRules" | "customClass">>
+    Partial<
+      Pick<
+        Character,
+        "background" | "backgroundChoices" | "classRules" | "customClass" | "multiclass"
+      >
+    >
 ): number {
+  const multiclass = (character as Partial<Character>).multiclass;
+  if (multiclass) {
+    const constitution = getAbilityModifierForCharacter(character, "CON");
+    const base = multiclass.classes.reduce((sum, entry) => {
+      const maximum = getHitDieMaximumForClass(
+        entry.className,
+        entry.customClass,
+        entry.classRules
+      );
+      const average = Math.floor(maximum / 2) + 1;
+      let gain = 0;
+      for (let index = 0; index < entry.level; index += 1) {
+        const roll = entry.hitPointRolls?.[index];
+        const die =
+          index === 0 && entry.id === multiclass.startingClassId
+            ? maximum
+            : typeof roll === "number" && Number.isInteger(roll) && roll >= 1 && roll <= maximum
+              ? roll
+              : average;
+        gain += Math.max(1, die + constitution);
+      }
+      return sum + gain;
+    }, 0);
+    return Math.max(1, Math.min(9999, base + (multiclass.hitPointsAdjustment ?? 0)));
+  }
   const hitDieMaximum = getHitDieMaximumForClass(
     character.className,
     character.customClass,
@@ -1114,7 +1145,7 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
   if (hasFeatForCharacter(character, FEATS.ALERT)) {
     entries.push({
       label: "Proficiency Bonus (Alert)",
-      value: getProficiencyBonus(character.level)
+      value: getProficiencyBonus(getCharacterLevel(character))
     });
   }
 
@@ -1144,7 +1175,7 @@ function getSkillModifierForCharacter(
     customTraitEffectInput?: CustomTraitBonusInput;
   }
 ): number {
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const skillProficiency = getSkillProficiencyForName(skill);
   const skillLevel = skillProficiency
     ? getSkillLevelFromEntries(character.skillProficiencies, skillProficiency)
@@ -1153,14 +1184,9 @@ function getSkillModifierForCharacter(
     skillLevel === PROF_LEVEL.EXPERT ? 2 : skillLevel === PROF_LEVEL.PROFICIENT ? 1 : 0;
   const defaultAbility =
     skillGroupsByAbility.find((group) => group.skills.includes(skill))?.ability ?? "WIS";
-  const skillBonuses = getSkillBonusesForCharacter(
-    character,
-    skill,
-    skillLevel,
-    {
-      customTraitEffectInput: options?.customTraitEffectInput
-    }
-  );
+  const skillBonuses = getSkillBonusesForCharacter(character, skill, skillLevel, {
+    customTraitEffectInput: options?.customTraitEffectInput
+  });
   const replacementEntry = skillBonuses.find(
     (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
   );
@@ -1177,9 +1203,12 @@ function getSkillModifierForCharacter(
     }
 
     if (bonus.abilityModifierSource) {
-      return total + getAbilitySourcedFeatureBonusValue(character, bonus, {
-        customTraitEffectInput: options?.customTraitEffectInput
-      });
+      return (
+        total +
+        getAbilitySourcedFeatureBonusValue(character, bonus, {
+          customTraitEffectInput: options?.customTraitEffectInput
+        })
+      );
     }
 
     return total + (bonus.value ?? 0);
@@ -1244,7 +1273,7 @@ function createUnarmedStrikeAction(
     (options?.martialArtsDie ? `1${String(options.martialArtsDie).toLowerCase()}` : "1");
   const damageTypeLabel =
     unarmedStrikeConfig?.damageTypeLabel ?? getMonkUnarmedDamageTypeLabelForCharacter(character);
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
 
   return {
     ...createWeaponAction(character, {
@@ -1276,7 +1305,7 @@ function createUnarmedStrikeAction(
 }
 
 function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const effectiveWeaponProficiencies =
     getProficiencyRuntimeForCharacter(character).collections.weaponProficiencies;
   const effectiveAbilityScores = getAbilityScoresForCharacter(character);
@@ -1398,8 +1427,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       character,
       weaponSpellContext
     );
-    const tashasOtherworldlyGuiseAbility =
-      getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
+    const tashasOtherworldlyGuiseAbility = getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
     const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
       character,
       weaponSpellContext,
@@ -1492,15 +1523,13 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         ],
         cardBonusLabels: getWeaponSpellCardBonusLabels({
           trueStrikeEconomyMultiCount,
-          hasShillelagh:
-            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
           hasTashasOtherworldlyGuise,
           hasTensersTransformation
         }),
         descriptionAdditions: getWeaponSpellDescriptionAdditions({
           trueStrikeEconomyMultiCount,
-          hasShillelagh:
-            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
           hasTashasOtherworldlyGuise,
           hasTensersTransformation
         }),
@@ -1530,8 +1559,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       character,
       weaponSpellContext
     );
-    const tashasOtherworldlyGuiseAbility =
-      getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
+    const tashasOtherworldlyGuiseAbility = getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
     const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
       character,
       weaponSpellContext,
@@ -1623,15 +1654,13 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         ],
         cardBonusLabels: getWeaponSpellCardBonusLabels({
           trueStrikeEconomyMultiCount,
-          hasShillelagh:
-            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
           hasTashasOtherworldlyGuise,
           hasTensersTransformation
         }),
         descriptionAdditions: getWeaponSpellDescriptionAdditions({
           trueStrikeEconomyMultiCount,
-          hasShillelagh:
-            shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true,
           hasTashasOtherworldlyGuise,
           hasTensersTransformation
         }),
@@ -1678,8 +1707,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         character,
         weaponSpellContext
       );
-      const tashasOtherworldlyGuiseAbility =
-        getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(character, weaponSpellContext);
+      const tashasOtherworldlyGuiseAbility = getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(
+        character,
+        weaponSpellContext
+      );
       const trueStrikeDamageAdjustment = baseDamage
         ? getTrueStrikeDamageAdjustmentForWeapon(character, weaponSpellContext, baseDamage)
         : null;

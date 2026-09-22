@@ -1,7 +1,9 @@
+import { LazyCodexSpellDrawer } from "../../../CodexPage/LazyCodexReferenceDrawers";
 import type { CastSelectedSpellOptions, SpellCastingFormRendererContext } from "./types";
 
 export function renderSpellCastingForm(context: SpellCastingFormRendererContext) {
   const {
+    readOnly,
     CharacterSpellDrawer,
     CircleHelp,
     Pencil,
@@ -27,6 +29,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     castSelectedSpell,
     character,
     className,
+    sourceControls,
     closeSelectedSpell,
     closeSpellSlotActionSheet,
     clsx,
@@ -307,6 +310,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
         </div>
       </div>
 
+      {sourceControls}
       {spellcastingState.reason ? (
         <p className={styles.spellcastingBlockedNotice}>{spellcastingState.reason}</p>
       ) : null}
@@ -468,7 +472,14 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
         <SpellCastingGuideModal onClose={() => setIsSpellcastingGuideOpen(false)} />
       ) : null}
 
-      {selectedSpell ? (
+      {selectedSpell ? (readOnly ? (
+        <LazyCodexSpellDrawer
+          spell={selectedSpellDisplay ?? selectedSpell}
+          customEffects={selectedSpellCustomEffects}
+          isCustomSpell={selectedSpellIsCustom}
+          onClose={closeSelectedSpell}
+        />
+      ) : (
         <CharacterSpellDrawer
           character={character}
           spell={selectedSpellDisplay ?? selectedSpell}
@@ -522,8 +533,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useRadiantSoul: useRadiantSoulOnSelectedSpell,
               useOverchannel: useOverchannelOnSelectedSpell,
               useDruidWildCompanion: useDruidWildCompanionOnSelectedSpell,
-              useEmeraldEnclaveFledglingFreeUse:
-                useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+              useEmeraldEnclaveFledglingFreeUse: useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
               useTwoHeartsOneMind: useTwoHeartsOneMindOnSelectedSpell
             })
           }
@@ -583,12 +593,12 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                   onSelectedChange: setUseDruidWildCompanionOnSelectedSpell
                 }
               : selectedSpellSupportsEmeraldEnclaveFledgling
-              ? {
-                  label: "Free use",
-                  selected: useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
-                  onSelectedChange: setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell
-                }
-              : null
+                ? {
+                    label: "Free use",
+                    selected: useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+                    onSelectedChange: setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+                  }
+                : null
           }
           actionAvailabilityText={
             selectedSpellSupportsDruidWildCompanion && useDruidWildCompanionOnSelectedSpell
@@ -597,78 +607,78 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
                 : selectedSpellSupportsStarMap && useStarMapOnSelectedSpell
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                    : selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell
-                      ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
-                      : selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell
-                        ? "Genasi Lineage lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                        : selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell
-                          ? "Forest Gnome lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                          : selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell
-                            ? "Fiendish Legacy lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                            : selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell
-                              ? "Hex Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                              : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
-                                ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
-                            ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
-                            : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
-                              ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                              : selectedSpellSupportsDetectThoughts &&
-                                  useDetectThoughtsOnSelectedSpell
-                                ? "Detect Thoughts lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                : selectedSpellSupportsBoonOfSpellRecall &&
-                                    useBoonOfSpellRecallOnSelectedSpell
-                                  ? "Free Casting prevents this cast from expending a spell slot."
-                                  : selectedSpellSupportsBoonOfRevelry &&
-                                      useBoonOfRevelryOnSelectedSpell
-                                    ? "Boon of Revelry lets you cast Irresistible Dance without expending a spell slot. This use recharges on a Long Rest."
-                                    : selectedSpellSupportsEmeraldEnclaveFledgling &&
-                                        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
-                                      ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
-                                      : selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
-                                          useTwoHeartsOneMindOnSelectedSpell
-                                        ? "Two Hearts, One Mind lets you cast Beast Sense without expending a spell slot. This casting doesn't require Concentration and lasts 1 hour."
-                                      : selectedSpellSupportsStepsOfTheFey &&
-                                        useStepsOfTheFeyOnSelectedSpell
-                                      ? selectedSpellSupportsBewitchingMagic &&
-                                        useBewitchingMagicOnSelectedSpell
-                                        ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
-                                        : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                      : selectedSpellSupportsBewitchingMagic &&
-                                          useBewitchingMagicOnSelectedSpell
-                                        ? "Bewitching Magic lets you cast this spell without expending a spell slot."
-                                        : selectedSpellSupportsMistyWanderer &&
-                                            useMistyWandererOnSelectedSpell
-                                          ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                                          : selectedSpellSupportsFeyReinforcements &&
-                                              useFeyReinforcementsOnSelectedSpell
-                                            ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                                            : selectedSpellSupportsDragonCompanion &&
-                                                useDragonCompanionOnSelectedSpell
-                                              ? "Dragon Companion lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                              : selectedSpellSupportsPhantasmalCreatures &&
-                                                  usePhantasmalCreaturesOnSelectedSpell
-                                                ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                                                : selectedSpellSupportsTelekineticMaster &&
-                                                    useTelekineticMasterOnSelectedSpell
-                                                  ? fighterPsiWarriorTelekineticMasterUsesRemaining >
-                                                    0
-                                                    ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                                    : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                                                  : selectedSpellSupportsTamedSurge &&
-                                                      useTamedSurgeOnSelectedSpell
-                                                    ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                                                    : selectedSpellUnderMantleOfMajesty
-                                                      ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                                                      : null
+                  : selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell
+                    ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
+                    : selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell
+                      ? "Genasi Lineage lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                      : selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell
+                        ? "Forest Gnome lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                        : selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell
+                          ? "Fiendish Legacy lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                          : selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell
+                            ? "Hex Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                            : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
+                              ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                              : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
+                                ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
+                                : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
+                                  ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                  : selectedSpellSupportsDetectThoughts &&
+                                      useDetectThoughtsOnSelectedSpell
+                                    ? "Detect Thoughts lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                    : selectedSpellSupportsBoonOfSpellRecall &&
+                                        useBoonOfSpellRecallOnSelectedSpell
+                                      ? "Free Casting prevents this cast from expending a spell slot."
+                                      : selectedSpellSupportsBoonOfRevelry &&
+                                          useBoonOfRevelryOnSelectedSpell
+                                        ? "Boon of Revelry lets you cast Irresistible Dance without expending a spell slot. This use recharges on a Long Rest."
+                                        : selectedSpellSupportsEmeraldEnclaveFledgling &&
+                                            useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+                                          ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
+                                          : selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+                                              useTwoHeartsOneMindOnSelectedSpell
+                                            ? "Two Hearts, One Mind lets you cast Beast Sense without expending a spell slot. This casting doesn't require Concentration and lasts 1 hour."
+                                            : selectedSpellSupportsStepsOfTheFey &&
+                                                useStepsOfTheFeyOnSelectedSpell
+                                              ? selectedSpellSupportsBewitchingMagic &&
+                                                useBewitchingMagicOnSelectedSpell
+                                                ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
+                                                : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                              : selectedSpellSupportsBewitchingMagic &&
+                                                  useBewitchingMagicOnSelectedSpell
+                                                ? "Bewitching Magic lets you cast this spell without expending a spell slot."
+                                                : selectedSpellSupportsMistyWanderer &&
+                                                    useMistyWandererOnSelectedSpell
+                                                  ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                                                  : selectedSpellSupportsFeyReinforcements &&
+                                                      useFeyReinforcementsOnSelectedSpell
+                                                    ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                                                    : selectedSpellSupportsDragonCompanion &&
+                                                        useDragonCompanionOnSelectedSpell
+                                                      ? "Dragon Companion lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                                      : selectedSpellSupportsPhantasmalCreatures &&
+                                                          usePhantasmalCreaturesOnSelectedSpell
+                                                        ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                                                        : selectedSpellSupportsTelekineticMaster &&
+                                                            useTelekineticMasterOnSelectedSpell
+                                                          ? fighterPsiWarriorTelekineticMasterUsesRemaining >
+                                                            0
+                                                            ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                                            : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                                                          : selectedSpellSupportsTamedSurge &&
+                                                              useTamedSurgeOnSelectedSpell
+                                                            ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                                            : selectedSpellUnderMantleOfMajesty
+                                                              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                                              : null
           }
           actionContextText={
             selectedSpellSupportsFeyReinforcements &&
-                  useFeyReinforcementsNoConcentrationOnSelectedSpell
-                ? "Concentration is removed for this casting, and the duration becomes 10 turns."
-                : selectedSpellSupportsDragonCompanion &&
-                    useDragonCompanionWithoutConcentrationOnSelectedSpell
-                  ? "Concentration is removed for this casting, and the duration becomes 1 minute."
+            useFeyReinforcementsNoConcentrationOnSelectedSpell
+              ? "Concentration is removed for this casting, and the duration becomes 10 turns."
+              : selectedSpellSupportsDragonCompanion &&
+                  useDragonCompanionWithoutConcentrationOnSelectedSpell
+                ? "Concentration is removed for this casting, and the duration becomes 1 minute."
                 : selectedSpellUnderMantleOfMajesty
                   ? "Under the effect of Mantle of Majesty."
                   : null
@@ -1249,8 +1259,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                           id: "dragon-companion-without-concentration",
                           label: "Without Concentration",
                           checked: useDragonCompanionWithoutConcentrationOnSelectedSpell,
-                          onCheckedChange:
-                            setUseDragonCompanionWithoutConcentrationOnSelectedSpell
+                          onCheckedChange: setUseDragonCompanionWithoutConcentrationOnSelectedSpell
                         }
                       ]
                     : []),
@@ -1359,7 +1368,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
           }
           backdropClassName={isPreparedSpellPreview ? styles.previewSpellDrawerBackdrop : undefined}
         />
-      ) : null}
+      )) : null}
 
       {diceRollerPopup}
     </article>

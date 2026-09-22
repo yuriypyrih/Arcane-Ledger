@@ -1,3 +1,4 @@
+import { getSpellFeatureCharacter, getClassLevel, hasCharacterClass } from "../multiclass";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS, SKILL } from "../../../types";
@@ -760,7 +761,9 @@ export function transformWeaponActionForCharacter(
 
 export function getFeatureActionOptionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats"> &
-    Partial<Pick<Character, "species" | "speciesChoices" | "speciesFeatureState" | "statusEntries">>,
+    Partial<
+      Pick<Character, "species" | "speciesChoices" | "speciesFeatureState" | "statusEntries">
+    >,
   actionKey: string
 ): FeatureActionOptionCard[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -796,13 +799,10 @@ export function getFeatureDamageBonusesForWeaponAction(
     ...(baseFeatureState.getWeaponDamageBonuses?.(context) ?? []),
     ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? []),
     ...getTensersTransformationWeaponDamageBonusesForCharacter(character, context),
-    ...getCustomTraitWeaponDamageBonuses(
-      getCharacterCustomTraitEffectInput(character),
-      {
-        attackKind: context.attackKind,
-        combatType: context.combatType
-      }
-    ).map((bonus) => {
+    ...getCustomTraitWeaponDamageBonuses(getCharacterCustomTraitEffectInput(character), {
+      attackKind: context.attackKind,
+      combatType: context.combatType
+    }).map((bonus) => {
       return {
         label: bonus.label,
         value: bonus.value,
@@ -825,7 +825,7 @@ export function hasBatteringRootsBonusForCharacter(
     properties?: WEAPON_PROPERTY[];
   }
 ): boolean {
-  return character.className === "Barbarian"
+  return hasCharacterClass(character, "Barbarian")
     ? hasBarbarianBatteringRootsBonus(character, context)
     : false;
 }
@@ -841,7 +841,7 @@ export function getAdditionalWeaponMasteriesForCharacter(
   mastery: WEAPON_MASTERY;
   source: string;
 }> {
-  return character.className === "Barbarian"
+  return hasCharacterClass(character, "Barbarian")
     ? getBarbarianAdditionalWeaponMasteries(character, context)
     : [];
 }
@@ -863,10 +863,7 @@ export function getSavingThrowIndicatorsForCharacter(
     getGuardianOfNatureSavingThrowIndicatorsForCharacter(character),
     speciesSavingThrowIndicators,
     abilityKeys.reduce<SavingThrowIndicatorMap>((indicators, ability) => {
-      const abilityIndicators = getCustomTraitSavingThrowRollIndicators(
-        customEffectInput,
-        ability
-      );
+      const abilityIndicators = getCustomTraitSavingThrowRollIndicators(customEffectInput, ability);
 
       if (abilityIndicators.length > 0) {
         indicators[ability] = abilityIndicators;
@@ -975,7 +972,7 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
-  if (character.className === "Rogue") {
+  if (hasCharacterClass(character, "Rogue")) {
     descriptionAdditions.push(...getRogueSkillReferenceDescriptionAdditions(character));
     descriptionAdditions.push(...getRogueThiefSkillReferenceDescriptionAdditions(character, skill));
   }
@@ -1066,7 +1063,7 @@ export function getSkillRollD20MinimumForCharacter(
   character: Pick<Character, "className" | "level">,
   _skill: SkillName
 ): number | null {
-  if (character.className === "Rogue") {
+  if (hasCharacterClass(character, "Rogue")) {
     return getRogueSkillRollD20Minimum(character);
   }
 
@@ -1121,9 +1118,7 @@ export function getWeaponAttackIndicatorsForCharacter(
     ...(context
       ? getTensersTransformationWeaponAttackIndicatorsForCharacter(character, context)
       : []),
-    ...(context
-      ? getCustomTraitWeaponAttackRollIndicators(customTraitEffectInput, context)
-      : [])
+    ...(context ? getCustomTraitWeaponAttackRollIndicators(customTraitEffectInput, context) : [])
   ];
 }
 
@@ -1266,10 +1261,7 @@ export function getAbilityScoreBonusesForCharacter(
   return [
     ...(baseFeatureState.abilityScoreBonuses ?? []),
     ...abilityKeys.flatMap((ability) =>
-      getCustomTraitAbilityScoreBonuses(
-        customTraitEffectInput,
-        ability
-      ).map((bonus) => ({
+      getCustomTraitAbilityScoreBonuses(customTraitEffectInput, ability).map((bonus) => ({
         ability,
         label: bonus.label,
         value: bonus.value
@@ -1459,8 +1451,8 @@ export function getSpellDamageBonusesForCharacter(
     Partial<Pick<Character, "inventoryItems" | "subclassId">>,
   spell: SpellFeatureContext["spell"]
 ): FeatureDamageBonus[] {
-  const baseFeatureState = collectActiveClassFeatureState(character);
-  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseFeatureState = collectActiveClassFeatureState(getSpellFeatureCharacter(character));
+  const subclassDerivedState = getSubclassDerivedFeatureState(getSpellFeatureCharacter(character));
 
   return [
     createPotentSpellcastingDamageBonusEntry(character, spell),
@@ -1978,7 +1970,7 @@ export function setRangerLevel9ExpertiseSelectionsForCharacter(
 export function getBarbarianPrimalKnowledgeSkillOptionsForCharacter(
   character: Pick<Character, "className" | "level">
 ): SkillName[] {
-  if (character.className !== "Barbarian" || character.level < 3) {
+  if (!hasCharacterClass(character, "Barbarian") || getClassLevel(character, "Barbarian") < 3) {
     return [];
   }
 

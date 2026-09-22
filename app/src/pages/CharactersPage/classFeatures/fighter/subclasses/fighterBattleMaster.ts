@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { BattleMasterManeuverId } from "../../../../../codex/subclasses/fighterBattleMaster";
@@ -51,9 +57,9 @@ function hasFighterBattleMasterFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === battleMasterSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === battleMasterSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= minimumLevel
   );
 }
 
@@ -88,11 +94,11 @@ export function getFighterBattleMasterSuperiorityDiceTotal(
     return 0;
   }
 
-  if ((character.level ?? 0) >= 15) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 15) {
     return 6;
   }
 
-  if ((character.level ?? 0) >= 7) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 7) {
     return 5;
   }
 
@@ -106,11 +112,11 @@ export function getFighterBattleMasterSuperiorityDie(
     return null;
   }
 
-  if ((character.level ?? 0) >= 18) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 18) {
     return "d12";
   }
 
-  if ((character.level ?? 0) >= 10) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 10) {
     return "d10";
   }
 
@@ -124,15 +130,15 @@ export function getFighterBattleMasterManeuverSelectionCount(
     return 0;
   }
 
-  if ((character.level ?? 0) >= 15) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 15) {
     return 9;
   }
 
-  if ((character.level ?? 0) >= 10) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 10) {
     return 7;
   }
 
-  if ((character.level ?? 0) >= 7) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 7) {
     return 5;
   }
 
@@ -569,7 +575,7 @@ function getCombatSuperiorityFacts(character: BattleMasterCharacter): FeatureAct
   const dexterityModifier = getBattleMasterAbilityModifier(character, "DEX");
   const chosenAbilityModifier = Math.max(strengthModifier, dexterityModifier);
   const chosenAbilityLabel = strengthModifier >= dexterityModifier ? "STR" : "DEX";
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const maneuverDc = 8 + chosenAbilityModifier + proficiencyBonus;
   const breakdown = [
     "8 Base",

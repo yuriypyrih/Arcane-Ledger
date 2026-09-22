@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import { sorcererFeatures } from "../../../../../codex/classes";
 import { CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
@@ -10,7 +16,10 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getProficiencyBonus } from "../../../gameplay";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
@@ -47,10 +56,8 @@ export const sorcererPsychicDefensesStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-psychic-defenses";
 export const sorcererPsychicDefensesTraitStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-psychic-defenses-trait";
-export const sorcererRevelationInFleshActionKey =
-  "sorcerer-aberrant-sorcery-revelation-in-flesh";
-export const sorcererWarpingImplosionActionKey =
-  "sorcerer-aberrant-sorcery-warping-implosion";
+export const sorcererRevelationInFleshActionKey = "sorcerer-aberrant-sorcery-revelation-in-flesh";
+export const sorcererWarpingImplosionActionKey = "sorcerer-aberrant-sorcery-warping-implosion";
 export const sorcererRevelationInFleshAquaticAdaptationStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-aquatic-adaptation";
 export const sorcererRevelationInFleshGlisteningFlightStatusSourceId =
@@ -165,14 +172,13 @@ function getSorcererFeatureRow(level: number | undefined) {
 function getSorcererAberrantSorceryPointsTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  return character.className === "Sorcerer"
-    ? Math.max(0, getSorcererFeatureRow(character.level)?.sorceryPoints ?? 0)
+  return hasCharacterClass(character, "Sorcerer")
+    ? Math.max(0, getSorcererFeatureRow(getClassLevel(character, "Sorcerer"))?.sorceryPoints ?? 0)
     : 0;
 }
 
 function getSorcererAberrantSorceryPointsRemaining(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "classFeatureState">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "classFeatureState">>
 ): number {
   const totalPoints = getSorcererAberrantSorceryPointsTotal(character);
   const expendedPoints = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
@@ -188,9 +194,11 @@ function getSorcererAberrantSorceryPointsRemaining(
 
 function getSorcererAberrantSpellSaveDc(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries">>
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries">
+    >
 ): number {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
 
   return 8 + proficiencyBonus + charismaModifier;
@@ -235,9 +243,9 @@ function hasSorcererAberrantTelepathicSpeechFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
@@ -245,9 +253,9 @@ function hasSorcererAberrantRevelationInFleshFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 14
   );
 }
 
@@ -255,9 +263,9 @@ function hasSorcererAberrantPsychicDefensesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
@@ -265,9 +273,9 @@ function hasSorcererAberrantWarpingImplosionFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 18
   );
 }
 
@@ -275,9 +283,9 @@ function hasSorcererAberrantPsionicSpellsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
@@ -285,9 +293,9 @@ export function hasSorcererAberrantPsionicSorceryFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === aberrantSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === aberrantSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
@@ -298,7 +306,10 @@ export function getSorcererAberrantPsionicSpellIds(
     return [];
   }
 
-  return getPreparedSpellIdsByLevel(character.level ?? 0, aberrantSorcerySpellIdsByLevel);
+  return getPreparedSpellIdsByLevel(
+    getClassLevel(character, "Sorcerer") ?? 0,
+    aberrantSorcerySpellIdsByLevel
+  );
 }
 
 export function canUseSorcererAberrantPsionicSorceryForSpell(
@@ -333,8 +344,11 @@ function getSorcererAberrantFeatureDescription(
 ) {
   return (
     getSubclassFeatureDetails(
-      getSelectedSubclassForCharacter(character),
-      character.level ?? 0,
+      getSelectedSubclassForCharacter({
+        className: "Sorcerer",
+        subclassId: getClassSubclassId(character, "Sorcerer")
+      }),
+      getClassLevel(character, "Sorcerer") ?? 0,
       feature
     )?.description ?? []
   );
@@ -422,9 +436,7 @@ export function getSorcererAberrantWarpingImplosionUsesRemaining(
     Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
 ): number {
   const totalUses = getSorcererAberrantWarpingImplosionUsesTotal(character);
-  const expendedUses = Number(
-    character.classFeatureState?.sorcerer?.warpingImplosionUsesExpended
-  );
+  const expendedUses = Number(character.classFeatureState?.sorcerer?.warpingImplosionUsesExpended);
   const normalizedExpendedUses = Number.isFinite(expendedUses)
     ? Math.max(0, Math.min(1, Math.floor(expendedUses)))
     : 0;
@@ -497,7 +509,7 @@ function getSorcererAberrantWarpingImplosionFacts(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureActionCard["facts"] {
   const spellSaveDc = getSorcererAberrantSpellSaveDc(character);
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const saveFormulaCell = formatFormulaCell({
     formula: String(spellSaveDc),
@@ -684,7 +696,10 @@ function getSorcererAberrantSorceryFeatureActions(
           icon: "sparkles"
         }
       ),
-      description: getSorcererAberrantFeatureDescription(character, CLASS_FEATURE.WARPING_IMPLOSION),
+      description: getSorcererAberrantFeatureDescription(
+        character,
+        CLASS_FEATURE.WARPING_IMPLOSION
+      ),
       facts: getSorcererAberrantWarpingImplosionFacts(character),
       drawer: {
         kind: "confirm",
@@ -715,7 +730,7 @@ export function activateSorcererAberrantTelepathicSpeech(character: Character): 
     name: telepathicSpeechName,
     source: telepathicSpeechSource,
     sourceId: sorcererTelepathicSpeechStatusSourceId,
-    durationMinutes: getTelepathicBondDurationMinutes(character.level),
+    durationMinutes: getTelepathicBondDurationMinutes(getClassLevel(character, "Sorcerer")),
     sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
   });
 }
@@ -802,9 +817,7 @@ export function activateSorcererAberrantWarpingImplosion(character: Character): 
   return spendSorcererAberrantSorceryPoints(character, warpingImplosionFallbackSorceryPointCost);
 }
 
-export function restoreSorcererAberrantWarpingImplosionOnLongRest(
-  character: Character
-): Character {
+export function restoreSorcererAberrantWarpingImplosionOnLongRest(character: Character): Character {
   if (!hasSorcererAberrantWarpingImplosionFeature(character)) {
     return character;
   }
@@ -838,7 +851,7 @@ function createSorcererAberrantPsionicSpellsContribution(
       entryId: CLASS_FEATURE.PSIONIC_SPELLS
     }),
     alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
+      getClassLevel(character, "Sorcerer") ?? 0,
       aberrantSorcerySpellIdsByLevel
     )
   };
@@ -900,8 +913,7 @@ function createSorcererAberrantRevelationInFleshContribution(
     }),
     actions: getFeatureActionByKey(featureActions, sorcererRevelationInFleshActionKey),
     actionOptions: {
-      [sorcererRevelationInFleshActionKey]:
-        getSorcererAberrantRevelationInFleshOptions(character)
+      [sorcererRevelationInFleshActionKey]: getSorcererAberrantRevelationInFleshOptions(character)
     },
     speedBonuses: getSorcererAberrantRevelationInFleshSpeedBonuses(character)
   };
@@ -924,9 +936,9 @@ function collectSorcererAberrantSorceryContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Sorcerer" ||
-    character.subclassId !== aberrantSorcerySubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Sorcerer") ||
+    getClassSubclassId(character, "Sorcerer") !== aberrantSorcerySubclassId ||
+    (getClassLevel(character, "Sorcerer") ?? 0) < 3
   ) {
     return [];
   }
@@ -958,9 +970,7 @@ function collectSorcererAberrantSorceryContributions(
   return contributions;
 }
 
-export const getSorcererAberrantSorceryDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) =>
+export const getSorcererAberrantSorceryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
     compileFeatureContributions(collectSorcererAberrantSorceryContributions(character)),
     {

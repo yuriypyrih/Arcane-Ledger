@@ -1,3 +1,4 @@
+import { hasCharacterClass } from "../../../../../../pages/CharactersPage/multiclass";
 import type { Character } from "../../../../../../types";
 import {
   createEconomyMultiContextForWeaponAction,
@@ -6,7 +7,10 @@ import {
   getSharedEconomyMultiCountForCharacterAction,
   hasBattleMagicBonusWeaponAttackForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
+import {
+  ECONOMY_TYPE,
+  type EconomyType
+} from "../../../../../../pages/CharactersPage/actionEconomy";
 import { shouldTrackRoundScopedResources } from "../../../../../../pages/CharactersPage/combat";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import {
@@ -54,7 +58,7 @@ function isMonkMartialArtsUnarmedStrikeAction(
   action: Pick<WeaponAction, "key" | "attackKind" | "hasMartialArtsDamageDie">
 ): boolean {
   return (
-    character.className === "Monk" &&
+    hasCharacterClass(character, "Monk") &&
     action.key === "unarmed-strike" &&
     action.attackKind === "unarmed" &&
     action.hasMartialArtsDamageDie
@@ -125,11 +129,7 @@ export function getPrimaryWeaponAttackPathState(
     roundTracker,
     lightFollowUpKind
   );
-  const shapeState = getEconomyShapeState(
-    action.economyType,
-    roundTracker,
-    additionalUseCount
-  );
+  const shapeState = getEconomyShapeState(action.economyType, roundTracker, additionalUseCount);
 
   return {
     id: "primary",

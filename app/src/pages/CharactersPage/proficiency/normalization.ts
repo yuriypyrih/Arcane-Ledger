@@ -145,6 +145,7 @@ export function normalizeCharacterProficiencies(
     options.background,
     {
       backgroundChoices: options.backgroundChoices,
+      multiclass: options.multiclass,
       level: options.level,
       subclassId: options.subclassId,
       classFeatureState: options.classFeatureState,

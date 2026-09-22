@@ -1,3 +1,4 @@
+import { getClassLevel } from "../multiclass";
 import {
   CLASS_FEATURE,
   ELDRITCH_INVOCATION,
@@ -25,9 +26,7 @@ import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "../traits";
-import {
-  isArtificerSoulOfArtificeCheatDeathAvailable
-} from "./artificer/soulOfArtifice";
+import { isArtificerSoulOfArtificeCheatDeathAvailable } from "./artificer/soulOfArtifice";
 import {
   artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey,
   getArtificerFeatureDescriptionAdditions
@@ -156,8 +155,7 @@ export function isLifeAndDeathSafeHavenRelevant(character: Character): boolean {
 
 export function isLifeAndDeathSafeHavenAvailable(character: Character): boolean {
   return (
-    isLifeAndDeathSafeHavenRelevant(character) &&
-    getLifeAndDeathSafeHavenMapCount(character) > 0
+    isLifeAndDeathSafeHavenRelevant(character) && getLifeAndDeathSafeHavenMapCount(character) > 0
   );
 }
 
@@ -165,15 +163,10 @@ export function hasLifeAndDeathBoonOfRecoveryLastStandFeature(character: Charact
   return (getBoonOfRecoveryLastStandStateForCharacter(character)?.usesTotal ?? 0) > 0;
 }
 
-export function isLifeAndDeathBoonOfRecoveryLastStandAvailable(
-  character: Character
-): boolean {
+export function isLifeAndDeathBoonOfRecoveryLastStandAvailable(character: Character): boolean {
   const lastStandState = getBoonOfRecoveryLastStandStateForCharacter(character);
 
-  return (
-    Boolean(lastStandState?.available) &&
-    isLifeAndDeathUnconscious(character)
-  );
+  return Boolean(lastStandState?.available) && isLifeAndDeathUnconscious(character);
 }
 
 export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolean {
@@ -392,7 +385,7 @@ export function applyLifeAndDeathRelentlessRageRollResultForCharacter(
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const nextCurrentHitPoints = Math.min(
     effectiveHitPointMaximum,
-    Math.max(0, 2 * (character.level ?? 0))
+    Math.max(0, 2 * getClassLevel(character, "Barbarian"))
   );
 
   return reconcileCharacterStatusConsequences({
@@ -499,7 +492,7 @@ export function applyLifeAndDeathSafeHavenForCharacter(character: Character): Ch
 
   return reconcileCharacterStatusConsequences({
     ...characterWithDestroyedMap,
-    currentHitPoints: Math.max(1, 2 * (characterWithDestroyedMap.level ?? 0)),
+    currentHitPoints: Math.max(1, 2 * getClassLevel(characterWithDestroyedMap, "Artificer")),
     deathSaves: {
       successes: 0,
       failures: 0

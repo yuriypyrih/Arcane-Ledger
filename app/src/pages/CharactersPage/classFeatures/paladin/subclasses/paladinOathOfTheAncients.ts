@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -19,7 +21,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -93,9 +95,9 @@ type PaladinOathOfTheAncientsCharacter = Pick<Character, "className"> &
 
 function isPaladinOathOfTheAncients(character: PaladinOathOfTheAncientsCharacter): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheAncientsSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheAncientsSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 3
   );
 }
 
@@ -119,16 +121,16 @@ const elderChampionDescription = getOathOfTheAncientsFeatureDescriptionEntries(
 function hasPaladinOathOfTheAncientsAuraOfWarding(
   character: PaladinOathOfTheAncientsCharacter
 ): boolean {
-  return isPaladinOathOfTheAncients(character) && (character.level ?? 0) >= 7;
+  return isPaladinOathOfTheAncients(character) && (getClassLevel(character, "Paladin") ?? 0) >= 7;
 }
 
 export function hasPaladinOathOfTheAncientsUndyingSentinelFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheAncientsSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheAncientsSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 15
   );
 }
 
@@ -136,17 +138,17 @@ export function hasPaladinOathOfTheAncientsElderChampionFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Paladin" &&
-    character.subclassId === oathOfTheAncientsSubclassId &&
-    (character.level ?? 0) >= 20
+    hasCharacterClass(character, "Paladin") &&
+    getClassSubclassId(character, "Paladin") === oathOfTheAncientsSubclassId &&
+    (getClassLevel(character, "Paladin") ?? 0) >= 20
   );
 }
 
 function getPaladinAuraRangeFeet(character: PaladinOathOfTheAncientsCharacter): number {
   return hasPaladinFeature(
     {
-      className: character.className,
-      level: character.level ?? 0
+      className: "Paladin",
+      level: getClassLevel(character, "Paladin") ?? 0
     },
     CLASS_FEATURE.AURA_EXPANSION
   )
@@ -190,11 +192,7 @@ function getPaladinOathOfTheAncientsElderChampionFallbackSlotSummary(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -252,13 +250,13 @@ function getPaladinOathOfTheAncientsFeatureActions(
   }
 
   const channelDivinityUsesRemaining = getPaladinChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     classFeatureState: character.classFeatureState ?? {}
   });
   const channelDivinityUsesTotal = getPaladinChannelDivinityUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0
   });
   const actions: FeatureActionCard[] = [
     {
@@ -377,8 +375,8 @@ function getPaladinOathOfTheAncientsDerivedStatusEntries(
   character: PaladinOathOfTheAncientsCharacter
 ): DerivedFeatureStatusEntry[] {
   const auraProtectionActive = hasActivePaladinAuraOfProtection({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Paladin",
+    level: getClassLevel(character, "Paladin") ?? 0,
     statusEntries: character.statusEntries ?? []
   });
   const statusEntries: DerivedFeatureStatusEntry[] = [];
@@ -500,7 +498,7 @@ export function activatePaladinOathOfTheAncientsUndyingSentinel(character: Chara
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const nextCurrentHitPoints = Math.min(
     effectiveHitPointMaximum,
-    Math.max(0, 3 * (character.level ?? 0))
+    Math.max(0, 3 * (getClassLevel(character, "Paladin") ?? 0))
   );
 
   return reconcileCharacterStatusConsequences({
@@ -551,11 +549,7 @@ export function activatePaladinOathOfTheAncientsElderChampion(character: Charact
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    );
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -671,7 +665,7 @@ function collectPaladinOathOfTheAncientsContributions(
         entryId: CLASS_FEATURE.OATH_OF_THE_ANCIENTS_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Paladin") ?? 0,
         oathOfTheAncientsSpellIdsByLevel
       )
     },

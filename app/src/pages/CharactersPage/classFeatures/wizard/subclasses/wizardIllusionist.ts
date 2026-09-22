@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   MAGIC_SCHOOL,
@@ -23,7 +25,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -111,9 +113,9 @@ function hasWizardIllusionistFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === illusionistSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === illusionistSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= minimumLevel
   );
 }
 
@@ -167,11 +169,7 @@ function getWizardIllusionistSpellSlotsRemaining(
   character: Pick<WizardIllusionistCharacter, "className"> &
     Partial<Pick<WizardIllusionistCharacter, "level" | "spellSlotsExpended" | "subclassId">>
 ): number[] {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -461,11 +459,7 @@ export function getWizardIllusionistIllusorySelfFallbackSlotSummary(
     return { remaining: 0, total: 0 };
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsRemaining = getWizardIllusionistSpellSlotsRemaining(character);
 
   return spellSlotTotals.reduce(
@@ -520,11 +514,7 @@ export function consumeWizardIllusionistIllusorySelfUse(character: Character): C
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -621,9 +611,9 @@ export function collectWizardIllusionistContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Wizard" ||
-    character.subclassId !== illusionistSubclassId ||
-    typeof character.level !== "number"
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== illusionistSubclassId ||
+    typeof getClassLevel(character, "Wizard") !== "number"
   ) {
     return [];
   }
@@ -636,9 +626,9 @@ export function collectWizardIllusionistContributions(
         entryId: CLASS_FEATURE.ILLUSION_SAVANT
       }),
       alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-        className: character.className,
-        level: character.level,
-        subclassId: character.subclassId,
+        className: "Wizard",
+        level: getClassLevel(character, "Wizard"),
+        subclassId: getClassSubclassId(character, "Wizard"),
         classFeatureState: character.classFeatureState
       })
     }

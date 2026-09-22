@@ -1,6 +1,15 @@
 import clsx from "clsx";
 import { Pencil, Plus } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  lazy,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode
+} from "react";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -60,14 +69,18 @@ import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
-import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
-import ArtificerReplicateMagicItemPlanSelection from "./ArtificerReplicateMagicItemPlanSelection";
-import ArtificerToolsOfTheTradeSelection from "./ArtificerToolsOfTheTradeSelection";
+const BattleMasterManeuverSelection = lazy(() => import("./BattleMasterManeuverSelection"));
+const ArtificerReplicateMagicItemPlanSelection = lazy(
+  () => import("./ArtificerReplicateMagicItemPlanSelection")
+);
+const ArtificerToolsOfTheTradeSelection = lazy(() => import("./ArtificerToolsOfTheTradeSelection"));
 import FeatureChoiceOptions from "./ClassFeatureChoiceOptions";
-import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
-import EldritchInvocationList from "./EldritchInvocationList";
-import WizardBladesingerTrainingInWarAndSongFields from "./WizardBladesingerTrainingInWarAndSongFields";
-import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
+const DruidWildShapeMonsterModal = lazy(() => import("./DruidWildShapeMonsterModal"));
+const EldritchInvocationList = lazy(() => import("./EldritchInvocationList"));
+const WizardBladesingerTrainingInWarAndSongFields = lazy(
+  () => import("./WizardBladesingerTrainingInWarAndSongFields")
+);
+const WizardSavantFeatureFields = lazy(() => import("./WizardSavantFeatureFields"));
 import {
   buildSkillSelectOptions,
   buildToolSelectOptions,
@@ -77,20 +90,9 @@ import {
   updateSelectionAtIndex,
   wizardScholarSkillOptions
 } from "./helpers";
-import {
-  createArtificerFeatureChoiceModel,
-  createBardFeatureChoiceModel,
-  createClericFeatureChoiceModel,
-  createDruidFeatureChoiceModel,
-  createFighterFeatureChoiceModel,
-  createPaladinFeatureChoiceModel,
-  createRangerFeatureChoiceModel,
-  createRogueFeatureChoiceModel,
-  createSorcererFeatureChoiceModel,
-  createWarlockFeatureChoiceModel,
-  createWizardFeatureChoiceModel,
-  recomputeCharacterFeatureProficiencies
-} from "./choiceModels";
+import { recomputeCharacterFeatureProficiencies } from "./choiceModels/shared";
+import type * as ChoiceFactories from "./choiceModels";
+
 import type { FeatureRow, TrackingButtonRenderer } from "./types";
 import { renderClassFeatureContent } from "./ClassFeatureListFeatureContent";
 import SheetActionButton from "../SheetActionButton";
@@ -262,8 +264,9 @@ function ClassFeatureList({
   eldritchInvocationInputStatus,
   learnedInvocationOptions,
   getCharacterFeatSummary,
-  getFeatDefinition
-}: ClassFeatureListProps) {
+  getFeatDefinition,
+  createChoices
+}: ClassFeatureListProps & { createChoices: ChoiceFactory }) {
   const [isWildShapeModalOpen, setIsWildShapeModalOpen] = useState(false);
   const [selectedWildShapeMonster, setSelectedWildShapeMonster] = useState<MonsterRecord | null>(
     null
@@ -273,49 +276,10 @@ function ClassFeatureList({
     [character]
   );
   const expandedFeatureKeySet = useMemo(() => new Set(expandedFeatureKeys), [expandedFeatureKeys]);
-  const artificerChoices = useMemo(
-    () => createArtificerFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const bardChoices = useMemo(
-    () => createBardFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const clericChoices = useMemo(
-    () => createClericFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const druidChoices = useMemo(
-    () => createDruidFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const fighterChoices = useMemo(
-    () => createFighterFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const paladinChoices = useMemo(
-    () => createPaladinFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const rangerChoices = useMemo(
-    () => createRangerFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const rogueChoices = useMemo(
-    () => createRogueFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const sorcererChoices = useMemo(
-    () => createSorcererFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const warlockChoices = useMemo(
-    () => createWarlockFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
-  );
-  const wizardChoices = useMemo(
-    () => createWizardFeatureChoiceModel({ character, onPersistCharacter }),
-    [character, onPersistCharacter]
+  // Only the selected class's renderer calls these choice handlers.
+  const choices = useMemo(
+    () => createChoices({ character, onPersistCharacter }),
+    [createChoices, character, onPersistCharacter]
   );
   const {
     getArtificerImprovedArmorerArmorReplicationPlanGroups,
@@ -332,7 +296,7 @@ function ClassFeatureList({
     updateArtificerImprovedArmorerArmorReplicationPlanSelection,
     updateArtificerReplicateMagicItemPlanSelection,
     updateArtificerToolsOfTheTradeToolSelection
-  } = artificerChoices;
+  } = choices;
   const {
     getAvailableBardExpertiseSkills,
     getAvailableBardLoreBonusProficiencySkills,
@@ -354,7 +318,7 @@ function ClassFeatureList({
     updateBardMagicalDiscoveriesSpellSelection,
     updateBardPrimalLoreCantripSelection,
     updateBardPrimalLoreSkillSelection
-  } = bardChoices;
+  } = choices;
   const {
     getAvailableKnowledgeDomainBlessingsSkills,
     getAvailableKnowledgeDomainBlessingsTools,
@@ -371,7 +335,7 @@ function ClassFeatureList({
     updateKnowledgeDomainBlessingsSkillSelection,
     updateKnowledgeDomainBlessingsToolSelection,
     updateKnowledgeDomainUnfetteredMindSavingThrowSelection
-  } = clericChoices;
+  } = choices;
   const {
     getDruidWildShapeKnownForms,
     getDruidWildShapeRules,
@@ -379,7 +343,7 @@ function ClassFeatureList({
     updateDruidElementalFuryChoice,
     updateDruidPrimalOrderChoice,
     updateDruidWildShapeKnownForms
-  } = druidChoices;
+  } = choices;
   const {
     getAvailableFighterBanneretKnightlyEnvoyLanguages,
     getAvailableFighterBanneretKnightlyEnvoySkills,
@@ -389,13 +353,13 @@ function ClassFeatureList({
     isFighterBattleMasterManeuverOptionsInputRequired,
     updateFighterBanneretKnightlyEnvoyLanguageSelection,
     updateFighterBanneretKnightlyEnvoySkillSelection
-  } = fighterChoices;
+  } = choices;
   const {
     getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills,
     getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
     isPaladinOathOfTheNobleGeniesGeniesSplendorInputRequired,
     updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
-  } = paladinChoices;
+  } = choices;
   const {
     getAvailableRangerDeftExplorerLanguages,
     getAvailableRangerDeftExplorerSkills,
@@ -426,7 +390,7 @@ function ClassFeatureList({
     updateRangerHunterPreyChoice,
     updateRangerLevel9ExpertiseSelection,
     updateRangerOtherworldlyGlamourSkillSelection
-  } = rangerChoices;
+  } = choices;
   const {
     getAvailableRogueExpertiseSkills,
     getAvailableRogueThievesCantLanguages,
@@ -439,7 +403,7 @@ function ClassFeatureList({
     updateRogueExpertiseSelection,
     updateRogueScionOfTheThreeDreadAllegianceChoice,
     updateRogueThievesCantLanguageSelection
-  } = rogueChoices;
+  } = choices;
   const {
     getAvailableSorcererMetamagicOptions,
     getSorcererDraconicElementalAffinityDamageTypeSelection,
@@ -449,7 +413,7 @@ function ClassFeatureList({
     isSorcererMetamagicInputRequired,
     updateSorcererDraconicElementalAffinityDamageTypeSelection,
     updateSorcererMetamagicSelection
-  } = sorcererChoices;
+  } = choices;
   const {
     getAvailableWarlockMysticArcanumSpells,
     getWarlockFiendishResilienceDamageTypeSelection,
@@ -459,7 +423,7 @@ function ClassFeatureList({
     isWarlockMysticArcanumInputRequired,
     updateWarlockFiendishResilienceDamageTypeSelection,
     updateWarlockMysticArcanumSelection
-  } = warlockChoices;
+  } = choices;
   const {
     getAvailableWizardScholarSkills,
     getAvailableWizardSignatureSpells,
@@ -475,7 +439,7 @@ function ClassFeatureList({
     updateWizardScholarSelection,
     updateWizardSignatureSpellSelection,
     updateWizardSpellMasterySelection
-  } = wizardChoices;
+  } = choices;
 
   function getWeaponMasterySelections(): WEAPON_PROFICIENCY[] {
     return getWeaponMasterySelectionsForCharacter(character);
@@ -998,4 +962,152 @@ function ClassFeatureList({
   );
 }
 
-export default ClassFeatureList;
+type Choices = ReturnType<typeof ChoiceFactories.createArtificerFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createBardFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createClericFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createDruidFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createFighterFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createPaladinFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createRangerFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createRogueFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createSorcererFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createWarlockFeatureChoiceModel> &
+  ReturnType<typeof ChoiceFactories.createWizardFeatureChoiceModel>;
+type ChoiceFactory = (context: {
+  character: Character;
+  onPersistCharacter: PersistCharacterUpdater;
+}) => Choices;
+const classPanels = {
+  Artificer: lazy(async () => {
+    const { createArtificerFeatureChoiceModel } = await import("./choiceModels/artificer");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createArtificerFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Bard: lazy(async () => {
+    const { createBardFeatureChoiceModel } = await import("./choiceModels/bard");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createBardFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Cleric: lazy(async () => {
+    const { createClericFeatureChoiceModel } = await import("./choiceModels/cleric");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createClericFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Druid: lazy(async () => {
+    const { createDruidFeatureChoiceModel } = await import("./choiceModels/druid");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createDruidFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Fighter: lazy(async () => {
+    const { createFighterFeatureChoiceModel } = await import("./choiceModels/fighter");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createFighterFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Paladin: lazy(async () => {
+    const { createPaladinFeatureChoiceModel } = await import("./choiceModels/paladin");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createPaladinFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Ranger: lazy(async () => {
+    const { createRangerFeatureChoiceModel } = await import("./choiceModels/ranger");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createRangerFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Rogue: lazy(async () => {
+    const { createRogueFeatureChoiceModel } = await import("./choiceModels/rogue");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createRogueFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Sorcerer: lazy(async () => {
+    const { createSorcererFeatureChoiceModel } = await import("./choiceModels/sorcerer");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createSorcererFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Warlock: lazy(async () => {
+    const { createWarlockFeatureChoiceModel } = await import("./choiceModels/warlock");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createWarlockFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  }),
+  Wizard: lazy(async () => {
+    const { createWizardFeatureChoiceModel } = await import("./choiceModels/wizard");
+    return {
+      default: (props: ClassFeatureListProps) => (
+        <ClassFeatureList
+          {...props}
+          createChoices={createWizardFeatureChoiceModel as ChoiceFactory}
+        />
+      )
+    };
+  })
+};
+const emptyChoices: ChoiceFactory = () => ({}) as Choices;
+function LazyClassFeatureList(props: ClassFeatureListProps) {
+  const Panel = classPanels[props.character.className as keyof typeof classPanels];
+  return (
+    <Suspense fallback={<p role="status">Loading class choices…</p>}>
+      {Panel ? <Panel {...props} /> : <ClassFeatureList {...props} createChoices={emptyChoices} />}
+    </Suspense>
+  );
+}
+
+export default LazyClassFeatureList;

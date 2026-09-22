@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -262,7 +263,7 @@ export function getRebornKnowledgeFromPastLifeUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isRebornSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 

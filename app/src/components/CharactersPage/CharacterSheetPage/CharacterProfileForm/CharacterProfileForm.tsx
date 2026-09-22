@@ -1,15 +1,14 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import { withReadOnlySheet } from "../withReadOnlySheet";
+import { getClassSummary } from "../../../../pages/CharactersPage/multiclass";
 import clsx from "clsx";
 import { ScrollText, UsersRound } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import type { CharacterBackgroundTextureMutationResponse } from "../../../../api/characterBackgroundTextures";
 import type { CharacterSheetCloudDocument } from "../../../../api/characters";
 import type { CharacterPortraitMutationResponse } from "../../../../api/characterPortraits";
 import type { Character } from "../../../../types";
-import {
-  setActiveCharacterSheet,
-  useAppDispatch,
-  useAppSelector
-} from "../../../../store";
+import { setActiveCharacterSheet, useAppDispatch, useAppSelector } from "../../../../store";
 import { createPortableCharacterSheetSyncPayload } from "../../../../characterSync/characterSyncRecords";
 import { upsertCharacterRosterCacheDocument } from "../../../../pages/CharactersPage/characterRoster";
 import { createPortableCharacterSheet } from "../../../../pages/CharactersPage/portableCharacterSheet";
@@ -25,7 +24,6 @@ import {
 } from "../../../../pages/CharactersPage/customOrigins";
 import { getClassSignatureStyle } from "../../classSignature";
 import CharacterNotesDrawer from "./CharacterNotesDrawer";
-import CharacterProgressModal from "./CharacterProgressModal";
 import CharacterPortraitButton from "./CharacterPortraitButton";
 import CharacterPortraitModal from "./CharacterPortraitModal";
 import styles from "./CharacterProfileForm.module.css";
@@ -34,6 +32,8 @@ import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDra
 import CoreStatCards from "../StatsForm/CoreStatCards";
 import useCharacterBackgroundTexture from "./useCharacterBackgroundTexture";
 import useCharacterPortrait from "./useCharacterPortrait";
+
+const MulticlassProgressModal = lazy(() => import("./MulticlassProgressModal"));
 
 type CharacterProfileFormProps = {
   broadLayout?: boolean;
@@ -52,6 +52,7 @@ function CharacterProfileForm({
   onPersistCharacter,
   onRequestCreateCompanion
 }: CharacterProfileFormProps) {
+  const readOnly = useReadOnlySheet();
   const dispatch = useAppDispatch();
   const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
@@ -59,7 +60,7 @@ function CharacterProfileForm({
   const authStatus = useAppSelector((state) => state.auth.status);
   const isAuthenticated = authStatus === "authenticated";
   const remoteCharacterId = character.storageMetadata?.sync?.remoteId ?? null;
-  const isUploadEnabled = isAuthenticated && Boolean(remoteCharacterId);
+  const isUploadEnabled = !readOnly && isAuthenticated && Boolean(remoteCharacterId);
   const activePortraitUrl =
     isAuthenticated && remoteCharacterId
       ? (character.storageMetadata?.avatar?.imageUrl ?? null)
@@ -75,6 +76,7 @@ function CharacterProfileForm({
       : null;
   const applyCloudCharacterMutation = useCallback(
     (document: CharacterSheetCloudDocument) => {
+      if (readOnly) return;
       upsertCharacterRosterCacheDocument(document.ownerId, document);
       const record = storeCloudCharacterSheetDocument(document, {
         localId: character.id
@@ -90,7 +92,7 @@ function CharacterProfileForm({
         );
       }
     },
-    [character.id, dispatch]
+    [character.id, dispatch, readOnly]
   );
   const handlePortraitMutationComplete = useCallback(
     (response: CharacterPortraitMutationResponse) => {
@@ -144,8 +146,10 @@ function CharacterProfileForm({
   const customSubclassLabel = getCharacterSubclassDisplayName(character);
   const identityLine = [
     getCharacterSpeciesDisplayName(character),
-    getCharacterClassDisplayName(character)
-  ].filter(Boolean).join(" ");
+    character.multiclass ? getClassSummary(character) : getCharacterClassDisplayName(character)
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   function openProgressModal() {
     setIsProgressModalOpen(true);
@@ -210,6 +214,7 @@ function CharacterProfileForm({
               <InlineToggleButton
                 className={styles.notesToggle}
                 icon={<ScrollText size={15} aria-hidden="true" />}
+                readOnlyInteractive
                 label="Show Character Notes"
                 expanded={isNotesDrawerOpen}
                 onClick={openNotesDrawer}
@@ -248,11 +253,13 @@ function CharacterProfileForm({
         />
       ) : null}
       {isProgressModalOpen ? (
-        <CharacterProgressModal
-          character={character}
-          onClose={closeProgressModal}
-          onPersistCharacter={onPersistCharacter}
-        />
+        <Suspense fallback={<p role="status">Loading class editor…</p>}>
+          <MulticlassProgressModal
+            character={character}
+            onClose={closeProgressModal}
+            onPersistCharacter={onPersistCharacter}
+          />
+        </Suspense>
       ) : null}
       {isPortraitModalOpen ? (
         <CharacterPortraitModal
@@ -282,4 +289,5 @@ function CharacterProfileForm({
   );
 }
 
-export default CharacterProfileForm;
+const CharacterProfileFormSection = withReadOnlySheet(CharacterProfileForm);
+export default CharacterProfileFormSection;

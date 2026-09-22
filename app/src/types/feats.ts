@@ -6,11 +6,7 @@ import type {
   SPELL_LIST_CLASS
 } from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
-import type {
-  LANGUAGE_PROFICIENCY,
-  TOOL_PROFICIENCY,
-  WEAPON_PROFICIENCY
-} from "./proficiencies";
+import type { LANGUAGE_PROFICIENCY, TOOL_PROFICIENCY, WEAPON_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
 
 export type AbilityScoreImprovementChoice =
@@ -338,11 +334,13 @@ export type CharacterFeatSource =
     }
   | {
       type: "class-feature";
+      classEntryId?: string;
       feature: CLASS_FEATURE;
       level: number;
     }
   | {
       type: "eldritch-invocation";
+      classEntryId?: string;
       invocation: ELDRITCH_INVOCATION;
       selectionId: string;
     }

@@ -29,7 +29,7 @@ function SpellDescriptionContent({
       {description.map((entry, index) => {
         if (typeof entry === "string") {
           return (
-            <p key={`description-${index}`} className={entryClassName}>
+            <p key={`description-${index}`} className={clsx(styles.text, entryClassName)}>
               {renderCodexRichText(entry, {
                 linkClassName,
                 strongClassName,
@@ -49,7 +49,7 @@ function SpellDescriptionContent({
             {entry.items.map((item, itemIndex) => (
               <li
                 key={`description-list-${index}-item-${itemIndex}`}
-                className={clsx(styles.listItem, entryClassName)}
+                className={clsx(styles.text, styles.listItem, entryClassName)}
               >
                 {renderCodexRichText(item, {
                   linkClassName,

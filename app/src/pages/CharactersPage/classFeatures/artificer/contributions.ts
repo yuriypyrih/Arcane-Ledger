@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
@@ -119,7 +120,7 @@ function createArtificerInventoryAttunementContribution(
       entryId: input.entryId
     }),
     inventoryAttunementLimits:
-      character.level >= input.minimumLevel
+      getClassLevel(character, "Artificer") >= input.minimumLevel
         ? [
             {
               id: `${input.id}-inventory-attunement-limit`,

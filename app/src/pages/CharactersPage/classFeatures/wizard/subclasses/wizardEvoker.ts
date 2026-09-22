@@ -1,4 +1,10 @@
 import {
+  isSpellFromClass,
+  hasCharacterClass,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CLASS_FEATURE,
   MAGIC_SCHOOL,
   SPELL_LIST_CLASS,
@@ -46,9 +52,9 @@ function hasWizardEvokerPotentCantripFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === evokerSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === evokerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 3
   );
 }
 
@@ -56,9 +62,9 @@ function hasWizardEvokerSculptSpellsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === evokerSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === evokerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 6
   );
 }
 
@@ -66,9 +72,9 @@ function hasWizardEvokerEmpoweredEvocationFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === evokerSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === evokerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 10
   );
 }
 
@@ -76,9 +82,9 @@ export function hasWizardEvokerOverchannelFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === evokerSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === evokerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 14
   );
 }
 
@@ -96,6 +102,7 @@ function spellQualifiesForWizardEvokerEmpoweredEvocation(
 ): boolean {
   return (
     hasWizardEvokerEmpoweredEvocationFeature(character) &&
+    (!(character as Character).multiclass || isSpellFromClass(character, "Wizard")) &&
     spell.magicSchool === MAGIC_SCHOOL.EVOCATION &&
     isWizardSpell(spell) &&
     spell.damage.length > 0
@@ -109,6 +116,7 @@ export function spellQualifiesForWizardEvokerOverchannel(
   return (
     spell !== null &&
     hasWizardEvokerOverchannelFeature(character) &&
+    (!(character as Character).multiclass || isSpellFromClass(character, "Wizard")) &&
     isWizardSpell(spell) &&
     isDamagingSpell(spell) &&
     spell.spellLevel >= 1 &&
@@ -261,11 +269,7 @@ export function getWizardEvokerSpellbookSpellEntry(
     : spellWithEmpoweredEvocation;
 }
 
-function createWizardEvokerSource(input: {
-  id: string;
-  label: string;
-  entryId: CLASS_FEATURE;
-}) {
+function createWizardEvokerSource(input: { id: string; label: string; entryId: CLASS_FEATURE }) {
   return createSubclassContributionSource({
     ...input,
     id: `wizard-evoker-${input.id}`
@@ -276,9 +280,9 @@ export function collectWizardEvokerContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Wizard" ||
-    character.subclassId !== evokerSubclassId ||
-    typeof character.level !== "number"
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== evokerSubclassId ||
+    typeof getClassLevel(character, "Wizard") !== "number"
   ) {
     return [];
   }
@@ -291,9 +295,9 @@ export function collectWizardEvokerContributions(
         entryId: CLASS_FEATURE.EVOCATION_SAVANT
       }),
       alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-        className: character.className,
-        level: character.level,
-        subclassId: character.subclassId,
+        className: "Wizard",
+        level: getClassLevel(character, "Wizard"),
+        subclassId: getClassSubclassId(character, "Wizard"),
         classFeatureState: character.classFeatureState
       })
     }

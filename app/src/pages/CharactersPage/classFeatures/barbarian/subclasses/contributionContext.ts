@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../../multiclass";
 import { barbarianFeatures } from "../../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
@@ -51,13 +52,13 @@ export function getBarbarianSubclassContributionRageUsesTotal(
   character: BarbarianSubclassContributionCharacter
 ): number {
   if (
-    character.className !== "Barbarian" ||
-    !getUnlockedBarbarianFeatures(character.level).has(CLASS_FEATURE.RAGE)
+    !hasCharacterClass(character, "Barbarian") ||
+    !getUnlockedBarbarianFeatures(getClassLevel(character, "Barbarian")).has(CLASS_FEATURE.RAGE)
   ) {
     return 0;
   }
 
-  return getBarbarianFeatureRow(character.level)?.rages ?? 0;
+  return getBarbarianFeatureRow(getClassLevel(character, "Barbarian"))?.rages ?? 0;
 }
 
 export function getBarbarianSubclassContributionRageUsesRemaining(
@@ -74,13 +75,13 @@ export function getBarbarianSubclassContributionRageDamageBonus(
   character: BarbarianSubclassContributionCharacter
 ): number {
   if (
-    character.className !== "Barbarian" ||
-    !getUnlockedBarbarianFeatures(character.level).has(CLASS_FEATURE.RAGE)
+    !hasCharacterClass(character, "Barbarian") ||
+    !getUnlockedBarbarianFeatures(getClassLevel(character, "Barbarian")).has(CLASS_FEATURE.RAGE)
   ) {
     return 0;
   }
 
-  return getBarbarianFeatureRow(character.level)?.rageDamage ?? 0;
+  return getBarbarianFeatureRow(getClassLevel(character, "Barbarian"))?.rageDamage ?? 0;
 }
 
 export function isBarbarianSubclassContributionRaging(
@@ -88,8 +89,8 @@ export function isBarbarianSubclassContributionRaging(
   rageState = getBarbarianSubclassContributionRageState(character)
 ): boolean {
   return (
-    character.className === "Barbarian" &&
-    getUnlockedBarbarianFeatures(character.level).has(CLASS_FEATURE.RAGE) &&
+    hasCharacterClass(character, "Barbarian") &&
+    getUnlockedBarbarianFeatures(getClassLevel(character, "Barbarian")).has(CLASS_FEATURE.RAGE) &&
     rageState.active === true
   );
 }

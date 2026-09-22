@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../../../../pages/CharactersPage/multiclass";
 import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getMonkMartialArtsDieForCharacter,
@@ -50,7 +51,7 @@ export function getDeflectAttacksReactionFacts(
 ): FeatureActionFact[] {
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const dexterityModifier = getAbilityModifierForCharacter(character, "DEX");
-  const monkLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const monkLevel = Math.max(0, Math.floor(getClassLevel(character, "Monk") ?? 0));
   const deflectFormula = formatSignedFormula("1d10", [dexterityModifier, monkLevel]);
   const reflectedDamageFormula = monkMartialArtsDie
     ? formatSignedFormula(formatDamageFormula(monkMartialArtsDie), [dexterityModifier])
@@ -90,7 +91,7 @@ export function getDeflectAttacksReactionFacts(
 }
 
 export function getSlowFallReactionFacts(character: Pick<Character, "level">): FeatureActionFact[] {
-  const monkLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const monkLevel = Math.max(0, Math.floor(getClassLevel(character, "Monk") ?? 0));
   const reducedDamage = monkLevel * 5;
 
   return [
@@ -118,12 +119,12 @@ export function createDeflectAttacksReactionRollRequest(
     entries: [
       {
         label: deflectAttacksLabel,
-        formula: formatSignedFormula("1d10", [dexterityModifier, character.level]),
+        formula: formatSignedFormula("1d10", [dexterityModifier, getClassLevel(character, "Monk")]),
         formulaDisplay: formatFormulaTerms(
           [
             "1d10",
             formatLabeledModifier(dexterityModifier, "DEX"),
-            `+ ${character.level} Monk Level`
+            `+ ${getClassLevel(character, "Monk")} Monk Level`
           ].filter((term): term is string => term !== null)
         )
       },

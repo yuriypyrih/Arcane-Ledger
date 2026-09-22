@@ -1,3 +1,4 @@
+import { getCharacterLevel, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DICE,
@@ -68,8 +69,7 @@ export const armorerSubclassId = "artificer-armorer";
 export const artificerArmorerArcaneArmorActionKey = "artificer-armorer-arcane-armor";
 export const artificerArmorerGiantStatureActionKey = "artificer-armorer-giant-stature";
 export const artificerArmorerDefensiveFieldActionKey = "artificer-armorer-defensive-field";
-export const artificerArmorerInfiltratorsFlightActionKey =
-  "artificer-armorer-infiltrators-flight";
+export const artificerArmorerInfiltratorsFlightActionKey = "artificer-armorer-infiltrators-flight";
 export const artificerArmorerPerfectedArmorGuardianReactionEntryId =
   "reaction-artificer-armorer-perfected-armor-guardian";
 
@@ -665,10 +665,7 @@ function getGiantStatureStatusDescription(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): string {
   const descriptionParts = [
-    getPlainTextDescription(
-      getGiantStatureDescription(character),
-      "Dreadnaught: Giant Stature."
-    ),
+    getPlainTextDescription(getGiantStatureDescription(character), "Dreadnaught: Giant Stature."),
     hasArtificerArmorerPerfectedArmorFeature(character)
       ? getPlainTextDescription(
           getPerfectedArmorDescriptionEntries(character, "Dreadnaught.", "giant-stature"),
@@ -904,12 +901,12 @@ function getArtificerArmorerArmorModelWeaponAction(
   const baseAction = createWeaponAction(
     {
       abilities: character.abilities,
-      className: character.className,
+      className: "Artificer",
       classFeatureState: character.classFeatureState ?? {},
-      level: character.level ?? 1,
+      level: getClassLevel(character, "Artificer") ?? 1,
       roundTracker: character.roundTracker,
       statusEntries: character.statusEntries ?? [],
-      subclassId: character.subclassId
+      subclassId: getClassSubclassId(character, "Artificer")
     },
     {
       key: config.key,
@@ -927,7 +924,7 @@ function getArtificerArmorerArmorModelWeaponAction(
       damageAbility: ability,
       damageAbilityModifier: abilityModifier,
       proficiencyLabel: "Simple weapon",
-      proficiencyBonus: getProficiencyBonus(character.level ?? 1),
+      proficiencyBonus: getProficiencyBonus(getCharacterLevel(character) ?? 1),
       damageBonusEntries: hasImprovedArsenal
         ? [
             {
@@ -1052,7 +1049,7 @@ function getArtificerArmorerDefensiveFieldAction(
   }
 
   const description = getDefensiveFieldDescription(character);
-  const temporaryHitPoints = Math.max(1, Math.floor(character.level ?? 1));
+  const temporaryHitPoints = Math.max(1, Math.floor(getClassLevel(character, "Artificer") ?? 1));
   const isBloodied = isCharacterBloodied(character);
   const disabledReason = isBloodied ? undefined : "You must be Bloodied to use Defensive Field.";
 
@@ -1089,7 +1086,7 @@ export function activateArtificerArmorerDefensiveField(character: Character): Ch
     return character;
   }
 
-  const temporaryHitPoints = Math.max(1, Math.floor(character.level ?? 1));
+  const temporaryHitPoints = Math.max(1, Math.floor(getClassLevel(character, "Artificer") ?? 1));
 
   return {
     ...character,
@@ -1234,9 +1231,7 @@ export function restoreArtificerArmorerGiantStatureOnLongRest(character: Charact
   };
 }
 
-export function consumeArtificerArmorerPerfectedArmorGuardianUse(
-  character: Character
-): Character {
+export function consumeArtificerArmorerPerfectedArmorGuardianUse(character: Character): Character {
   if (
     !hasActiveArtificerArmorerArmorModel(character, "guardian") ||
     getArtificerArmorerPerfectedArmorGuardianUsesRemaining(character) <= 0
@@ -1615,10 +1610,7 @@ function getArtificerArmorerPerfectedArmorGuardianReactionEntries(
     return [];
   }
 
-  const description = getArtificerArmorerPerfectedArmorDescriptionSection(
-    character,
-    "Guardian."
-  );
+  const description = getArtificerArmorerPerfectedArmorDescriptionSection(character, "Guardian.");
 
   return [
     {
@@ -1660,7 +1652,7 @@ export function collectArtificerArmorerContributions(
         entryId: CLASS_FEATURE.ARMORER_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Artificer") ?? 0,
         armorerSpellIdsByLevel
       )
     },

@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -90,9 +91,9 @@ function hasCollegeOfTheMoonMoonsInspiration(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfTheMoonSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfTheMoonSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -100,9 +101,9 @@ function hasCollegeOfTheMoonBlessingOfMoonlight(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfTheMoonSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfTheMoonSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 6
   );
 }
 
@@ -110,9 +111,9 @@ function hasCollegeOfTheMoonEventidesSplendor(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfTheMoonSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfTheMoonSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 14
   );
 }
 
@@ -200,7 +201,7 @@ function getMoonBardicInspirationBaseUsesTotal(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level">>
 ): number {
-  if (character.className !== "Bard" || !character.abilities) {
+  if (!hasCharacterClass(character, "Bard") || !character.abilities) {
     return 0;
   }
 
@@ -210,9 +211,9 @@ function getMoonBardicInspirationBaseUsesTotal(
       {
         abilities: character.abilities,
         classFeatureState: character.classFeatureState,
-        className: character.className,
+        className: "Bard",
         feats: character.feats ?? [],
-        level: character.level ?? 1
+        level: getClassLevel(character, "Bard") ?? 1
       },
       "CHA"
     )
@@ -308,9 +309,9 @@ export function getBardCollegeOfTheMoonPrimalLoreCantripId(
 
   const availableSpellIds = new Set(
     getBardCollegeOfTheMoonPrimalLoreCantripOptions({
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Bard",
+      level: getClassLevel(character, "Bard") ?? 0,
+      subclassId: getClassSubclassId(character, "Bard")
     }).map((spell) => spell.id)
   );
   const selectedSpellId = character.classFeatureState?.bard?.primalLoreCantripId;
@@ -708,7 +709,10 @@ export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver
 export function collectBardCollegeOfTheMoonContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfTheMoonSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfTheMoonSubclassId
+  ) {
     return [];
   }
 
@@ -747,9 +751,9 @@ export function collectBardCollegeOfTheMoonContributions(
       alwaysPreparedSpellIds: getBardCollegeOfTheMoonAlwaysPreparedSpellIds(character),
       skillProficiencyEntries: getBardCollegeOfTheMoonSkillProficiencyEntries(character),
       languageProficiencyEntries: getBardCollegeOfTheMoonLanguageProficiencyEntries({
-        className: character.className,
-        level: character.level ?? 0,
-        subclassId: character.subclassId
+        className: "Bard",
+        level: getClassLevel(character, "Bard") ?? 0,
+        subclassId: getClassSubclassId(character, "Bard")
       })
     },
     {

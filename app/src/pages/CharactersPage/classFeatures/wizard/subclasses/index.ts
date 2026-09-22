@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type { Character } from "../../../../../types";
 import type { SpellEntry } from "../../../../../codex/entries";
 import type {
@@ -66,11 +67,11 @@ const wizardShortRestRestorers: Record<string, (character: Character) => Charact
 export function getWizardSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return {};
   }
 
-  return wizardSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return wizardSubclassRuntimeRegistry[getClassSubclassId(character, "Wizard")]?.(character) ?? {};
 }
 
 export function applyWizardSubclassFeaturesAfterSpellCast(
@@ -78,15 +79,15 @@ export function applyWizardSubclassFeaturesAfterSpellCast(
   spell: Pick<SpellEntry, "castingTime" | "magicSchool" | "spellLevel">,
   spellSlotLevel: number | null | undefined
 ): Character {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
   }
 
-  if (character.subclassId === bladesingerSubclassId) {
+  if (getClassSubclassId(character, "Wizard") === bladesingerSubclassId) {
     return applyWizardBladesingerFeaturesAfterSpellCast(character, spell);
   }
 
-  if (character.subclassId === abjurerSubclassId) {
+  if (getClassSubclassId(character, "Wizard") === abjurerSubclassId) {
     return applyWizardAbjurerArcaneWardAfterSpellCast(character, spell, spellSlotLevel);
   }
 
@@ -97,16 +98,19 @@ export function activateWizardSubclassFeatureAction(
   character: Character,
   actionKey: string
 ): Character | null {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return null;
   }
 
-  if (character.subclassId === bladesingerSubclassId && actionKey === wizardBladesongActionKey) {
+  if (
+    getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
+    actionKey === wizardBladesongActionKey
+  ) {
     return activateWizardBladesong(character);
   }
 
   if (
-    character.subclassId === illusionistSubclassId &&
+    getClassSubclassId(character, "Wizard") === illusionistSubclassId &&
     actionKey === wizardIllusionistIllusoryRealityActionKey
   ) {
     return activateWizardIllusionistIllusoryReality(character);
@@ -126,11 +130,11 @@ export function getWizardSubclassSpellbookSpellEntry(
   character: SubclassRuntimeCharacter,
   spell: SpellEntry
 ): SpellEntry {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return spell;
   }
 
-  if (character.subclassId === evokerSubclassId) {
+  if (getClassSubclassId(character, "Wizard") === evokerSubclassId) {
     return getWizardEvokerSpellbookSpellEntry(character, spell);
   }
 
@@ -138,37 +142,39 @@ export function getWizardSubclassSpellbookSpellEntry(
 }
 
 export function restoreWizardSubclassFeaturesOnLongRest(character: Character): Character {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
   }
 
-  return wizardLongRestRestorers[character.subclassId]?.(character) ?? character;
+  return wizardLongRestRestorers[getClassSubclassId(character, "Wizard")]?.(character) ?? character;
 }
 
 export function restoreWizardSubclassFeaturesOnArcaneRecovery(character: Character): Character {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
   }
 
-  return character.subclassId === bladesingerSubclassId
+  return getClassSubclassId(character, "Wizard") === bladesingerSubclassId
     ? restoreWizardBladesongUseOnArcaneRecovery(character)
     : character;
 }
 
 export function restoreWizardSubclassFeaturesOnShortRest(character: Character): Character {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
   }
 
-  return wizardShortRestRestorers[character.subclassId]?.(character) ?? character;
+  return (
+    wizardShortRestRestorers[getClassSubclassId(character, "Wizard")]?.(character) ?? character
+  );
 }
 
 export function advanceWizardSubclassFeaturesForNewRound(character: Character): Character {
-  if (character.className !== "Wizard" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
   }
 
-  return character.subclassId === bladesingerSubclassId
+  return getClassSubclassId(character, "Wizard") === bladesingerSubclassId
     ? advanceWizardBladesingerFeaturesForNewRound(character)
     : character;
 }

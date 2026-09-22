@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import {
   sorcererFeatureMap,
   sorcererFeatures,
@@ -12,7 +14,7 @@ import {
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../spellSlots";
 import {
   activateSorcererSubclassCrownOfSpellfire,
   activateSorcererSubclassFeatureAction,
@@ -350,11 +352,11 @@ export function hasSorcererFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Sorcerer") {
+  if (!hasCharacterClass(character, "Sorcerer")) {
     return false;
   }
 
-  return getUnlockedSorcererFeatures(character.level).has(feature);
+  return getUnlockedSorcererFeatures(getClassLevel(character, "Sorcerer")).has(feature);
 }
 
 export function normalizeSorcererFeatureState(
@@ -459,10 +461,7 @@ export function normalizeSorcererFeatureState(
         : 0,
     dragonCompanionUsesExpended:
       dragonCompanionUsesTotal > 0 && Number.isFinite(dragonCompanionUsesExpended)
-        ? Math.max(
-            0,
-            Math.min(dragonCompanionUsesTotal, Math.floor(dragonCompanionUsesExpended))
-          )
+        ? Math.max(0, Math.min(dragonCompanionUsesTotal, Math.floor(dragonCompanionUsesExpended)))
         : 0,
     clockworkCavalcadeUsesExpended:
       clockworkCavalcadeUsesTotal > 0 && Number.isFinite(clockworkCavalcadeUsesExpended)
@@ -504,7 +503,10 @@ export function getSorceryPointsTotal(character: Pick<Character, "className" | "
     return 0;
   }
 
-  return Math.max(0, getSorcererFeatureRow(character.level)?.sorceryPoints ?? 0);
+  return Math.max(
+    0,
+    getSorcererFeatureRow(getClassLevel(character, "Sorcerer"))?.sorceryPoints ?? 0
+  );
 }
 
 export function getSorceryPointsRemaining(
@@ -569,11 +571,11 @@ export function getSorcererMetamagicSelectionCount(
     return 0;
   }
 
-  if (character.level >= 17) {
+  if (getClassLevel(character, "Sorcerer") >= 17) {
     return 6;
   }
 
-  if (character.level >= 10) {
+  if (getClassLevel(character, "Sorcerer") >= 10) {
     return 4;
   }
 
@@ -1038,7 +1040,7 @@ export function convertSpellSlotToSorceryPoints(
   }
 
   const normalizedSpellSlotLevel = Math.max(1, Math.min(9, Math.floor(spellSlotLevel)));
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -1079,6 +1081,7 @@ export function createSpellSlotFromSorceryPoints(
   character: Character,
   spellSlotLevel: number
 ): Character {
+  if (character.multiclass && character.slotPoolId?.startsWith("pact:")) return character;
   if (!hasSorcererFeature(character, CLASS_FEATURE.FONT_OF_MAGIC)) {
     return character;
   }
@@ -1086,11 +1089,11 @@ export function createSpellSlotFromSorceryPoints(
   const rule =
     sorcererSpellSlotCreationRules.find((entry) => entry.spellSlotLevel === spellSlotLevel) ?? null;
 
-  if (!rule || character.level < rule.minimumSorcererLevel) {
+  if (!rule || getClassLevel(character, "Sorcerer") < rule.minimumSorcererLevel) {
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -1173,7 +1176,7 @@ export function applySorcerousRestorationOnShortRest(character: Character): Char
     return character;
   }
 
-  const sorceryPointsToRestore = Math.max(0, Math.floor(character.level / 2));
+  const sorceryPointsToRestore = Math.max(0, Math.floor(getClassLevel(character, "Sorcerer") / 2));
   const nextCharacter =
     sorceryPointsToRestore > 0
       ? updateSorceryPointsExpended(

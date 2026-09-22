@@ -1,3 +1,4 @@
+import { getCharacterLevel, getClassLevel } from "../../multiclass";
 import { getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -186,7 +187,9 @@ function getClericSpellSaveDc(
   character: Pick<Character, "level" | "abilities" | "feats"> &
     Partial<Pick<Character, "background" | "backgroundChoices">>
 ): number {
-  return 8 + getClericProficiencyBonus(character.level) + getClericWisdomModifier(character);
+  return (
+    8 + getClericProficiencyBonus(getCharacterLevel(character)) + getClericWisdomModifier(character)
+  );
 }
 
 function formatAbilityContribution(value: number, ability: AbilityKey): string {
@@ -308,8 +311,16 @@ export function getClericResolvedDivinityDisplay(
   description: SpellDescriptionEntry[];
   descriptionAdditions: SpellDescriptionEntry[][];
 } {
-  const baseDamage = getResolvedDivinityValue(divinity, "damage", character.level);
-  const baseHealing = getResolvedDivinityValue(divinity, "healing", character.level);
+  const baseDamage = getResolvedDivinityValue(
+    divinity,
+    "damage",
+    getClassLevel(character, "Cleric")
+  );
+  const baseHealing = getResolvedDivinityValue(
+    divinity,
+    "healing",
+    getClassLevel(character, "Cleric")
+  );
   const wisdomModifier = getClericWisdomModifier(character);
   const divineSparkValueCell =
     divinity.id === "divinity-divine-spark" && baseDamage && baseHealing
@@ -375,7 +386,7 @@ export function normalizeClericFeatureState(
 ): CharacterClericFeatureState {
   const normalizedCharacter = {
     ...character,
-    level: character.level ?? 1
+    level: getClassLevel(character, "Cleric") ?? 1
   };
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
@@ -1048,8 +1059,16 @@ export function getClericFeatureActionOptions(
 
   const wisdomModifier = getClericWisdomModifier(character);
   const spellSaveDc = getClericSpellSaveDc(character);
-  const divineSparkDamage = getResolvedDivinityValue(divineSparkEntry, "damage", character.level);
-  const divineSparkHealing = getResolvedDivinityValue(divineSparkEntry, "healing", character.level);
+  const divineSparkDamage = getResolvedDivinityValue(
+    divineSparkEntry,
+    "damage",
+    getClassLevel(character, "Cleric")
+  );
+  const divineSparkHealing = getResolvedDivinityValue(
+    divineSparkEntry,
+    "healing",
+    getClassLevel(character, "Cleric")
+  );
 
   if (!divineSparkDamage || !divineSparkHealing) {
     return [];

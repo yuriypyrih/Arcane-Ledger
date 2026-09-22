@@ -228,6 +228,7 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
 
     return {
       type: "class-feature",
+      ...(typeof record.classEntryId === "string" ? { classEntryId: record.classEntryId } : {}),
       feature: record.feature as CLASS_FEATURE,
       level: clampFeatLevel(record.level, takenAtLevel)
     };
@@ -242,6 +243,7 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
     ) {
       return {
         type: "eldritch-invocation",
+        ...(typeof record.classEntryId === "string" ? { classEntryId: record.classEntryId } : {}),
         invocation: record.invocation as ELDRITCH_INVOCATION,
         selectionId: record.selectionId.trim()
       };
@@ -354,8 +356,7 @@ export function normalizeCharacterFeats(
     const boonOfRecovery =
       feat === FEATS.BOON_OF_RECOVERY && record.boonOfRecovery
         ? {
-            lastStandExpended:
-              record.boonOfRecovery.lastStandExpended === true ? true : undefined,
+            lastStandExpended: record.boonOfRecovery.lastStandExpended === true ? true : undefined,
             recoverVitalityDiceExpended: Math.max(
               0,
               Math.min(
@@ -382,8 +383,7 @@ export function normalizeCharacterFeats(
     const boonOfTerror =
       feat === FEATS.BOON_OF_TERROR && record.boonOfTerror
         ? {
-            fleeFoolsExpended:
-              record.boonOfTerror.fleeFoolsExpended === true ? true : undefined
+            fleeFoolsExpended: record.boonOfTerror.fleeFoolsExpended === true ? true : undefined
           }
         : undefined;
     const boonOfSkill =
@@ -394,9 +394,7 @@ export function normalizeCharacterFeats(
     const coldCaster =
       feat === FEATS.COLD_CASTER ? normalizeColdCasterChoice(record.coldCaster) : undefined;
     const dragonscarred =
-      feat === FEATS.DRAGONSCARRED
-        ? normalizeDragonscarredChoice(record.dragonscarred)
-        : undefined;
+      feat === FEATS.DRAGONSCARRED ? normalizeDragonscarredChoice(record.dragonscarred) : undefined;
     const crusher = feat === FEATS.CRUSHER ? normalizeCrusherChoice(record.crusher) : undefined;
     const dualWielder =
       feat === FEATS.DUAL_WIELDER ? normalizeDualWielderChoice(record.dualWielder) : undefined;
@@ -512,18 +510,14 @@ export function normalizeCharacterFeats(
         ? {
             flusteringStrikeExpended: Math.max(
               0,
-              Math.min(
-                6,
-                Math.floor(Number(record.fairyTrickster.flusteringStrikeExpended) || 0)
-              )
+              Math.min(6, Math.floor(Number(record.fairyTrickster.flusteringStrikeExpended) || 0))
             )
           }
         : undefined;
     const enclaveMagic =
       feat === FEATS.ENCLAVE_MAGIC && record.enclaveMagic
         ? {
-            twoHeartsOneMindExpended:
-              record.enclaveMagic.twoHeartsOneMindExpended === true
+            twoHeartsOneMindExpended: record.enclaveMagic.twoHeartsOneMindExpended === true
           }
         : undefined;
     const genieMagic =
@@ -769,12 +763,9 @@ export function createCharacterFeatEntry(
     cultOfDragonInitiate:
       feat === FEATS.CULT_OF_THE_DRAGON_INITIATE ? options?.cultOfDragonInitiate : undefined,
     emeraldEnclaveFledgling:
-      feat === FEATS.EMERALD_ENCLAVE_FLEDGLING
-        ? options?.emeraldEnclaveFledgling
-        : undefined,
+      feat === FEATS.EMERALD_ENCLAVE_FLEDGLING ? options?.emeraldEnclaveFledgling : undefined,
     harperAgent: feat === FEATS.HARPER_AGENT ? options?.harperAgent : undefined,
-    purpleDragonRook:
-      feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
+    purpleDragonRook: feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
     fairyTrickster: feat === FEATS.FAIRY_TRICKSTER ? options?.fairyTrickster : undefined,
     enclaveMagic: feat === FEATS.ENCLAVE_MAGIC ? options?.enclaveMagic : undefined,
     genieMagic: feat === FEATS.GENIE_MAGIC ? options?.genieMagic : undefined,
@@ -782,21 +773,18 @@ export function createCharacterFeatEntry(
     mythalTouched: feat === FEATS.MYTHAL_TOUCHED ? options?.mythalTouched : undefined,
     purpleDragonCommandant:
       feat === FEATS.PURPLE_DRAGON_COMMANDANT ? options?.purpleDragonCommandant : undefined,
-    spellfireSpark:
-      feat === FEATS.SPELLFIRE_SPARK ? options?.spellfireSpark : undefined,
+    spellfireSpark: feat === FEATS.SPELLFIRE_SPARK ? options?.spellfireSpark : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,
     crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
     boonOfEnergyResistance:
       feat === FEATS.BOON_OF_ENERGY_RESISTANCE ? options?.boonOfEnergyResistance : undefined,
     boonOfFate: feat === FEATS.BOON_OF_FATE ? options?.boonOfFate : undefined,
-    boonOfFluidForms:
-      feat === FEATS.BOON_OF_FLUID_FORMS ? options?.boonOfFluidForms : undefined,
+    boonOfFluidForms: feat === FEATS.BOON_OF_FLUID_FORMS ? options?.boonOfFluidForms : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     boonOfRecovery: feat === FEATS.BOON_OF_RECOVERY ? options?.boonOfRecovery : undefined,
     boonOfRevelry: feat === FEATS.BOON_OF_REVELRY ? options?.boonOfRevelry : undefined,
-    boonOfSoulDrinker:
-      feat === FEATS.BOON_OF_SOUL_DRINKER ? options?.boonOfSoulDrinker : undefined,
+    boonOfSoulDrinker: feat === FEATS.BOON_OF_SOUL_DRINKER ? options?.boonOfSoulDrinker : undefined,
     boonOfTerror: feat === FEATS.BOON_OF_TERROR ? options?.boonOfTerror : undefined,
     boonOfSkill: feat === FEATS.BOON_OF_SKILL ? options?.boonOfSkill : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)

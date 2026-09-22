@@ -1,4 +1,5 @@
 import { DefaultCharacterPortraitIcon } from "../../CharacterPortrait";
+import SheetReferenceButton from "../SheetReferenceButton";
 import styles from "./CharacterProfileForm.module.css";
 
 type CharacterPortraitButtonProps = {
@@ -17,7 +18,7 @@ function CharacterPortraitButton({
   const resolvedName = characterName.trim() || "character";
 
   return (
-    <button
+    <SheetReferenceButton
       type="button"
       className={styles.portraitFrame}
       aria-busy={isLoading || undefined}
@@ -29,7 +30,7 @@ function CharacterPortraitButton({
       ) : (
         <DefaultCharacterPortraitIcon className={styles.portraitDefaultIcon} />
       )}
-    </button>
+    </SheetReferenceButton>
   );
 }
 

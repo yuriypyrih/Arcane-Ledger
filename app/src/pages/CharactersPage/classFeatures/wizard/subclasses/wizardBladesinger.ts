@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -120,9 +121,9 @@ function hasWizardBladesongFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === bladesingerSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 3
   );
 }
 
@@ -136,9 +137,9 @@ function hasWizardBladesingerExtraAttackFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === bladesingerSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 6
   );
 }
 
@@ -146,9 +147,9 @@ function hasWizardBladesingerSongOfDefenseFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === bladesingerSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 10
   );
 }
 
@@ -156,9 +157,9 @@ function hasWizardBladesingerSpellcastWeaponBonusActionFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Wizard" &&
-    character.subclassId === bladesingerSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Wizard") &&
+    getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
+    (getClassLevel(character, "Wizard") ?? 0) >= 14
   );
 }
 
@@ -913,7 +914,10 @@ function createWizardBladesingerSource(input: {
 export function collectWizardBladesingerContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
-  if (character.className !== "Wizard" || character.subclassId !== bladesingerSubclassId) {
+  if (
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== bladesingerSubclassId
+  ) {
     return [];
   }
 

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   getSpeciesEntryByName,
   getSpellEntryById,
@@ -327,7 +328,9 @@ export function getGnomeSpellcastingAbilityForCharacter(
 }
 
 export function getGnomeSpeakWithAnimalsUsesTotal(character: GnomeRuntimeCharacter): number {
-  return isForestGnome(character) ? getSpeciesProficiencyBonus(character.level ?? 1) : 0;
+  return isForestGnome(character)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    : 0;
 }
 
 export function getGnomeSpeakWithAnimalsUsesRemaining(character: GnomeRuntimeCharacter): number {

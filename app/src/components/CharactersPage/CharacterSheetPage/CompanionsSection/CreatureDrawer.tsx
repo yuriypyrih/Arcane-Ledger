@@ -30,6 +30,7 @@ import { getCompanionDisplayType, getCompanionSourceLabel } from "./companionUti
 import styles from "./CompanionsSection.module.css";
 
 type CreatureDrawerProps = {
+  readOnly?: boolean;
   character?: Pick<Character, "abilities" | "level">;
   creature: CharacterCompanion;
   getErrorMessage?: (error: unknown, fallback: string) => string;
@@ -44,6 +45,7 @@ function getDefaultErrorMessage(_error: unknown, fallback: string) {
 }
 
 function CreatureDrawer({
+  readOnly = false,
   character,
   creature,
   getErrorMessage = getDefaultErrorMessage,
@@ -68,6 +70,7 @@ function CreatureDrawer({
     update: (currentCreature: CharacterCompanion) => CharacterCompanion,
     fallbackMessage = "Unable to update creature."
   ) {
+    if (readOnly) return false;
     setDrawerNotice(null);
 
     try {
@@ -105,7 +108,13 @@ function CreatureDrawer({
           </OverlayDetailsGrid>
         ) : null}
 
-        <HitPointControls
+        {readOnly ? (
+          <OverlayDetailsGrid>
+            <CellContainer label="Hit Points" content={`${creature.currentHitPoints}/${creature.maxHitPoints} HP`} />
+            <CellContainer label="Temporary Hit Points" content={String(creature.temporaryHitPoints ?? 0)} />
+            <CellContainer label="Status" content={statusLabel} />
+          </OverlayDetailsGrid>
+        ) : <HitPointControls
           className={styles.companionHpControls}
           currentHitPoints={creature.currentHitPoints}
           maxHitPoints={creature.maxHitPoints}
@@ -149,7 +158,7 @@ function CreatureDrawer({
               assignManualTemporaryHitPointsToCharacterCompanion(currentCreature, value)
             )
           }
-        />
+        />}
 
         {drawerNotice ? <p className={styles.notice}>{drawerNotice}</p> : null}
 

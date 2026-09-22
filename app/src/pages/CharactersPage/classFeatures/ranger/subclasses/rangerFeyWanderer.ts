@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   REACTION,
@@ -177,7 +178,7 @@ function getDreadfulStrikesDamageFormula(
     return null;
   }
 
-  return (character.level ?? 0) >= 11 ? "1d6" : "1d4";
+  return (getClassLevel(character, "Ranger") ?? 0) >= 11 ? "1d6" : "1d4";
 }
 
 function hasRangerFeyWandererDreadfulStrikesAvailable(
@@ -230,9 +231,9 @@ export function hasRangerFeyWandererDreadfulStrikesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -265,9 +266,9 @@ export function hasRangerFeyWandererSpellsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -275,9 +276,9 @@ export function hasRangerFeyWandererOtherworldlyGlamourFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -285,9 +286,9 @@ export function hasRangerFeyWandererBeguilingTwistFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 7
   );
 }
 
@@ -295,9 +296,9 @@ export function hasRangerFeyWandererFeyReinforcementsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 11
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 11
   );
 }
 
@@ -306,9 +307,9 @@ export function hasRangerFeyWandererMistyWandererFeature(
     Partial<Pick<Character, "abilities" | "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === feyWandererSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === feyWandererSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 15
   );
 }
 
@@ -628,7 +629,10 @@ export function setRangerFeyWandererGiftSelection(
 function collectRangerFeyWandererContributions(
   character: RangerFeyWandererCharacter
 ): FeatureContributionSpec[] {
-  if (character.className !== "Ranger" || character.subclassId !== feyWandererSubclassId) {
+  if (
+    !hasCharacterClass(character, "Ranger") ||
+    getClassSubclassId(character, "Ranger") !== feyWandererSubclassId
+  ) {
     return [];
   }
 
@@ -642,7 +646,7 @@ function collectRangerFeyWandererContributions(
         entryId: CLASS_FEATURE.FEY_WANDERER_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Ranger") ?? 0,
         feyWandererSpellIdsByLevel
       )
     });

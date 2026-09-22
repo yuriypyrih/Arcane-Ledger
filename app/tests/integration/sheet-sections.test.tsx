@@ -127,6 +127,7 @@ describe("the real character sheet with independent section updates", () => {
       .getByRole("button", { name: "Open spellcasting guide" })
       .closest("article")!;
     expect(within(spellSection).getByText("Shield", { exact: true })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Spellcasting" })).toBeVisible();
     update((c) => ({ ...c, feats: [] }), "features");
     expect(
       screen.queryByRole("button", { name: "Open spellcasting guide" })

@@ -1,8 +1,5 @@
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -71,9 +68,9 @@ function getClericWarDomainFeatureDescription(
 ) {
   return getFeatureDescriptionForCharacter(
     {
-      className: character.className,
-      level: character.level ?? 1,
-      subclassId: character.subclassId
+      className: "Cleric",
+      level: getClassLevel(character, "Cleric") ?? 1,
+      subclassId: getClassSubclassId(character, "Cleric")
     },
     feature
   );
@@ -88,9 +85,9 @@ export function hasClericWarDomainFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Cleric" &&
-    character.subclassId === warDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Cleric") &&
+    getClassSubclassId(character, "Cleric") === warDomainSubclassId &&
+    (getClassLevel(character, "Cleric") ?? 0) >= minimumLevel
   );
 }
 
@@ -429,7 +426,7 @@ export function collectClericWarDomainContributions(
         entryId: CLASS_FEATURE.WAR_DOMAIN_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Cleric") ?? 0,
         warDomainSpellIdsByLevel
       )
     },
@@ -504,7 +501,8 @@ export function collectClericWarDomainContributions(
             spellTransforms: [
               {
                 id: "cleric-war-domain-war-gods-blessing-spell-transform",
-                transform: (spell: SpellEntry) => getClericWarGodsBlessingSpellEntry(character, spell)
+                transform: (spell: SpellEntry) =>
+                  getClericWarGodsBlessingSpellEntry(character, spell)
               }
             ]
           }

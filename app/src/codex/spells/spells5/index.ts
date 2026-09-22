@@ -75,9 +75,10 @@ export const antilifeShell: SpellEntry = {
   spellLevel: 5
 };
 
-export const arcaneHand: SpellEntry = {
+export const bigbysHand: SpellEntry = {
+  // Retain the original catalog ID so saved spellbooks and prepared lists still resolve.
   id: "spell-arcane-hand",
-  name: "Arcane Hand",
+  name: "Bigby's Hand",
   category: ENTRY_CATEGORIES.SPELLS,
   source: {
     documentKey: "srd-2024",
@@ -85,7 +86,7 @@ export const arcaneHand: SpellEntry = {
     ruleset: "5e-2024",
     open5eKey: "srd-2024_arcane-hand",
     publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+    permalink: "https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf#page=110"
   },
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
@@ -97,6 +98,10 @@ export const arcaneHand: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a Large hand of shimmering magical energy in an unoccupied space that you can see within range. The hand lasts for the duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and Hit Points equal to your Hit Point maximum. If it drops to 0 Hit Points, the spell ends. The hand doesn't occupy its space. When you cast the spell and as a Bonus Action on your later turns, you can move the hand up to 60 feet and then cause one of the following effects:",
+    "<strong>Clenched Fist.</strong> Make a melee spell attack against a target within 5 feet of the hand. A hit deals <strong>5d8</strong> Force damage.",
+    "<strong>Forceful Hand.</strong> Choose a Huge or smaller creature within 5 feet of the hand. On a failed Strength saving throw, it is pushed up to 5 feet plus five times your spellcasting ability modifier in feet. The hand follows, staying within 5 feet of that creature.",
+    "<strong>Grasping Hand.</strong> Choose a Huge or smaller creature within 5 feet of the hand. On a failed Dexterity saving throw, it gains the Grappled condition; escaping uses your spell save DC. While it remains grappled, a Bonus Action lets you crush it for <strong>4d6</strong> Bludgeoning damage plus your spellcasting ability modifier.",
+    "<strong>Interposing Hand.</strong> You have Half Cover against attacks and effects originating in or passing through the hand's space. Enemies treat that space as Difficult Terrain.",
     "<strong>Using a Higher-Level Spell Slot.</strong> The damage of the Clenched Fist increases by <strong>2d8</strong> and the damage of the Grasping Hand increases by <strong>2d6</strong> for each spell slot level above 5."
   ],
   damage: [],
@@ -2194,7 +2199,7 @@ export const wrathOfNature: SpellEntry = {
 export const spellEntries5: SpellEntry[] = [
   animateObjects,
   antilifeShell,
-  arcaneHand,
+  bigbysHand,
   awaken,
   banishingSmite,
   circleOfPower,

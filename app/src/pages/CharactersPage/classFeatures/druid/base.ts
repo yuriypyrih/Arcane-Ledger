@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { druidFeatures } from "../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character, CharacterDruidFeatureState, MonsterRecord } from "../../../../types";
@@ -32,11 +33,11 @@ export function hasDruidFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Druid") {
+  if (!hasCharacterClass(character, "Druid")) {
     return false;
   }
 
-  return getUnlockedDruidFeatures(character.level).has(feature);
+  return getUnlockedDruidFeatures(getClassLevel(character, "Druid")).has(feature);
 }
 
 function getRawDruidFeatureState(
@@ -52,7 +53,10 @@ export function getDruidWildShapeUsesTotal(
     return 0;
   }
 
-  return Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0));
+  return Math.max(
+    0,
+    Math.floor(getDruidFeatureRow(getClassLevel(character, "Druid"))?.wildShape ?? 0)
+  );
 }
 
 export function getDruidWildShapeUsesRemaining(

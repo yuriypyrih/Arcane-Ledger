@@ -1,3 +1,4 @@
+import { getClassLevel, getClassSubclassId } from "./multiclass";
 import type { Character, CharacterCompanion, MonsterRecord } from "../../types";
 import { getMonsterHitPoints } from "../../utils/monsters";
 import {
@@ -13,9 +14,8 @@ export function isBeastMasterCharacter(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === beastMasterSubclassId &&
-    (character.level ?? 0) >= 3
+    getClassSubclassId(character, "Ranger") === beastMasterSubclassId &&
+    getClassLevel(character, "Ranger") >= 3
   );
 }
 

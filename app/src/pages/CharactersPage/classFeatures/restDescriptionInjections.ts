@@ -1,3 +1,4 @@
+import { getClassEntry, getClassEditorCharacter } from "../multiclass";
 import {
   CLASS_FEATURE,
   getClassEntryByName,
@@ -364,6 +365,8 @@ function getRuleFeatureMetadata(
   character: RestDescriptionCharacter,
   rule: RestDescriptionRule
 ): FeatureDescriptionMetadata | null {
+  const entry = getClassEntry(character, rule.className);
+  if (entry) character = getClassEditorCharacter(character, entry);
   if (character.className !== rule.className) {
     return null;
   }

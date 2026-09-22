@@ -238,6 +238,7 @@ function MonsterCodexTable({
           <span className={styles.totalLabel}>{totalEntriesLabel}</span>
           {status === "ready" && monsters.length > 0 ? (
             <TablePagination
+              ariaLabel={`${heading} pagination (top)`}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={onPageChange}
@@ -260,6 +261,15 @@ function MonsterCodexTable({
           <tbody>{renderStatusRow()}</tbody>
         </table>
       </div>
+      {status === "ready" && monsters.length > 0 ? (
+        <TablePagination
+          ariaLabel={`${heading} pagination (bottom)`}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className={paginationClassName}
+        />
+      ) : null}
     </div>
   );
 }

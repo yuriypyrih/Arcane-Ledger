@@ -8,10 +8,7 @@ import { trackAnalyticsEvent } from "../../../lib/analytics";
 import { captureAppError } from "../../../lib/sentry";
 import { showToast, useAppDispatch, useAppSelector } from "../../../store";
 import type { Character, CharacterDraft } from "../../../types";
-import {
-  getCharacterLimitForAuth,
-  hasReachedCharacterLimit
-} from "../characterLimits";
+import { getCharacterLimitForAuth, hasReachedCharacterLimit } from "../characterLimits";
 import { createEmptyCharacter } from "../constants";
 import { getCharacterEquipmentNames } from "../inventory";
 import {
@@ -51,8 +48,9 @@ function CharacterBuilderPage() {
   const parsedCharacterId = characterId ? Number(characterId) : undefined;
   const [existingCharacter, setExistingCharacter] = useState<Character | null>(null);
   const [existingCharacterLoadError, setExistingCharacterLoadError] = useState<string | null>(null);
-  const [isLoadingExistingCharacter, setIsLoadingExistingCharacter] =
-    useState(Boolean(parsedCharacterId));
+  const [isLoadingExistingCharacter, setIsLoadingExistingCharacter] = useState(
+    Boolean(parsedCharacterId)
+  );
   const isEditing = existingCharacter !== null;
   const isCharacterLimitReached =
     !isEditing && hasReachedCharacterLimit(characterCount, characterLimit);
@@ -62,6 +60,7 @@ function CharacterBuilderPage() {
       existingCharacter
         ? {
             ...emptyCharacter,
+            ...existingCharacter,
             name: existingCharacter.name,
             species: existingCharacter.species,
             speciesChoices: existingCharacter.speciesChoices,
@@ -70,6 +69,7 @@ function CharacterBuilderPage() {
             subclassId: existingCharacter.subclassId ?? "",
             customClass: existingCharacter.customClass,
             level: existingCharacter.level,
+            multiclass: existingCharacter.multiclass,
             xp: existingCharacter.xp,
             hitPoints: existingCharacter.hitPoints,
             currentHitPoints: existingCharacter.currentHitPoints,
@@ -189,9 +189,20 @@ function CharacterBuilderPage() {
       return;
     }
 
-    const savedCharacter = upsertCharacter(draft, existingCharacter?.id, {
-      ownerId: status === "authenticated" ? user?.id : null
-    });
+    let savedCharacter: Character;
+    try {
+      savedCharacter = upsertCharacter(draft, existingCharacter?.id, {
+        ownerId: status === "authenticated" ? user?.id : null
+      });
+    } catch (error) {
+      dispatch(
+        showToast({
+          text: error instanceof Error ? error.message : "Unable to save this character.",
+          type: "error"
+        })
+      );
+      return;
+    }
 
     if (!existingCharacter) {
       trackAnalyticsEvent("character_created", {

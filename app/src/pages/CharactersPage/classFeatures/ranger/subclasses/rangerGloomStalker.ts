@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -145,9 +146,9 @@ const dreadAmbusherInitiativeBonus: FeatureInitiativeBonus = {
 
 function isRangerGloomStalker(character: RangerGloomStalkerCharacter): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === gloomStalkerSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === gloomStalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 3
   );
 }
 
@@ -225,9 +226,9 @@ function hasRangerGloomStalkerIronMindFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === gloomStalkerSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === gloomStalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 7
   );
 }
 
@@ -235,9 +236,9 @@ function hasRangerGloomStalkerStalkersFlurryFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === gloomStalkerSubclassId &&
-    (character.level ?? 0) >= 11
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === gloomStalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 11
   );
 }
 
@@ -251,9 +252,9 @@ function hasRangerGloomStalkerShadowyDodgeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Ranger" &&
-    character.subclassId === gloomStalkerSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Ranger") &&
+    getClassSubclassId(character, "Ranger") === gloomStalkerSubclassId &&
+    (getClassLevel(character, "Ranger") ?? 0) >= 15
   );
 }
 
@@ -285,8 +286,7 @@ function getIronMindAvailableSavingThrows(
     getRuntimeSavingThrowLevel(
       { savingThrowProficiencies: baseSavingThrowEntries },
       SAVING_THROW_PROFICIENCY.WIS
-    ) !==
-    PROF_LEVEL.NONE;
+    ) !== PROF_LEVEL.NONE;
 
   if (!hasExistingWisdomSavingThrow) {
     return [SAVING_THROW_PROFICIENCY.WIS];
@@ -538,7 +538,7 @@ function collectRangerGloomStalkerContributions(
         entryId: CLASS_FEATURE.GLOOM_STALKER_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Ranger") ?? 0,
         gloomStalkerSpellIdsByLevel
       )
     },

@@ -1,4 +1,5 @@
 import { characterFixture } from "../fixtures/character";
+import { multiclassFixture } from "../fixtures/multiclass";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { store } from "../../src/store";
 import HitPointsWidget from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/HitPointsWidget";
 import CampButton from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/CampButton";
 import HeroicInspirationWidget from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/HeroicInspirationWidget";
+import { normalizeCustomClassConfig } from "../../src/pages/CharactersPage/customClass";
 
 function GameplayHarness({ initial }: { initial: Character }) {
   const [character, setCharacter] = useState(initial);
@@ -26,6 +28,71 @@ function GameplayHarness({ initial }: { initial: Character }) {
   );
 }
 describe("sheet gameplay interactions with real rules", () => {
+  it("the multiclass HP editor shows the range and arithmetic, including recorded rolls and adjustments", async () => {
+    const user = userEvent.setup();
+    const character = multiclassFixture([
+      { className: "Wizard", level: 2, hitPointRolls: [null, 2] },
+      { className: "Fighter", level: 1 }
+    ]);
+    character.abilities.CON = 14;
+    character.multiclass!.hitPointsAdjustment = 3;
+    character.maxHitPointsMode = "automatic";
+    render(<GameplayHarness initial={character} />);
+    await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "18~27 MAX HP = 6 Wizard D6 + 2 CON + 2 Wizard D6 roll + 2 CON + 1 × (1d10 Fighter + 2 CON) + 3 Adjustment"
+    );
+    // 8 at Wizard 1, a raw roll of 2 + CON at Wizard 2, 6 + CON at Fighter 1, plus 3.
+    expect(within(dialog).getByLabelText("Max Base HP")).toHaveValue(23);
+    expect(dialog).toHaveTextContent("[= 23 Base HP]");
+    await user.click(within(dialog).getByRole("button", { name: "Manual" }));
+    expect(within(dialog).getByText("Roll yourself", { exact: true })).toBeVisible();
+    expect(dialog).not.toHaveTextContent("Manual maximum");
+    expect(within(dialog).getByLabelText("Max Base HP")).toBeEnabled();
+    await user.click(within(dialog).getByRole("button", { name: "Auto" }));
+    expect(dialog).toHaveTextContent("[= 23 Base HP]");
+    expect(within(dialog).queryByText("Roll yourself", { exact: true })).not.toBeInTheDocument();
+  });
+  it("the HP range respects each level's minimum gain and a negative adjustment", async () => {
+    const user = userEvent.setup();
+    const character = multiclassFixture([
+      { className: "Wizard", level: 2 },
+      { className: "Fighter", level: 1 }
+    ]);
+    character.abilities.CON = 2;
+    character.multiclass!.hitPointsAdjustment = -1;
+    character.maxHitPointsMode = "automatic";
+    render(<GameplayHarness initial={character} />);
+    await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "3~9 MAX HP = 6 Wizard D6 - 4 CON + 1 × (max(1, 1d6 Wizard - 4 CON)) + 1 × (max(1, 1d10 Fighter - 4 CON)) - 1 Adjustment"
+    );
+    expect(within(dialog).getByLabelText("Max Base HP")).toHaveValue(4);
+    expect(dialog).toHaveTextContent("[= 4 Base HP]");
+  });
+  it("the HP formula uses custom Hit Dice and omits inactive classes", async () => {
+    const user = userEvent.setup();
+    const character = multiclassFixture([
+      { className: "Fighter", level: 1 },
+      {
+        className: "Custom",
+        level: 2,
+        customClass: normalizeCustomClassConfig({ name: "Sentinel", hitDie: "d12" })
+      },
+      { className: "Wizard", level: 0 }
+    ]);
+    character.maxHitPointsMode = "automatic";
+    render(<GameplayHarness initial={character} />);
+    await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "18~40 MAX HP = 10 Fighter D10 + 2 CON + 2 × (1d12 Sentinel + 2 CON)"
+    );
+    expect(dialog).not.toHaveTextContent("1d6");
+    expect(within(dialog).getByLabelText("Max Base HP")).toHaveValue(30);
+  });
   it("damages temporary HP first, then actual health, and caps healing", async () => {
     const user = userEvent.setup();
     render(<GameplayHarness initial={characterFixture({ temporaryHitPoints: 2 })} />);

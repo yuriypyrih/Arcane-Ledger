@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../multiclass";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
 import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
@@ -128,7 +129,7 @@ function getCultOfDragonInitiateDragonsTerrorSavingThrowFact(
   character: FeatRuntimeCharacter,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const wisdomModifier = getAbilityModifierForCharacter(
     {
       ...character,
@@ -299,7 +300,7 @@ function getTelekineticShoveSavingThrowFact(
   ability: AbilityKey,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(
     {
       ...character,
@@ -368,7 +369,7 @@ function getFairyTricksterFlusteringStrikeSavingThrowFact(
   ability: AbilityKey,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(
     {
       ...character,
@@ -466,7 +467,7 @@ export function createGenieMagicWishMagicAction(
   description: SpellDescriptionEntry[]
 ): FeatureActionCard {
   const chargesTag = createChargesHeaderTag(remaining, total);
-  const spellSlotLevel = getGenieMagicWishMagicSpellSlotLevel(character.level ?? 1);
+  const spellSlotLevel = getGenieMagicWishMagicSpellSlotLevel(getCharacterLevel(character) ?? 1);
   const disabledReason =
     remaining > 0 ? undefined : "Wish Magic recharges when you finish a Long Rest.";
 

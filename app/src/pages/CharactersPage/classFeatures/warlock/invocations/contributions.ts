@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../../multiclass";
 import {
   ELDRITCH_INVOCATION,
   getEldritchInvocationEntryById,
@@ -72,7 +73,7 @@ function hasInvocationContributionAccess(
   character: WarlockInvocationContributionCharacter
 ): boolean {
   return (
-    character.className === "Warlock" ||
+    hasCharacterClass(character, "Warlock") ||
     isCharacterClassRulesEldritchInvocationsEnabled(character)
   );
 }
@@ -80,7 +81,7 @@ function hasInvocationContributionAccess(
 export function getWarlockInvocationSelectionIdsFromCharacter(
   character: WarlockInvocationContributionCharacter
 ): string[] {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return getCharacterClassRulesEldritchInvocationSelectionIds(character);
   }
 
@@ -121,10 +122,7 @@ export function getWarlockPactTomeSpellIdsFromCharacter(
   character: WarlockInvocationContributionCharacter
 ): string[] {
   return getWarlockPactTomeSpellIdsFromChoiceValues(
-    getWarlockInvocationChoiceValuesForCharacter(
-      character,
-      ELDRITCH_INVOCATION.PACT_OF_THE_TOME
-    )
+    getWarlockInvocationChoiceValuesForCharacter(character, ELDRITCH_INVOCATION.PACT_OF_THE_TOME)
   );
 }
 
@@ -158,7 +156,7 @@ function getWarlockEldritchSpearDescription(
           eldritchSpearRangeDescription.length
       )
     : eldritchSpearRangeDescription;
-  const rangeIncreaseFeet = clampWarlockLevel(character.level) * 30;
+  const rangeIncreaseFeet = clampWarlockLevel(getClassLevel(character, "Warlock")) * 30;
 
   return [`${rangeDescription} <strong>(${rangeIncreaseFeet} ft)</strong>`];
 }
@@ -299,10 +297,7 @@ export function collectWarlockInvocationContributions(
         selectedInvocationIds,
         {
           [giftOfTheDepthsActionKey]: {
-            usesRemaining: getWarlockGiftOfTheDepthsUsesRemaining(
-              character,
-              selectedInvocationIds
-            ),
+            usesRemaining: getWarlockGiftOfTheDepthsUsesRemaining(character, selectedInvocationIds),
             usesTotal: giftOfTheDepthsUsesTotal,
             disabledReason: "Gift of the Depths recharges on a Long Rest."
           }
@@ -327,11 +322,10 @@ export function collectWarlockInvocationContributions(
               sourceLabel:
                 getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_MIND)?.name ??
                 "Eldritch Mind",
-              descriptionEntries:
-                getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_MIND)?.description ??
-                [
-                  "You have Advantage on Constitution saving throws that you make to maintain Concentration."
-                ]
+              descriptionEntries: getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_MIND)
+                ?.description ?? [
+                "You have Advantage on Constitution saving throws that you make to maintain Concentration."
+              ]
             }
           ]
         : [])
@@ -355,9 +349,7 @@ export function collectWarlockInvocationContributions(
           let nextSpell = spell;
 
           if (spell.spellLevel === 0 && eldritchSpearCantripIds.has(nextSpell.id)) {
-            const invocation = getEldritchInvocationEntryById(
-              ELDRITCH_INVOCATION.ELDRITCH_SPEAR
-            );
+            const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_SPEAR);
 
             nextSpell = appendSourcedDescriptionAddition(
               nextSpell,
@@ -367,9 +359,7 @@ export function collectWarlockInvocationContributions(
           }
 
           if (spell.spellLevel === 0 && repellingBlastCantripIds.has(nextSpell.id)) {
-            const invocation = getEldritchInvocationEntryById(
-              ELDRITCH_INVOCATION.REPELLING_BLAST
-            );
+            const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.REPELLING_BLAST);
 
             nextSpell = appendSourcedDescriptionAddition(
               nextSpell,

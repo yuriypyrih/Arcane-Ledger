@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import type {
   Character,
   CharacterArtificerFeatureState,
@@ -76,12 +77,17 @@ const toolsOfTheTradeConfigs: ArtificerToolsOfTheTradeConfig[] = [
 function getArtificerToolsOfTheTradeConfig(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): ArtificerToolsOfTheTradeConfig | null {
-  if (character.className !== "Artificer" || (character.level ?? 0) < 3) {
+  if (
+    !hasCharacterClass(character, "Artificer") ||
+    (getClassLevel(character, "Artificer") ?? 0) < 3
+  ) {
     return null;
   }
 
   return (
-    toolsOfTheTradeConfigs.find((config) => config.subclassId === character.subclassId) ?? null
+    toolsOfTheTradeConfigs.find(
+      (config) => config.subclassId === getClassSubclassId(character, "Artificer")
+    ) ?? null
   );
 }
 
@@ -107,8 +113,7 @@ function hasPriorToolProficiency(
     getRuntimeToolLevel(
       { toolProficiencies: getPriorToolProficiencyEntries(character) },
       proficiency
-    ) !==
-    PROF_LEVEL.NONE
+    ) !== PROF_LEVEL.NONE
   );
 }
 

@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import { CLASS_FEATURE, ENTRY_CATEGORIES, type WeaponDamage } from "../../../../../codex/entries";
 import { psychicBladeSoulBladesSummary } from "../../../../../codex/entries/featureWeapons";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -228,9 +234,9 @@ export function hasRogueSoulknifePsychicBladesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === soulknifeSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === soulknifeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 3
   );
 }
 
@@ -238,9 +244,9 @@ export function hasRogueSoulknifeSoulBladesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === soulknifeSubclassId &&
-    (character.level ?? 0) >= 9
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === soulknifeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 9
   );
 }
 
@@ -248,9 +254,9 @@ export function hasRogueSoulknifePsychicVeilFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === soulknifeSubclassId &&
-    (character.level ?? 0) >= 13
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === soulknifeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 13
   );
 }
 
@@ -258,9 +264,9 @@ export function hasRogueSoulknifeRendMindFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === soulknifeSubclassId &&
-    (character.level ?? 0) >= 17
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === soulknifeSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= 17
   );
 }
 
@@ -352,14 +358,16 @@ export function getRogueSoulknifePsionicDiceTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
   return hasRogueSoulknifePsionicPower(character)
-    ? getPsionicDiceTotalForLevel(character.level)
+    ? getPsionicDiceTotalForLevel(getClassLevel(character, "Rogue"))
     : 0;
 }
 
 export function getRogueSoulknifePsionicDie(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): PsionicDie | null {
-  return hasRogueSoulknifePsionicPower(character) ? getPsionicDieForLevel(character.level) : null;
+  return hasRogueSoulknifePsionicPower(character)
+    ? getPsionicDieForLevel(getClassLevel(character, "Rogue"))
+    : null;
 }
 
 export function getRogueSoulknifePsychicWhispersUsesTotal(
@@ -665,7 +673,9 @@ export function getRogueSoulknifeRendMindSavingThrowDc(
   }
 
   return (
-    8 + getAbilityModifierForCharacter(character, "DEX") + getProficiencyBonus(character.level ?? 1)
+    8 +
+    getAbilityModifierForCharacter(character, "DEX") +
+    getProficiencyBonus(getCharacterLevel(character) ?? 1)
   );
 }
 
@@ -680,7 +690,7 @@ export function getRogueSoulknifeRendMindSavingThrowFormulaDisplay(
   }
 
   const dexterityModifier = getAbilityModifierForCharacter(character, "DEX");
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
 
   return [
     `Wisdom DC ${saveDc} = DC 8`,

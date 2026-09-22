@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
@@ -28,7 +29,7 @@ function getFighterEldritchKnightWarMagicUseLimit(
     return 0;
   }
 
-  return (character.level ?? 0) >= 18 ? 2 : 1;
+  return (getClassLevel(character, "Fighter") ?? 0) >= 18 ? 2 : 1;
 }
 
 export function getFighterEldritchKnightWarMagicSpellLevels(
@@ -38,7 +39,7 @@ export function getFighterEldritchKnightWarMagicSpellLevels(
     return [];
   }
 
-  return (character.level ?? 0) >= 18 ? [0, 1, 2] : [0];
+  return (getClassLevel(character, "Fighter") ?? 0) >= 18 ? [0, 1, 2] : [0];
 }
 
 function getFighterEldritchKnightWarMagicUsesThisTurn(
@@ -97,9 +98,9 @@ function hasFighterEldritchKnightWarMagicFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === eldritchKnightSubclassId &&
-    (character.level ?? 0) >= 7
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === eldritchKnightSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 7
   );
 }
 
@@ -107,9 +108,9 @@ function hasFighterEldritchKnightEldritchStrikeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === eldritchKnightSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === eldritchKnightSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 10
   );
 }
 
@@ -117,28 +118,28 @@ function hasFighterEldritchKnightArcaneChargeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === eldritchKnightSubclassId &&
-    (character.level ?? 0) >= 15
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === eldritchKnightSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= 15
   );
 }
 
 function getFighterAdditionalAttackCount(
   character: Partial<Pick<Character, "className" | "level">>
 ): number {
-  if (character.className !== "Fighter") {
+  if (!hasCharacterClass(character, "Fighter")) {
     return 0;
   }
 
-  if ((character.level ?? 0) >= 20) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 20) {
     return 3;
   }
 
-  if ((character.level ?? 0) >= 11) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 11) {
     return 2;
   }
 
-  if ((character.level ?? 0) >= 5) {
+  if ((getClassLevel(character, "Fighter") ?? 0) >= 5) {
     return 1;
   }
 
@@ -290,9 +291,9 @@ function hasFighterEldritchKnightFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Fighter" &&
-    character.subclassId === eldritchKnightSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Fighter") &&
+    getClassSubclassId(character, "Fighter") === eldritchKnightSubclassId &&
+    (getClassLevel(character, "Fighter") ?? 0) >= minimumLevel
   );
 }
 

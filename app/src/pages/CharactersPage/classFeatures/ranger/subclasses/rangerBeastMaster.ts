@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
@@ -53,7 +54,7 @@ function getCommandDescriptionAdditions(
   character: BeastMasterRuntimeCharacter
 ): SpellDescriptionEntry[][] {
   return [
-    ...((character.level ?? 0) >= 7
+    ...((getClassLevel(character, "Ranger") ?? 0) >= 7
       ? [
           createFeatureSourcedDescriptionEntries(
             character,
@@ -63,7 +64,7 @@ function getCommandDescriptionAdditions(
           )
         ]
       : []),
-    ...((character.level ?? 0) >= 11
+    ...((getClassLevel(character, "Ranger") ?? 0) >= 11
       ? [
           createFeatureSourcedDescriptionEntries(
             character,
@@ -73,7 +74,7 @@ function getCommandDescriptionAdditions(
           )
         ]
       : []),
-    ...((character.level ?? 0) >= 15
+    ...((getClassLevel(character, "Ranger") ?? 0) >= 15
       ? [
           createFeatureSourcedDescriptionEntries(
             character,
@@ -215,7 +216,7 @@ function collectRangerBeastMasterContributions(
     }
   ];
 
-  if ((character.level ?? 0) >= 7) {
+  if ((getClassLevel(character, "Ranger") ?? 0) >= 7) {
     contributions.push(
       createBeastMasterLocalHookContribution({
         id: "ranger-beast-master-exceptional-training",
@@ -225,7 +226,7 @@ function collectRangerBeastMasterContributions(
     );
   }
 
-  if ((character.level ?? 0) >= 11) {
+  if ((getClassLevel(character, "Ranger") ?? 0) >= 11) {
     contributions.push(
       createBeastMasterLocalHookContribution({
         id: "ranger-beast-master-bestial-fury",
@@ -235,7 +236,7 @@ function collectRangerBeastMasterContributions(
     );
   }
 
-  if ((character.level ?? 0) >= 15) {
+  if ((getClassLevel(character, "Ranger") ?? 0) >= 15) {
     contributions.push(
       createBeastMasterLocalHookContribution({
         id: "ranger-beast-master-share-spells",

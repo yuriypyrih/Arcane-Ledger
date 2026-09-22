@@ -1,13 +1,29 @@
+import {
+  getCharacterSpellSlotPools,
+  getGameplayClassContext,
+  applyGameplayClassChange
+} from "../../../../../../../pages/CharactersPage/multiclassSpellcasting";
+import { getCharacterRuntime } from "../../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
+import SelectInput from "../../../../../FormInputs/SelectInput";
+import {
+  hasCharacterClass,
+  getClassSubclassId,
+  getClassLevel
+} from "../../../../../../../pages/CharactersPage/multiclass";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../../DicePage/DiceRollerPopup";
 import KeywordReferenceDrawer from "../../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import ActionShape, { getActionShapeForCastingTime } from "../../../../../../ActionShape";
 import RollStatePill from "../../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../../FeatureOptInToggle/FeatureOptInToggle";
-import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../../types";
+import type {
+  Character,
+  CharacterWizardPortentRoll,
+  MonsterRecord
+} from "../../../../../../../types";
 import { abilityKeys } from "../../../../../../../pages/CharactersPage/constants";
 import { getKeywordReferences } from "../../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -290,7 +306,11 @@ import {
 } from "../../../../../../RollStatePill/rollState";
 import { useBodyScrollLock } from "../../../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../../../assets/svg/d20.svg";
-import { setNextRollModeOverride, useAppDispatch, useAppSelector } from "../../../../../../../store";
+import {
+  setNextRollModeOverride,
+  useAppDispatch,
+  useAppSelector
+} from "../../../../../../../store";
 import ActionButton from "../../../../../../ActionButton";
 import styles from "../ActionsWidget.module.css";
 import InventoryTagPill from "../../../../EquipmentForm/InventoryTagPill";
@@ -303,9 +323,7 @@ import ActionDiceConfirmFooter from "../ActionDiceConfirmFooter";
 import { ArcaneWardActionFooter } from "../ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "../BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "../BeastMasterReviveActionFooter";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer
-} from "../../../../../../CodexPage/LazyCodexReferenceDrawers";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../../../../CodexPage/LazyCodexReferenceDrawers";
 import BlessingOfTheTricksterActionBody from "../BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "../ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "../../DiceRollerSettingsButton";
@@ -327,7 +345,10 @@ import { LayOnHandsActionBody, LayOnHandsActionFooter } from "../LayOnHandsActio
 import { SorcererInnateSorceryActionFooter } from "../SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "../ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "../WarlockAwakenedMindAction";
-import { WarriorOfTheGodsActionBody, WarriorOfTheGodsActionFooter } from "../WarriorOfTheGodsAction";
+import {
+  WarriorOfTheGodsActionBody,
+  WarriorOfTheGodsActionFooter
+} from "../WarriorOfTheGodsAction";
 import {
   appendRollModifier,
   getWeaponAttackFormulaPresentation,
@@ -451,7 +472,11 @@ const initialSneakAttackActionSelection: SneakAttackActionSelection = {
   useRendMind: false
 };
 
-function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
+function ActionsWidget({
+  character: rootCharacter,
+  onPersistCharacter: persistRoot
+}: ActionsWidgetProps) {
+  const [selectedSlotPoolId, setSelectedSlotPoolId] = useState("standard");
   const dispatch = useAppDispatch();
   const [sneakAttackActionSelection, setSneakAttackActionSelection] =
     useState<SneakAttackActionSelection>(initialSneakAttackActionSelection);
@@ -622,6 +647,51 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     resetActionDrawerState,
     resetActionSelectionState
   } = useActionsWidgetUiState(frozenHauntFallbackSpellSlotMinimumLevel);
+  const slotPools = useMemo(
+    () =>
+      getCharacterSpellSlotPools(rootCharacter).filter((pool) =>
+        pool.totals.some((count) => count > 0)
+      ),
+    [rootCharacter]
+  );
+  const poolId =
+    slotPools.find((pool) => pool.id === selectedSlotPoolId)?.id ?? slotPools[0]?.id ?? "standard";
+  const sourceId = useMemo(() => {
+    const action = getCharacterRuntime(rootCharacter).combatActionsByKey.get(
+      selectedActionKey ?? ""
+    );
+    return action?.kind === "feature" ? action.action.sourceClassEntryId : undefined;
+  }, [rootCharacter, selectedActionKey]);
+  const character = useMemo(
+    () => getGameplayClassContext(rootCharacter, sourceId, poolId),
+    [rootCharacter, sourceId, poolId]
+  );
+  const onPersistCharacter = useCallback<ActionsWidgetProps["onPersistCharacter"]>(
+    (update, options) =>
+      persistRoot(
+        (current) => applyGameplayClassChange(current, sourceId, poolId, update),
+        options
+      ),
+    [persistRoot, sourceId, poolId]
+  );
+  const slotPoolControl =
+    rootCharacter.multiclass && slotPools.length > 1 ? (
+      <label>
+        Spell slot pool
+        <SelectInput
+          aria-label="Action spell slot pool"
+          value={poolId}
+          onChange={(event) => setSelectedSlotPoolId(event.target.value)}
+        >
+          {slotPools.map((pool) => (
+            <option key={pool.id} value={pool.id}>
+              {pool.label}
+            </option>
+          ))}
+        </SelectInput>
+      </label>
+    ) : undefined;
+
   const nextRollCriticalHitOverride = useAppSelector(
     (state) => state.diceRoller.nextRollCriticalHitOverride
   );
@@ -672,14 +742,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     natureMagicianOptions
   } = useActionResourceOptionModel(character);
   const mantleOfMajestyUsesRemaining = useMemo(
-    () =>
-      getMantleOfMajestyUsesRemainingForCharacter({
-        classFeatureState: { bard: bardFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [bardFeatureState, className, level, subclassId]
+    () => getMantleOfMajestyUsesRemainingForCharacter(character),
+    [character]
   );
   const {
     selectedAction,
@@ -702,14 +766,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedLayOnHandsConditions
   });
   const wildShapeKnownForms = useMemo(
-    () =>
-      getDruidWildShapeKnownFormsForCharacter({
-        classFeatureState: { druid: druidFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [className, druidFeatureState, level, subclassId]
+    () => getDruidWildShapeKnownFormsForCharacter(character),
+    [character]
   );
   const wildShapeMonsterCache = useMemo(
     () =>
@@ -720,28 +778,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [wildShapeKnownForms]
   );
   const wildShapeUsesTotal = useMemo(
-    () => getDruidWildShapeUsesTotalForCharacter({ className, level }),
-    [className, level]
+    () => getDruidWildShapeUsesTotalForCharacter(character),
+    [character]
   );
   const wildShapeUsesRemaining = useMemo(
-    () =>
-      getDruidWildShapeUsesRemainingForCharacter({
-        classFeatureState: { druid: druidFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [className, druidFeatureState, level, subclassId]
+    () => getDruidWildShapeUsesRemainingForCharacter(character),
+    [character]
   );
   const wildResurgenceSpellSlotRecoveryUsesRemaining = useMemo(
-    () =>
-      getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter({
-        classFeatureState: { druid: druidFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [className, druidFeatureState, level, subclassId]
+    () => getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter(character),
+    [character]
   );
   const {
     selectedWeaponAction,
@@ -1183,37 +1229,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     return getCommonActionPathStates(character, selectedAction.action, roundTracker);
   }, [character, roundTracker, selectedAction]);
   const selectedFlurryOfHealingAndHarmUsesTotal = useMemo(
-    () =>
-      getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal({
-        abilities,
-        classFeatureState: { monk: monkFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [abilities, className, level, monkFeatureState, subclassId]
+    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character),
+    [character]
   );
   const selectedFlurryOfHealingAndHarmUsesRemaining = useMemo(
-    () =>
-      getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining({
-        abilities,
-        classFeatureState: { monk: monkFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [abilities, className, level, monkFeatureState, subclassId]
+    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining(character),
+    [character]
   );
   const selectedFlurryOfHealingAndHarmActive = useMemo(
-    () =>
-      isMonkWarriorOfMercyFlurryOfHealingAndHarmActive({
-        abilities,
-        classFeatureState: { monk: monkFeatureState },
-        className,
-        level,
-        subclassId
-      }),
-    [abilities, className, level, monkFeatureState, subclassId]
+    () => isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(character),
+    [character]
   );
   const selectedFlurryOfHealingAndHarmActiveHelperText = selectedFlurryOfHealingAndHarmActive
     ? "Flurry of Healing And Harm is active for this turn"
@@ -1267,10 +1292,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
-    if (
-      selectedAction.kind === "feature" &&
-      selectedFeatureActionPathStates.length > 1
-    ) {
+    if (selectedAction.kind === "feature" && selectedFeatureActionPathStates.length > 1) {
       if (selectedFeatureActionPathStates.some((path) => path.shapeState.isUsable)) {
         return null;
       }
@@ -1651,8 +1673,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const genieMagicSpellcastingAbility = useMemo(
     () =>
       (feats ?? []).find((entry) => entry.feat === FEATS.GENIE_MAGIC)?.epicBoonAbilityChoice
-        ?.ability ??
-      "INT",
+        ?.ability ?? "INT",
     [feats]
   );
   const fixedSpellcastingAbilityOverride =
@@ -1778,30 +1799,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const fixedSpellCastWarning =
     fixedSpellSharedCastWarning ??
     (spellcastingState.blocked ? null : getSpellActionPathWarning(fixedSpellActionPaths));
-  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter({
-    className,
-    level,
-    statusEntries
-  })
-    ? Math.max(
-        1,
-        getAbilityModifierBreakdownForCharacter(
-          {
-            abilities,
-            classFeatureState,
-            className,
-            feats,
-            level,
-            statusEntries
-          },
-          "CHA"
-        ).total
-      )
+  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
+    ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
     : 0;
   const indomitableSavingThrowOptions = useMemo(
     () =>
       abilityKeys.map((ability) => {
         const abilityContext = {
+          ...character,
           abilities,
           classFeatureState,
           className,
@@ -1840,6 +1845,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         };
       }),
     [
+      character,
       abilities,
       classFeatureState,
       className,
@@ -1888,9 +1894,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const canUseInspiredEclipse =
     selectedAction?.kind === "feature" &&
     selectedAction.action.key === bardicInspirationActionKey &&
-    character.className === "Bard" &&
-    character.subclassId === "bard-college-of-the-moon" &&
-    character.level >= 3;
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === "bard-college-of-the-moon" &&
+    getClassLevel(character, "Bard") >= 3;
 
   const {
     closeActionDrawer,
@@ -2579,9 +2585,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           titleAccessory={
             selectedAction.kind === "weapon" ? (
               <>
-                {selectedWeaponIsAttuned ? (
-                  <InventoryTagPill type="attuned" />
-                ) : null}
+                {selectedWeaponIsAttuned ? <InventoryTagPill type="attuned" /> : null}
                 {selectedWeaponFeatureTagLabels.map((tagLabel) => (
                   <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
                 ))}
@@ -2640,6 +2644,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={closeActionDrawer}
           footer={renderActionDrawerFooter(drawerRenderContext)}
         >
+          {selectedAction.kind === "feature" ? slotPoolControl : null}
           {renderActionDrawerBody(drawerRenderContext)}
         </GameplayActionDrawer>
       ) : null}
@@ -2705,6 +2710,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ) : null}
 
       <FeatureSpellDrawers
+        slotPoolControl={slotPoolControl}
         character={character}
         isFixedSpellDrawerOpen={isFixedSpellDrawerOpen}
         fixedSpellEntry={fixedSpellEntry}

@@ -1,3 +1,5 @@
+import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ABILITY_TYPES,
   CLASS_FEATURE,
@@ -6,7 +8,6 @@ import {
   SPELL_LIST_CLASS,
   type SpellEntry
 } from "../../../../../codex/entries";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { warlockFeatures } from "../../../../../codex/classes";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
@@ -46,8 +47,7 @@ export const awakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-
 const clairvoyantCombatantName = "Clairvoyant Combatant";
 const eldritchHexName = "Eldritch Hex";
 const thoughtShieldName = "Thought Shield";
-export const thoughtShieldStatusSourceId =
-  "feature-warlock-great-old-one-patron-thought-shield";
+export const thoughtShieldStatusSourceId = "feature-warlock-great-old-one-patron-thought-shield";
 const thoughtShieldPsychicResistanceSourceId =
   "feature-warlock-great-old-one-patron-thought-shield-psychic-resistance";
 const createThrallName = "Create Thrall";
@@ -110,9 +110,9 @@ function hasWarlockGreatOldOnePatronAwakenedMind(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 3
   );
 }
 
@@ -120,9 +120,9 @@ function hasWarlockGreatOldOnePatronPsychicSpells(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 3
   );
 }
 
@@ -130,9 +130,9 @@ function hasWarlockGreatOldOnePatronClairvoyantCombatant(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 6
   );
 }
 
@@ -140,9 +140,9 @@ function hasWarlockGreatOldOnePatronEldritchHex(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 10
   );
 }
 
@@ -150,9 +150,9 @@ function hasWarlockGreatOldOnePatronThoughtShield(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 10
   );
 }
 
@@ -160,20 +160,23 @@ function hasWarlockGreatOldOnePatronCreateThrall(
   character: WarlockGreatOldOnePatronCharacter
 ): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === greatOldOnePatronSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 14
   );
 }
 
 function getWarlockGreatOldOnePatronPactMagicSlotLevel(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return 0;
   }
 
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(character.level ?? 1)));
+  const normalizedLevel = Math.max(
+    1,
+    Math.min(20, Math.floor(getClassLevel(character, "Warlock") ?? 1))
+  );
   const matchingRows = warlockFeatures
     .filter((row) => row.level <= normalizedLevel)
     .sort((left, right) => left.level - right.level);
@@ -191,11 +194,8 @@ function getWarlockGreatOldOnePatronPactMagicSlotsRemaining(
     return 0;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
+  const { totals: spellSlotTotals, expended: spellSlotsExpended } =
+    getWarlockPactSlotState(character);
   const pactMagicSlotTotal = spellSlotTotals[pactMagicSlotLevel - 1] ?? 0;
   const pactMagicSlotsExpended = spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0;
 
@@ -318,19 +318,7 @@ function spendWarlockGreatOldOnePatronClairvoyantCombatantResource(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
-  const nextSpellSlotsExpended = [...spellSlotsExpended];
-  nextSpellSlotsExpended[pactMagicSlotLevel - 1] =
-    (nextSpellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) + 1;
-
-  return {
-    ...character,
-    spellSlotsExpended: nextSpellSlotsExpended
-  };
+  return spendWarlockPactSlot(character, pactMagicSlotLevel);
 }
 
 export function restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest(
@@ -531,7 +519,7 @@ export function activateWarlockGreatOldOnePatronAwakenedMind(
     name: awakenedMindName,
     source: greatOldOnePatronSourceLabel,
     sourceId: awakenedMindStatusSourceId,
-    durationMinutes: getTelepathicBondDurationMinutes(character.level)
+    durationMinutes: getTelepathicBondDurationMinutes(getClassLevel(character, "Warlock"))
   });
 }
 
@@ -550,9 +538,9 @@ export function collectWarlockGreatOldOnePatronContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Warlock" ||
-    character.subclassId !== greatOldOnePatronSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Warlock") ||
+    getClassSubclassId(character, "Warlock") !== greatOldOnePatronSubclassId ||
+    (getClassLevel(character, "Warlock") ?? 0) < 3
   ) {
     return [];
   }
@@ -565,7 +553,7 @@ export function collectWarlockGreatOldOnePatronContributions(
         entryId: CLASS_FEATURE.GREAT_OLD_ONE_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Warlock") ?? 0,
         greatOldOnePatronSpellIdsByLevel
       )
     }

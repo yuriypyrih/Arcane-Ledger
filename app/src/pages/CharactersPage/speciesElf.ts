@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   getSpeciesEntryByName,
   getSpellEntryById,
@@ -265,7 +266,7 @@ export function getElfAlwaysPreparedSpellIdsForCharacter(character: ElfRuntimeCh
     return [];
   }
 
-  const level = Math.max(1, character.level ?? 1);
+  const level = Math.max(1, getCharacterLevel(character) ?? 1);
 
   return elfLineageSpellIdsByLevel[lineage]
     .filter((spell) => level >= spell.level)

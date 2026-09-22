@@ -1,4 +1,10 @@
 import {
+  isSpellFromClass,
+  hasCharacterClass,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CLASS_FEATURE,
   REACTION,
   SPELL_LIST_CLASS,
@@ -70,25 +76,25 @@ function hasSorcererTidesOfChaosFeature(character: WildMagicSorceryCharacter): b
 
 function hasSorcererWildMagicSurgeFeature(character: WildMagicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === wildMagicSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
 function hasSorcererBendLuckFeature(character: WildMagicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === wildMagicSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
 function hasSorcererControlledChaosFeature(character: WildMagicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === wildMagicSorcerySubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 14
   );
 }
 
@@ -100,9 +106,9 @@ export function hasSorcererControlledChaosFeatureForCharacter(
 
 function hasSorcererTamedSurgeFeature(character: WildMagicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === wildMagicSorcerySubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === wildMagicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 18
   );
 }
 
@@ -349,6 +355,7 @@ export function isSorcererTidesOfChaosActiveForSpell(
 ): boolean {
   return (
     hasSorcererTidesOfChaosFeature(character) &&
+    (!(character as Partial<Character>).multiclass || isSpellFromClass(character, "Sorcerer")) &&
     isWildMagicSorcerySpellCandidate(spell) &&
     getSorcererWildMagicTidesOfChaosUsesRemaining(character) <= 0
   );
@@ -358,7 +365,11 @@ export function canUseSorcererWildMagicTamedSurgeForSpell(
   character: WildMagicSorceryCharacter,
   spell: Pick<SpellEntry, "spellLevel" | "spellLists">
 ): boolean {
-  return hasSorcererTamedSurgeFeature(character) && isWildMagicSorcerySpellCandidate(spell);
+  return (
+    hasSorcererTamedSurgeFeature(character) &&
+    (!(character as Partial<Character>).multiclass || isSpellFromClass(character, "Sorcerer")) &&
+    isWildMagicSorcerySpellCandidate(spell)
+  );
 }
 
 function appendWildMagicSpellDescription(
@@ -368,7 +379,10 @@ function appendWildMagicSpellDescription(
   description: readonly string[],
   sourceLabel: string
 ): SpellEntry {
-  if (!isWildMagicSorcerySpellCandidate(spell)) {
+  if (
+    ((character as Partial<Character>).multiclass && !isSpellFromClass(character, "Sorcerer")) ||
+    !isWildMagicSorcerySpellCandidate(spell)
+  ) {
     return spell;
   }
 

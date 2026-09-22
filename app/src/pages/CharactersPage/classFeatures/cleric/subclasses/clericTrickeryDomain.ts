@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   blessingOfTheTricksterDescription,
@@ -170,9 +171,9 @@ export function hasClericTrickeryDomainFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Cleric" &&
-    character.subclassId === trickeryDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Cleric") &&
+    getClassSubclassId(character, "Cleric") === trickeryDomainSubclassId &&
+    (getClassLevel(character, "Cleric") ?? 0) >= minimumLevel
   );
 }
 
@@ -272,12 +273,12 @@ function getClericInvokeDuplicityAction(
   }
 
   const usesTotal = getClericChannelDivinityUsesTotal({
-    className: character.className,
-    level: character.level ?? 0
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0
   });
   const usesRemaining = getClericChannelDivinityUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Cleric",
+    level: getClassLevel(character, "Cleric") ?? 0,
     classFeatureState: character.classFeatureState
   });
   const descriptionAdditions = getClericInvokeDuplicityDescriptionAdditions(character);
@@ -341,7 +342,7 @@ export function collectClericTrickeryDomainContributions(
         entryId: CLASS_FEATURE.TRICKERY_DOMAIN_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Cleric") ?? 0,
         trickeryDomainSpellIdsByLevel
       )
     },
@@ -351,11 +352,10 @@ export function collectClericTrickeryDomainContributions(
         label: "Blessing of the Trickster",
         entryId: CLASS_FEATURE.BLESSING_OF_THE_TRICKSTER
       }),
-      actions: getClericTrickeryDomainActionsByKey(
-        featureActions,
-        blessingOfTheTricksterActionKey
-      ),
-      skillIndicators: blessingOfTheTricksterActive ? getBlessingOfTheTricksterSkillIndicators() : {}
+      actions: getClericTrickeryDomainActionsByKey(featureActions, blessingOfTheTricksterActionKey),
+      skillIndicators: blessingOfTheTricksterActive
+        ? getBlessingOfTheTricksterSkillIndicators()
+        : {}
     },
     {
       source: createSubclassContributionSource({

@@ -1,24 +1,14 @@
 import { useMemo, useState } from "react";
-import {
-  getSelectedSubclassForCharacter,
-  getSubclassOptionsForClassName,
-  normalizeSubclassId
-} from "../../../../pages/CharactersPage/subclasses";
-import {
-  areCharacterClassRulesEnforced,
-  isCustomClassName,
-  normalizeCustomClassConfig
-} from "../../../../pages/CharactersPage/customClass";
+import { Check, Plus, X } from "lucide-react";
 import type { Character } from "../../../../types";
 import {
-  CUSTOM_CLASS_NAME_MAX_LENGTH,
-  CUSTOM_SUBCLASS_LABEL,
-  CUSTOM_SUBCLASS_NAME_MAX_LENGTH,
-  createCustomMetadataId,
-  createDefaultCustomSubclassConfig,
-  isCustomSubclassId,
-  normalizeCustomSubclassConfig
-} from "../../../../pages/CharactersPage/customOrigins";
+  applyClassDefinitions,
+  createClassDefinitionsDraft,
+  createDeclaredClass,
+  setEntryRulesEnforced,
+  type ClassDefinitionsDraft
+} from "../../../../pages/CharactersPage/classDefinitions";
+import { areCharacterClassRulesEnforced } from "../../../../pages/CharactersPage/customClass";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -26,198 +16,130 @@ import {
   OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
-  OverlaySummary,
+  OverlayTitle,
   SheetModal
 } from "../../../Overlay";
 import ActionButton from "../../../ActionButton";
-import SelectInput from "../../FormInputs/SelectInput";
-import TextInput from "../../FormInputs/TextInput";
+import InlineToggleButton from "../InlineToggleButton";
 import RadioContainerOption from "../RadioContainerOption";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import styles from "./FeatEditorModal.module.css";
+import ClassDefinitionRow from "./ClassDefinitionRow";
+import styles from "./ClassDefinitionsEditor.module.css";
 
-type SubclassEditorModalProps = {
+type Props = {
   character: Character;
   onCancel: () => void;
-  onSave: (draft: {
-    subclassId: string;
-    classRulesEnforced: boolean;
-    customClass?: Character["customClass"];
-    customSubclass?: Character["customSubclass"];
-  }) => void;
+  onSave: (draft: ClassDefinitionsDraft) => void;
 };
 
-function SubclassEditorModal({ character, onCancel, onSave }: SubclassEditorModalProps) {
-  const selectedSubclass = getSelectedSubclassForCharacter(character);
-  const isCustomClass = isCustomClassName(character.className);
-  const [draftCustomClass, setDraftCustomClass] = useState(() => {
-    const normalizedCustomClass = normalizeCustomClassConfig(character.customClass);
-
-    return {
-      ...normalizedCustomClass,
-      id: normalizedCustomClass.id ?? createCustomMetadataId("class")
-    };
-  });
-  const [draftCustomSubclass, setDraftCustomSubclass] = useState(
-    () =>
-      normalizeCustomSubclassConfig(character.customSubclass, {
-        className: character.className
-      }) ?? createDefaultCustomSubclassConfig(character.className)
-  );
-  const [draftSubclassId, setDraftSubclassId] = useState(
-    selectedSubclass?.id ??
-      (character.subclassId === character.customSubclass?.id ? character.subclassId : "")
-  );
-  const [draftClassRulesEnforced, setDraftClassRulesEnforced] = useState(
-    () => areCharacterClassRulesEnforced(character)
-  );
-  const subclassOptions = useMemo(
-    () => getSubclassOptionsForClassName(character.className),
-    [character.className]
-  );
-  const normalizedSubclassId =
-    normalizeSubclassId(draftSubclassId, character.className, draftCustomSubclass) ?? "";
-  const isDraftCustomSubclass =
-    !isCustomClass &&
-    isCustomSubclassId(draftSubclassId) &&
-    draftSubclassId === draftCustomSubclass.id;
-  const isCustomClassNameReady = !isCustomClass || Boolean(draftCustomClass.name?.trim());
-  const isCustomSubclassNameReady =
-    !isDraftCustomSubclass || Boolean(draftCustomSubclass.name.trim());
-  const isSubclassReady = isCustomClass || normalizedSubclassId.length > 0;
-  const isReady = isCustomClassNameReady && isCustomSubclassNameReady && isSubclassReady;
-
-  function saveSubclass() {
-    if (!isReady) {
-      return;
+export default function SubclassEditorModal({ character, onCancel, onSave }: Props) {
+  const [draft, setDraft] = useState(() => createClassDefinitionsDraft(character));
+  const [error, setError] = useState("");
+  const preview = useMemo(() => {
+    try {
+      return applyClassDefinitions(character, draft);
+    } catch {
+      return null;
     }
-
-    onSave({
-      subclassId: normalizedSubclassId,
-      classRulesEnforced: isCustomClass ? false : draftClassRulesEnforced,
-      customClass: isCustomClass ? normalizeCustomClassConfig(draftCustomClass) : undefined,
-      customSubclass: isDraftCustomSubclass ? draftCustomSubclass : undefined
-    });
+  }, [character, draft]);
+  const original = useMemo(
+    () => JSON.stringify(createClassDefinitionsDraft(character)),
+    [character]
+  );
+  const changed = JSON.stringify(draft) !== original;
+  const ruleClasses = draft.progression.classes.filter(
+    (entry) => entry.className && entry.className !== "Custom"
+  );
+  const rulesEnforced = ruleClasses.every(areCharacterClassRulesEnforced);
+  function change(next: ClassDefinitionsDraft) {
+    setDraft(next);
+    setError("");
   }
-
   return (
-    <SheetModal
-      titleId="character-subclass-editor-title"
-      onClose={onCancel}
-      size="small"
-    >
+    <SheetModal titleId="character-subclass-editor-title" onClose={onCancel}>
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayEyebrow>Build</OverlayEyebrow>
-          <div className={styles.heading}>
-            <h3 id="character-subclass-editor-title" className={styles.headingTitle}>
-              Edit Class and Subclass
-            </h3>
-            <OverlaySummary className={shared.helperText}>
-              Choose the subclass used for class feature progression.
-            </OverlaySummary>
-          </div>
+          <OverlayTitle id="character-subclass-editor-title">Edit Class and Subclass</OverlayTitle>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close subclass editor" onClick={onCancel} />
       </OverlayHeader>
-
-      <OverlayBody className={styles.scrollArea}>
-        <div className={styles.singleFieldGrid}>
-          {isCustomClass ? (
-            <label className={styles.field}>
-              Custom class name
-              <TextInput
-                value={draftCustomClass.name ?? ""}
-                maxLength={CUSTOM_CLASS_NAME_MAX_LENGTH}
-                onChange={(event) =>
-                  setDraftCustomClass((current) => ({
-                    ...current,
-                    name: event.target.value.slice(0, CUSTOM_CLASS_NAME_MAX_LENGTH)
-                  }))
-                }
-              />
-            </label>
-          ) : null}
-
-          <label className={styles.field}>
-            Subclass
-            <SelectInput
-              compact
-              value={draftSubclassId}
-              disabled={isCustomClass}
-              onChange={(event) => setDraftSubclassId(event.target.value)}
-            >
-              <option value="">
-                {isCustomClass
-                  ? "No subclass options"
-                  : subclassOptions.length > 0
-                    ? "Select a subclass"
-                    : "Select a subclass"}
-              </option>
-              {subclassOptions.map((subclass) => (
-                <option key={subclass.id} value={subclass.id}>
-                  {subclass.name}
-                </option>
-              ))}
-              {!isCustomClass ? (
-                <>
-                  <option disabled value="__custom-subclass-divider">
-                    ──────────
-                  </option>
-                  <option value={draftCustomSubclass.id}>{CUSTOM_SUBCLASS_LABEL}</option>
-                </>
-              ) : null}
-            </SelectInput>
-          </label>
-
-          {isDraftCustomSubclass ? (
-            <label className={styles.field}>
-              Custom subclass name
-              <TextInput
-                value={draftCustomSubclass.name}
-                maxLength={CUSTOM_SUBCLASS_NAME_MAX_LENGTH}
-                onChange={(event) =>
-                  setDraftCustomSubclass((current) => ({
-                    ...current,
-                    name: event.target.value.slice(0, CUSTOM_SUBCLASS_NAME_MAX_LENGTH)
-                  }))
-                }
-              />
-            </label>
-          ) : null}
-        </div>
-
-        {!isReady ? (
-          <p className={styles.validation}>
-            {isCustomClass && !isCustomClassNameReady
-              ? "Enter a custom class name before saving."
-              : isDraftCustomSubclass && !isCustomSubclassNameReady
-                ? "Enter a custom subclass name before saving."
-                : "Choose a subclass before saving."}
-          </p>
-        ) : null}
-
-        <div className={styles.rulesEnforcementDivider} aria-hidden="true" />
+      <OverlayBody className={styles.body}>
+        {draft.progression.classes.map((entry, index) => (
+          <ClassDefinitionRow
+            key={entry.id}
+            character={character}
+            preview={preview ?? character}
+            draft={draft}
+            entry={entry}
+            index={index}
+            rulesEnforced={rulesEnforced}
+            onChange={change}
+          />
+        ))}
+        <InlineToggleButton
+          className={styles.add}
+          label="Add Multiclass"
+          icon={<Plus size={15} aria-hidden="true" />}
+          disabled={draft.progression.classes.length >= 100}
+          onClick={() =>
+            change({
+              ...draft,
+              progression: {
+                ...draft.progression,
+                classes: [...draft.progression.classes, createDeclaredClass()]
+              }
+            })
+          }
+        />
+        <hr className={styles.divider} />
         <RadioContainerOption
           header="Class rules enforcement"
-          subheader="Your class will enforce their build rules"
-          selected={draftClassRulesEnforced}
-          onSelect={() => setDraftClassRulesEnforced((current) => !current)}
-          disabled={isCustomClass}
+          subheader="Apply build rules to all classes"
+          selected={ruleClasses.length > 0 && rulesEnforced}
+          disabled={ruleClasses.length === 0}
+          onSelect={() =>
+            change({
+              ...draft,
+              progression: {
+                ...draft.progression,
+                classes: draft.progression.classes.map((entry) =>
+                  entry.className && entry.className !== "Custom"
+                    ? setEntryRulesEnforced(character, entry, !rulesEnforced)
+                    : entry
+                )
+              }
+            })
+          }
           indicatorType="checkbox"
         />
+        {error ? (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        ) : null}
       </OverlayBody>
-
-      <OverlayFooter className={styles.modalFooter}>
-        <ActionButton variant="OUTLINE" onClick={onCancel}>
+      <OverlayFooter className={styles.footer}>
+        <ActionButton
+          variant="OUTLINE"
+          icon={<X size={18} aria-hidden="true" />}
+          onClick={onCancel}
+        >
           Cancel
         </ActionButton>
-        <ActionButton onClick={saveSubclass} disabled={!isReady}>
+        <ActionButton
+          icon={<Check size={18} aria-hidden="true" />}
+          disabled={!preview || !changed}
+          onClick={() => {
+            try {
+              onSave(draft);
+            } catch (cause) {
+              setError(cause instanceof Error ? cause.message : "Unable to save class changes.");
+            }
+          }}
+        >
           Save
         </ActionButton>
       </OverlayFooter>
     </SheetModal>
   );
 }
-
-export default SubclassEditorModal;

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -176,7 +177,7 @@ export function getDwarvenToughnessHitPointMaximumBonus(
     return 0;
   }
 
-  return Math.max(1, Math.floor(character.level ?? 1));
+  return Math.max(1, Math.floor(getCharacterLevel(character) ?? 1));
 }
 
 export function normalizeDwarfFeatureState(value: unknown): CharacterDwarfFeatureState {
@@ -191,7 +192,7 @@ export function getDwarfStonecunningUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDwarfSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 

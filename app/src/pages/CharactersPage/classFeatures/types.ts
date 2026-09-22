@@ -304,6 +304,7 @@ export type FeatureActionExecuteConfig =
 
 export type FeatureActionCard = {
   key: string;
+  sourceClassEntryId?: string;
   name: string;
   actionSource?: FeatureActionSource;
   sourceFeature?: CLASS_FEATURE;

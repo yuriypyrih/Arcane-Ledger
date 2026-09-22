@@ -256,6 +256,7 @@ function ItemCodexTable({
           <span className={styles.totalLabel}>{totalEntriesLabel}</span>
           {status === "ready" && items.length > 0 ? (
             <TablePagination
+              ariaLabel={`${heading} pagination (top)`}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={onPageChange}
@@ -280,6 +281,15 @@ function ItemCodexTable({
           <tbody>{renderStatusRow()}</tbody>
         </table>
       </div>
+      {status === "ready" && items.length > 0 ? (
+        <TablePagination
+          ariaLabel={`${heading} pagination (bottom)`}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className={paginationClassName}
+        />
+      ) : null}
     </div>
   );
 }

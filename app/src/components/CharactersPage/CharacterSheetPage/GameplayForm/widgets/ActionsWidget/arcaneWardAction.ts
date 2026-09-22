@@ -1,11 +1,9 @@
+import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import type { Character } from "../../../../../../types";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
 import { activateWizardAbjurerArcaneWardFeatureAction } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 import { getRoundTrackerResourceForEconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../pages/CharactersPage/spellcasting";
+import { normalizeSpellSlotsExpended } from "../../../../../../pages/CharactersPage/spellcasting";
 import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
@@ -60,13 +58,7 @@ export function applyArcaneWardActionUse(
     return currentCharacter;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    currentCharacter.className,
-    currentCharacter.level,
-    currentCharacter.subclassId,
-    currentCharacter.customClass,
-    currentCharacter.classRules
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(currentCharacter);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     currentCharacter.spellSlotsExpended,
     spellSlotTotals

@@ -23,7 +23,7 @@ function AdministrationPage() {
   const { status: authStatus, user } = useAppSelector((state) => state.auth);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [ordering, setOrdering] = useState<AdministrationUserOrdering>("-createdAt");
+  const [ordering, setOrdering] = useState<AdministrationUserOrdering>("-lastActive");
   const [refreshSignal, setRefreshSignal] = useState(0);
   const [selectedUser, setSelectedUser] = useState<AdministrationUser | null>(null);
   const [roleChangeError, setRoleChangeError] = useState<string | null>(null);

@@ -47,7 +47,7 @@ function parsePage(value: string | undefined): number {
 
 function parseOrdering(value: string | undefined): AdministrationUserOrdering {
   if (!value) {
-    return "-createdAt";
+    return "-lastActive";
   }
 
   if (!allowedOrderings.has(value as AdministrationUserOrdering)) {

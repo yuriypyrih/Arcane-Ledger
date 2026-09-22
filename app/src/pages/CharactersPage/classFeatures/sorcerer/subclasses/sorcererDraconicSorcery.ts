@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { sorcererFeatures } from "../../../../../codex/classes";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -14,7 +15,10 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -36,8 +40,7 @@ const elementalAffinityName = "Elemental Affinity";
 const dragonWingsName = "Dragon Wings";
 const sorcererDraconicElementalAffinitySourceId =
   "feature-sorcerer-draconic-sorcery-elemental-affinity";
-export const sorcererDragonWingsStatusSourceId =
-  "feature-sorcerer-draconic-sorcery-dragon-wings";
+export const sorcererDragonWingsStatusSourceId = "feature-sorcerer-draconic-sorcery-dragon-wings";
 const draconicSorcerySubclassEntry = getSubclassEntryById(draconicSorcerySubclassId);
 const summonDragonSpellId = "spell-summon-dragon";
 const dragonWingsUsesTotal = 1;
@@ -78,41 +81,43 @@ export const sorcererDraconicElementalAffinityDamageTypeOptions = [
 
 function hasSorcererDraconicResilienceFeature(character: DraconicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === draconicSorcerySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 3
   );
 }
 
 export function getSorcererDraconicResilienceHitPointMaximumBonus(
   character: DraconicSorceryCharacter
 ): number {
-  return hasSorcererDraconicResilienceFeature(character) ? Math.max(0, character.level ?? 0) : 0;
+  return hasSorcererDraconicResilienceFeature(character)
+    ? Math.max(0, getClassLevel(character, "Sorcerer") ?? 0)
+    : 0;
 }
 
 export function hasSorcererDraconicElementalAffinityFeature(
   character: DraconicSorceryCharacter
 ): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === draconicSorcerySubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 6
   );
 }
 
 function hasSorcererDragonWingsFeature(character: DraconicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === draconicSorcerySubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 14
   );
 }
 
 function hasSorcererDragonCompanionFeature(character: DraconicSorceryCharacter): boolean {
   return (
-    character.className === "Sorcerer" &&
-    character.subclassId === draconicSorcerySubclassId &&
-    (character.level ?? 0) >= 18
+    hasCharacterClass(character, "Sorcerer") &&
+    getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId &&
+    (getClassLevel(character, "Sorcerer") ?? 0) >= 18
   );
 }
 
@@ -128,14 +133,13 @@ function getSorcererFeatureRow(level: number | undefined) {
 function getSorcererDraconicSorceryPointsTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  return character.className === "Sorcerer"
-    ? Math.max(0, getSorcererFeatureRow(character.level)?.sorceryPoints ?? 0)
+  return hasCharacterClass(character, "Sorcerer")
+    ? Math.max(0, getSorcererFeatureRow(getClassLevel(character, "Sorcerer"))?.sorceryPoints ?? 0)
     : 0;
 }
 
 function getSorcererDraconicSorceryPointsRemaining(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "classFeatureState" | "level">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "classFeatureState" | "level">>
 ): number {
   const totalPoints = getSorcererDraconicSorceryPointsTotal(character);
   const expendedPoints = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
@@ -215,9 +219,7 @@ export function getSorcererDraconicDragonCompanionUsesRemaining(
   return Math.max(0, totalUses - normalizedExpendedUses);
 }
 
-function getSorcererDraconicDragonWingsUsesRemaining(
-  character: DraconicSorceryCharacter
-): number {
+function getSorcererDraconicDragonWingsUsesRemaining(character: DraconicSorceryCharacter): number {
   const totalUses = getSorcererDraconicDragonWingsUsesTotal(character);
   const expendedUses = Number(character.classFeatureState?.sorcerer?.dragonWingsUsesExpended);
   const normalizedExpendedUses = Number.isFinite(expendedUses)
@@ -460,7 +462,9 @@ export function restoreSorcererDragonCompanionOnLongRest(character: Character): 
 export function normalizeSorcererDraconicElementalAffinityDamageType(
   value: unknown
 ): DAMAGE_TYPE | undefined {
-  return sorcererDraconicElementalAffinityDamageTypeOptions.some((damageType) => damageType === value)
+  return sorcererDraconicElementalAffinityDamageTypeOptions.some(
+    (damageType) => damageType === value
+  )
     ? (value as DAMAGE_TYPE)
     : undefined;
 }
@@ -602,7 +606,7 @@ function createSorcererDraconicSpellsContribution(
       entryId: CLASS_FEATURE.DRACONIC_SPELLS
     }),
     alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
+      getClassLevel(character, "Sorcerer") ?? 0,
       draconicSorcerySpellIdsByLevel
     )
   };
@@ -659,7 +663,7 @@ function collectSorcererDraconicSorceryContributions(
     contributions.push(createSorcererDraconicDragonWingsContribution(character, featureActions));
   }
 
-  if ((character.level ?? 0) >= 18) {
+  if ((getClassLevel(character, "Sorcerer") ?? 0) >= 18) {
     contributions.push(
       createSorcererDraconicLocalHookContribution({
         id: "sorcerer-draconic-sorcery-dragon-companion",
@@ -672,9 +676,7 @@ function collectSorcererDraconicSorceryContributions(
   return contributions;
 }
 
-export const getSorcererDraconicSorceryDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) =>
+export const getSorcererDraconicSorceryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
     compileFeatureContributions(collectSorcererDraconicSorceryContributions(character)),
     {

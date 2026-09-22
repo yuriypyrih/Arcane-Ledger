@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,
@@ -72,45 +73,59 @@ export function normalizeWarlockSubclassFeatureState(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "abilities" | "level" | "subclassId">>
 ): Partial<CharacterWarlockFeatureState> {
-  if (character.className !== "Warlock" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return {};
   }
 
-  return warlockSubclassStateNormalizers[character.subclassId]?.(value, character) ?? {};
+  return (
+    warlockSubclassStateNormalizers[getClassSubclassId(character, "Warlock")]?.(value, character) ??
+    {}
+  );
 }
 
 export function getWarlockSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
-  if (character.className !== "Warlock" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return {};
   }
 
-  return warlockSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  return (
+    warlockSubclassRuntimeRegistry[getClassSubclassId(character, "Warlock")]?.(character) ?? {}
+  );
 }
 
 export function activateWarlockSubclassFeatureAction(
   character: Character,
   actionKey: string
 ): Character | null {
-  if (character.className !== "Warlock" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return null;
   }
 
-  if (character.subclassId === fiendPatronSubclassId && actionKey === darkOnesBlessingActionKey) {
+  if (
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    actionKey === darkOnesBlessingActionKey
+  ) {
     return applyWarlockFiendPatronDarkOnesBlessing(character);
   }
 
-  if (character.subclassId === fiendPatronSubclassId && actionKey === darkOnesOwnLuckActionKey) {
+  if (
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    actionKey === darkOnesOwnLuckActionKey
+  ) {
     return consumeWarlockFiendPatronDarkOnesOwnLuckUse(character);
   }
 
-  if (character.subclassId === fiendPatronSubclassId && actionKey === hurlThroughHellActionKey) {
+  if (
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    actionKey === hurlThroughHellActionKey
+  ) {
     return consumeWarlockFiendPatronHurlThroughHellUse(character);
   }
 
   if (
-    character.subclassId === greatOldOnePatronSubclassId &&
+    getClassSubclassId(character, "Warlock") === greatOldOnePatronSubclassId &&
     actionKey === awakenedMindActionKey
   ) {
     return activateWarlockGreatOldOnePatronAwakenedMind(character);
@@ -120,17 +135,21 @@ export function activateWarlockSubclassFeatureAction(
 }
 
 export function restoreWarlockSubclassFeaturesOnShortRest(character: Character): Character {
-  if (character.className !== "Warlock" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return character;
   }
 
-  return warlockShortRestRestorers[character.subclassId]?.(character) ?? character;
+  return (
+    warlockShortRestRestorers[getClassSubclassId(character, "Warlock")]?.(character) ?? character
+  );
 }
 
 export function restoreWarlockSubclassFeaturesOnLongRest(character: Character): Character {
-  if (character.className !== "Warlock" || !character.subclassId) {
+  if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return character;
   }
 
-  return warlockLongRestRestorers[character.subclassId]?.(character) ?? character;
+  return (
+    warlockLongRestRestorers[getClassSubclassId(character, "Warlock")]?.(character) ?? character
+  );
 }

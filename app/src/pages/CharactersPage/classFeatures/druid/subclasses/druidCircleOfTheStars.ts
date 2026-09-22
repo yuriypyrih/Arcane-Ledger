@@ -1,4 +1,10 @@
 import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   REACTION,
@@ -26,11 +32,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import type {
-  DerivedFeatureStatusEntry,
-  FeatureActionCard,
-  FeatureSpeedBonus
-} from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureSpeedBonus } from "../../types";
 import { createHeaderTagsFromResources } from "../../cardUsage";
 import type { WeaponAction } from "../../../gameplay";
 import {
@@ -91,9 +93,9 @@ export function hasDruidStarMapFeature(
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheStarsSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 3
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 0))) >= 3
   );
 }
 
@@ -108,9 +110,9 @@ export function hasDruidCosmicOmenFeature(
     Partial<Pick<Character, "level" | "subclassId" | "abilities">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheStarsSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 6
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 0))) >= 6
   );
 }
 
@@ -119,9 +121,9 @@ export function hasDruidTwinklingConstellationsFeature(
     Partial<Pick<Character, "level" | "subclassId" | "abilities">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheStarsSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 10
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 0))) >= 10
   );
 }
 
@@ -130,9 +132,9 @@ export function hasDruidFullOfStarsFeature(
     Partial<Pick<Character, "level" | "subclassId" | "abilities">>
 ): boolean {
   return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheStarsSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 14
+    hasCharacterClass(character, "Druid") &&
+    getClassSubclassId(character, "Druid") === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(getClassLevel(character, "Druid") ?? 0))) >= 14
   );
 }
 
@@ -142,8 +144,11 @@ function getCircleOfTheStarsFeatureDescription(
 ) {
   return (
     getSubclassFeatureDetails(
-      getSelectedSubclassForCharacter(character),
-      Math.max(1, character.level ?? 1),
+      getSelectedSubclassForCharacter({
+        className: "Druid",
+        subclassId: getClassSubclassId(character, "Druid")
+      }),
+      Math.max(1, getClassLevel(character, "Druid") ?? 1),
       feature
     )?.description ?? []
   );
@@ -177,12 +182,12 @@ function toDruidStarsResourceCharacter(
     >
 ) {
   return {
-    className: character.className,
-    level: Math.max(1, character.level ?? 1),
+    className: "Druid",
+    level: Math.max(1, getClassLevel(character, "Druid") ?? 1),
     classFeatureState: character.classFeatureState ?? {},
     abilities: character.abilities ?? defaultAbilities,
     statusEntries: character.statusEntries ?? [],
-    subclassId: character.subclassId
+    subclassId: getClassSubclassId(character, "Druid")
   };
 }
 
@@ -674,7 +679,7 @@ export function getCircleOfTheStarsWeaponActions(
     Partial<Pick<Character, "level" | "abilities" | "statusEntries">>
 ): WeaponAction[] {
   if (
-    character.className !== "Druid" ||
+    !hasCharacterClass(character, "Druid") ||
     getDruidActiveStarryFormConstellation({
       statusEntries: character.statusEntries ?? []
     }) !== "archer"
@@ -684,7 +689,7 @@ export function getCircleOfTheStarsWeaponActions(
 
   const wisdomModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "WIS");
   const wisdomModifier = wisdomModifierBreakdown.total;
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
   const hasTwinklingConstellations = hasDruidTwinklingConstellationsFeature(character);
   const damageFormula = hasTwinklingConstellations ? "2d8" : "1d8";
@@ -750,7 +755,7 @@ function getCircleOfTheStarsSpeedBonuses(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "abilities" | "statusEntries" | "subclassId">>
 ): FeatureSpeedBonus[] {
-  return character.className === "Druid" &&
+  return hasCharacterClass(character, "Druid") &&
     hasDruidTwinklingConstellationsFeature(character) &&
     getDruidActiveStarryFormConstellation({
       statusEntries: character.statusEntries ?? []
@@ -817,9 +822,9 @@ export function collectDruidCircleOfTheStarsContributions(
           transform: (spell) =>
             getDruidCircleOfTheStarsGuidingBoltSpellEntry(
               {
-                className: character.className,
-                level: character.level ?? 0,
-                subclassId: character.subclassId
+                className: "Druid",
+                level: getClassLevel(character, "Druid") ?? 0,
+                subclassId: getClassSubclassId(character, "Druid")
               },
               spell
             )

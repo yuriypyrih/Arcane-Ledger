@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../codex/classes";
 import {
   ARMOR_TYPES,
@@ -239,7 +240,9 @@ function getMonkCombatState(
   >
 ): MonkCombatState {
   const heldCodexEquipment = character.equipment.filter((item) => item.onHand);
-  const heldInventoryItems = character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
+  const heldInventoryItems = character.inventoryItems.flatMap(
+    createHeldInventoryItemCopyReferences
+  );
   const heldCodexWeapons = heldCodexEquipment.reduce<WeaponEntry[]>((entries, item) => {
     const weaponEntry = codexWeaponEntriesByName.get(item.name);
     return weaponEntry ? [...entries, weaponEntry] : entries;
@@ -373,11 +376,11 @@ export function hasMonkFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Monk") {
+  if (!hasCharacterClass(character, "Monk")) {
     return false;
   }
 
-  return getUnlockedMonkFeatures(character.level).has(feature);
+  return getUnlockedMonkFeatures(getClassLevel(character, "Monk")).has(feature);
 }
 
 export function normalizeMonkFeatureState(
@@ -388,7 +391,7 @@ export function normalizeMonkFeatureState(
     return {};
   }
 
-  const totalFocusPoints = getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  const totalFocusPoints = getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterMonkFeatureState>) : {};
   const focusPointsExpended = Number(record.focusPointsExpended);
@@ -456,7 +459,7 @@ export function getMonkMartialArtsDie(
     return null;
   }
 
-  return getMonkFeatureRow(character.level)?.martialArts ?? null;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.martialArts ?? null;
 }
 
 export function getMonkFocusPointsTotal(character: Pick<Character, "className" | "level">): number {
@@ -464,7 +467,7 @@ export function getMonkFocusPointsTotal(character: Pick<Character, "className" |
     return 0;
   }
 
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 export function getMonkFocusPointsRemaining(
@@ -609,7 +612,7 @@ export function getMonkUnarmoredMovementBonus(
     return 0;
   }
 
-  return getMonkFeatureRow(character.level)?.unarmoredMovement ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.unarmoredMovement ?? 0;
 }
 
 export function canUseMonkMartialArts(

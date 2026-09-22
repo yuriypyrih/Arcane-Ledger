@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -237,19 +238,19 @@ export function hasRogueFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Rogue") {
+  if (!hasCharacterClass(character, "Rogue")) {
     return false;
   }
 
-  return getUnlockedRogueFeatures(character.level).has(feature);
+  return getUnlockedRogueFeatures(getClassLevel(character, "Rogue")).has(feature);
 }
 
 function hasRogueLevel1Expertise(character: Pick<Character, "className" | "level">): boolean {
-  return character.className === "Rogue" && character.level >= 1;
+  return hasCharacterClass(character, "Rogue") && getClassLevel(character, "Rogue") >= 1;
 }
 
 function hasRogueLevel6Expertise(character: Pick<Character, "className" | "level">): boolean {
-  return character.className === "Rogue" && character.level >= 6;
+  return hasCharacterClass(character, "Rogue") && getClassLevel(character, "Rogue") >= 6;
 }
 
 function normalizeRogueExpertiseSelections(value: unknown): SkillName[] {
@@ -314,9 +315,9 @@ export function normalizeRogueFeatureState(
   const soulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
   const soulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
   const hasSpellThief =
-    character.className === "Rogue" &&
-    character.subclassId === arcaneTricksterSubclassId &&
-    character.level >= 17;
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === arcaneTricksterSubclassId &&
+    getClassLevel(character, "Rogue") >= 17;
   const hasStrokeOfLuck = hasRogueFeature(character, CLASS_FEATURE.STROKE_OF_LUCK);
 
   if (
@@ -644,9 +645,9 @@ export function getRogueReactionEntries(
 export function getRogueSpellThiefUsesTotal(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
-  return character.className === "Rogue" &&
-    character.subclassId === arcaneTricksterSubclassId &&
-    character.level >= 17
+  return hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === arcaneTricksterSubclassId &&
+    getClassLevel(character, "Rogue") >= 17
     ? 1
     : 0;
 }
@@ -748,7 +749,7 @@ export function getRogueSneakAttackDiceCount(
     return 0;
   }
 
-  return getRogueFeatureRow(character.level)?.sneakAttack ?? 0;
+  return getRogueFeatureRow(getClassLevel(character, "Rogue"))?.sneakAttack ?? 0;
 }
 
 export function getRogueSneakAttackEffectDefinitions(

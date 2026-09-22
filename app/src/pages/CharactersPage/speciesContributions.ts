@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import { getSpellEntryById, type SpellEntry } from "../../codex/entries";
 import type { AbilityKey, Character } from "../../types";
 import type { FeatureContributionSpec, FeatureFreeCastEntry } from "./featureContributions";
@@ -92,7 +93,10 @@ import {
   getLupinDerivedStatusEntriesForCharacter,
   getLupinWeaponActionForCharacter
 } from "./speciesLupin";
-import { getOrcCommonActionForCharacter, getOrcDerivedStatusEntriesForCharacter } from "./speciesOrc";
+import {
+  getOrcCommonActionForCharacter,
+  getOrcDerivedStatusEntriesForCharacter
+} from "./speciesOrc";
 import {
   getRebornActionsForCharacter,
   getRebornDerivedStatusEntriesForCharacter
@@ -126,15 +130,11 @@ export type SpeciesContributionCharacter = Pick<Character, "species"> & Partial<
 export const gnomeSpeakWithAnimalsFreeCastContributionId =
   "species-gnome-speak-with-animals-free-cast";
 export { genasiLineageFreeCastContributionId };
-export const hexbloodHexMagicFreeCastContributionId =
-  "species-hexblood-hex-magic-free-cast";
+export const hexbloodHexMagicFreeCastContributionId = "species-hexblood-hex-magic-free-cast";
 export const tieflingFiendishLegacyFreeCastContributionId =
   "species-tiefling-fiendish-legacy-free-cast";
 
-function createSpeciesContribution(
-  id: string,
-  label: string
-): FeatureContributionSpec["source"] {
+function createSpeciesContribution(id: string, label: string): FeatureContributionSpec["source"] {
   return {
     type: "species",
     id,
@@ -192,9 +192,11 @@ function createSpellGrants(
     sourceMap: SpellSourceMap;
     fallbackSource: string;
     getSpellcastingAbility: (spellId: string) => AbilityKey | null;
-    getFreeCast?: (spellId: string) => (Omit<FeatureFreeCastEntry, "spellId"> & {
-      spellId?: string;
-    }) | undefined;
+    getFreeCast?: (spellId: string) =>
+      | (Omit<FeatureFreeCastEntry, "spellId"> & {
+          spellId?: string;
+        })
+      | undefined;
   }
 ): NonNullable<FeatureContributionSpec["spellGrants"]> {
   return spells.map((spell) => ({
@@ -209,7 +211,7 @@ function createSpellGrants(
 export function getSpeciesFeatureContributionsForCharacter(
   character: SpeciesContributionCharacter
 ): FeatureContributionSpec[] {
-  const canCreateActions = typeof character.level === "number";
+  const canCreateActions = typeof getCharacterLevel(character) === "number";
   const contributions: FeatureContributionSpec[] = [];
   const dragonbornActions = canCreateActions
     ? withSpeciesFeatureActionThemes(getDragonbornActionsForCharacter(character as Character))
@@ -388,19 +390,22 @@ export function getSpeciesFeatureContributionsForCharacter(
         kind: "granted-cantrip",
         sourceMap: elfSourceMap,
         fallbackSource: "Elf",
-        getSpellcastingAbility: (spellId) => getElfSpellcastingAbilityForCharacter(character, spellId)
+        getSpellcastingAbility: (spellId) =>
+          getElfSpellcastingAbilityForCharacter(character, spellId)
       }),
       ...createSpellGrants(elfGrantedCantrips, {
         kind: "always-prepared-cantrip",
         sourceMap: elfSourceMap,
         fallbackSource: "Elf",
-        getSpellcastingAbility: (spellId) => getElfSpellcastingAbilityForCharacter(character, spellId)
+        getSpellcastingAbility: (spellId) =>
+          getElfSpellcastingAbilityForCharacter(character, spellId)
       }),
       ...createSpellGrants(elfAlwaysPreparedSpells, {
         kind: "always-prepared-spell",
         sourceMap: elfSourceMap,
         fallbackSource: "Elf",
-        getSpellcastingAbility: (spellId) => getElfSpellcastingAbilityForCharacter(character, spellId)
+        getSpellcastingAbility: (spellId) =>
+          getElfSpellcastingAbilityForCharacter(character, spellId)
       })
     ]
   });

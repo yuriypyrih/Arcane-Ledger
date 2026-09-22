@@ -1,3 +1,8 @@
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .list {
   margin: 0;
   padding-left: 1.35rem;

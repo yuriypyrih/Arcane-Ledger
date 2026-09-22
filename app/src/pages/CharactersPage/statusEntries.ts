@@ -312,7 +312,11 @@ function getCustomSpellEffectStatusSourceId(
 }
 
 function normalizeSpellDurationLabel(label: string): string {
-  return label.trim().toLowerCase().replace(/^up to\s+/, "").replace(/\s+/g, " ");
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(/^up to\s+/, "")
+    .replace(/\s+/g, " ");
 }
 
 function isInstantaneousSpellDurationLabel(label: string): boolean {
@@ -580,10 +584,8 @@ function normalizeStatusSpellFormula(value: unknown): CharacterStatusEntrySpellF
     return null;
   }
 
-  const label =
-    typeof value.label === "string" ? sanitizeUserInput(value.label).trim() : "";
-  const content =
-    typeof value.content === "string" ? sanitizeUserInput(value.content).trim() : "";
+  const label = typeof value.label === "string" ? sanitizeUserInput(value.label).trim() : "";
+  const content = typeof value.content === "string" ? sanitizeUserInput(value.content).trim() : "";
   const breakdown =
     typeof value.breakdown === "string" ? sanitizeUserInput(value.breakdown).trim() : "";
 
@@ -702,6 +704,12 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     source,
     sourceType,
     duration,
+    sourceClassEntryId:
+      typeof record.sourceClassEntryId === "string" ? record.sourceClassEntryId : undefined,
+    sourceSubclassId:
+      typeof record.sourceSubclassId === "string" ? record.sourceSubclassId : undefined,
+    sourceClassLevel:
+      typeof record.sourceClassLevel === "number" ? record.sourceClassLevel : undefined,
     sourceId:
       typeof record.sourceId === "string" && record.sourceId.trim().length > 0
         ? record.sourceId
@@ -1014,7 +1022,9 @@ export function resolveCharacterStatusEntries(
         typeof entry.sourceId !== "string" ||
         entry.sourceId.length === 0)
   );
-  const nonRuntimeOverrideEntries = overrideEntries.filter((entry) => entry.runtimeOverride !== true);
+  const nonRuntimeOverrideEntries = overrideEntries.filter(
+    (entry) => entry.runtimeOverride !== true
+  );
   const durationOverrideEntriesByKey = new Map<string, CharacterStatusEntry>();
   const noteOverrideEntriesByKey = new Map<string, CharacterStatusEntry>();
   const runtimeNoteOverridesById = new Map<string, CharacterStatusEntry>();

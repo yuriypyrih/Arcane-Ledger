@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../../../../../pages/CharactersPage/multiclass";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
@@ -297,9 +298,7 @@ import {
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer
-} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
@@ -424,10 +423,7 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type {
-  ActionsWidgetDrawerBodyContext,
-  ActionsWidgetProps
-} from "./types";
+import type { ActionsWidgetDrawerBodyContext, ActionsWidgetProps } from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetExecution } from "./useActionsWidgetExecution";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
@@ -814,7 +810,7 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
   }
 
   if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
-    return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+    return <ClericPreserveLifeActionBody clericLevel={getClassLevel(character, "Cleric")} />;
   }
 
   if (

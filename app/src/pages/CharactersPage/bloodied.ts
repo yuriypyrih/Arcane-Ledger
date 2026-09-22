@@ -28,6 +28,7 @@ export function isCharacterBloodied(character: BloodiedCharacterContext): boolea
   }
 
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter({
+    ...character,
     className: character.className,
     customSpecies: character.customSpecies,
     feats: character.feats,

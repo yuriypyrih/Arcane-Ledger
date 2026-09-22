@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -159,11 +160,11 @@ function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>):
 }
 
 function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): number {
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 function getMonkMartialArtsDieLabel(character: Partial<Pick<Character, "level">>): string | null {
-  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+  const martialArtsDie = getMonkFeatureRow(getClassLevel(character, "Monk"))?.martialArts;
 
   return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
 }
@@ -196,9 +197,9 @@ function isMercyUnarmedStrikeAction(action: MercyWeaponAction | null): boolean {
 
 export function isMonkWarriorOfMercy(character: MonkWarriorOfMercyCharacter): boolean {
   return (
-    character.className === "Monk" &&
-    character.subclassId === warriorOfMercySubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Monk") &&
+    getClassSubclassId(character, "Monk") === warriorOfMercySubclassId &&
+    (getClassLevel(character, "Monk") ?? 0) >= 3
   );
 }
 
@@ -221,19 +222,19 @@ export function hasMonkWarriorOfMercyImplementsOfMercy(
 export function hasMonkWarriorOfMercyPhysiciansTouch(
   character: MonkWarriorOfMercyCharacter
 ): boolean {
-  return isMonkWarriorOfMercy(character) && (character.level ?? 0) >= 6;
+  return isMonkWarriorOfMercy(character) && (getClassLevel(character, "Monk") ?? 0) >= 6;
 }
 
 export function hasMonkWarriorOfMercyHandOfUltimateMercy(
   character: MonkWarriorOfMercyCharacter
 ): boolean {
-  return isMonkWarriorOfMercy(character) && (character.level ?? 0) >= 17;
+  return isMonkWarriorOfMercy(character) && (getClassLevel(character, "Monk") ?? 0) >= 17;
 }
 
 export function hasMonkWarriorOfMercyFlurryOfHealingAndHarm(
   character: MonkWarriorOfMercyCharacter
 ): boolean {
-  return isMonkWarriorOfMercy(character) && (character.level ?? 0) >= 11;
+  return isMonkWarriorOfMercy(character) && (getClassLevel(character, "Monk") ?? 0) >= 11;
 }
 
 export function getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(

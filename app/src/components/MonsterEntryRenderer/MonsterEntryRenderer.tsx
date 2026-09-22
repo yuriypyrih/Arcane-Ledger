@@ -79,22 +79,9 @@ function InlineRow({ label, value }: { label: string; value: string | null }) {
 }
 
 function DescriptionBlock({ description }: { description: string }) {
-  const paragraphs = description
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-
-  if (paragraphs.length === 0) {
-    return null;
-  }
-
   return (
     <div className={styles.descriptionStack}>
-      {paragraphs.map((paragraph, index) => (
-        <p key={`monster-description-${index}`} className={styles.description}>
-          {renderCodexRichText(paragraph)}
-        </p>
-      ))}
+      <p className={styles.description}>{renderCodexRichText(description)}</p>
     </div>
   );
 }

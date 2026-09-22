@@ -87,6 +87,7 @@ function GameplayActionDrawer({
   } | null>(null);
   const hasBaseDescription = description.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
+  const hasHeaderAside = headerTags.length > 0 || Boolean(headerAside) || badges.length > 0;
 
   return (
     <>
@@ -120,7 +121,9 @@ function GameplayActionDrawer({
         drawerClassName={[styles.drawerPanel, drawerClassName ?? ""].join(" ").trim()}
       >
         <div className={styles.shell}>
-          <OverlayHeader className={styles.header}>
+          <OverlayHeader
+            className={[styles.header, hasHeaderAside ? styles.headerWithAside : ""].join(" ")}
+          >
             <OverlayHeaderContent className={styles.headerContent}>
               {eyebrow ? <OverlayEyebrow>{eyebrow}</OverlayEyebrow> : null}
               <OverlayTitleRow>
@@ -128,24 +131,30 @@ function GameplayActionDrawer({
                 {titleAccessory}
               </OverlayTitleRow>
             </OverlayHeaderContent>
-            <div className={styles.headerAside}>
-              {headerTags.length > 0 ? (
-                <div className={styles.resourceBadgeRow}>
-                  <FeatureActionHeaderTags tags={headerTags} tagKeyPrefix={title} />
-                </div>
-              ) : null}
-              {headerAside}
-              {badges.length > 0 ? (
-                <div className={styles.badgeRow}>
-                  {badges.map((badge) => (
-                    <span key={`${title}-${badge}`} className={styles.badgePill}>
-                      {badge}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-              <OverlayCloseButton label={`Close ${title}`} onClick={onClose} />
-            </div>
+            {hasHeaderAside ? (
+              <div className={styles.headerAside}>
+                {headerTags.length > 0 ? (
+                  <div className={styles.resourceBadgeRow}>
+                    <FeatureActionHeaderTags tags={headerTags} tagKeyPrefix={title} />
+                  </div>
+                ) : null}
+                {headerAside}
+                {badges.length > 0 ? (
+                  <div className={styles.badgeRow}>
+                    {badges.map((badge) => (
+                      <span key={`${title}-${badge}`} className={styles.badgePill}>
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            <OverlayCloseButton
+              className={styles.closeButton}
+              label={`Close ${title}`}
+              onClick={onClose}
+            />
           </OverlayHeader>
 
           <OverlayBody className={[styles.body, bodyClassName ?? ""].join(" ").trim()}>

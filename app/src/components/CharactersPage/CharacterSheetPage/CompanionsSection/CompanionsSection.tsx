@@ -1,3 +1,5 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import { withReadOnlySheet } from "../withReadOnlySheet";
 import clsx from "clsx";
 import { CircleHelp, Plus } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
@@ -27,6 +29,7 @@ type CompanionsSectionProps = {
 };
 
 function CompanionsSection({ character, className, onPersistCharacter }: CompanionsSectionProps) {
+  const readOnly = useReadOnlySheet();
   const deleteTitleId = useId();
   const companions = useMemo(() => character.companions ?? [], [character.companions]);
   const [editorCompanionId, setEditorCompanionId] = useState<string | null>(null);
@@ -171,6 +174,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
                 onInspect={() => setSelectedCompanionId(companion.id)}
                 onRemove={() => setPendingRemoveCompanion(companion)}
               />
+
             ))}
           </div>
         ) : (
@@ -199,6 +203,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
         <CreatureDrawer
           character={character}
           creature={selectedCompanion}
+          readOnly={readOnly}
           onClose={() => setSelectedCompanionId(null)}
           onUpdateCreature={(nextCompanion) => handleSaveCompanion(nextCompanion)}
         />
@@ -224,4 +229,5 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   );
 }
 
-export default CompanionsSection;
+const CompanionsSectionSection = withReadOnlySheet(CompanionsSection);
+export default CompanionsSectionSection;

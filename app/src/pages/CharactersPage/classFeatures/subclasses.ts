@@ -1,3 +1,6 @@
+import type { Character } from "../../../types";
+import { getCharacterClasses, getClassEditorCharacter } from "../multiclass";
+import { mergeClassFeatureDerivedStates } from "./modules";
 import { getSelectedSubclassForCharacter } from "../subclasses";
 import { createDefaultAbilities } from "../constants";
 import { getArtificerSubclassDerivedFeatureState } from "./artificer/subclasses";
@@ -19,10 +22,7 @@ import { getPaladinSubclassDerivedFeatureState } from "./paladin/subclasses";
 import { getRangerSubclassDerivedFeatureState } from "./ranger/subclasses";
 import { getRogueSubclassDerivedFeatureState } from "./rogue/subclasses";
 import { getSorcererSubclassDerivedFeatureState } from "./sorcerer/subclasses";
-import type {
-  SubclassDerivedFeatureState,
-  SubclassRuntimeCharacter
-} from "./subclassRuntime";
+import type { SubclassDerivedFeatureState, SubclassRuntimeCharacter } from "./subclassRuntime";
 import { getWarlockSubclassDerivedFeatureState } from "./warlock/subclasses";
 import { getWizardSubclassDerivedFeatureState } from "./wizard/subclasses";
 
@@ -85,6 +85,48 @@ export function getSubclassDerivedFeatureState(
 
   if (cachedState) {
     return cachedState;
+  }
+
+  const progression = character as Partial<Character>;
+  if (progression.multiclass && !progression.classEntryId) {
+    const states = getCharacterClasses(character).map((entry) => {
+      const state = getSubclassDerivedFeatureState(getClassEditorCharacter(character, entry));
+      return {
+        ...state,
+        featureActions: state.featureActions?.map((action) => ({
+          ...action,
+          sourceClassEntryId: entry.id,
+          actionSource: action.actionSource ?? {
+            type: "class" as const,
+            name: entry.customClass?.name || entry.className
+          }
+        }))
+      };
+    });
+    const merged = states.reduce(
+      (result, state) =>
+        mergeClassFeatureDerivedStates(result, {
+          ...state,
+          actions: state.featureActions,
+          actionOptions: state.featureActionOptions
+        }),
+      {} as import("./types").ClassFeatureDerivedState
+    );
+    const result: SubclassDerivedFeatureState = {
+      ...merged,
+      featureActions: merged.actions,
+      featureActionOptions: merged.actionOptions,
+      speedBonuses: states.flatMap((state) => state.speedBonuses ?? []),
+      weaponAttackIndicators: states.flatMap((state) => state.weaponAttackIndicators ?? []),
+      spellDamageFormulaOverrides: Object.assign(
+        {},
+        ...states.map((state) => state.spellDamageFormulaOverrides ?? {})
+      ),
+      getUnarmedStrikeConfig: () =>
+        states.map((state) => state.getUnarmedStrikeConfig?.()).find(Boolean) ?? null
+    };
+    subclassDerivedFeatureStateCache.set(character, result);
+    return result;
   }
 
   const subclass = getSelectedSubclassForCharacter(character);

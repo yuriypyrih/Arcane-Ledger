@@ -36,6 +36,7 @@ type SpellListRowProps = {
   compactConcentrationDuration?: boolean;
   highlightTone?: "default" | "spell-mastery";
   contentLayout?: "default" | "natural";
+  readOnlyInteractive?: boolean;
 };
 
 function formatSpellSummaryRange(range: string): string {
@@ -134,7 +135,8 @@ function SpellListRow({
   disabled = false,
   compactConcentrationDuration = false,
   highlightTone = "default",
-  contentLayout = "default"
+  contentLayout = "default",
+  readOnlyInteractive = false
 }: SpellListRowProps) {
   const hasValueSummary = valueSummary.trim().length > 0;
   const hasDetailNote = (detailNote ?? "").trim().length > 0;
@@ -271,6 +273,7 @@ function SpellListRow({
   return (
     <SheetSurface
       as="button"
+      readOnlyInteractive={readOnlyInteractive}
       type="button"
       borderSize="md"
       borderStrength="light"

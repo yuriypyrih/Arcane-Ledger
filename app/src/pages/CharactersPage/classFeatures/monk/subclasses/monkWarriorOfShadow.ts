@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -99,7 +100,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
 }
 
 function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): number {
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 function getMonkFocusPointsRemaining(
@@ -116,9 +117,9 @@ function getMonkFocusPointsRemaining(
 
 export function isMonkWarriorOfShadow(character: MonkWarriorOfShadowCharacter): boolean {
   return (
-    character.className === "Monk" &&
-    character.subclassId === warriorOfShadowSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Monk") &&
+    getClassSubclassId(character, "Monk") === warriorOfShadowSubclassId &&
+    (getClassLevel(character, "Monk") ?? 0) >= 3
   );
 }
 
@@ -127,19 +128,19 @@ function hasMonkWarriorOfShadowArts(character: MonkWarriorOfShadowCharacter): bo
 }
 
 function hasMonkWarriorOfShadowStep(character: MonkWarriorOfShadowCharacter): boolean {
-  return isMonkWarriorOfShadow(character) && (character.level ?? 0) >= 6;
+  return isMonkWarriorOfShadow(character) && (getClassLevel(character, "Monk") ?? 0) >= 6;
 }
 
 export function hasMonkWarriorOfShadowImprovedShadowStep(
   character: MonkWarriorOfShadowCharacter
 ): boolean {
-  return isMonkWarriorOfShadow(character) && (character.level ?? 0) >= 11;
+  return isMonkWarriorOfShadow(character) && (getClassLevel(character, "Monk") ?? 0) >= 11;
 }
 
 export function hasMonkWarriorOfShadowCloakOfShadows(
   character: MonkWarriorOfShadowCharacter
 ): boolean {
-  return isMonkWarriorOfShadow(character) && (character.level ?? 0) >= 17;
+  return isMonkWarriorOfShadow(character) && (getClassLevel(character, "Monk") ?? 0) >= 17;
 }
 
 export function isMonkWarriorOfShadowCloakOfShadowActive(

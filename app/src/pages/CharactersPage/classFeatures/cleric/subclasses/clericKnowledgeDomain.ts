@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { divineForeknowledgeDescription } from "../../../../../codex/subclasses/cleric";
 import type {
@@ -28,7 +30,7 @@ import {
 } from "../../../featureContributions";
 import { getSkillProficiencyForName } from "../../../proficiencyResolvers";
 import { getRuntimeSavingThrowLevel } from "../../../proficiency/runtime";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -105,7 +107,7 @@ function normalizeKnowledgeDomainClericFeatureState(
 ): CharacterClericFeatureState {
   const normalizedCharacter = {
     ...character,
-    level: character.level ?? 1
+    level: getClassLevel(character, "Cleric") ?? 1
   };
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
@@ -121,9 +123,9 @@ export function hasClericKnowledgeDomainFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Cleric" &&
-    character.subclassId === knowledgeDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Cleric") &&
+    getClassSubclassId(character, "Cleric") === knowledgeDomainSubclassId &&
+    (getClassLevel(character, "Cleric") ?? 0) >= minimumLevel
   );
 }
 
@@ -219,8 +221,7 @@ function getUnfetteredMindAvailableSavingThrows(
     getRuntimeSavingThrowLevel(
       { savingThrowProficiencies: baseSavingThrowEntries },
       SAVING_THROW_PROFICIENCY.INT
-    ) !==
-    PROF_LEVEL.NONE;
+    ) !== PROF_LEVEL.NONE;
 
   if (!hasExistingIntSavingThrow) {
     return [SAVING_THROW_PROFICIENCY.INT];
@@ -561,7 +562,7 @@ export function getDivineForeknowledgeUsesRemaining(
 export function getDivineForeknowledgeFallbackSlotLevel(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): number | null {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -584,7 +585,7 @@ export function getDivineForeknowledgeFallbackSlotLevel(
 export function getDivineForeknowledgeFallbackSlotSummary(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -751,7 +752,7 @@ export function activateClericDivineForeknowledge(character: Character): Charact
       return character;
     }
 
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+    const spellSlotTotals = getSheetSpellSlotTotals(character);
     const spellSlotsExpended = normalizeSpellSlotsExpended(
       character.spellSlotsExpended,
       spellSlotTotals
@@ -890,7 +891,7 @@ export function collectClericKnowledgeDomainContributions(
         entryId: CLASS_FEATURE.KNOWLEDGE_DOMAIN_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Cleric") ?? 0,
         knowledgeDomainSpellIdsByLevel
       )
     },

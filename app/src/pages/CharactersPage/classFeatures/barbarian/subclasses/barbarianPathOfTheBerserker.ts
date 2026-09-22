@@ -1,4 +1,10 @@
 import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
+import {
   CONDITION_NAME,
   EFFECT_NAME,
   STATUS_DURATION_KIND,
@@ -77,28 +83,28 @@ type IntimidatingPresenceFormulaCharacter = BarbarianSubclassCharacter &
 
 export function isBarbarianPathOfTheBerserker(character: BarbarianSubclassCharacter): boolean {
   return (
-    character.className === "Barbarian" &&
-    character.subclassId === pathOfTheBerserkerSubclassId &&
-    character.level >= 3
+    hasCharacterClass(character, "Barbarian") &&
+    getClassSubclassId(character, "Barbarian") === pathOfTheBerserkerSubclassId &&
+    getClassLevel(character, "Barbarian") >= 3
   );
 }
 
 export function hasBarbarianPathOfTheBerserkerMindlessRage(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheBerserker(character) && character.level >= 6;
+  return isBarbarianPathOfTheBerserker(character) && getClassLevel(character, "Barbarian") >= 6;
 }
 
 export function hasBarbarianPathOfTheBerserkerRetaliation(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheBerserker(character) && character.level >= 10;
+  return isBarbarianPathOfTheBerserker(character) && getClassLevel(character, "Barbarian") >= 10;
 }
 
 export function hasBarbarianPathOfTheBerserkerIntimidatingPresence(
   character: BarbarianSubclassCharacter
 ): boolean {
-  return isBarbarianPathOfTheBerserker(character) && character.level >= 14;
+  return isBarbarianPathOfTheBerserker(character) && getClassLevel(character, "Barbarian") >= 14;
 }
 
 export function normalizeBarbarianPathOfTheBerserkerRageState(
@@ -182,7 +188,7 @@ function getBarbarianPathOfTheBerserkerIntimidatingPresenceFacts(
   character: IntimidatingPresenceFormulaCharacter
 ): FeatureActionFact[] {
   const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const dc = 8 + strengthModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -508,16 +514,16 @@ export function collectBarbarianPathOfTheBerserkerContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Barbarian" ||
-    character.subclassId !== pathOfTheBerserkerSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Barbarian") ||
+    getClassSubclassId(character, "Barbarian") !== pathOfTheBerserkerSubclassId ||
+    (getClassLevel(character, "Barbarian") ?? 0) < 3
   ) {
     return [];
   }
 
   const runtimeCharacter = {
     ...character,
-    level: character.level ?? 0
+    level: getClassLevel(character, "Barbarian") ?? 0
   };
   const retaliation = hasBarbarianPathOfTheBerserkerRetaliation(runtimeCharacter)
     ? getReactionEntryById(barbarianBerserkerRetaliationReactionId)

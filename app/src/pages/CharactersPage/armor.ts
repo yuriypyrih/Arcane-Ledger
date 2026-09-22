@@ -701,10 +701,20 @@ export function getArmorClassResolutionForCharacter(character: Character): Armor
     throw new Error("Unable to resolve Armor Class formulas.");
   }
 
-  const selection = normalizeArmorClassFormulaSelection(
+  let selection = normalizeArmorClassFormulaSelection(
     character.armorClassFormulaSelection,
     character
   );
+  if (character.multiclass && selection.mode === "auto") {
+    const best = formulas
+      .filter((formula) => formula.isApplicable)
+      .reduce(
+        (current, formula) =>
+          formula.breakdown.total > current.breakdown.total ? formula : current,
+        defaultFormula
+      );
+    selection = { ...selection, key: best.key };
+  }
   const selectedFormula =
     formulas.find((formula) => formula.key === selection.key) ?? defaultFormula;
   const activeFormula = selectedFormula.isApplicable ? selectedFormula : defaultFormula;

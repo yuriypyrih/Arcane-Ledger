@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -40,9 +41,7 @@ export const collegeOfLoreSubclassId = "bard-college-of-lore";
 const bardLoreBonusProficienciesSourceLabel = "College of Lore: Bonus Proficiencies";
 
 type BardLoreCharacter = Pick<Character, "className"> &
-  Partial<
-    Pick<Character, "level" | "subclassId" | "classFeatureState">
-  >;
+  Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>;
 type BardLoreFeatureCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "level" | "subclassId">>;
 
@@ -50,9 +49,9 @@ export function hasBardCollegeOfLoreBonusProficienciesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfLoreSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfLoreSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -60,9 +59,9 @@ export function hasBardCollegeOfLoreMagicalDiscoveriesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfLoreSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfLoreSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 6
   );
 }
 
@@ -70,9 +69,9 @@ export function hasBardCollegeOfLorePeerlessSkillFeature(
   character: BardLoreFeatureCharacter
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfLoreSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfLoreSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 14
   );
 }
 
@@ -212,7 +211,7 @@ export function getBardCollegeOfLoreMagicalDiscoveriesSpellOptions(
 
   const highestSlotLevel = getSpellSlotTotalsForCharacter(
     character.className,
-    character.level
+    getClassLevel(character, "Bard")
   ).reduce((highestLevel, totalSlots, index) => (totalSlots > 0 ? index + 1 : highestLevel), 0);
 
   return getSpellEntriesForSpellListClasses([
@@ -234,9 +233,9 @@ export function getBardCollegeOfLoreMagicalDiscoveriesSpellIds(
 
   const availableSpellIds = new Set(
     getBardCollegeOfLoreMagicalDiscoveriesSpellOptions({
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Bard",
+      level: getClassLevel(character, "Bard") ?? 0,
+      subclassId: getClassSubclassId(character, "Bard")
     }).map((spell) => spell.id)
   );
 
@@ -285,9 +284,9 @@ export function collectBardCollegeOfLoreContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Bard" ||
-    character.subclassId !== collegeOfLoreSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfLoreSubclassId ||
+    (getClassLevel(character, "Bard") ?? 0) < 3
   ) {
     return [];
   }
@@ -338,10 +337,7 @@ export function collectBardCollegeOfLoreContributions(
               {
                 id: "bard-college-of-lore-peerless-skill-weapon-action",
                 transform: (_runtimeCharacter: Character, action: unknown) =>
-                  getBardCollegeOfLorePeerlessSkillWeaponAction(
-                    character,
-                    action as WeaponAction
-                  )
+                  getBardCollegeOfLorePeerlessSkillWeaponAction(character, action as WeaponAction)
               }
             ]
           }

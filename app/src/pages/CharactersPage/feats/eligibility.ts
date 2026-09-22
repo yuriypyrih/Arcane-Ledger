@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../multiclass";
 import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../../types";
 import { getAbilityScoresForCharacter } from "../abilities";
 import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
@@ -199,7 +200,7 @@ function isFeatRequirementMet(
   requirement: FeatRequirement
 ): boolean {
   if (requirement.type === "minimum-level") {
-    return character.level >= requirement.level;
+    return getCharacterLevel(character) >= requirement.level;
   }
 
   if (requirement.type === "minimum-ability-score") {
@@ -213,7 +214,7 @@ function isFeatRequirementMet(
   if (requirement.type === "spellcasting-or-pact-magic") {
     return isSpellcastingClass(
       character.className,
-      character.level,
+      getCharacterLevel(character),
       character.subclassId,
       character.customClass,
       character.classRules

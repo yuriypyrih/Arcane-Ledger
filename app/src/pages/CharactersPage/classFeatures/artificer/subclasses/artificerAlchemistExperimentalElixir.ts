@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { getClassLevel } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character, CharacterItemMods } from "../../../../../types";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
@@ -9,7 +11,7 @@ import {
   INVENTORY_FEATURE_TAG_CONJURED
 } from "../../../inventoryItems";
 import { createCustomItemRecordFromMods } from "../../../itemMods";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
@@ -122,12 +124,7 @@ function getSpellSlotState(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "customClass" | "level" | "spellSlotsExpended" | "subclassId">>
 ) {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId,
-    character.customClass
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -177,7 +174,7 @@ export function getArtificerExperimentalElixirOptionsForCharacter(
     return [];
   }
 
-  const level = character.level ?? 0;
+  const level = getClassLevel(character, "Artificer") ?? 0;
 
   return experimentalElixirOptionDefinitions.map((definition) => ({
     key: definition.key,

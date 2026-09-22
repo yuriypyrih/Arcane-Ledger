@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
@@ -41,12 +42,12 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
 
 function hasMonkStunningStrikeFeature(character: MonkStunningStrikeCharacter): boolean {
   return (
-    character.className === "Monk" &&
+    hasCharacterClass(character, "Monk") &&
     getFeatureDescriptionForCharacter(
       {
-        className: character.className,
-        level: character.level ?? 0,
-        subclassId: character.subclassId
+        className: "Monk",
+        level: getClassLevel(character, "Monk") ?? 0,
+        subclassId: getClassSubclassId(character, "Monk")
       },
       CLASS_FEATURE.STUNNING_STRIKE
     ).length > 0
@@ -54,7 +55,7 @@ function hasMonkStunningStrikeFeature(character: MonkStunningStrikeCharacter): b
 }
 
 function getMonkFocusPointsTotal(character: MonkStunningStrikeCharacter): number {
-  return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
+  return getMonkFeatureRow(getClassLevel(character, "Monk"))?.focusPoints ?? 0;
 }
 
 function getMonkFocusPointsRemaining(character: MonkStunningStrikeCharacter): number {
@@ -72,12 +73,7 @@ function isMonkUnarmedStrikeAction(action: MonkStunningStrikeWeaponAction | null
 }
 
 function isMonkWeaponAction(action: MonkStunningStrikeWeaponAction | null): boolean {
-  if (
-    !action ||
-    action.attackKind !== "weapon" ||
-    !action.weaponTraining ||
-    !action.combatType
-  ) {
+  if (!action || action.attackKind !== "weapon" || !action.weaponTraining || !action.combatType) {
     return false;
   }
 
@@ -145,7 +141,10 @@ export function consumeMonkStunningStrike(character: Character): Character {
       ...character.classFeatureState,
       monk: {
         ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + stunningStrikeFocusCost),
+        focusPointsExpended: Math.min(
+          totalFocusPoints,
+          focusPointsExpended + stunningStrikeFocusCost
+        ),
         stunningStrikeUsedThisTurn: true
       }
     }

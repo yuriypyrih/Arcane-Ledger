@@ -1,8 +1,10 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character, CharacterDruidFeatureState } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
@@ -32,9 +34,7 @@ import {
   hasDruidMoonlightStepFeature
 } from "./druidCircleOfTheMoonFeatures";
 import { druidMoonlightStepActionKey } from "../actionKeys";
-import {
-  getDruidWildShapeActiveForm
-} from "../base";
+import { getDruidWildShapeActiveForm } from "../base";
 
 export const circleOfTheMoonSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Cure Wounds", "Moonbeam", "Starry Wisp"]),
@@ -56,7 +56,7 @@ export function getDruidCircleOfTheMoonWildShapeRules(
     return baseRules;
   }
 
-  const maxCr = Math.max(1, Math.floor(character.level / 3));
+  const maxCr = Math.max(1, Math.floor(getClassLevel(character, "Druid") / 3));
 
   return {
     ...baseRules,
@@ -130,7 +130,7 @@ export function getDruidMoonlightStepUsesRemaining(
 function getDruidSpellSlotsRemaining(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number[] {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -158,7 +158,7 @@ export function getDruidMoonlightStepFallbackSlotLevel(
 export function getDruidMoonlightStepFallbackSlotSummary(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): { remaining: number; total: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsRemaining = getDruidSpellSlotsRemaining(character);
 
   return spellSlotTotals.reduce(
@@ -233,7 +233,7 @@ export function activateDruidMoonlightStep(
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -323,39 +323,42 @@ export function getDruidCircleOfTheMoonSpellcastingState(
 
 function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
-    character.className !== "Druid" ||
-    character.subclassId !== circleOfTheMoonSubclassId ||
-    (character.level ?? 0) < 10
+    !hasCharacterClass(character, "Druid") ||
+    getClassSubclassId(character, "Druid") !== circleOfTheMoonSubclassId ||
+    (getClassLevel(character, "Druid") ?? 0) < 10
   ) {
     return [];
   }
 
   const usesRemaining = getDruidMoonlightStepUsesRemaining({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid"),
     classFeatureState: character.classFeatureState,
     abilities: character.abilities
   });
   const usesTotal = getDruidMoonlightStepUsesTotal({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid"),
     abilities: character.abilities
   });
   const fallbackSlotLevel = getDruidMoonlightStepFallbackSlotLevel({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
     spellSlotsExpended: character.spellSlotsExpended ?? []
   });
   const fallbackSlotSummary = getDruidMoonlightStepFallbackSlotSummary({
-    className: character.className,
-    level: character.level ?? 0,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
     spellSlotsExpended: character.spellSlotsExpended ?? []
   });
   const description =
     getSubclassFeatureDetails(
-      getSelectedSubclassForCharacter(character),
+      getSelectedSubclassForCharacter({
+        className: "Druid",
+        subclassId: getClassSubclassId(character, "Druid")
+      }),
       10,
       CLASS_FEATURE.MOONLIGHT_STEP
     )?.description ?? [];
@@ -415,9 +418,9 @@ export function collectDruidCircleOfTheMoonContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   const runtimeCharacter = {
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId,
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid"),
     classFeatureState: character.classFeatureState
   };
 
@@ -466,9 +469,9 @@ export function collectDruidCircleOfTheMoonContributions(
       actions: getCircleOfTheMoonFeatureActions(character)
     },
     ...(hasDruidLunarFormFeature({
-      className: character.className,
-      level: character.level ?? 0,
-      subclassId: character.subclassId
+      className: "Druid",
+      level: getClassLevel(character, "Druid") ?? 0,
+      subclassId: getClassSubclassId(character, "Druid")
     })
       ? [
           {
@@ -496,10 +499,10 @@ export function getDruidCircleOfTheMoonSpellIdsForCharacter(
   spellIdsByLevel = circleOfTheMoonSpellIdsByLevel
 ): string[] {
   return hasDruidCircleOfTheMoonSpellsFeature({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId
+    className: "Druid",
+    level: getClassLevel(character, "Druid") ?? 0,
+    subclassId: getClassSubclassId(character, "Druid")
   })
-    ? getPreparedSpellIdsByLevel(character.level ?? 0, spellIdsByLevel)
+    ? getPreparedSpellIdsByLevel(getClassLevel(character, "Druid") ?? 0, spellIdsByLevel)
     : [];
 }

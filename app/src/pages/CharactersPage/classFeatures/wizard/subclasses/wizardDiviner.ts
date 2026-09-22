@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import {
@@ -19,11 +20,7 @@ import { getWizardDivinerThirdEyeFeatureAction } from "./wizardDivinerThirdEye";
 
 export const divinerSubclassId = wizardDivinerSubclassId;
 
-function createWizardDivinerSource(input: {
-  id: string;
-  label: string;
-  entryId: CLASS_FEATURE;
-}) {
+function createWizardDivinerSource(input: { id: string; label: string; entryId: CLASS_FEATURE }) {
   return createSubclassContributionSource({
     ...input,
     id: `wizard-diviner-${input.id}`
@@ -34,9 +31,9 @@ export function collectWizardDivinerContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Wizard" ||
-    character.subclassId !== divinerSubclassId ||
-    typeof character.level !== "number"
+    !hasCharacterClass(character, "Wizard") ||
+    getClassSubclassId(character, "Wizard") !== divinerSubclassId ||
+    typeof getClassLevel(character, "Wizard") !== "number"
   ) {
     return [];
   }
@@ -54,9 +51,9 @@ export function collectWizardDivinerContributions(
         entryId: CLASS_FEATURE.DIVINATION_SAVANT
       }),
       alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-        className: character.className,
-        level: character.level,
-        subclassId: character.subclassId,
+        className: "Wizard",
+        level: getClassLevel(character, "Wizard"),
+        subclassId: getClassSubclassId(character, "Wizard"),
         classFeatureState: character.classFeatureState
       })
     }

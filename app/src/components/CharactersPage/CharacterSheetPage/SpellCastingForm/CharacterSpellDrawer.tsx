@@ -210,6 +210,7 @@ export type CharacterSpellDrawerSlotFreeUseOption = {
 };
 
 type CharacterSpellDrawerProps = {
+  slotPoolControl?: ReactNode;
   character: Character;
   spell: SpellEntry;
   alwaysPrepared?: boolean;
@@ -344,6 +345,7 @@ function CharacterSpellDrawer({
   ritualCastingRequired = false,
   actionAvailabilityText = null,
   actionContextText = null,
+  slotPoolControl,
   actionPaths,
   actionShape = null,
   actionShapeAvailable = true,
@@ -809,7 +811,8 @@ function CharacterSpellDrawer({
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeUse
-      ? (slotFreeUseOption?.description ?? "Free use selected. This cast won't expend a spell slot.")
+      ? (slotFreeUseOption?.description ??
+        "Free use selected. This cast won't expend a spell slot.")
       : selectedSlotIsFreeCast
         ? (freeCastAvailabilityText ??
           `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
@@ -919,6 +922,7 @@ function CharacterSpellDrawer({
           </div>
 
           <div className={sheetStyles.spellDrawerBody}>
+            {slotPoolControl}
             <div className={clsx(sheetStyles.spellDrawerDetails, styles.spellInfoGrid)}>
               <CellContainer
                 label="Casting Time"

@@ -1,3 +1,4 @@
+import { inspectUserCharacter, listUserCharactersForInspection } from "../controllers/characterInspectionController.js";
 import { Router } from "express";
 import {
   getAdministrationUsers,
@@ -9,6 +10,8 @@ import { validateAdministrationUserListQuery } from "../middleware/validateAdmin
 const administrationRoutes = Router();
 
 administrationRoutes.use(requireAuth, requireAdmin);
+administrationRoutes.get("/users/:userId/characters", listUserCharactersForInspection);
+administrationRoutes.get("/users/:userId/characters/:characterSheetId", inspectUserCharacter);
 administrationRoutes.get("/users", validateAdministrationUserListQuery, getAdministrationUsers);
 administrationRoutes.patch("/users/:userId/role", patchAdministrationUserRole);
 

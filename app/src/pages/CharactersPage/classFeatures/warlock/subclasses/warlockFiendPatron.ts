@@ -1,3 +1,10 @@
+import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../../../multiclass";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -21,7 +28,6 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
@@ -97,54 +103,49 @@ const hurlThroughHellDescription = getFiendPatronFeatureDescriptionEntries(
   CLASS_FEATURE.HURL_THROUGH_HELL
 );
 
-function hasWarlockFiendPatronDarkOnesBlessing(
-  character: WarlockFiendPatronCharacter
-): boolean {
+function hasWarlockFiendPatronDarkOnesBlessing(character: WarlockFiendPatronCharacter): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === fiendPatronSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 3
   );
 }
 
-function hasWarlockFiendPatronDarkOnesOwnLuck(
-  character: WarlockFiendPatronCharacter
-): boolean {
+function hasWarlockFiendPatronDarkOnesOwnLuck(character: WarlockFiendPatronCharacter): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === fiendPatronSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 6
   );
 }
 
-function hasWarlockFiendPatronFiendishResilience(
-  character: WarlockFiendPatronCharacter
-): boolean {
+function hasWarlockFiendPatronFiendishResilience(character: WarlockFiendPatronCharacter): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === fiendPatronSubclassId &&
-    (character.level ?? 0) >= 10
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 10
   );
 }
 
-function hasWarlockFiendPatronHurlThroughHell(
-  character: WarlockFiendPatronCharacter
-): boolean {
+function hasWarlockFiendPatronHurlThroughHell(character: WarlockFiendPatronCharacter): boolean {
   return (
-    character.className === "Warlock" &&
-    character.subclassId === fiendPatronSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Warlock") &&
+    getClassSubclassId(character, "Warlock") === fiendPatronSubclassId &&
+    (getClassLevel(character, "Warlock") ?? 0) >= 14
   );
 }
 
 function getWarlockFiendPatronPactMagicSlotLevel(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): number {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return 0;
   }
 
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(character.level ?? 1)));
+  const normalizedLevel = Math.max(
+    1,
+    Math.min(20, Math.floor(getClassLevel(character, "Warlock") ?? 1))
+  );
   const matchingRows = warlockFeatures
     .filter((row) => row.level <= normalizedLevel)
     .sort((left, right) => left.level - right.level);
@@ -162,11 +163,8 @@ function getWarlockFiendPatronPactMagicSlotsRemaining(
     return 0;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
+  const { totals: spellSlotTotals, expended: spellSlotsExpended } =
+    getWarlockPactSlotState(character);
   const pactMagicSlotTotal = spellSlotTotals[pactMagicSlotLevel - 1] ?? 0;
   const pactMagicSlotsExpended = spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0;
 
@@ -234,14 +232,15 @@ export function getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(
 
   return Math.max(
     1,
-    Math.floor(character.level ?? 0) + getAbilityModifierForCharacter(character, "CHA")
+    Math.floor(getClassLevel(character, "Warlock") ?? 0) +
+      getAbilityModifierForCharacter(character, "CHA")
   );
 }
 
 function getWarlockFiendPatronDarkOnesBlessingFormulaFact(
   character: WarlockFiendPatronCharacter
 ): FeatureActionFact {
-  const warlockLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const warlockLevel = Math.max(0, Math.floor(getClassLevel(character, "Warlock") ?? 0));
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const temporaryHitPoints = getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(character);
 
@@ -255,7 +254,7 @@ function getWarlockFiendPatronDarkOnesBlessingFormulaFact(
 function getWarlockFiendPatronHurlThroughHellSpellDcFact(
   character: WarlockFiendPatronCharacter
 ): FeatureActionFact {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const dc = 8 + proficiencyBonus + charismaModifier;
   const formulaCell = formatFormulaCell({
@@ -307,9 +306,7 @@ export function getWarlockFiendPatronDarkOnesOwnLuckUsesRemaining(
   character: WarlockFiendPatronCharacter
 ): number {
   const totalUses = getWarlockFiendPatronDarkOnesOwnLuckUsesTotal(character);
-  const rawUsesExpended = Number(
-    character.classFeatureState?.warlock?.darkOnesOwnLuckUsesExpended
-  );
+  const rawUsesExpended = Number(character.classFeatureState?.warlock?.darkOnesOwnLuckUsesExpended);
 
   return Math.max(
     0,
@@ -357,9 +354,7 @@ export function normalizeWarlockFiendPatronFeatureState(
   character: WarlockFiendPatronCharacter
 ): Pick<
   CharacterWarlockFeatureState,
-  | "darkOnesOwnLuckUsesExpended"
-  | "fiendishResilienceDamageType"
-  | "hurlThroughHellUsesExpended"
+  "darkOnesOwnLuckUsesExpended" | "fiendishResilienceDamageType" | "hurlThroughHellUsesExpended"
 > {
   const totalUses = getWarlockFiendPatronDarkOnesOwnLuckUsesTotal(character);
   const hurlThroughHellUsesTotal = getWarlockFiendPatronHurlThroughHellUsesTotal(character);
@@ -375,14 +370,15 @@ export function normalizeWarlockFiendPatronFeatureState(
           : undefined,
     hurlThroughHellUsesExpended:
       hurlThroughHellUsesTotal > 0 && Number.isFinite(rawHurlThroughHellUsesExpended)
-        ? Math.max(0, Math.min(hurlThroughHellUsesTotal, Math.floor(rawHurlThroughHellUsesExpended)))
+        ? Math.max(
+            0,
+            Math.min(hurlThroughHellUsesTotal, Math.floor(rawHurlThroughHellUsesExpended))
+          )
         : hurlThroughHellUsesTotal > 0
           ? 0
           : undefined,
     fiendishResilienceDamageType: hasWarlockFiendPatronFiendishResilience(character)
-      ? normalizeWarlockFiendPatronFiendishResilienceDamageType(
-          value.fiendishResilienceDamageType
-        )
+      ? normalizeWarlockFiendPatronFiendishResilienceDamageType(value.fiendishResilienceDamageType)
       : undefined
   };
 }
@@ -476,19 +472,7 @@ export function consumeWarlockFiendPatronHurlThroughHellUse(character: Character
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
-  const nextSpellSlotsExpended = [...spellSlotsExpended];
-  nextSpellSlotsExpended[pactMagicSlotLevel - 1] =
-    (nextSpellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) + 1;
-
-  return {
-    ...character,
-    spellSlotsExpended: nextSpellSlotsExpended
-  };
+  return spendWarlockPactSlot(character, pactMagicSlotLevel);
 }
 
 export function restoreWarlockFiendPatronHurlThroughHellOnLongRest(
@@ -609,8 +593,7 @@ function getWarlockFiendPatronDarkOnesOwnLuckAction(
       kind: "activate"
     },
     disabled: usesRemaining <= 0,
-    disabledReason:
-      usesRemaining <= 0 ? "Dark One's Own Luck recharges on a Long Rest." : undefined
+    disabledReason: usesRemaining <= 0 ? "Dark One's Own Luck recharges on a Long Rest." : undefined
   };
 }
 
@@ -627,17 +610,17 @@ function getWarlockFiendPatronHurlThroughHellAction(
   const pactMagicSlotsRemaining = getWarlockFiendPatronPactMagicSlotsRemaining(character);
   const pactMagicSlotsTotal =
     pactMagicSlotLevel > 0
-      ? getSpellSlotTotalsForCharacter(character.className, character.level ?? 1)[
-          pactMagicSlotLevel - 1
-        ] ?? 0
+      ? (getWarlockPactSlotState(character).totals[pactMagicSlotLevel - 1] ?? 0)
       : 0;
-  const hasFallbackSlot = usesRemaining <= 0 && pactMagicSlotsRemaining > 0 && pactMagicSlotLevel > 0;
+  const hasFallbackSlot =
+    usesRemaining <= 0 && pactMagicSlotsRemaining > 0 && pactMagicSlotLevel > 0;
   const disabled = usesRemaining <= 0 && !hasFallbackSlot;
   const spellDcFact = getWarlockFiendPatronHurlThroughHellSpellDcFact(character);
   return {
     key: hurlThroughHellActionKey,
     name: hurlThroughHellName,
-    summary: "Use your once-per-Long Rest Hurl Through Hell, or spend a Pact Magic slot after it is used.",
+    summary:
+      "Use your once-per-Long Rest Hurl Through Hell, or spend a Pact Magic slot after it is used.",
     detail: hasFallbackSlot
       ? "Spend a Pact Magic slot to use Hurl Through Hell again."
       : "Use Hurl Through Hell once per Long Rest.",
@@ -705,9 +688,9 @@ export function collectWarlockFiendPatronContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
   if (
-    character.className !== "Warlock" ||
-    character.subclassId !== fiendPatronSubclassId ||
-    (character.level ?? 0) < 3
+    !hasCharacterClass(character, "Warlock") ||
+    getClassSubclassId(character, "Warlock") !== fiendPatronSubclassId ||
+    (getClassLevel(character, "Warlock") ?? 0) < 3
   ) {
     return [];
   }
@@ -720,7 +703,7 @@ export function collectWarlockFiendPatronContributions(
         entryId: CLASS_FEATURE.FIEND_SPELLS
       }),
       alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-        character.level ?? 0,
+        getClassLevel(character, "Warlock") ?? 0,
         fiendPatronSpellIdsByLevel
       )
     }

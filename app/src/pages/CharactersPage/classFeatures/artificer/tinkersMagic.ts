@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character, CharacterArtificerFeatureState, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
@@ -33,7 +34,9 @@ function normalizeUsesExpended(value: unknown, total: number): number {
 export function hasArtificerTinkersMagicFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
-  return character.className === "Artificer" && (character.level ?? 0) >= 1;
+  return (
+    hasCharacterClass(character, "Artificer") && (getClassLevel(character, "Artificer") ?? 0) >= 1
+  );
 }
 
 export function getArtificerTinkersMagicUsesTotal(

@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
+import SpellcastingThumbButton from "../../../components/CharactersPage/CharacterSheetPage/ThumbDiceButton/SpellcastingThumbButton";
 import CompanionEditorModal from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionEditorModal";
 import {
   removeCharacterCompanion,
@@ -13,6 +14,8 @@ import {
 } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import { trackAnalyticsEvent } from "../../../lib/analytics";
+import { useMediaQuery } from "../../../lib/useMediaQuery";
+import { MEDIA_QUERIES } from "../../../styles/breakpoints";
 import PageLoadingFallback from "../../../components/PageLoadingFallback";
 import type { CharacterCompanion } from "../../../types";
 import { CHARACTER_COMPANION_LIMIT } from "../companions";
@@ -35,6 +38,7 @@ import {
 function CharacterSheetPage() {
   const { characterId } = useParams();
   const { isBroadLayoutActive } = useOutletContext<AppShellOutletContext>();
+  const isSmallScreen = useMediaQuery(MEDIA_QUERIES.mdDown);
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
   const [isCompanionCreatorOpen, setIsCompanionCreatorOpen] = useState(false);
   const {
@@ -45,6 +49,7 @@ function CharacterSheetPage() {
     queueHitPointCharacterSave
   } = useCharacterSheetPersistence(parsedCharacterId);
   const trackedCharacterOpenId = useRef<number | null>(null);
+  const spellcastingSectionRef = useRef<HTMLDivElement>(null);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
   const isCompanionLimitReached = companions.length >= CHARACTER_COMPANION_LIMIT;
@@ -184,10 +189,15 @@ function CharacterSheetPage() {
           </CharacterSheetSectionProfiler>
           {hasSpellcastingSection ? (
             <CharacterSheetSectionProfiler id="spellcasting">
-              <SpellcastingSection
+              <div
                 className={styles.cascadeEight}
-                onPersistCharacter={persistCharacter}
-              />
+                ref={spellcastingSectionRef}
+                role="region"
+                aria-label="Spellcasting"
+                tabIndex={-1}
+              >
+                <SpellcastingSection onPersistCharacter={persistCharacter} />
+              </div>
             </CharacterSheetSectionProfiler>
           ) : null}
         </div>
@@ -202,7 +212,13 @@ function CharacterSheetPage() {
           onClose={closeCompanionCreator}
         />
       ) : null}
-      <ThumbDiceButton />
+      <ThumbDiceButton
+        aboveButton={
+          hasSpellcastingSection && isSmallScreen ? (
+            <SpellcastingThumbButton key={character.id} sectionRef={spellcastingSectionRef} />
+          ) : null
+        }
+      />
     </section>
   );
 }

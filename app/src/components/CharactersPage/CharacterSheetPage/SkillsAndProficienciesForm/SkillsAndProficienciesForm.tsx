@@ -1,3 +1,4 @@
+import { withReadOnlySheet } from "../withReadOnlySheet";
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -240,4 +241,5 @@ function SkillsAndProficienciesForm({
   );
 }
 
-export default SkillsAndProficienciesForm;
+const SkillsAndProficienciesFormSection = withReadOnlySheet(SkillsAndProficienciesForm);
+export default SkillsAndProficienciesFormSection;

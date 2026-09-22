@@ -1,3 +1,12 @@
+import { getHitDicePools, spendHitDice } from "../../hitDice";
+import {
+  getClassEntry,
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassCantripIds,
+  getClassLevel
+} from "../../multiclass";
+import { getCharacterSpellSlotPools, setSlotPoolExpended } from "../../multiclassSpellcasting";
 import {
   FEAT_CATEGORY,
   SPELL_LIST_CLASS,
@@ -20,9 +29,7 @@ import {
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType
 } from "../../actionEconomy";
-import {
-  createFeatureSourcedDescriptionEntries
-} from "../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import { getAbilityModifierBreakdownForCharacter } from "../../abilities";
 import {
   getHitDiceRemainingForCharacter,
@@ -64,7 +71,6 @@ import type {
 } from "../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
-  beguilingDefenseReactionId,
   consumeWarlockArchfeyPatronBeguilingDefenseUse,
   getWarlockArchfeyPatronBeguilingDefenseUsesRemaining,
   getWarlockArchfeyPatronBeguilingDefenseUsesTotal,
@@ -126,9 +132,7 @@ import {
   restoreWarlockSubclassFeaturesOnShortRest,
   restoreWarlockSubclassFeaturesOnLongRest
 } from "./subclasses";
-import {
-  isWarlockInvocationSpellActionKey
-} from "./invocations/spellActions";
+import { isWarlockInvocationSpellActionKey } from "./invocations/spellActions";
 import {
   activateWarlockGazeOfTwoMindsStatus,
   gazeOfTwoMindsActionKey
@@ -204,11 +208,7 @@ export {
   maskOfManyFacesActionKey,
   pactOfTheChainActionKey
 } from "./invocations/spellActions";
-export {
-  darkOnesBlessingActionKey,
-  darkOnesOwnLuckActionKey,
-  hurlThroughHellActionKey
-};
+export { darkOnesBlessingActionKey, darkOnesOwnLuckActionKey, hurlThroughHellActionKey };
 export { warlockFiendPatronFiendishResilienceDamageTypeOptions };
 
 export type MysticArcanumLevel = 6 | 7 | 8 | 9;
@@ -351,7 +351,10 @@ function getUnlockedMysticArcanumLevels(
   }
 
   return mysticArcanumDefinitions
-    .filter((definition) => clampWarlockLevel(character.level) >= definition.warlockLevel)
+    .filter(
+      (definition) =>
+        clampWarlockLevel(getClassLevel(character, "Warlock")) >= definition.warlockLevel
+    )
     .map((definition) => definition.spellLevel);
 }
 
@@ -360,7 +363,7 @@ function getWarlockPactMagicSlotLevel(character: Pick<Character, "className" | "
     return 0;
   }
 
-  return getWarlockFeatureRow(character.level)?.slotLevel ?? 0;
+  return getWarlockFeatureRow(getClassLevel(character, "Warlock"))?.slotLevel ?? 0;
 }
 
 export function getWarlockPactMagicSlotTotal(
@@ -371,20 +374,34 @@ export function getWarlockPactMagicSlotTotal(
   }
 
   const slotLevel = getWarlockPactMagicSlotLevel(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    "Warlock",
+    getClassLevel(character, "Warlock")
+  );
   return slotLevel > 0 ? (spellSlotTotals[slotLevel - 1] ?? 0) : 0;
 }
 
 export function getWarlockPactMagicSlotsExpended(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number {
+  const multiclass = (character as Character).multiclass;
+  const entry = getClassEntry(character, "Warlock");
+  if (multiclass && (character as Character).slotPoolId !== `pact:${entry?.id}`) {
+    const pool = getCharacterSpellSlotPools(character).find(
+      (candidate) => candidate.id === `pact:${entry?.id}`
+    );
+    return pool?.expended.reduce((sum, count) => sum + count, 0) ?? 0;
+  }
   const slotLevel = getWarlockPactMagicSlotLevel(character);
 
   if (slotLevel <= 0) {
     return 0;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    "Warlock",
+    getClassLevel(character, "Warlock")
+  );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -396,8 +413,10 @@ export function getWarlockPactMagicSlotsExpended(
 function getWarlockKnownCantripEntries(
   character: Partial<Pick<Character, "cantripIds">>
 ): SpellEntry[] {
-  const rawIds = Array.isArray(character.cantripIds)
-    ? character.cantripIds.filter((entry): entry is string => typeof entry === "string")
+  const rawIds = Array.isArray(getClassCantripIds(character, "Warlock"))
+    ? getClassCantripIds(character, "Warlock").filter(
+        (entry): entry is string => typeof entry === "string"
+      )
     : [];
 
   return [...new Set(rawIds)]
@@ -481,7 +500,7 @@ function meetsInvocationPrerequisites(
 ): boolean {
   return (invocation.prerequisites ?? []).every((requirement) => {
     if (requirement.type === "warlock-level") {
-      return clampWarlockLevel(character.level) >= requirement.minimumLevel;
+      return clampWarlockLevel(getClassLevel(character, "Warlock")) >= requirement.minimumLevel;
     }
 
     return selectedBaseInvocations.has(requirement.invocation);
@@ -608,11 +627,17 @@ export function hasWarlockFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Warlock") {
+  const view = character as Character;
+  if (
+    !hasCharacterClass(character, "Warlock") ||
+    (view.classEntryId &&
+      view.className !== "Warlock" &&
+      isCharacterClassRulesEldritchInvocationsEnabled(view))
+  ) {
     return false;
   }
 
-  return getUnlockedWarlockFeatures(character.level).has(feature);
+  return getUnlockedWarlockFeatures(getClassLevel(character, "Warlock")).has(feature);
 }
 
 export function getWarlockEldritchInvocationLimit(
@@ -627,7 +652,10 @@ export function getWarlockEldritchInvocationLimit(
     return 0;
   }
 
-  return Math.max(0, getWarlockFeatureRow(character.level)?.eldritchInvocations ?? 0);
+  return Math.max(
+    0,
+    getWarlockFeatureRow(getClassLevel(character, "Warlock"))?.eldritchInvocations ?? 0
+  );
 }
 
 export function getWarlockInvocationSelectionIds(character: WarlockInvocationCharacter): string[] {
@@ -957,7 +985,7 @@ export function getWarlockSpellDamageBonuses(
   character: WarlockInvocationCharacter,
   { spell }: SpellFeatureContext
 ): FeatureDamageBonus[] {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return [];
   }
 
@@ -968,7 +996,7 @@ export function getWarlockSpellEntry(
   character: WarlockInvocationCharacter,
   spell: SpellEntry
 ): SpellEntry {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return spell;
   }
 
@@ -982,10 +1010,7 @@ export function getWarlockEldritchMindSavingThrowDescriptionAdditions(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "classFeatureState">>,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
-  if (
-    character.className !== "Warlock" ||
-    ability !== "CON"
-  ) {
+  if (!hasCharacterClass(character, "Warlock") || ability !== "CON") {
     return [];
   }
 
@@ -1028,7 +1053,7 @@ export function getWarlockWeaponAction(
   const proficiencyBonus =
     action.proficiencyBonus !== 0
       ? action.proficiencyBonus
-      : getProficiencyBonusForLevel(character.level);
+      : getProficiencyBonusForLevel(getCharacterLevel(character));
   const proficiencyLabel =
     action.proficiencyBonus !== 0 ? action.proficiencyLabel : "Pact of the Blade";
   const charismaAction = shouldUseCharisma
@@ -1090,8 +1115,8 @@ export function getWarlockEldritchSmiteWeaponOptionState(
   const pactMagicSlotLevel = getWarlockPactMagicSlotLevel(character);
   const pactMagicSlotsTotal = getWarlockPactMagicSlotTotal(character);
   const pactMagicSlotsRemaining = getWarlockPactMagicSlotsRemaining({
-    className: character.className,
-    level: character.level,
+    className: "Warlock",
+    level: getClassLevel(character, "Warlock"),
     spellSlotsExpended: character.spellSlotsExpended ?? []
   });
   const disabled =
@@ -1113,7 +1138,9 @@ export function getWarlockEldritchSmiteWeaponOptionState(
 }
 
 export function consumeWarlockEldritchSmitePactMagicSlot(character: Character): Character {
-  if (character.className !== "Warlock") {
+  if (character.multiclass && !character.slotPoolId?.startsWith("pact:"))
+    return updateWarlockPactPool(character, consumeWarlockEldritchSmitePactMagicSlot);
+  if (!hasCharacterClass(character, "Warlock")) {
     return character;
   }
 
@@ -1128,7 +1155,10 @@ export function consumeWarlockEldritchSmitePactMagicSlot(character: Character): 
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    "Warlock",
+    getClassLevel(character, "Warlock")
+  );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -1161,11 +1191,10 @@ export function getWarlockLifedrinkerWeaponOptionState(
     return null;
   }
 
-  const hitDieFormula = getHitDieFormulaForClass(
-    character.className,
-    character.customClass,
-    character.classRules
-  );
+  const selectedDie = getHitDicePools(character)
+    .filter((pool) => pool.remaining > 0)
+    .sort((a, b) => Number(b.die.slice(1)) - Number(a.die.slice(1)))[0];
+  const hitDieFormula = selectedDie ? `1${selectedDie.die}` : getHitDieFormulaForClass("Warlock");
   const constitutionBreakdown = getAbilityModifierBreakdownForCharacter(character, "CON");
   const healFormula = createSignedFormula(hitDieFormula, constitutionBreakdown.total);
   const constitutionDisplayTerm =
@@ -1226,10 +1255,10 @@ export function consumeWarlockLifedrinkerHitDie(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    hitDiceRemaining: hitDiceRemaining - 1
-  };
+  const selectedDie = getHitDicePools(character)
+    .filter((pool) => pool.remaining > 0)
+    .sort((a, b) => Number(b.die.slice(1)) - Number(a.die.slice(1)))[0];
+  return selectedDie ? spendHitDice(character, selectedDie.die, 1) : character;
 }
 
 export function getWarlockEldritchInvocationInputStatus(
@@ -1246,7 +1275,10 @@ export function getWarlockEldritchInvocationInputStatus(
         option.isQualified && !option.isPlaceholder && !selectedIds.includes(option.selectionId)
     );
   const hasInputRequired =
-    !isUnlimited && limit > 0 && selectedIds.length < limit && hasRemainingQualifiedInvocationOption;
+    !isUnlimited &&
+    limit > 0 &&
+    selectedIds.length < limit &&
+    hasRemainingQualifiedInvocationOption;
   const hasPactBladeSelected = selectedIds.some(
     (selectionId) =>
       parseSelectionId(selectionId).invocationId === ELDRITCH_INVOCATION.PACT_OF_THE_BLADE
@@ -1579,7 +1611,7 @@ export function setWarlockMysticArcanumSpellId(
   spellLevel: MysticArcanumLevel,
   spellId: string | null
 ): Character {
-  if (character.className !== "Warlock") {
+  if (!hasCharacterClass(character, "Warlock")) {
     return character;
   }
 
@@ -1675,7 +1707,7 @@ export function setWarlockInvocationSelectionIds(
         }
       },
       {
-        className: character.className,
+        className: "Warlock",
         legacyCustomClass: character.customClass
       }
     );
@@ -1723,7 +1755,7 @@ export function setClassRulesEldritchInvocationSelectionIds(
       }
     },
     {
-      className: character.className,
+      className: "Warlock",
       legacyCustomClass: character.customClass
     }
   );
@@ -1843,7 +1875,7 @@ export function consumeWarlockPactWeaponAttack(
       : character;
 
   if (
-    character.className !== "Warlock" ||
+    !hasCharacterClass(character, "Warlock") ||
     action.economyType !== ECONOMY_TYPE.ACTION ||
     action.actionCategory !== ACTION_CATEGORY.ATTACK ||
     !isWarlockPactBladeWeaponAttackContext(
@@ -2076,6 +2108,8 @@ export function activateWarlockAwakenedMind(
 }
 
 export function activateWarlockMagicalCunning(character: Character): Character {
+  if (character.multiclass && !character.slotPoolId?.startsWith("pact:"))
+    return updateWarlockPactPool(character, activateWarlockMagicalCunning);
   if (!hasWarlockFeature(character, CLASS_FEATURE.MAGICAL_CUNNING)) {
     return character;
   }
@@ -2083,7 +2117,10 @@ export function activateWarlockMagicalCunning(character: Character): Character {
   const usesRemaining = getWarlockMagicalCunningUsesRemaining(character);
   const pactMagicSlotLevel = getWarlockPactMagicSlotLevel(character);
   const pactMagicSlotTotal = getWarlockPactMagicSlotTotal(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    "Warlock",
+    getClassLevel(character, "Warlock")
+  );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -2119,6 +2156,8 @@ export function activateWarlockMagicalCunning(character: Character): Character {
 }
 
 export function restoreWarlockPactMagicSpellSlots(character: Character): Character {
+  if (character.multiclass && !character.slotPoolId?.startsWith("pact:"))
+    return updateWarlockPactPool(character, restoreWarlockPactMagicSpellSlots);
   if (!hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC)) {
     return character;
   }
@@ -2129,7 +2168,10 @@ export function restoreWarlockPactMagicSpellSlots(character: Character): Charact
     return character;
   }
 
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    "Warlock",
+    getClassLevel(character, "Warlock")
+  );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -2451,4 +2493,27 @@ export function advanceWarlockFeaturesForNewRound(character: Character): Charact
   return advanceWarlockCelestialPatronFeaturesForNewRound(nextCharacter);
 }
 
-export const warlockBeguilingDefenseReactionId = beguilingDefenseReactionId;
+export { beguilingDefenseReactionId as warlockBeguilingDefenseReactionId } from "./subclasses/warlockArchfeyPatron";
+
+function updateWarlockPactPool(
+  character: Character,
+  update: (view: Character) => Character
+): Character {
+  const entry = getClassEntry(character, "Warlock");
+  const pool = getCharacterSpellSlotPools(character).find(
+    (candidate) => candidate.id === `pact:${entry?.id}`
+  );
+  if (!pool) return character;
+  const view = { ...character, slotPoolId: pool.id, spellSlotsExpended: pool.expended };
+  const updated = update(view);
+  if (updated === view) return character;
+  return setSlotPoolExpended(
+    {
+      ...updated,
+      slotPoolId: character.slotPoolId,
+      spellSlotsExpended: character.spellSlotsExpended
+    },
+    pool.id,
+    updated.spellSlotsExpended ?? []
+  );
+}

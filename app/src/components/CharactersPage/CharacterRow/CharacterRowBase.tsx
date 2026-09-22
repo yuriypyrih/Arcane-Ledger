@@ -1,11 +1,13 @@
 import clsx from "clsx";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Link } from "react-router-dom";
 import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
 import { getClassSignatureStyle } from "../classSignature";
 import styles from "./CharacterRow.module.css";
 
 type CharacterRowBaseProps = {
+  onInspect?: () => void;
+  inspectButtonRef?: Ref<HTMLButtonElement>;
   actions?: ReactNode;
   avatarUrl?: string | null;
   badges?: ReactNode;
@@ -31,6 +33,8 @@ export function CharacterRowIconButton({
 }
 
 export function CharacterRowBase({
+  onInspect,
+  inspectButtonRef,
   actions,
   avatarUrl,
   badges,
@@ -46,7 +50,16 @@ export function CharacterRowBase({
 }: CharacterRowBaseProps) {
   return (
     <article className={styles.row} style={getClassSignatureStyle(className)}>
-      {linkTo ? (
+      {onInspect ? (
+        <button
+          ref={inspectButtonRef}
+          type="button"
+          className={styles.rowLink}
+          onClick={onInspect}
+          aria-label={`Inspect ${name}`}
+        />
+      ) : null}
+      {linkTo && !onInspect ? (
         <Link to={linkTo} className={styles.rowLink} aria-label={linkAriaLabel ?? `View ${name}`} />
       ) : null}
       <span className={styles.characterPortrait}>

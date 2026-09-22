@@ -1,3 +1,4 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import cardStyles from "./FeatCards.module.css";
@@ -22,6 +23,7 @@ function BuildSummaryCard({
   summary,
   title
 }: BuildSummaryCardProps) {
+  const readOnly = useReadOnlySheet();
   const isInteractive = typeof onClick === "function";
 
   return (
@@ -29,8 +31,13 @@ function BuildSummaryCard({
       className={clsx(cardStyles.card, isInteractive && cardStyles.interactiveCard)}
       role={isInteractive ? "button" : undefined}
       tabIndex={isInteractive ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={onClick ? (event) => triggerActionOnEnterOrSpace(event, onClick) : undefined}
+      data-read-only-navigation={readOnly && isInteractive ? "true" : undefined}
+      onClick={isInteractive ? onClick : undefined}
+      onKeyDown={
+        isInteractive && onClick
+          ? (event) => triggerActionOnEnterOrSpace(event, onClick)
+          : undefined
+      }
     >
       <div className={cardStyles.headerRow}>
         <div className={cardStyles.titleBlock}>

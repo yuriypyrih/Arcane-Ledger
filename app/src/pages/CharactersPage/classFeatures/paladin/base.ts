@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import { paladinFeatures } from "../../../../codex/classes";
 import type { Character } from "../../../../types";
@@ -31,11 +32,11 @@ export function hasPaladinFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Paladin") {
+  if (!hasCharacterClass(character, "Paladin")) {
     return false;
   }
 
-  return getUnlockedPaladinFeatures(character.level).has(feature);
+  return getUnlockedPaladinFeatures(getClassLevel(character, "Paladin")).has(feature);
 }
 
 export function getPaladinChannelDivinityUsesTotal(
@@ -45,7 +46,7 @@ export function getPaladinChannelDivinityUsesTotal(
     return 0;
   }
 
-  return getPaladinFeatureRow(character.level)?.channelDivinity ?? 0;
+  return getPaladinFeatureRow(getClassLevel(character, "Paladin"))?.channelDivinity ?? 0;
 }
 
 export function getPaladinChannelDivinityUsesRemaining(

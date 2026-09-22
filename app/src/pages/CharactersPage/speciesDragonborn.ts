@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "./multiclass";
 import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
@@ -217,7 +218,7 @@ export function getDragonbornBreathWeaponUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDragonbornSpecies(character.species)
-    ? getSpeciesProficiencyBonus(character.level ?? 1)
+    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
     : 0;
 }
 
@@ -261,7 +262,9 @@ export function restoreDragonbornBreathWeaponOnLongRest(character: Character): C
 export function getDragonbornDraconicFlightUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
-  return character.species && isDragonbornSpecies(character.species) && (character.level ?? 1) >= 5
+  return character.species &&
+    isDragonbornSpecies(character.species) &&
+    (getCharacterLevel(character) ?? 1) >= 5
     ? dragonbornDraconicFlightUsesTotal
     : 0;
 }
@@ -297,15 +300,15 @@ export function restoreDragonbornDraconicFlightOnLongRest(character: Character):
 export function getDragonbornBreathWeaponDamageDiceCount(
   character: Pick<Character, "level">
 ): number {
-  if (character.level >= 17) {
+  if (getCharacterLevel(character) >= 17) {
     return 4;
   }
 
-  if (character.level >= 11) {
+  if (getCharacterLevel(character) >= 11) {
     return 3;
   }
 
-  return character.level >= 5 ? 2 : 1;
+  return getCharacterLevel(character) >= 5 ? 2 : 1;
 }
 
 export function getDragonbornBreathWeaponDamageFormula(
@@ -320,7 +323,7 @@ export function getDragonbornBreathWeaponSaveDc(
   return (
     8 +
     getAbilityModifierForCharacter(character, "CON") +
-    getSpeciesProficiencyBonus(character.level)
+    getSpeciesProficiencyBonus(getCharacterLevel(character))
   );
 }
 
@@ -328,7 +331,7 @@ function getDragonbornBreathWeaponSaveDcFact(
   character: Pick<Character, "level" | "abilities"> & Partial<Pick<Character, "statusEntries">>
 ): FeatureActionFact {
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
-  const proficiencyBonus = getSpeciesProficiencyBonus(character.level);
+  const proficiencyBonus = getSpeciesProficiencyBonus(getCharacterLevel(character));
   const saveDc = getDragonbornBreathWeaponSaveDc(character);
   const formulaCell = formatFormulaCell({
     formula: String(saveDc),
@@ -573,7 +576,7 @@ export function getDragonbornActionsForCharacter(character: Character): FeatureA
 
   return [
     getDragonbornBreathWeaponAction(character),
-    ...(character.level >= 5 ? [getDragonbornDraconicFlightAction(character)] : [])
+    ...(getCharacterLevel(character) >= 5 ? [getDragonbornDraconicFlightAction(character)] : [])
   ];
 }
 

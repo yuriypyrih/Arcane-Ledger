@@ -79,10 +79,12 @@ function CurrencyInlineDisplay({
 
 type CurrencyBalancePillProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
   currencies: Partial<CharacterCurrencies>;
+  compact?: boolean;
 };
 
 export function CurrencyBalancePill({
   currencies,
+  compact = true,
   className,
   type = "button",
   ...props
@@ -99,7 +101,9 @@ export function CurrencyBalancePill({
               aria-hidden="true"
             />
             <span className={styles.balanceTokenValue}>
-              {formatCurrencyBalanceAmount(currencies[currencyDefinition.key] ?? 0)}
+              {compact
+                ? formatCurrencyBalanceAmount(currencies[currencyDefinition.key] ?? 0)
+                : (currencies[currencyDefinition.key] ?? 0)}
             </span>
             <span className={styles.balanceTokenCode}>{currencyDefinition.code}</span>
           </span>

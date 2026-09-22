@@ -1,0 +1,45 @@
+.stepper {
+  display: inline-grid;
+  grid-template-columns: 36px 40px 36px;
+  align-items: center;
+  gap: 8px;
+}
+.stepper .button {
+  box-sizing: border-box;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 6px;
+}
+.stepper .input,
+.value {
+  box-sizing: border-box;
+  width: 40px;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.input::-webkit-inner-spin-button,
+.input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.value {
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-background);
+  display: grid;
+  align-items: center;
+  color: var(--theme-text-primary);
+  font-weight: 700;
+}

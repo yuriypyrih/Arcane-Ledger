@@ -1,3 +1,4 @@
+import { applyClassEditorChange } from "../multiclass";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
@@ -15,9 +16,7 @@ import {
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../combat";
-import {
-  removeCharacterStatusEntry
-} from "../statusEntries";
+import { removeCharacterStatusEntry } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
   getCustomTraitArmorClassBonuses,
@@ -691,6 +690,15 @@ function clearRoundScopedFeatureStateRecord(
 }
 
 export function clearRoundScopedFeatureStateForCharacter(character: Character): Character {
+  if (character.multiclass && !character.classEntryId) {
+    character = character.multiclass.classes
+      .filter((entry) => entry.className === "Custom")
+      .reduce(
+        (next, entry) =>
+          applyClassEditorChange(next, entry.id, clearRoundScopedFeatureStateForCharacter),
+        character
+      );
+  }
   const featureState = character.classFeatureState;
 
   if (!featureState) {

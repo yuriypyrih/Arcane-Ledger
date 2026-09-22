@@ -1,3 +1,5 @@
+import { useReadOnlySheet } from "../readOnlySheetContext";
+import SheetReferenceButton from "../SheetReferenceButton";
 import clsx from "clsx";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
@@ -18,6 +20,7 @@ type SheetSurfaceOwnProps<T extends ElementType = "div"> = {
   texturePosition?: SheetSurfaceTexturePosition;
   className?: string;
   children?: ReactNode;
+  readOnlyInteractive?: boolean;
 };
 
 export type SheetSurfaceProps<T extends ElementType = "div"> = SheetSurfaceOwnProps<T> &
@@ -51,10 +54,17 @@ function SheetSurface<T extends ElementType = "div">({
   texturePosition = "right",
   className,
   children,
+  readOnlyInteractive = false,
   ...props
 }: SheetSurfaceProps<T>) {
-  const Component = as ?? "div";
-  const isNativeButton = Component === "button";
+  const readOnly = useReadOnlySheet();
+  const Component: ElementType = readOnly && as === "button" && readOnlyInteractive
+    ? SheetReferenceButton
+    : readOnly && (as === "button" || as === "a") ? "div" : as ?? "div";
+  const surfaceProps = readOnly && !readOnlyInteractive
+    ? Object.fromEntries(Object.entries(props).filter(([key]) => !/^on[A-Z]/.test(key) && !["type", "disabled", "tabIndex", "href"].includes(key)))
+    : props;
+  const isNativeButton = Component === "button" || Component === SheetReferenceButton;
 
   return (
     <Component
@@ -63,12 +73,12 @@ function SheetSurface<T extends ElementType = "div">({
         isNativeButton && styles.buttonRoot,
         borderSizeClassNames[borderSize],
         borderStrengthClassNames[borderStrength],
-        hoverBorder && styles.hoverTint,
+        (!readOnly || readOnlyInteractive) && hoverBorder && styles.hoverTint,
         hasBorder && styles.hasBorder,
         TextureIcon && styles.hasTexture,
         className
       )}
-      {...props}
+      {...surfaceProps}
     >
       {typeof TextureIcon === "string" ? (
         <img

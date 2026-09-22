@@ -1,5 +1,10 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { fighterFeatureMap, fighterFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -168,7 +173,10 @@ export function getFighterTacticalMindDescriptionAdditions(
 export function getFighterIndomitableDescriptionAdditions(
   character: Pick<Character, "className" | "level">
 ): SpellDescriptionEntry[][] {
-  if (character.className !== "Fighter" || Math.floor(character.level ?? 0) < 17) {
+  if (
+    !hasCharacterClass(character, "Fighter") ||
+    Math.floor(getClassLevel(character, "Fighter") ?? 0) < 17
+  ) {
     return [];
   }
 
@@ -276,11 +284,11 @@ export function hasFighterFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Fighter") {
+  if (!hasCharacterClass(character, "Fighter")) {
     return false;
   }
 
-  return getUnlockedFighterFeatures(character.level).has(feature);
+  return getUnlockedFighterFeatures(getClassLevel(character, "Fighter")).has(feature);
 }
 
 function getFighterAdditionalAttackCount(
@@ -325,10 +333,10 @@ export function normalizeFighterFeatureState(
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterFighterFeatureState>) : {};
   const secondWindTotal = hasSecondWind
-    ? (getFighterFeatureRow(character.level)?.secondWind ?? 0)
+    ? (getFighterFeatureRow(getClassLevel(character, "Fighter"))?.secondWind ?? 0)
     : 0;
   const weaponMasteryTotal = hasWeaponMastery
-    ? (getFighterFeatureRow(character.level)?.weaponMastery ?? 0)
+    ? (getFighterFeatureRow(getClassLevel(character, "Fighter"))?.weaponMastery ?? 0)
     : 0;
 
   return {
@@ -347,7 +355,7 @@ export function normalizeFighterFeatureState(
       ? Math.max(
           0,
           Math.min(
-            character.level >= 17 ? 2 : 1,
+            getClassLevel(character, "Fighter") >= 17 ? 2 : 1,
             Number.isFinite(Number(record.actionSurgeUsesExpended))
               ? Math.floor(Number(record.actionSurgeUsesExpended))
               : 0
@@ -370,7 +378,11 @@ export function normalizeFighterFeatureState(
       ? Math.max(
           0,
           Math.min(
-            character.level >= 17 ? 3 : character.level >= 13 ? 2 : 1,
+            getClassLevel(character, "Fighter") >= 17
+              ? 3
+              : getClassLevel(character, "Fighter") >= 13
+                ? 2
+                : 1,
             Number.isFinite(Number(record.indomitableUsesExpended))
               ? Math.floor(Number(record.indomitableUsesExpended))
               : 0
@@ -408,7 +420,7 @@ export function getFighterActionSurgeUsesTotal(
     return 0;
   }
 
-  return character.level >= 17 ? 2 : 1;
+  return getClassLevel(character, "Fighter") >= 17 ? 2 : 1;
 }
 
 export function getFighterActionSurgeUsesRemaining(
@@ -490,7 +502,7 @@ export function getFighterSecondWindUsesTotal(
     return 0;
   }
 
-  return getFighterFeatureRow(character.level)?.secondWind ?? 0;
+  return getFighterFeatureRow(getClassLevel(character, "Fighter"))?.secondWind ?? 0;
 }
 
 export function getFighterSecondWindUsesRemaining(
@@ -507,7 +519,7 @@ export function getFighterSecondWindUsesRemaining(
 export function getFighterSecondWindHealingFormula(
   character: Pick<Character, "className" | "level">
 ): string {
-  return `1d10+${Math.max(1, Math.floor(character.level))}`;
+  return `1d10+${Math.max(1, Math.floor(getClassLevel(character, "Fighter")))}`;
 }
 
 export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
@@ -798,11 +810,11 @@ export function getFighterIndomitableUsesTotal(
     return 0;
   }
 
-  if (character.level >= 17) {
+  if (getClassLevel(character, "Fighter") >= 17) {
     return 3;
   }
 
-  if (character.level >= 13) {
+  if (getClassLevel(character, "Fighter") >= 13) {
     return 2;
   }
 
@@ -860,8 +872,8 @@ export function getFighterFeatureActions(
   if (hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND)) {
     const totalUses = getFighterSecondWindUsesTotal(character);
     const usesRemaining = getFighterSecondWindUsesRemaining(character);
-    const minimumHealing = character.level + 1;
-    const maximumHealing = character.level + 10;
+    const minimumHealing = getClassLevel(character, "Fighter") + 1;
+    const maximumHealing = getClassLevel(character, "Fighter") + 10;
     const descriptionAdditions = getFighterSecondWindDescriptionAdditions(character);
 
     actions.push({
@@ -1342,7 +1354,7 @@ export function getFighterWeaponMasterySelectionCount(
     return 0;
   }
 
-  return getFighterFeatureRow(character.level)?.weaponMastery ?? 0;
+  return getFighterFeatureRow(getClassLevel(character, "Fighter"))?.weaponMastery ?? 0;
 }
 
 export function getFighterWeaponMasteryOptions(): WEAPON_PROFICIENCY[] {
@@ -1408,7 +1420,7 @@ export function consumeFighterWeaponAttack(
 ): Character {
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-  if (character.className !== "Fighter") {
+  if (!hasCharacterClass(character, "Fighter")) {
     return roundTrackerResource &&
       isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
       ? {
@@ -1489,7 +1501,7 @@ export function consumeFighterWeaponAttack(
 }
 
 export function consumeFighterNonMagicAction(character: Character): Character {
-  if (character.className !== "Fighter") {
+  if (!hasCharacterClass(character, "Fighter")) {
     return isRoundTrackerResourceAvailable(character.roundTracker, "action")
       ? {
           ...character,

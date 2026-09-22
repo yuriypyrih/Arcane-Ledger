@@ -1,9 +1,7 @@
+import { getCharacterLevel } from "./multiclass";
 import type { AbilityKey, AbilityScores, Character } from "../../types";
 import { abilityKeys } from "./constants";
-import {
-  getAbilityScoreBonusesForCharacter,
-  type FeatureAbilityScoreBonus
-} from "./classFeatures";
+import { getAbilityScoreBonusesForCharacter, type FeatureAbilityScoreBonus } from "./classFeatures";
 import {
   formatCustomTraitBonusFormulaTerm,
   getCustomTraitAbilityModifierBonuses,
@@ -64,7 +62,9 @@ type AbilityClassFeatureContext = AbilityCharacterContext & Pick<Character, "cla
 function hasAbilityClassFeatureContext(
   character: AbilityCharacterContext
 ): character is AbilityClassFeatureContext {
-  return typeof character.className === "string" && typeof character.level === "number";
+  return (
+    typeof character.className === "string" && typeof getCharacterLevel(character) === "number"
+  );
 }
 
 function normalizeAbilityScore(value: number): number {
@@ -108,7 +108,9 @@ function sortAbilityScoreBonuses(
   }
 
   if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-    return (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY);
+    return (
+      (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
+    );
   }
 
   const leftOrder = left.order ?? 0;
@@ -145,7 +147,7 @@ export function getAbilityScoreBreakdownForCharacter(
     ...getBackgroundAbilityScoreBonusesForCharacter(character),
     ...getFeatAbilityScoreBonusesForCharacter({
       feats: character.feats ?? [],
-      level: character.level ?? 1
+      level: getCharacterLevel(character) ?? 1
     })
   ]
     .filter((bonus) => bonus.ability === ability)
@@ -196,9 +198,7 @@ export function getAbilityScoreForCharacter(
   return getAbilityScoreBreakdownForCharacter(character, ability, options).total;
 }
 
-export function getAbilityScoresForCharacter(
-  character: AbilityCharacterContext
-): AbilityScores {
+export function getAbilityScoresForCharacter(character: AbilityCharacterContext): AbilityScores {
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
 
   return abilityKeys.reduce((scores, ability) => {
@@ -216,13 +216,12 @@ export function getAbilityModifierBreakdownForCharacter(
     options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
   const abilityScore = getAbilityScoreForCharacter(character, ability, { customTraitEffectInput });
   const baseValue = Math.floor((abilityScore - 10) / 2);
-  const bonusEntries = getCustomTraitAbilityModifierBonuses(
-    customTraitEffectInput,
-    ability
-  ).map((entry) => ({
-    ...entry,
-    formulaLabel: formatCustomTraitBonusFormulaTerm(entry) ?? undefined
-  }));
+  const bonusEntries = getCustomTraitAbilityModifierBonuses(customTraitEffectInput, ability).map(
+    (entry) => ({
+      ...entry,
+      formulaLabel: formatCustomTraitBonusFormulaTerm(entry) ?? undefined
+    })
+  );
 
   return {
     ability,

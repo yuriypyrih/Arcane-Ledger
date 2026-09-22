@@ -1,3 +1,9 @@
+import {
+  hasCharacterClass,
+  getCharacterLevel,
+  getClassLevel,
+  getClassSubclassId
+} from "../multiclass";
 import { CLASS_FEATURE } from "../../../codex/entries";
 import { getClassEntryByName } from "../../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character } from "../../../types";
@@ -131,7 +137,9 @@ export function resolveFeatureSavingThrowBonusValue(
       }
     ).total;
     const clampedValue =
-      typeof bonus.minimumValue === "number" ? Math.max(bonus.minimumValue, sourceValue) : sourceValue;
+      typeof bonus.minimumValue === "number"
+        ? Math.max(bonus.minimumValue, sourceValue)
+        : sourceValue;
 
     return clampedValue * (bonus.abilityModifierMultiplier ?? 1);
   }
@@ -139,21 +147,22 @@ export function resolveFeatureSavingThrowBonusValue(
   return bonus.value ?? 0;
 }
 
-export function createCombatSummaryAbilities(character: Character): CharacterCombatSummaryAbilities {
+export function createCombatSummaryAbilities(
+  character: Character
+): CharacterCombatSummaryAbilities {
   const primaryAbilities = getClassPrimaryAbilitiesForUi(character.className);
   const hasIndomitableMight =
-    character.className === "Barbarian" &&
+    hasCharacterClass(character, "Barbarian") &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
   const hasFanaticalFocus =
-    character.className === "Barbarian" &&
+    hasCharacterClass(character, "Barbarian") &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FANATICAL_FOCUS).length > 0;
   const isBarbarianRaging = hasFanaticalFocus && getBarbarianRageState(character).active === true;
   const hasLeadingEvasion =
-    character.className === "Bard" &&
-    character.subclassId === "bard-college-of-dance" &&
-    character.level >= 14;
+    getClassSubclassId(character, "Bard") === "bard-college-of-dance" &&
+    getClassLevel(character, "Bard") >= 14;
   const hasEvasion = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION).length > 0;
-  const proficiencyBonus = getProficiencyBonus(character.level);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
   const effectiveAbilities = getAbilityScoresForCharacter(character);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)

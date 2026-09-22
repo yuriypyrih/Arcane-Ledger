@@ -1,0 +1,49 @@
+.body {
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  /* Keep the profile's existing portrait overhang inside the scrollable area. */
+  padding-top: 0.5rem;
+}
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sheet > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.textureClip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--theme-app-backdrop);
+  background-color: var(--theme-app-background);
+  background-position: var(--theme-app-backdrop-position);
+  background-repeat: var(--theme-app-backdrop-repeat);
+  background-size: var(--theme-app-backdrop-size);
+}
+
+.itemBackdrop {
+  z-index: 60;
+}
+
+.characters {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (max-width: 599px) {
+  .sheet {
+    gap: 0.7rem;
+  }
+}

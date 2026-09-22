@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { getClassLevel } from "../../../multiclass";
 import {
   CLASS_FEATURE,
   REACTION,
@@ -16,7 +18,7 @@ import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { CHARACTER_COMPANION_LIMIT, createCharacterCompanionId } from "../../../companions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -119,12 +121,7 @@ function getEldritchCannonOption(
 }
 
 function getSpellSlotState(character: ArtilleristEldritchCannonCharacter) {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level ?? 1,
-    character.subclassId,
-    character.customClass
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -162,7 +159,9 @@ function getExplosiveCannonDescriptionParagraph(
   character: ArtilleristEldritchCannonCharacter,
   heading: string
 ): string | null {
-  return getFeatureDescriptionSection(character, CLASS_FEATURE.EXPLOSIVE_CANNON, heading)[0] ?? null;
+  return (
+    getFeatureDescriptionSection(character, CLASS_FEATURE.EXPLOSIVE_CANNON, heading)[0] ?? null
+  );
 }
 
 function isFeatureDescriptionSubheading(paragraph: string): boolean {
@@ -186,8 +185,7 @@ function getFeatureDescriptionSection(
   const nextSectionOffset = paragraphs
     .slice(startIndex + 1)
     .findIndex(isFeatureDescriptionSubheading);
-  const endIndex =
-    nextSectionOffset < 0 ? paragraphs.length : startIndex + 1 + nextSectionOffset;
+  const endIndex = nextSectionOffset < 0 ? paragraphs.length : startIndex + 1 + nextSectionOffset;
 
   return paragraphs.slice(startIndex, endIndex);
 }
@@ -301,7 +299,11 @@ function getFortifiedPositionEldritchCannonDescriptionAddition(
   }
 
   const descriptionEntries = [
-    ...getFeatureDescriptionSection(character, CLASS_FEATURE.FORTIFIED_POSITION, "Double Firepower"),
+    ...getFeatureDescriptionSection(
+      character,
+      CLASS_FEATURE.FORTIFIED_POSITION,
+      "Double Firepower"
+    ),
     ...getFeatureDescriptionSection(
       character,
       CLASS_FEATURE.FORTIFIED_POSITION,
@@ -404,7 +406,10 @@ function createEldritchCannonCompanion(
   character: ArtilleristEldritchCannonCharacter,
   option: EldritchCannonOptionConfig
 ): CharacterCompanion {
-  const maximumHitPoints = Math.max(1, 5 * Math.max(1, Math.floor(character.level ?? 1)));
+  const maximumHitPoints = Math.max(
+    1,
+    5 * Math.max(1, Math.floor(getClassLevel(character, "Artificer") ?? 1))
+  );
 
   return {
     id: createCharacterCompanionId(),
@@ -723,8 +728,7 @@ export function createArtificerEldritchCannonForCharacter(
   }
 
   if (
-    getActiveArtificerEldritchCannonCount(character) >=
-    getArtificerEldritchCannonLimit(character)
+    getActiveArtificerEldritchCannonCount(character) >= getArtificerEldritchCannonLimit(character)
   ) {
     return character;
   }

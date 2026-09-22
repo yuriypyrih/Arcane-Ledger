@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -45,9 +46,9 @@ function hasRogueArcaneTricksterFeature(
   minimumLevel: number
 ): boolean {
   return (
-    character.className === "Rogue" &&
-    character.subclassId === arcaneTricksterSubclassId &&
-    (character.level ?? 0) >= minimumLevel
+    hasCharacterClass(character, "Rogue") &&
+    getClassSubclassId(character, "Rogue") === arcaneTricksterSubclassId &&
+    (getClassLevel(character, "Rogue") ?? 0) >= minimumLevel
   );
 }
 

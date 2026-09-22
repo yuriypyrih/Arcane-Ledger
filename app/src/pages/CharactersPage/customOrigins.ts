@@ -1,3 +1,4 @@
+import { getClassSummary } from "./multiclass";
 import { BODY_SIZE } from "../../codex/entries";
 import type {
   Character,
@@ -99,7 +100,9 @@ export function normalizeCustomSpeciesSpeed(value: unknown): number {
   );
 }
 
-export function createDefaultCustomSubclassConfig(className: string): CharacterCustomSubclassConfig {
+export function createDefaultCustomSubclassConfig(
+  className: string
+): CharacterCustomSubclassConfig {
   return {
     id: createCustomMetadataId("subclass"),
     name: "",
@@ -182,8 +185,10 @@ export function normalizeCustomBackgroundConfig(
 }
 
 export function getCharacterClassDisplayName(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "customClass">>
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "customClass" | "multiclass" | "classEntryId">>
 ): string {
+  if (character.multiclass && !character.classEntryId) return getClassSummary(character);
   return isCustomClassName(character.className)
     ? character.customClass?.name?.trim() || CUSTOM_CLASS_NAME
     : character.className;

@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../../../multiclass";
 import {
   DAMAGE_TYPE,
   FEATS,
@@ -106,8 +107,7 @@ const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>
 const magicInitiateFreeCastContributionId = "feat-magic-initiate-free-cast";
 const feyTouchedFreeCastContributionId = "feat-fey-touched-free-cast";
 const shadowTouchedFreeCastContributionId = "feat-shadow-touched-free-cast";
-const telepathicDetectThoughtsFreeCastContributionId =
-  "feat-telepathic-detect-thoughts-free-cast";
+const telepathicDetectThoughtsFreeCastContributionId = "feat-telepathic-detect-thoughts-free-cast";
 const boonOfRevelryIrresistibleDanceFreeCastContributionId =
   "feat-boon-of-revelry-irresistible-dance-free-cast";
 
@@ -1228,10 +1228,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       ...getBoonOfSoulDrinkerResistanceStatusEntries(normalizedFeats, getFeatDescription),
       ...getEpicBoonDerivedStatusEntries(normalizedFeats, getFeatDescription)
     ],
-    speedBonuses: [
-      ...getGeneralFeatSpeedBonuses(featSet),
-      ...getEpicBoonFeatSpeedBonuses(featSet)
-    ],
+    speedBonuses: [...getGeneralFeatSpeedBonuses(featSet), ...getEpicBoonFeatSpeedBonuses(featSet)],
     hitPointMaximumBonus,
     spellTransforms: [
       {
@@ -1437,45 +1434,34 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       originResourceState.cultOfDragonInitiateInspiredByFearRemaining,
     cultOfDragonInitiateInspiredByFearTotal:
       originResourceState.cultOfDragonInitiateInspiredByFearTotal,
-    purpleDragonRookRallyingCryRemaining:
-      originResourceState.purpleDragonRookRallyingCryRemaining,
-    purpleDragonRookRallyingCryTotal:
-      originResourceState.purpleDragonRookRallyingCryTotal,
+    purpleDragonRookRallyingCryRemaining: originResourceState.purpleDragonRookRallyingCryRemaining,
+    purpleDragonRookRallyingCryTotal: originResourceState.purpleDragonRookRallyingCryTotal,
     spellfireSparkSpellfireFlameRemaining:
       originResourceState.spellfireSparkSpellfireFlameRemaining,
-    spellfireSparkSpellfireFlameTotal:
-      originResourceState.spellfireSparkSpellfireFlameTotal,
+    spellfireSparkSpellfireFlameTotal: originResourceState.spellfireSparkSpellfireFlameTotal,
     fairyTricksterFlusteringStrikeRemaining:
       generalResourceState.fairyTricksterFlusteringStrikeRemaining,
-    fairyTricksterFlusteringStrikeTotal:
-      generalResourceState.fairyTricksterFlusteringStrikeTotal,
+    fairyTricksterFlusteringStrikeTotal: generalResourceState.fairyTricksterFlusteringStrikeTotal,
     enclaveMagicTwoHeartsOneMindRemaining:
       generalResourceState.enclaveMagicTwoHeartsOneMindRemaining,
-    enclaveMagicTwoHeartsOneMindTotal:
-      generalResourceState.enclaveMagicTwoHeartsOneMindTotal,
+    enclaveMagicTwoHeartsOneMindTotal: generalResourceState.enclaveMagicTwoHeartsOneMindTotal,
     genieMagicWishMagicRemaining: generalResourceState.genieMagicWishMagicRemaining,
     genieMagicWishMagicTotal: generalResourceState.genieMagicWishMagicTotal,
-    lordlyResolveStandardBearerRemaining:
-      generalResourceState.lordlyResolveStandardBearerRemaining,
-    lordlyResolveStandardBearerTotal:
-      generalResourceState.lordlyResolveStandardBearerTotal,
+    lordlyResolveStandardBearerRemaining: generalResourceState.lordlyResolveStandardBearerRemaining,
+    lordlyResolveStandardBearerTotal: generalResourceState.lordlyResolveStandardBearerTotal,
     boonOfFateImproveFateRemaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
     boonOfFateImproveFateTotal: epicBoonResourceState.boonOfFateImproveFateTotal,
     boonOfFluidFormsShapechangerRemaining:
       epicBoonResourceState.boonOfFluidFormsShapechangerRemaining,
-    boonOfFluidFormsShapechangerTotal:
-      epicBoonResourceState.boonOfFluidFormsShapechangerTotal,
+    boonOfFluidFormsShapechangerTotal: epicBoonResourceState.boonOfFluidFormsShapechangerTotal,
     boonOfRecoveryDiceRemaining: epicBoonResourceState.boonOfRecoveryDiceRemaining,
     boonOfRecoveryDiceTotal: epicBoonResourceState.boonOfRecoveryDiceTotal,
-    boonOfRecoveryLastStandRemaining:
-      epicBoonResourceState.boonOfRecoveryLastStandRemaining,
+    boonOfRecoveryLastStandRemaining: epicBoonResourceState.boonOfRecoveryLastStandRemaining,
     boonOfRecoveryLastStandTotal: epicBoonResourceState.boonOfRecoveryLastStandTotal,
     boonOfSoulDrinkerSiphonLifeRemaining:
       epicBoonResourceState.boonOfSoulDrinkerSiphonLifeRemaining,
-    boonOfSoulDrinkerSiphonLifeTotal:
-      epicBoonResourceState.boonOfSoulDrinkerSiphonLifeTotal,
-    boonOfTerrorFleeFoolsRemaining:
-      epicBoonResourceState.boonOfTerrorFleeFoolsRemaining,
+    boonOfSoulDrinkerSiphonLifeTotal: epicBoonResourceState.boonOfSoulDrinkerSiphonLifeTotal,
+    boonOfTerrorFleeFoolsRemaining: epicBoonResourceState.boonOfTerrorFleeFoolsRemaining,
     boonOfTerrorFleeFoolsTotal: epicBoonResourceState.boonOfTerrorFleeFoolsTotal,
     mageSlayerGuardedMindRemaining: generalResourceState.mageSlayerGuardedMindRemaining,
     mageSlayerGuardedMindTotal: generalResourceState.mageSlayerGuardedMindTotal,
@@ -1493,7 +1479,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 }
 
 export function collectFeatDerivedState(character: FeatRuntimeCharacter): FeatDerivedState {
-  const level = normalizeFeatRuntimeLevel(character.level);
+  const level = normalizeFeatRuntimeLevel(getCharacterLevel(character));
   const cachedState = getCachedFeatDerivedState(character.feats, level);
 
   if (cachedState) {

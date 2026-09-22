@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetReferenceButton from "../SheetReferenceButton";
 
 type InlineToggleButtonProps = {
   label: string;
@@ -9,6 +10,7 @@ type InlineToggleButtonProps = {
   expanded?: boolean;
   icon?: ReactNode;
   disabled?: boolean;
+  readOnlyInteractive?: boolean;
 };
 
 function InlineToggleButton({
@@ -17,10 +19,12 @@ function InlineToggleButton({
   className,
   expanded,
   icon,
-  disabled = false
+  disabled = false,
+  readOnlyInteractive = false
 }: InlineToggleButtonProps) {
+  const Button = readOnlyInteractive ? SheetReferenceButton : "button";
   return (
-    <button
+    <Button
       type="button"
       className={clsx(shared.inlineToggleButton, className)}
       onClick={onClick}
@@ -29,7 +33,7 @@ function InlineToggleButton({
     >
       {icon ? <span className={shared.inlineToggleIcon}>{icon}</span> : null}
       <span className={shared.inlineToggleLabel}>{label}</span>
-    </button>
+    </Button>
   );
 }
 

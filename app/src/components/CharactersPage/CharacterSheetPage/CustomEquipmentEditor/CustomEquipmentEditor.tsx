@@ -491,7 +491,7 @@ function CustomEquipmentEditor({
       baseCategory: selectedCategory,
       isCustom: mode === "create" || initialStack?.mods?.isCustom === true,
       name,
-      description: sanitizeUserInput(draft.description),
+      description: sanitizeUserInput(draft.description, { multiline: true }),
       cost: {
         amount: Math.floor(clampNumber(draft.costAmount, 0, 999999999, 0)),
         currency: draft.costCurrency

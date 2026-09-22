@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { getFeatureTrackingState, type FEATS } from "../../../../codex/entries";
 import {
   getCharacterFeatSourceLabel,
@@ -48,23 +49,26 @@ function FeatList({
           : getFeatCategoryLabel(featDefinition.category);
 
         return (
-          <BuildSummaryCard
-            key={featDefinition.feat}
-            title={featDefinition.label}
-            meta={featMetaLabel}
-            summary={isRepeatable ? null : featSummary}
-            selectedItems={
-              isRepeatable
-                ? entries.map((entry) => getRepeatableFeatEntrySummary(entry))
-                : undefined
-            }
-            isRepeatable={isRepeatable}
-            onClick={() => onOpenFeatReference(featDefinition.feat)}
-            headerActions={renderTrackingButton(
-              getFeatureTrackingState(featDefinition),
-              featDefinition.trackingMessage
-            )}
-          />
+          <Fragment key={featDefinition.feat}>
+            <BuildSummaryCard
+              key={featDefinition.feat}
+              title={featDefinition.label}
+              meta={featMetaLabel}
+              summary={isRepeatable ? null : featSummary}
+              selectedItems={
+                isRepeatable
+                  ? entries.map((entry) => getRepeatableFeatEntrySummary(entry))
+                  : undefined
+              }
+              isRepeatable={isRepeatable}
+              onClick={() => onOpenFeatReference(featDefinition.feat)}
+              headerActions={renderTrackingButton(
+                getFeatureTrackingState(featDefinition),
+                featDefinition.trackingMessage
+              )}
+            />
+
+          </Fragment>
         );
       })}
     </ul>

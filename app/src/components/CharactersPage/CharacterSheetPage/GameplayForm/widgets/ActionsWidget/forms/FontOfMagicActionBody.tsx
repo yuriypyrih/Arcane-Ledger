@@ -1,13 +1,12 @@
+import { getClassLevel } from "../../../../../../../pages/CharactersPage/multiclass";
+import { getSheetSpellSlotTotals } from "../../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { Sparkles } from "lucide-react";
 import type { Character } from "../../../../../../../types";
 import {
   getSorceryPointsRemainingForCharacter,
   getSorceryPointsTotalForCharacter
 } from "../../../../../../../pages/CharactersPage/classFeatures";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../../pages/CharactersPage/spellcasting";
+import { normalizeSpellSlotsExpended } from "../../../../../../../pages/CharactersPage/spellcasting";
 import RadioContainerOption from "../../../../RadioContainerOption";
 import shared from "../../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type { FontOfMagicSelection } from "../types";
@@ -37,13 +36,7 @@ function FontOfMagicActionBody({
 }: FontOfMagicActionBodyProps) {
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
   const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
-  );
+  const spellSlotTotals = getSheetSpellSlotTotals(character);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
@@ -57,7 +50,11 @@ function FontOfMagicActionBody({
     { spellSlotLevel: 3, sorceryPointCost: 5, minimumSorcererLevel: 5 },
     { spellSlotLevel: 4, sorceryPointCost: 6, minimumSorcererLevel: 7 },
     { spellSlotLevel: 5, sorceryPointCost: 7, minimumSorcererLevel: 9 }
-  ].filter((rule) => character.level >= rule.minimumSorcererLevel);
+  ].filter(
+    (rule) =>
+      !character.slotPoolId?.startsWith("pact:") &&
+      getClassLevel(character, "Sorcerer") >= rule.minimumSorcererLevel
+  );
   const spellSlotToPointOptions = spellSlotTotals
     .map((total, index) => {
       const spellSlotLevel = index + 1;
@@ -129,7 +126,9 @@ function FontOfMagicActionBody({
             <h4>Sorcery Points to Spell Slot</h4>
             <p className={shared.helperText}>Uses your Bonus Action.</p>
           </div>
-          {actionWarning ? <span className={styles.fontOfMagicWarning}>{actionWarning}</span> : null}
+          {actionWarning ? (
+            <span className={styles.fontOfMagicWarning}>{actionWarning}</span>
+          ) : null}
         </div>
 
         <div className={styles.fontOfMagicOptionGrid}>

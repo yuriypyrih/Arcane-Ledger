@@ -1,3 +1,4 @@
+import { getClassLevel } from "../../multiclass";
 import type { AbilityKey, Character } from "../../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
@@ -42,10 +43,7 @@ function getAppliedAbilityScoreBonus(
   return normalizedValue;
 }
 
-function sortFeatAbilityScoreBonuses(
-  left: AbilityScoreBonus,
-  right: AbilityScoreBonus
-): number {
+function sortFeatAbilityScoreBonuses(left: AbilityScoreBonus, right: AbilityScoreBonus): number {
   const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
   const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
 
@@ -54,7 +52,9 @@ function sortFeatAbilityScoreBonuses(
   }
 
   if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-    return (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY);
+    return (
+      (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
+    );
   }
 
   return (left.order ?? 0) - (right.order ?? 0);
@@ -73,7 +73,7 @@ function getFeatAdjustedAbilityScore(
     }),
     ...getFeatAbilityScoreBonusesForCharacter({
       feats: character.feats ?? [],
-      level: character.level ?? 1
+      level: getClassLevel(character, "Ranger") ?? 1
     })
   ]
     .filter((bonus) => bonus.ability === ability)

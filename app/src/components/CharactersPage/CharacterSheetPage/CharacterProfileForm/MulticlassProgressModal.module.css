@@ -1,0 +1,125 @@
+.stack,
+.body {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+.classCard {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-field);
+  background: var(--theme-surface-panel);
+  padding: 0.65rem 0.75rem;
+}
+.classIdentity {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.classIdentity h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--theme-text-primary);
+}
+.startingBadge {
+  border-radius: var(--radius-pill);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+  padding: 0.24rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.classHeader {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+}
+.classHeader > :last-child:nth-child(2) {
+  grid-column: 2 / -1;
+}
+.classHeader .removeClassButton {
+  width: 30px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+.choicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.65rem;
+}
+.field {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+}
+.field > span {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.fieldGrid > label:first-child {
+  grid-column: 1 / -1;
+}
+.addClassLink {
+  justify-self: start;
+}
+.helperText {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.summaryRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.summaryRow h3,
+.summaryRow p {
+  margin: 0;
+}
+.summaryRow h3 {
+  font-size: 1rem;
+}
+.summaryRow p {
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+.error {
+  margin: 0;
+  color: var(--theme-state-danger);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.footer {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+:global(html[data-theme="dark"]) .classCard {
+  background: var(--theme-surface-raised);
+  border-color: var(--theme-border-medium);
+}
+@media (max-width: 599px) {
+  .classCard {
+    padding: 0.6rem;
+  }
+  .fieldGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

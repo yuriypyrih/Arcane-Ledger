@@ -66,6 +66,7 @@ export type ResolvedProficiencyEntry<
 };
 
 export type NormalizeCharacterProficienciesOptions = {
+  multiclass?: import("../../../types").CharacterMulticlass;
   className: string;
   level: number;
   species: string;

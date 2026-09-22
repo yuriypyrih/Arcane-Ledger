@@ -1,3 +1,7 @@
+import {
+  getClassHitDicePools,
+  spendClassHitDice
+} from "../../../../../pages/CharactersPage/hitDice";
 import clsx from "clsx";
 import { FlameKindling } from "lucide-react";
 import { useId, useMemo, useState } from "react";
@@ -10,9 +14,7 @@ import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
-import {
-  getHitDiceRemainingForCharacter,
-} from "../../../../../pages/CharactersPage/gameplay";
+import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import {
   getHitDieFormulaForClass,
   getHitDieMaximumForClass
@@ -41,7 +43,7 @@ import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RadioContainerOption from "../../RadioContainerOption";
 import SheetActionButton from "../../SheetActionButton";
-import NumberInput from "../../../FormInputs/NumberInput";
+import HitDiceSpendControls from "./HitDiceSpendControls";
 import type { RestOption, RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
 import CampRestOption from "./CampRestOption";
@@ -124,12 +126,6 @@ function getHitDiceFormulaDisplayTermsForCount(character: Character, count: numb
   ].filter((term): term is string => Boolean(term));
 }
 
-function getHitDieLabel(character: Character): string {
-  return getHitDieFormulaForClass(character.className, character.customClass, character.classRules)
-    .replace(/^1/i, "")
-    .toUpperCase();
-}
-
 function getHitDiceHealingFormulaCell(character: Character, count: number) {
   if (count <= 0) {
     return {
@@ -193,25 +189,45 @@ function CampButton({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRestType, setSelectedRestType] = useState<RestType | null>(null);
   const [selectedRestOptionIds, setSelectedRestOptionIds] = useState<string[]>([]);
-  const [shortRestHitDiceCount, setShortRestHitDiceCount] = useState(0);
+  const [hitDiceCounts, setHitDiceCounts] = useState<Record<string, number>>({});
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
   const totalHitDice = Math.max(1, Math.floor(character.level));
   const availableHitDice = getHitDiceRemainingForCharacter(character);
-  const hitDieLabel = getHitDieLabel(character);
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const shortRestOptions = useMemo(() => createShortRestOptions(character), [character]);
   const longRestOptions = useMemo(() => createLongRestOptions(character), [character]);
-  const normalizedShortRestHitDiceCount = Math.min(
-    availableHitDice,
-    Math.max(0, Math.floor(shortRestHitDiceCount))
+  const mixedDice = getClassHitDicePools(character).map((pool) => ({
+    ...pool,
+    count: Math.min(pool.remaining, Math.max(0, Math.floor(hitDiceCounts[pool.classEntryId] ?? 0)))
+  }));
+  const mixedCount = mixedDice.reduce((sum, pool) => sum + pool.count, 0);
+  const mixedFormula = appendFormulaModifier(
+    mixedDice
+      .filter((pool) => pool.count > 0)
+      .map((pool) => `${pool.count}${pool.die}`)
+      .join(" + ") || "0",
+    mixedCount * getAbilityModifierForCharacter(character, "CON")
   );
+  const mixedMaximum = mixedDice.reduce(
+    (sum, pool) =>
+      sum +
+      pool.count *
+        Math.max(0, Number(pool.die.slice(1)) + getAbilityModifierForCharacter(character, "CON")),
+    0
+  );
+  const normalizedShortRestHitDiceCount = mixedCount;
   const hasBountifulHealth = hasBoonOfBountifulHealthForCharacter(character);
   const usesMaximumHitDiceHealing = hasBountifulHealth && normalizedShortRestHitDiceCount > 0;
-  const hitDiceHealingFormulaCell = usesMaximumHitDiceHealing
-    ? getMaximumHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount)
-    : getHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount);
+  const hitDiceHealingFormulaCell = character.multiclass
+    ? {
+        value: usesMaximumHitDiceHealing ? `${mixedMaximum} Healing` : mixedFormula,
+        breakdown: "Hit Dice from each class + CON per die"
+      }
+    : usesMaximumHitDiceHealing
+      ? getMaximumHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount)
+      : getHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount);
   const selectedRestAdditionalDescription =
     selectedRestType === "short"
       ? shortRestAdditionalDescription.length > 0
@@ -245,7 +261,7 @@ function CampButton({
   function openPopup() {
     setSelectedRestType(null);
     setSelectedRestOptionIds([]);
-    setShortRestHitDiceCount(0);
+    setHitDiceCounts({});
     setIsOpen(true);
   }
 
@@ -253,7 +269,7 @@ function CampButton({
     setIsOpen(false);
     setSelectedRestType(null);
     setSelectedRestOptionIds([]);
-    setShortRestHitDiceCount(0);
+    setHitDiceCounts({});
   }
 
   function selectRestType(restType: RestType) {
@@ -263,7 +279,7 @@ function CampButton({
 
     const nextOptions = restType === "short" ? shortRestOptions : longRestOptions;
     setSelectedRestType(restType);
-    setShortRestHitDiceCount(0);
+    setHitDiceCounts({});
     setSelectedRestOptionIds(
       nextOptions
         .filter((option) => option.defaultSelected !== false && !isRestOptionDisabled(option))
@@ -308,12 +324,10 @@ function CampButton({
 
     const hitDiceToSpend =
       restType === "short"
-        ? Math.min(availableHitDice, Math.max(0, Math.floor(shortRestHitDiceCount)))
+        ? Math.min(availableHitDice, Math.max(0, Math.floor(normalizedShortRestHitDiceCount)))
         : 0;
     const shouldUseMaximumHitDiceHealing =
-      restType === "short" &&
-      hitDiceToSpend > 0 &&
-      hasBoonOfBountifulHealthForCharacter(character);
+      restType === "short" && hitDiceToSpend > 0 && hasBoonOfBountifulHealthForCharacter(character);
 
     onPersistCharacter((currentCharacter) => {
       const availableOptions =
@@ -328,24 +342,28 @@ function CampButton({
 
         return option.apply(nextCharacter);
       }, currentCharacter);
-      const currentHitDiceRemaining = getHitDiceRemainingForCharacter(restedCharacter);
 
-      const nextCharacter = {
+      let nextCharacter: Character = {
         ...restedCharacter,
-        hitDiceRemaining:
-          restType === "short"
-            ? Math.max(0, currentHitDiceRemaining - hitDiceToSpend)
-            : restedCharacter.hitDiceRemaining,
         shortRestsUsedToday:
           restType === "short"
             ? clampNumber((restedCharacter.shortRestsUsedToday ?? 0) + 1, 0, 2, 0)
             : 0
       };
 
+      if (restType === "short") {
+        nextCharacter = mixedDice.reduce<Character>(
+          (next, pool) => spendClassHitDice(next, pool.classEntryId, pool.count),
+          nextCharacter
+        );
+      }
+
       return shouldUseMaximumHitDiceHealing
         ? applyRolledHealingToCharacter(
             nextCharacter,
-            getMaximumHitDiceHealingForCount(nextCharacter, hitDiceToSpend)
+            character.multiclass
+              ? mixedMaximum
+              : getMaximumHitDiceHealingForCount(nextCharacter, hitDiceToSpend)
           )
         : nextCharacter;
     });
@@ -353,12 +371,19 @@ function CampButton({
     closePopup();
 
     if (restType === "short" && hitDiceToSpend > 0 && !shouldUseMaximumHitDiceHealing) {
-      const formula = getHitDiceFormulaForCount(character, hitDiceToSpend);
-      const formulaDisplay = getHitDiceFormulaDisplayForCount(character, hitDiceToSpend);
+      const formula = character.multiclass
+        ? mixedFormula
+        : getHitDiceFormulaForCount(character, hitDiceToSpend);
+      const formulaDisplay = character.multiclass
+        ? mixedFormula
+        : getHitDiceFormulaDisplayForCount(character, hitDiceToSpend);
 
       openDiceRoller({
         title: "Short Rest Hit Dice",
-        description: `Roll ${hitDiceToSpend} ${hitDieLabel} Hit Dice.`,
+        description: `Roll ${mixedDice
+          .filter((pool) => pool.count > 0)
+          .map((pool) => `${pool.count}${pool.die}`)
+          .join(" + ")} Hit Dice.`,
         formula,
         formulaDisplay,
         getFullManualToastText: ({ result }) => `Rolled ${result.total} Hit Dice healing.`,
@@ -397,7 +422,7 @@ function CampButton({
               <span className={styles.resourceBadge}>
                 <span className={styles.resourceBadgeLabel}>Hit Dice</span>
                 <span className={styles.resourceBadgeValue}>
-                  {hitDieLabel} {availableHitDice}/{totalHitDice}
+                  {availableHitDice}/{totalHitDice}
                 </span>
               </span>
               <OverlayCloseButton label="Close rest options" onClick={closePopup} />
@@ -507,22 +532,12 @@ function CampButton({
 
             {selectedRestType === "short" ? (
               <div className={styles.hitDiceControlRow}>
-                <label className={styles.hitDiceInputLabel}>
-                  <span>Hit Dice</span>
-                  <NumberInput
-                    className={styles.hitDiceInput}
-                    value={normalizedShortRestHitDiceCount}
-                    min={0}
-                    max={availableHitDice}
-                    step={1}
-                    onChange={(event) =>
-                      setShortRestHitDiceCount(
-                        clampNumber(event.currentTarget.valueAsNumber, 0, availableHitDice, 0)
-                      )
-                    }
-                    aria-label="Hit Dice to spend"
-                  />
-                </label>
+                <HitDiceSpendControls
+                  pools={mixedDice}
+                  onChange={(classEntryId, count) =>
+                    setHitDiceCounts((current) => ({ ...current, [classEntryId]: count }))
+                  }
+                />
                 <CellContainer
                   label="Healing Formula"
                   content={hitDiceHealingFormulaCell.value}

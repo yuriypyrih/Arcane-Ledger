@@ -1,3 +1,5 @@
+import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
 import {
   ABILITY_TYPES,
   CLASS_FEATURE,
@@ -20,7 +22,7 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
@@ -70,9 +72,9 @@ function hasCollegeOfGlamourMantleOfInspiration(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfGlamourSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfGlamourSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -80,9 +82,9 @@ function hasCollegeOfGlamourMantleOfMajesty(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfGlamourSubclassId &&
-    (character.level ?? 0) >= 6
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfGlamourSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 6
   );
 }
 
@@ -90,9 +92,9 @@ function hasCollegeOfGlamourUnbreakableMajesty(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfGlamourSubclassId &&
-    (character.level ?? 0) >= 14
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfGlamourSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 14
   );
 }
 
@@ -100,9 +102,9 @@ export function hasBardCollegeOfGlamourBeguilingMagicFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
-    character.className === "Bard" &&
-    character.subclassId === collegeOfGlamourSubclassId &&
-    (character.level ?? 0) >= 3
+    hasCharacterClass(character, "Bard") &&
+    getClassSubclassId(character, "Bard") === collegeOfGlamourSubclassId &&
+    (getClassLevel(character, "Bard") ?? 0) >= 3
   );
 }
 
@@ -278,7 +280,7 @@ export function getBardCollegeOfGlamourMantleOfMajestyUsesRemaining(
 export function getBardCollegeOfGlamourMantleOfMajestyFallbackSlotLevel(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number | null {
-  const totals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const totals = getSheetSpellSlotTotals(character);
   const expended = normalizeSpellSlotsExpended(character.spellSlotsExpended, totals);
 
   for (let slotLevel = 3; slotLevel <= 9; slotLevel += 1) {
@@ -298,7 +300,7 @@ export function getBardCollegeOfGlamourMantleOfMajestyFallbackSlotLevel(
 export function getBardCollegeOfGlamourMantleOfMajestyFallbackSlotSummary(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): { total: number; remaining: number } {
-  const totals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const totals = getSheetSpellSlotTotals(character);
   const expended = normalizeSpellSlotsExpended(character.spellSlotsExpended, totals);
 
   return totals.reduce(
@@ -437,7 +439,10 @@ export function restoreBardCollegeOfGlamourUnbreakableMajestyOnLongRest(
 export function hasActiveBardCollegeOfGlamourMantleOfMajesty(
   character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): boolean {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfGlamourSubclassId
+  ) {
     return false;
   }
 
@@ -452,7 +457,10 @@ export function hasActiveBardCollegeOfGlamourMantleOfMajesty(
 export function hasActiveBardCollegeOfGlamourUnbreakableMajesty(
   character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): boolean {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfGlamourSubclassId
+  ) {
     return false;
   }
 
@@ -594,25 +602,28 @@ function getBardCollegeOfGlamourUnbreakableMajestyFacts(
 function getBardCollegeOfGlamourFeatureActions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureActionCard[] {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfGlamourSubclassId
+  ) {
     return [];
   }
 
-  const level = character.level ?? 0;
+  const level = getClassLevel(character, "Bard") ?? 0;
   const featureActions: FeatureActionCard[] = [];
 
   if (level > 0 && character.abilities && character.feats) {
     const bardResourceCharacter = {
-      className: character.className,
+      className: "Bard",
       level,
       abilities: character.abilities,
       classFeatureState: character.classFeatureState,
       feats: character.feats
     };
     const glamourCharacter = {
-      className: character.className,
+      className: "Bard",
       level,
-      subclassId: character.subclassId,
+      subclassId: getClassSubclassId(character, "Bard"),
       classFeatureState: character.classFeatureState,
       spellSlotsExpended: character.spellSlotsExpended,
       statusEntries: character.statusEntries
@@ -658,12 +669,12 @@ function getBardCollegeOfGlamourFeatureActions(
       const usesRemaining = getBardCollegeOfGlamourMantleOfMajestyUsesRemaining(glamourCharacter);
       const usesTotal = getBardCollegeOfGlamourMantleOfMajestyUsesTotal(glamourCharacter);
       const fallbackSlotLevel = getBardCollegeOfGlamourMantleOfMajestyFallbackSlotLevel({
-        className: character.className,
+        className: "Bard",
         level,
         spellSlotsExpended: character.spellSlotsExpended
       });
       const fallbackSlotSummary = getBardCollegeOfGlamourMantleOfMajestyFallbackSlotSummary({
-        className: character.className,
+        className: "Bard",
         level,
         spellSlotsExpended: character.spellSlotsExpended
       });
@@ -773,11 +784,14 @@ function getBardCollegeOfGlamourFeatureActionsByKey(
 export function collectBardCollegeOfGlamourContributions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureContributionSpec[] {
-  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+  if (
+    !hasCharacterClass(character, "Bard") ||
+    getClassSubclassId(character, "Bard") !== collegeOfGlamourSubclassId
+  ) {
     return [];
   }
 
-  const level = character.level ?? 0;
+  const level = getClassLevel(character, "Bard") ?? 0;
   const hasBeguilingMagic = hasBardCollegeOfGlamourBeguilingMagicFeature(character);
   const hasMantleOfMajesty = hasBardCollegeOfGlamourMantleOfMajestyFeature(character);
   const featureActions = getBardCollegeOfGlamourFeatureActions(character);

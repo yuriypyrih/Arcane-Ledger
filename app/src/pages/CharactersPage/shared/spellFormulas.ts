@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../multiclass";
 import { ABILITY_TYPES, type SpellEntry } from "../../../codex/entries";
 import type { RollMode } from "../../../types";
 import type { AbilityKey, Character } from "../../../types";
@@ -133,18 +134,14 @@ function getSpellAttackRollModeState(
   if (hasAdvantage) {
     return {
       rollMode: "advantage",
-      rollModeBreakdownTerms: [
-        `+Advantage${formatRollModeSourceSuffix(advantageSources)}`
-      ]
+      rollModeBreakdownTerms: [`+Advantage${formatRollModeSourceSuffix(advantageSources)}`]
     };
   }
 
   if (hasDisadvantage) {
     return {
       rollMode: "disadvantage",
-      rollModeBreakdownTerms: [
-        `+Disadvantage${formatRollModeSourceSuffix(disadvantageSources)}`
-      ]
+      rollModeBreakdownTerms: [`+Disadvantage${formatRollModeSourceSuffix(disadvantageSources)}`]
     };
   }
 
@@ -204,7 +201,8 @@ export function getSpellSaveFormulaCell(
 
   const saveLabel = getSavingThrowDcLabel(spell.savingThrowAbility);
   const spellcastingAbility =
-    spellcastingAbilityOverride ?? (character ? getSpellcastingAbilityForCharacter(character) : null);
+    spellcastingAbilityOverride ??
+    (character ? getSpellcastingAbilityForCharacter(character) : null);
 
   if (!character || !spellcastingAbility) {
     const formulaCell = formatFormulaCell({
@@ -219,7 +217,7 @@ export function getSpellSaveFormulaCell(
     };
   }
 
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const innateSorceryBonus = isInnateSorceryActiveForSpell(character, spell) ? 1 : 0;
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
@@ -291,7 +289,7 @@ export function getSpellAttackRollFormulaForCharacter(
     return null;
   }
 
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
@@ -302,20 +300,15 @@ export function getSpellAttackRollFormulaForCharacter(
   const customAttackBonus = customAttackEntries.reduce((total, entry) => total + entry.value, 0);
   const attackBonus = proficiencyBonus + abilityModifier + exhaustionPenalty + customAttackBonus;
   const innateSorceryActive = isInnateSorceryActiveForSpell(character, spell);
-  const rollModeState = getSpellAttackRollModeState(
-    innateSorceryActive,
-    [
-      ...getCustomTraitSpellAttackRollIndicators(customTraitEffectInput),
-      ...getFeatAttackRollIndicatorsForCharacter(character).flatMap((indicator) =>
-        (Array.isArray(indicator.source) ? indicator.source : [indicator.source]).map(
-          (source) => ({
-            source,
-            tone: indicator.tone
-          })
-        )
-      )
-    ]
-  );
+  const rollModeState = getSpellAttackRollModeState(innateSorceryActive, [
+    ...getCustomTraitSpellAttackRollIndicators(customTraitEffectInput),
+    ...getFeatAttackRollIndicatorsForCharacter(character).flatMap((indicator) =>
+      (Array.isArray(indicator.source) ? indicator.source : [indicator.source]).map((source) => ({
+        source,
+        tone: indicator.tone
+      }))
+    )
+  ]);
   const formulaBreakdownTerms = [
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
     formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
@@ -359,10 +352,7 @@ export function getSpellAttackFormulaCell(
     return {
       label: "Spell Attack Formula",
       content: `Spell Attack = ${formulaCell.value}`,
-      breakdown: formatSpellAttackFormulaBreakdown([
-        "Prof. Bonus",
-        "+ Spellcasting Ability Mod"
-      ])
+      breakdown: formatSpellAttackFormulaBreakdown(["Prof. Bonus", "+ Spellcasting Ability Mod"])
     };
   }
 

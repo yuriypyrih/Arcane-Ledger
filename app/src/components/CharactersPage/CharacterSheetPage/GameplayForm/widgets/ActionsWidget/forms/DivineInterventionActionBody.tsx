@@ -33,14 +33,13 @@ function DivineInterventionActionBody({
   onSpellSelect
 }: DivineInterventionActionBodyProps) {
   const [activeLevel, setActiveLevel] = useState(0);
-  const { abilities, classFeatureState, className, feats, level } = character;
   const enabledLevels = useMemo(
-    () => getClericDivineInterventionEnabledLevels({ className, level }),
-    [className, level]
+    () => getClericDivineInterventionEnabledLevels(character),
+    [character]
   );
   const spellEntries = useMemo(
-    () => getClericDivineInterventionSpellEntries({ className, level }),
-    [className, level]
+    () => getClericDivineInterventionSpellEntries(character),
+    [character]
   );
   const spellGroups = useMemo(() => getDivineInterventionLevelGroups(spellEntries), [spellEntries]);
   const firstAvailableLevel = useMemo(
@@ -54,19 +53,10 @@ function DivineInterventionActionBody({
       new Map(
         spellEntries.map((spell) => [
           spell.id,
-          getSpellOutcomeSummaryForCharacter(
-            {
-              abilities,
-              classFeatureState,
-              className,
-              feats,
-              level
-            },
-            spell
-          )
+          getSpellOutcomeSummaryForCharacter(character, spell)
         ])
       ),
-    [abilities, classFeatureState, className, feats, level, spellEntries]
+    [character, spellEntries]
   );
 
   useEffect(() => {

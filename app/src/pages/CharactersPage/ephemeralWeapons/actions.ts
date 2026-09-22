@@ -1,3 +1,4 @@
+import { getCharacterLevel } from "../multiclass";
 import type { AbilityKey, Character } from "../../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../utils/codex";
 import { getAbilityModifierForCharacter } from "../abilities";
@@ -38,7 +39,9 @@ function resolveEphemeralWeaponAbility(
   if (definition.ability === "spellcasting") {
     const spellId = getSourceSpellId(definition);
 
-    return spellId ? getSpellcastingAbilityForCharacterSpell(character as Character, spellId) : null;
+    return spellId
+      ? getSpellcastingAbilityForCharacterSpell(character as Character, spellId)
+      : null;
   }
 
   return definition.ability;
@@ -104,7 +107,9 @@ export function createEphemeralWeaponAction(
   const abilityModifier = getAbilityModifierForCharacter(character, ability);
   const damageAbility = resolveDamageAbility(character, definition, context, ability);
   const description =
-    context.description ?? definition.getDescription?.(character, context) ?? definition.description;
+    context.description ??
+    definition.getDescription?.(character, context) ??
+    definition.description;
   const descriptionAdditions = [
     ...(definition.descriptionAdditions ?? []),
     ...(context.descriptionAdditions ?? [])
@@ -146,7 +151,9 @@ export function createEphemeralWeaponAction(
       damageAbilityModifier: damageAbility.modifier,
       proficiencyLabel: definition.proficiencyLabel,
       proficiencyBonus:
-        definition.isProficient === false ? 0 : getProficiencyBonus(character.level ?? 1),
+        definition.isProficient === false
+          ? 0
+          : getProficiencyBonus(getCharacterLevel(character) ?? 1),
       damageBonusEntries: definition.damageBonusEntries,
       cardBonusLabels: definition.cardBonusLabels,
       description,

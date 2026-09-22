@@ -1,3 +1,4 @@
+import { hasCharacterClass, getClassLevel } from "../../multiclass";
 import { bardFeatures } from "../../../../codex/classes";
 import { CLASS_FEATURE, type DICE } from "../../../../codex/entries";
 import type { BardFeatureClassObj, Character, CharacterBardFeatureState } from "../../../../types";
@@ -31,11 +32,11 @@ export function hasBardFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
-  if (character.className !== "Bard") {
+  if (!hasCharacterClass(character, "Bard")) {
     return false;
   }
 
-  return getUnlockedBardFeatures(character.level).has(feature);
+  return getUnlockedBardFeatures(getClassLevel(character, "Bard")).has(feature);
 }
 
 function getBardCharismaModifier(
@@ -58,7 +59,9 @@ function getBardCharismaModifier(
       }
 
       if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-        return (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY);
+        return (
+          (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
+        );
       }
 
       const leftOrder = left.order ?? 0;
@@ -130,7 +133,7 @@ export function getBardicInspirationDie(
     return null;
   }
 
-  return getBardFeatureRow(character.level)?.bardicDie ?? null;
+  return getBardFeatureRow(getClassLevel(character, "Bard"))?.bardicDie ?? null;
 }
 
 export function getBardicInspirationUsesTotal(
@@ -156,7 +159,8 @@ export function expendBardicInspirationUse(character: Character): Character {
   }
 
   const totalUses = getBardicInspirationUsesTotal(character);
-  const currentExpended = getBardicInspirationResourceState(character).bardicInspirationUsesExpended ?? 0;
+  const currentExpended =
+    getBardicInspirationResourceState(character).bardicInspirationUsesExpended ?? 0;
 
   if (currentExpended >= totalUses) {
     return character;

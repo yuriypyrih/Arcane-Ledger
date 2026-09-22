@@ -9,6 +9,7 @@ type TablePaginationProps = {
   alwaysVisible?: boolean;
   className?: string;
   totalLabel?: ReactNode;
+  ariaLabel?: string;
 };
 
 function TablePagination({
@@ -17,14 +18,15 @@ function TablePagination({
   onPageChange,
   alwaysVisible = false,
   className,
-  totalLabel
+  totalLabel,
+  ariaLabel = "Pagination"
 }: TablePaginationProps) {
   if (totalPages <= 1 && !alwaysVisible) {
     return null;
   }
 
   return (
-    <div className={clsx(styles.pagination, className)}>
+    <nav className={clsx(styles.pagination, className)} aria-label={ariaLabel}>
       {totalLabel ? <span className={styles.total}>{totalLabel}</span> : null}
       <button
         type="button"
@@ -45,7 +47,7 @@ function TablePagination({
       >
         Next
       </button>
-    </div>
+    </nav>
   );
 }
 

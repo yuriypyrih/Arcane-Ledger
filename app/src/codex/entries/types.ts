@@ -152,6 +152,7 @@ export type SubclassEntry = {
 };
 
 export type SpellEntry = {
+  cantripScaling?: "damage" | "beams";
   id: string;
   name: string;
   category: ENTRY_CATEGORIES.SPELLS;
