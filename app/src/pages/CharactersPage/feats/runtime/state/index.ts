@@ -473,6 +473,14 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         maxScore: 20,
         order
       });
+    } else if (entry.feat === FEATS.GRAPPLER && entry.grappler) {
+      abilityScoreBonuses.push({
+        ability: entry.grappler.ability,
+        label: "Grappler",
+        value: 1,
+        maxScore: 20,
+        order
+      });
     } else if (entry.feat === FEATS.COLD_CASTER && entry.coldCaster) {
       abilityScoreBonuses.push({
         ability: entry.coldCaster.ability,
@@ -729,7 +737,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         ability: entry.observant.ability,
         label: "Observant",
         value: 1,
-        maxScore: 10,
+        maxScore: 20,
         order
       });
     } else if (entry.feat === FEATS.PIERCER && entry.piercer) {

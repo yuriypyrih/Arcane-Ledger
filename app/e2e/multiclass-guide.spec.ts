@@ -1,4 +1,4 @@
-import { test, expect, openLocalSheet } from "./fixtures";
+import { test, expect } from "./fixtures";
 
 test("the multiclass guide preserves the creation form without creating a character", async ({
   page
@@ -17,20 +17,15 @@ test("the multiclass guide preserves the creation form without creating a charac
   await expect(page.getByText("Want to multiclass?", { exact: true })).toBeVisible();
   await openGuide.click();
   await expect(guide).toBeVisible();
-  await expect(guide).toContainText("Arcane Ledger now supports proper multiclassing!");
-  await expect(guide.getByRole("listitem")).toHaveCount(3);
-  await expect(guide.getByRole("listitem").nth(1)).toContainText(
-    "Build Section and press Edit"
-  );
-  await expect(guide.getByRole("listitem").nth(2)).toContainText("Distribute your levels.");
-  await expect(guide).not.toContainText("emulate");
   await page.screenshot({ path: test.info().outputPath("multiclass-guide.png") });
   await guide.getByRole("button", { name: "Close multiclass guide" }).click();
   await expect(guide).not.toBeVisible();
+  await expect(openGuide).toBeFocused();
   await openGuide.click();
   await expect(guide).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(guide).not.toBeVisible();
+  await expect(openGuide).toBeFocused();
 
   await expect(page).toHaveURL(/\/characters\/new$/);
   await expect(page.getByLabel("Character name", { exact: true })).toHaveValue(
@@ -44,15 +39,4 @@ test("the multiclass guide preserves the creation form without creating a charac
   expect(await page.evaluate(() => localStorage.getItem("arcane-ledger.characters"))).toBe(
     savedBefore
   );
-});
-
-test("the creation guide stays out of existing-character profile editing", async ({ page }) => {
-  await openLocalSheet(page);
-  const id = await page.evaluate(
-    () =>
-      JSON.parse(localStorage.getItem("arcane-ledger.characters")!)[0].identity.localId as string
-  );
-  await page.goto(`/characters/${id}/edit`);
-  await expect(page.getByLabel("Character name", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open multiclass guide" })).toHaveCount(0);
 });

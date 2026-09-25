@@ -263,43 +263,6 @@ export const commune: SpellEntry = {
   ritual: true
 };
 
-export const communeWithCity: SpellEntry = {
-  id: "spell-commune-with-city",
-  name: "Commune with City",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.DIVINATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Instantaneous"],
-  description: [
-    "You briefly become one with the city and gain knowledge of the surrounding area. Aboveground, this spell gives you knowledge of the area within 1 mile of you. In sewers and other underground settings, you gain knowledge of the area within 600 feet of you.",
-    "You instantly gain knowledge of up to three facts of your choice about any of the following subjects as they relate to the area:",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "Terrain and bodies of water.",
-        "Prevalent buildings, plants, animals, or intelligent creatures.",
-        "Powerful, CR 1 or higher, Celestials, Fey, Fiends, Elementals, or Undead.",
-        "Influences from other planes of existence.",
-        "Electrical currents, wireless signals, and active transit lines and tracks."
-      ]
-    },
-    "For example, you could determine the location of powerful Undead in the area, the location of major sources of electrical power or interference, and the location of any nearby parks."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 5
-};
-
 export const communeWithNature: SpellEntry = {
   id: "spell-commune-with-nature",
   name: "Commune with Nature",
@@ -2205,7 +2168,6 @@ export const spellEntries5: SpellEntry[] = [
   circleOfPower,
   cloudkill,
   commune,
-  communeWithCity,
   communeWithNature,
   coneOfCold,
   conjureElemental,

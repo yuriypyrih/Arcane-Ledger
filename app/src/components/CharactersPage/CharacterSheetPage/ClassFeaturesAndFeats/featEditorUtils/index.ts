@@ -41,6 +41,7 @@ import {
   getBoonOfEnergyResistanceChoiceSummary,
   getBoonOfSkillChoiceSummary,
   getChargerChoiceSummary,
+  getGrapplerChoiceSummary,
   getChefChoiceSummary,
   getCharacterFeatSourceLabel,
   getCharacterFeatSummary,
@@ -127,6 +128,7 @@ import type {
   BoonOfSkillChoice,
   CharacterFeatEntry,
   ChargerChoice,
+  GrapplerChoice,
   ChefChoice,
   ColdCasterChoice,
   CrusherChoice,
@@ -182,6 +184,7 @@ import type {
   PendingBoonOfIrresistibleOffense,
   PendingBoonOfSkillChoice,
   PendingChargerChoice,
+  PendingGrapplerChoice,
   PendingChefChoice,
   PendingColdCasterChoice,
   PendingCrusherChoice,
@@ -332,6 +335,7 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     abilityScoreImprovement: null,
     athleteChoice: null,
     chargerChoice: null,
+    grapplerChoice: null,
     chefChoice: null,
     crusherChoice: null,
     dualWielderChoice: null,
@@ -418,6 +422,12 @@ export function createDefaultPendingAthleteChoice(): PendingAthleteChoice {
 }
 
 export function createDefaultPendingChargerChoice(): PendingChargerChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingGrapplerChoice(): PendingGrapplerChoice {
   return {
     ability: "STR"
   };
@@ -785,6 +795,13 @@ export function createPendingFeatStateForFeat(
     return {
       ...createEmptyPendingFeatState(),
       chargerChoice: createDefaultPendingChargerChoice()
+    };
+  }
+
+  if (feat === FEATS.GRAPPLER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      grapplerChoice: createDefaultPendingGrapplerChoice()
     };
   }
 
@@ -1206,6 +1223,15 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       ...createEmptyPendingFeatState(),
       chargerChoice: {
         ability: entry.charger.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.GRAPPLER && entry.grappler) {
+    return {
+      ...createEmptyPendingFeatState(),
+      grapplerChoice: {
+        ability: entry.grappler.ability
       }
     };
   }
@@ -1712,8 +1738,20 @@ export function decodePendingChargerChoice(choice: PendingChargerChoice): Charge
     : null;
 }
 
+export function decodePendingGrapplerChoice(choice: PendingGrapplerChoice): GrapplerChoice | null {
+  return choice.ability === "STR" || choice.ability === "DEX"
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
 export function getPendingChargerChoiceSummary(choice: PendingChargerChoice): string | null {
   return getChargerChoiceSummary(decodePendingChargerChoice(choice) ?? undefined);
+}
+
+export function getPendingGrapplerChoiceSummary(choice: PendingGrapplerChoice): string | null {
+  return getGrapplerChoiceSummary(decodePendingGrapplerChoice(choice) ?? undefined);
 }
 
 export function decodePendingColdCasterChoice(

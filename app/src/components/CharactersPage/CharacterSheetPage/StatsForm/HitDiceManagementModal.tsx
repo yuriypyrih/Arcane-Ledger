@@ -49,9 +49,7 @@ export default function HitDiceManagementModal({ character, onPersistCharacter, 
               </div>
               <div className={styles.actions}>
                 <ActionButton
-                  size="sm"
-                  variant="OUTLINE"
-                  fullWidth={false}
+                  variant="FILL"
                   disabled={pool.remaining === 0}
                   aria-label={`Use 1 ${label} Hit Die`}
                   onClick={() =>
@@ -63,9 +61,7 @@ export default function HitDiceManagementModal({ character, onPersistCharacter, 
                   Use 1
                 </ActionButton>
                 <ActionButton
-                  size="sm"
-                  variant="OUTLINE"
-                  fullWidth={false}
+                  variant="FILL"
                   disabled={pool.remaining === pool.total}
                   aria-label={`Reset 1 ${label} Hit Die`}
                   onClick={() =>
@@ -77,9 +73,7 @@ export default function HitDiceManagementModal({ character, onPersistCharacter, 
                   Reset 1
                 </ActionButton>
                 <ActionButton
-                  size="sm"
-                  variant="OUTLINE"
-                  fullWidth={false}
+                  variant="FILL"
                   disabled={pool.remaining === pool.total}
                   aria-label={`Reset all ${label} Hit Dice`}
                   onClick={() =>

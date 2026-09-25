@@ -194,14 +194,15 @@
     var(--section-card-required-color)
   );
   padding: 2px 4px 2px 2px;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
+  /* Keep standard declarations last: Firefox's -webkit-mask alias resets mask-composite. */
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
 
 .primarySection {

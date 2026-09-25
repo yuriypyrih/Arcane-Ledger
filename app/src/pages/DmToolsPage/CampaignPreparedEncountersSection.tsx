@@ -136,7 +136,9 @@ function CampaignPreparedEncountersSection({
               setIsCreateModalOpen(true);
             }}
           >
-            Create Encounter
+            <span>
+              Create<span className={styles.actionLabelNoun}> Encounter</span>
+            </span>
           </ActionButton>
           <ActionButton
             icon={<Download size={16} aria-hidden="true" />}
@@ -150,7 +152,9 @@ function CampaignPreparedEncountersSection({
               setIsCopyModalOpen(true);
             }}
           >
-            Import Template
+            <span>
+              Import<span className={styles.actionLabelNoun}> Template</span>
+            </span>
           </ActionButton>
         </div>
       </div>

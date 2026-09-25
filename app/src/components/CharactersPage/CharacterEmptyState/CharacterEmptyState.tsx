@@ -9,7 +9,7 @@ function CharacterEmptyState({ className }: CharacterEmptyStateProps) {
   return (
     <div className={className ? `${styles.root} ${className}` : styles.root}>
       <Users size={18} aria-hidden="true" />
-      <span>No characters yet</span>
+      <span>No characters yet. What are you waiting for?</span>
     </div>
   );
 }

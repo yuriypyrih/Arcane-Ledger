@@ -9,6 +9,7 @@ import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,
   ChargerChoice,
+  GrapplerChoice,
   ChefChoice,
   ColdCasterChoice,
   CrusherChoice,
@@ -84,6 +85,7 @@ import {
   normalizeBoonOfIrresistibleOffenseChoice,
   normalizeBoonOfSkillChoice,
   normalizeChargerChoice,
+  normalizeGrapplerChoice,
   normalizeChefChoice,
   normalizeColdCasterChoice,
   normalizeCrusherChoice,
@@ -390,6 +392,7 @@ export function normalizeCharacterFeats(
       feat === FEATS.BOON_OF_SKILL ? normalizeBoonOfSkillChoice(record.boonOfSkill) : undefined;
     const athlete = feat === FEATS.ATHLETE ? normalizeAthleteChoice(record.athlete) : undefined;
     const charger = feat === FEATS.CHARGER ? normalizeChargerChoice(record.charger) : undefined;
+    const grappler = feat === FEATS.GRAPPLER ? normalizeGrapplerChoice(record.grappler) : undefined;
     const chef = feat === FEATS.CHEF ? normalizeChefChoice(record.chef) : undefined;
     const coldCaster =
       feat === FEATS.COLD_CASTER ? normalizeColdCasterChoice(record.coldCaster) : undefined;
@@ -577,6 +580,7 @@ export function normalizeCharacterFeats(
         abilityScoreImprovement,
         athlete,
         charger,
+        grappler,
         chef,
         coldCaster,
         dragonscarred,
@@ -651,6 +655,7 @@ export function createCharacterFeatEntry(
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     athlete?: AthleteChoice;
     charger?: ChargerChoice;
+    grappler?: GrapplerChoice;
     chef?: ChefChoice;
     coldCaster?: ColdCasterChoice;
     dragonscarred?: DragonscarredChoice;
@@ -723,6 +728,7 @@ export function createCharacterFeatEntry(
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
     athlete: feat === FEATS.ATHLETE ? options?.athlete : undefined,
     charger: feat === FEATS.CHARGER ? options?.charger : undefined,
+    grappler: feat === FEATS.GRAPPLER ? options?.grappler : undefined,
     chef: feat === FEATS.CHEF ? options?.chef : undefined,
     coldCaster: feat === FEATS.COLD_CASTER ? options?.coldCaster : undefined,
     dragonscarred: feat === FEATS.DRAGONSCARRED ? options?.dragonscarred : undefined,

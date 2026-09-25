@@ -30,7 +30,14 @@
 
 .spellSlotHeader {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.75rem;
+}
+
+.spellSourceSelect {
+  flex: 0 0 auto;
+  width: 9.5rem;
 }
 
 .spellSlotGrid {

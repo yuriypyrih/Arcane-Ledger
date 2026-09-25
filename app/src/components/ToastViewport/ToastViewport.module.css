@@ -93,6 +93,14 @@
   width: 100%;
   min-height: 48px;
   pointer-events: auto;
+  touch-action: pan-x;
+  transition:
+    translate 150ms ease-out,
+    filter 120ms ease;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
   border-radius: var(--radius-tiny);
   background: var(--toast-background);
   color: var(--toast-foreground);
@@ -102,6 +110,17 @@
     0 1px 18px 0 rgba(0, 0, 0, 0.12);
   padding: 6px 16px;
   animation: toastEnter 225ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.dragging {
+  transition: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
+  }
 }
 
 .info {
@@ -147,36 +166,16 @@
   overflow-wrap: anywhere;
 }
 
-.closeButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  flex: 0 0 auto;
-  min-height: 34px;
-  min-width: 34px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  margin-left: 8px;
-  margin-right: -8px;
-  opacity: 0.78;
-  padding: 5px;
-  transition:
-    background-color 120ms ease,
-    opacity 120ms ease;
+@media (hover: hover) {
+  .toast:hover {
+    filter: brightness(1.12);
+  }
 }
 
-.closeButton:hover,
-.closeButton:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-  opacity: 1;
-}
-
-.closeButton:active {
-  background: rgba(255, 255, 255, 0.18);
+.toast:focus-visible {
+  outline: 3px solid var(--theme-focus-ring);
+  outline-offset: 3px;
+  filter: brightness(1.12);
 }
 
 @keyframes toastEnter {

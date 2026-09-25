@@ -146,18 +146,19 @@ function formatHitPointFormulaContent({
   );
   const level = Math.max(1, Math.floor(character.level));
   const laterLevelCount = Math.max(0, level - 1);
-  const minimumBaseHitPoints = Math.max(
-    1,
-    hitDieMaximum + constitutionModifier + laterLevelCount * (1 + constitutionModifier)
-  );
-  const maximumBaseHitPoints = Math.max(
-    1,
-    hitDieMaximum + constitutionModifier + laterLevelCount * (hitDieMaximum + constitutionModifier)
-  );
-  const formula = formatFormulaTerms([
+  const firstLevelHitPoints = Math.max(1, hitDieMaximum + constitutionModifier);
+  const minimumBaseHitPoints =
+    firstLevelHitPoints + laterLevelCount * Math.max(1, 1 + constitutionModifier);
+  const maximumBaseHitPoints =
+    firstLevelHitPoints + laterLevelCount * Math.max(1, hitDieMaximum + constitutionModifier);
+  const firstLevelFormula = formatFormulaTerms([
     `${hitDieMaximum} ${className} ${hitDieLabel}`,
-    constitutionTerm,
-    `+ ${laterLevelCount} × (${hitDieFormula} ${className} ${constitutionTerm})`
+    constitutionTerm
+  ]);
+  const laterLevelFormula = `${hitDieFormula} ${className} ${constitutionTerm}`;
+  const formula = formatFormulaTerms([
+    hitDieMaximum + constitutionModifier < 1 ? `max(1, ${firstLevelFormula})` : firstLevelFormula,
+    `+ ${laterLevelCount} × (${constitutionModifier < 0 ? `max(1, ${laterLevelFormula})` : laterLevelFormula})`
   ]);
 
   return {

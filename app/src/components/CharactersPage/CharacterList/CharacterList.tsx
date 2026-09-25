@@ -81,57 +81,56 @@ function CharacterList({
   return (
     <div className={styles.listCard}>
       <div className={styles.listHeader}>
-        <div className={styles.listEyebrowRow}>
-          <p className={styles.eyebrow}>Characters</p>
+        <div className={styles.listHeadingRow}>
+          <h2 className={styles.title}>Your Characters</h2>
           <ActionButton
             icon={<Users size={16} aria-hidden="true" />}
             variant="OUTLINE"
             className={styles.joinPartyButton}
             fullWidth={false}
+            aria-label="Join Party Group"
             onClick={onJoinPartyGroup}
           >
-            Join Party Group
+            <span className={styles.actionLabelFull}>Join Party Group</span>
+            <span className={styles.actionLabelCompact}>Join Party</span>
           </ActionButton>
         </div>
-        <div className={styles.listTitleRow}>
-          <h3 className={styles.title}>Your arsenal of Characters</h3>
-          <div className={styles.listHeaderActions}>
-            <MemberCount
-              current={characters.length}
-              total={characterLimit}
-              label="characters"
-              aria-label={`${characters.length}/${characterLimit} characters`}
-            />
-            <ActionButton
-              icon={<Plus size={16} aria-hidden="true" />}
-              fullWidth={false}
-              disabled={isCharacterLimitReached}
-              title={
-                isCharacterLimitReached
-                  ? `Character limit reached (${characterLimit}).`
-                  : "Create a new character"
-              }
-              onClick={() => navigate("/characters/new")}
-            >
-              <span className={styles.actionLabelFull}>New Character</span>
-              <span className={styles.actionLabelCompact}>New</span>
-            </ActionButton>
-            <ActionButton
-              icon={<Upload size={16} aria-hidden="true" />}
-              variant="OUTLINE"
-              fullWidth={false}
-              disabled={isCharacterLimitReached}
-              title={
-                isCharacterLimitReached
-                  ? `Character limit reached (${characterLimit}).`
-                  : "Import a shared character"
-              }
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              <span className={styles.actionLabelFull}>Import Character</span>
-              <span className={styles.actionLabelCompact}>Import</span>
-            </ActionButton>
-          </div>
+        <div className={styles.listHeaderActions}>
+          <MemberCount
+            current={characters.length}
+            total={characterLimit}
+            label="characters"
+            aria-label={`${characters.length}/${characterLimit} characters`}
+          />
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            fullWidth={false}
+            disabled={isCharacterLimitReached}
+            title={
+              isCharacterLimitReached
+                ? `Character limit reached (${characterLimit}).`
+                : "Create a new character"
+            }
+            onClick={() => navigate("/characters/new")}
+          >
+            <span className={styles.actionLabelFull}>New Character</span>
+            <span className={styles.actionLabelCompact}>New</span>
+          </ActionButton>
+          <ActionButton
+            icon={<Upload size={16} aria-hidden="true" />}
+            variant="OUTLINE"
+            fullWidth={false}
+            disabled={isCharacterLimitReached}
+            title={
+              isCharacterLimitReached
+                ? `Character limit reached (${characterLimit}).`
+                : "Import a shared character"
+            }
+            onClick={() => setIsImportModalOpen(true)}
+          >
+            <span className={styles.actionLabelFull}>Import Character</span>
+            <span className={styles.actionLabelCompact}>Import</span>
+          </ActionButton>
         </div>
       </div>
 

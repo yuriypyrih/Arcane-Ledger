@@ -1092,9 +1092,8 @@ export function getAutomaticMaxHitPointsForCharacter(
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
   const normalizedLevel = Math.max(1, Math.floor(character.level));
   const computedHitPoints =
-    hitDieMaximum +
-    constitutionModifier +
-    (normalizedLevel - 1) * (hitDieAverage + constitutionModifier);
+    Math.max(1, hitDieMaximum + constitutionModifier) +
+    (normalizedLevel - 1) * Math.max(1, hitDieAverage + constitutionModifier);
 
   return Math.max(1, Math.floor(computedHitPoints));
 }

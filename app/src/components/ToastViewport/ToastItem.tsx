@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { CircleAlert, CircleCheck, Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
-import { useEffect } from "react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert, type LucideIcon } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   DEFAULT_TOAST_DISMISS_MS,
   dismissToast,
@@ -39,6 +39,43 @@ function ToastItem({ toast }: ToastItemProps) {
   const dispatch = useAppDispatch();
   const Icon = toastIcons[toast.type];
   const typeLabel = toastLabels[toast.type];
+  const gesture = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const direction = toast.position.startsWith("top-") ? -1 : 1;
+
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
+    suppressClick.current = false;
+    if (event.pointerType !== "touch" || !event.isPrimary || gesture.current) return;
+    gesture.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLElement>) {
+    const start = gesture.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.hypot(dx, dy) > 8) suppressClick.current = true;
+    setDragOffset(dy * direction > 0 && Math.abs(dy) > Math.abs(dx) ? dy : 0);
+  }
+
+  function finishGesture(event: PointerEvent<HTMLElement>, cancelled = false) {
+    const start = gesture.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    suppressClick.current ||=
+      cancelled || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8;
+    gesture.current = null;
+    setDragOffset(0);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!cancelled && dy * direction >= 36 && Math.abs(dy) > Math.abs(dx)) {
+      dispatch(dismissToast(toast.id));
+    }
+  }
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -54,23 +91,34 @@ function ToastItem({ toast }: ToastItemProps) {
 
   return (
     <article
-      className={clsx(styles.toast, toastToneClassNames[toast.type])}
       role={toast.type === "error" ? "alert" : "status"}
       aria-live={toast.type === "error" ? "assertive" : "polite"}
     >
-      <span className={styles.iconWrap} aria-hidden="true">
-        <Icon size={22} strokeWidth={2.1} />
-      </span>
-      <div className={styles.content}>
-        <p className={styles.text}>{toast.text}</p>
-      </div>
       <button
         type="button"
-        className={styles.closeButton}
-        onClick={handleClose}
-        aria-label={`Dismiss ${typeLabel.toLowerCase()} toast`}
+        aria-label={`Dismiss ${typeLabel.toLowerCase()} toast: ${toast.text}`}
+        onClick={(event) => {
+          if (event.detail === 0 || !suppressClick.current) handleClose();
+          suppressClick.current = false;
+        }}
+        className={clsx(
+          styles.toast,
+          toastToneClassNames[toast.type],
+          dragOffset !== 0 && styles.dragging
+        )}
+        style={{ translate: `0 ${dragOffset}px` }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={(event) => finishGesture(event)}
+        onPointerCancel={(event) => finishGesture(event, true)}
+        onLostPointerCapture={(event) => finishGesture(event, true)}
       >
-        <X size={16} strokeWidth={2.1} />
+        <span className={styles.iconWrap} aria-hidden="true">
+          <Icon size={22} strokeWidth={2.1} />
+        </span>
+        <span className={styles.content}>
+          <span className={styles.text}>{toast.text}</span>
+        </span>
       </button>
     </article>
   );

@@ -14,7 +14,7 @@ import { describe, expect, it, vi } from "vitest";
 import { multiclassFixture } from "../fixtures/multiclass";
 import { characterFixture } from "../fixtures/character";
 import { ELDRITCH_INVOCATION, FEATS, getSpellEntryById } from "../../src/codex/entries";
-import { TOOL_PROFICIENCY } from "../../src/types";
+import { SKILL_PROFICIENCY, TOOL_PROFICIENCY } from "../../src/types";
 import {
   applyClassEditorChange,
   getClassEditorCharacter,
@@ -317,15 +317,15 @@ describe("multiclass migration and editor validation", () => {
     ]);
     const reloaded = normalizeCharacter(createPortableCharacterSheet(character))!;
     expect(
-      reloaded.toolProficiencies.some(
-        (entry) =>
-          entry.proficiency === TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_FLUTE &&
-          entry.sourceStr === "Bard (multiclass)"
-      )
-    ).toBe(true);
+      reloaded.toolProficiencies
+        .filter((entry) => entry.sourceStr === "Bard (multiclass)")
+        .map((entry) => entry.proficiency)
+    ).toEqual([TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_FLUTE]);
     expect(
-      reloaded.skillProficiencies.some((entry) => entry.sourceStr === "Bard (multiclass)")
-    ).toBe(true);
+      reloaded.skillProficiencies
+        .filter((entry) => entry.sourceStr === "Bard (multiclass)")
+        .map((entry) => entry.proficiency)
+    ).toEqual([SKILL_PROFICIENCY.PERFORMANCE]);
   });
   it("does not overwrite the original backup and reports storage quota failure", () => {
     const character = characterFixture();

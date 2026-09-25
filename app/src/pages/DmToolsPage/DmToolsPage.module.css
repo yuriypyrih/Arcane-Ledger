@@ -1437,6 +1437,10 @@ button.dmToolsListCardMain:disabled {
 }
 
 @media (max-width: 599px) {
+  .actionLabelNoun {
+    display: none;
+  }
+
   .liveTrackerLayout {
     grid-template-columns: 1fr;
   }
@@ -1473,9 +1477,33 @@ button.dmToolsListCardMain:disabled {
     grid-template-columns: 1fr;
   }
 
+  .tabRow {
+    flex-wrap: nowrap;
+    gap: 0;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: 0;
+  }
+
   .tabButton {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
     justify-content: center;
+    min-width: 44px;
+    padding-inline: 0.6rem;
+    white-space: nowrap;
+  }
+
+  .tabButtonActive {
+    flex-grow: 1;
+  }
+
+  .tabButton::after {
+    bottom: 0;
+  }
+
+  .tabButton:not(.tabButtonActive) .tabLabel {
+    display: none;
   }
 
   .linkRow {

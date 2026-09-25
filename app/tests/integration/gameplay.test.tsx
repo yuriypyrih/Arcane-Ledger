@@ -54,24 +54,31 @@ describe("sheet gameplay interactions with real rules", () => {
     expect(dialog).toHaveTextContent("[= 23 Base HP]");
     expect(within(dialog).queryByText("Roll yourself", { exact: true })).not.toBeInTheDocument();
   });
-  it("the HP range respects each level's minimum gain and a negative adjustment", async () => {
-    const user = userEvent.setup();
-    const character = multiclassFixture([
-      { className: "Wizard", level: 2 },
-      { className: "Fighter", level: 1 }
-    ]);
-    character.abilities.CON = 2;
-    character.multiclass!.hitPointsAdjustment = -1;
-    character.maxHitPointsMode = "automatic";
-    render(<GameplayHarness initial={character} />);
-    await user.click(screen.getByRole("button", { name: /^Edit$/ }));
-    const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveTextContent(
-      "3~9 MAX HP = 6 Wizard D6 - 4 CON + 1 × (max(1, 1d6 Wizard - 4 CON)) + 1 × (max(1, 1d10 Fighter - 4 CON)) - 1 Adjustment"
-    );
-    expect(within(dialog).getByLabelText("Max Base HP")).toHaveValue(4);
-    expect(dialog).toHaveTextContent("[= 4 Base HP]");
-  });
+  it.each([false, true])(
+    "the HP range respects each level's minimum gain (multiclass: %s)",
+    async (multiclass) => {
+      const user = userEvent.setup();
+      const character = multiclass
+        ? multiclassFixture([
+            { className: "Wizard", level: 2 },
+            { className: "Fighter", level: 1 }
+          ])
+        : characterFixture({ className: "Wizard", level: 3 });
+      character.abilities.CON = 2;
+      if (character.multiclass) character.multiclass.hitPointsAdjustment = -1;
+      character.maxHitPointsMode = "automatic";
+      render(<GameplayHarness initial={character} />);
+      await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveTextContent(
+        multiclass
+          ? "3~9 MAX HP = 6 Wizard D6 - 4 CON + 1 × (max(1, 1d6 Wizard - 4 CON)) + 1 × (max(1, 1d10 Fighter - 4 CON)) - 1 Adjustment"
+          : "4~6 MAX HP = 6 Wizard D6 - 4 CON + 2 × (max(1, 1d6 Wizard - 4 CON))"
+      );
+      expect(within(dialog).getByLabelText("Max Base HP")).toHaveValue(4);
+      expect(dialog).toHaveTextContent("[= 4 Base HP]");
+    }
+  );
   it("the HP formula uses custom Hit Dice and omits inactive classes", async () => {
     const user = userEvent.setup();
     const character = multiclassFixture([

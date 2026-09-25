@@ -132,11 +132,6 @@ const spellSummonDefinitionConfigs: Record<string, SpellSummonDefinitionConfig> 
     defaultType: "Undead",
     defaultDuration: oneHourDuration
   },
-  "spell-summon-warrior-spirit": {
-    spellId: "spell-summon-warrior-spirit",
-    defaultType: "Undead",
-    defaultDuration: oneHourDuration
-  },
   "spell-spirit-of-death": {
     spellId: "spell-spirit-of-death",
     defaultType: "Undead",
@@ -165,34 +160,16 @@ const spellSummonDefinitionConfigs: Record<string, SpellSummonDefinitionConfig> 
     spellId: "spell-conjure-animals",
     defaultDuration: tenMinuteDuration
   },
-  "spell-conjure-lesser-demon": {
-    spellId: "spell-conjure-lesser-demon",
-    defaultType: "Fiend",
-    defaultSeparateInitiative: true,
-    defaultDuration: oneHourDuration
-  },
   "spell-summon-lesser-demons": {
     spellId: "spell-summon-lesser-demons",
     defaultType: "Fiend",
     defaultSeparateInitiative: true,
     defaultDuration: oneHourDuration
   },
-  "spell-conjure-barlgura": {
-    spellId: "spell-conjure-barlgura",
-    defaultType: "Fiend",
-    defaultSeparateInitiative: true,
-    defaultDuration: tenMinuteDuration
-  },
   "spell-conjure-minor-elementals": {
     spellId: "spell-conjure-minor-elementals",
     defaultType: "Elemental",
     defaultDuration: tenMinuteDuration
-  },
-  "spell-conjure-shadow-demon": {
-    spellId: "spell-conjure-shadow-demon",
-    defaultType: "Fiend",
-    defaultSeparateInitiative: true,
-    defaultDuration: oneHourDuration
   },
   "spell-conjure-woodland-beings": {
     spellId: "spell-conjure-woodland-beings",

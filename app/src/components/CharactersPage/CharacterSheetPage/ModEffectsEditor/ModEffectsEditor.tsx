@@ -14,6 +14,7 @@ import {
   customTraitTargetOptions,
   isCustomTraitEffectDraftEmpty,
   isCustomTraitDefenseTarget,
+  isCustomTraitHardSetTarget,
   type CustomTraitEffectDraft
 } from "../GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
 import styles from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitBuilder.module.css";
@@ -69,7 +70,8 @@ function ModEffectsEditor({
         {effects.map((effect, index) => {
           const isOnlyEffect = effects.length === 1;
           const isRemoveDisabled = isOnlyEffect && isCustomTraitEffectDraftEmpty(effect);
-          const showModeControls = !isCustomTraitDefenseTarget(effect.target);
+          const showModeControls =
+            !isCustomTraitDefenseTarget(effect.target) && !isCustomTraitHardSetTarget(effect.target);
 
           return (
             <div key={effect.id} className={styles.effectCard}>

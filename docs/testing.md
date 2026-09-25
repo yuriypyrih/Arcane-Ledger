@@ -47,18 +47,20 @@ npm --prefix app run test:e2e -- --project=mobile
 
 `npm test` includes real backend/database integration tests, not browser tests. `npm run test:e2e`
 runs the browser journeys on desktop Chromium and a Chromium phone viewport with touch enabled.
+Explicit viewport sweeps carry the `@layout` tag and run only in the desktop project, where they
+set their own phone/tablet/desktop widths. Functional journeys still run in both projects.
 This is mobile-layout coverage, not a claim about Safari or every physical phone.
 
 ## Layers and coverage
 
-| Layer                  | Location                                    | What it protects                                                                                                                                                                                                                                                        |
-| ---------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rules                  | `app/tests/rules/`                          | Spell progression, preparation capacity and always-prepared grants; free casting and slot costs; proficiency sources, expertise and ability modifiers; concentration, resources/rests, equipment, feat prerequisites/choices, companions and contributions              |
-| Content contracts      | `app/tests/rules/class-progression.test.ts` | Every registered subclass at level boundaries: normalization/save/load, unlocked features, action IDs and valid slot totals. New codex subclasses enter this matrix automatically. This does not prove each unique mechanic is implemented correctly.                   |
-| React + persistence    | `app/tests/integration/`                    | The real sheet and independent section invalidation; feat editing and sourced benefits; health/rest controls; rapid edits and delayed HP; storage failures; real cloud-opening resolution with controlled transport; navigation, lifecycle flushes and session clearing |
-| Backend HTTP + MongoDB | `server/tests/characters.test.ts`           | Cookie authentication, ownership, imports, durable nested sheet state, sequential stale revisions, competing saves and deletion. The competing-save regression currently exposes a product defect; see below.                                                           |
-| Shared inventory rules | `server/tests/master-chest.test.ts`         | Conservation during transfers, insufficient balances, invalid batches and GM/player boundaries                                                                                                                                                                          |
-| Browser journeys       | `app/e2e/`                                  | Player interactions on desktop/mobile, local persistence, real login and cloud save retrieval; see the named scenarios in the suite                                                                                                                                     |
+| Layer                         | Location                                    | What it protects                                                                                                                                                                                                                                                        |
+| ----------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rules                         | `app/tests/rules/`                          | Spell progression, preparation capacity and always-prepared grants; free casting and slot costs; proficiency sources, expertise and ability modifiers; concentration, resources/rests, equipment, feat prerequisites/choices, companions and contributions              |
+| Content contracts             | `app/tests/rules/class-progression.test.ts` | Every registered subclass at level boundaries: normalization/save/load, unlocked features, action IDs and valid slot totals. New codex subclasses enter this matrix automatically. This does not prove each unique mechanic is implemented correctly.                   |
+| React + persistence           | `app/tests/integration/`                    | The real sheet and independent section invalidation; feat editing and sourced benefits; health/rest controls; rapid edits and delayed HP; storage failures; real cloud-opening resolution with controlled transport; navigation, lifecycle flushes and session clearing |
+| Backend HTTP + MongoDB        | `server/tests/characters.test.ts`           | Cookie authentication, ownership, imports, durable nested sheet state, sequential stale revisions, competing saves and deletion. Competing saves must produce one winner and one revision conflict; see below.                                                          |
+| Shared inventory rules + HTTP | `server/tests/master-chest*.test.ts`        | Conservation, insufficient balances, invalid batches and GM/player boundaries; real HTTP/MongoDB replay, competing withdrawals and compensation after revision conflicts                                                                                                |
+| Browser journeys              | `app/e2e/`                                  | Player interactions on desktop/mobile, local persistence, real login and cloud save retrieval; see the named scenarios in the suite                                                                                                                                     |
 
 Fixtures live in `fixtures/characters/` and `app/tests/fixtures/`. The common saved sheet is deliberately
 plain JSON so the server tests do not import the frontend runtime. Each test gets a fresh copy.
@@ -67,13 +69,36 @@ The root `AGENTS.md` contains the working agreements. This document owns test-sp
 
 ### Character-sheet workflows
 
+HP coverage checks automatic totals after class declaration, level reallocation, Hit Die overrides,
+and reload, with Tough and Aid kept separate from base HP. Both single-class and multiclass
+calculations and editor ranges apply a minimum gain of 1 HP per level, including low Constitution.
+
+The shared effects editor offers numerical values from 0 through 30. Its six HARD SET ability-score
+targets accept only integers in that range and have no buff/debuff or roll modes. The highest active
+hard-set value replaces the final score, including ordinary score bonuses and penalties; zero is a
+valid override. Saved base scores remain intact, and direct modifier, skill, and saving-throw bonuses
+still apply. Removing the winning source reveals the next override or the ordinary score.
+
+`hard-set-effects.test.ts` covers precedence, all six abilities, item activation, custom actions,
+disabled/expired traits, malformed values, and portable persistence. `effect-editor.test.tsx` covers
+the shared controls and draft round trips; `sheet-sections.test.tsx` covers inventory-only and
+status-only updates to scores, skills, an open spell drawer, and carrying capacity.
+`hard-set-effects.spec.ts` exercises creation, dice-to-hard-set switching, editing, reload, and removal
+at both boundaries (0 and 30) on desktop and mobile.
+
+`app/tests/rules/spell-catalog.test.ts` covers the 33 retired spells, their absence from
+lookup and class choices, removal of their summon configurations, and filtering saved
+preparation, spellbook, and cantrip selections without consuming selection capacity.
+Other demon summoning spells remain available.
+
 Read-only GM/admin inspection is covered by `character-inspection.test.ts` on the server,
 `character-inspection.test.tsx` in frontend integration tests, and `character-inspection.spec.ts`
 in the desktop/mobile browser suite. The browser harness seeds separate synthetic owner, GM,
 and admin accounts in its disposable database. See [Character inspection](character-inspection.md)
 for access boundaries and interaction coverage.
 
-The browser suite runs each scenario on both desktop and mobile. Its coverage includes:
+Functional browser journeys run on desktop and mobile; tagged viewport sweeps run once across their
+explicit widths. Coverage includes:
 
 - Profile validation, cancelled edits, rename and notes; ability edits updating AC and skills.
 - HP damage/healing, inspiration, selective long-rest recovery, class charges and short rests.
@@ -99,6 +124,9 @@ The browser suite runs each scenario on both desktop and mobile. Its coverage in
 - Exhausted spell-slot refusal, Magic Initiate free-use spending and long-rest recovery, ritual
   casting without another slot, and replacement/ending of concentration with linked effects.
 - Local roster persistence and real cookie login/cloud save retrieval through the local API.
+- The roster Join Party Group button staying compact beside the Characters heading from 320px through
+  desktop, with matching button font size and padding, a 44px touch target, and its full
+  accessible name on small screens.
 - Top and bottom compendium/administration pagination staying synchronized, and administration
   defaulting to recent activity with green sort arrows beside their labels in light and dark mode.
   These list browser tests use synthetic API responses; the backend administration tests separately
@@ -106,6 +134,18 @@ The browser suite runs each scenario on both desktop and mobile. Its coverage in
 - Custom spell, item, and bestiary description edits retaining spaces, indentation, and blank lines
   through save, preview, and reload against the isolated local API. Component tests also cover
   supported item emphasis and ensure executable markup remains inert in all three renderers.
+- GM Tools tabs showing icons with only the selected label below 600px, retaining accessible
+  names, touching tabs in one horizontally scrollable row without vertical overflow and with
+  44px minimum widths at 320px,
+  and restoring all labels at 600px.
+- Campaign action buttons shortening to Import, Create, and Add below 600px while preserving
+  their icons and the Player Visibility Settings label; full labels return at 600px.
+- Signed-in account identity filling the header width when stacked below Your Account through
+  760px, while preserving the side-by-side desktop layout and visible logout control.
+- Touch swipes dismissing top toasts upward and bottom toasts downward. Component tests cover
+  all six positions, short/wrong-direction/horizontal drags, cancellation, secondary touches,
+  mouse input, post-drag click suppression, and automatic dismissal. Browser tests cover physical
+  touch events, whole-toast click/keyboard dismissal, and hover feedback.
 
 `sheet-sections.test.tsx` mounts `CharacterSheetPage` with the real Redux store and persistence.
 It changes one domain at a time while retaining unrelated object references, checking the rendered
@@ -132,6 +172,8 @@ wiring, persistence and visible results.
   hook tests replace the asynchronous opening boundary so response ordering and failure are controlled;
   they retain the real Redux store, character normalization and local storage. Separate cloud-opening
   integration tests use the actual resolver and storage while controlling only the API transport.
+  `cloud-upload.test.tsx` mounts the real sync coordinator and controls API responses to cover edits
+  during uploads, transient failure/retry, and revision conflicts without automatic overwrite.
 - The frontend has an existing cyclic runtime import graph. The Vitest setup initializes the public
   feat-runtime barrel first because Vite's server-side export-star evaluation otherwise exposes partial
   cyclic exports. These tests do not assert that arbitrary runtime leaf import orders are supported.
@@ -144,40 +186,43 @@ wiring, persistence and visible results.
 - Browser service workers are disabled for deterministic journeys. PWA installation/update/offline
   cache behavior needs a separate production-build suite and is not covered by these tests.
 
-## Adding a feature or fixing a bug
+## Maintaining and extending tests
 
-Start with a scenario that fails for the missing/broken behavior. Keep rules tests small, then add an
-interaction test when controls or cross-section updates matter. Add a browser journey for a new major
-player flow, not for every wrapper function. A subclass with unique mechanics needs specific expected
-outcomes in addition to the automatic progression matrix.
+Follow the test-scope rule in [AGENTS.md](../AGENTS.md): routine code work uses existing tests;
+it does not automatically add regression cases. New cases require explicit user approval or an
+agreed scope during new-feature design in Plan mode. An explicit testing-improvement request
+supplies approval for focused additions. Running tests and repairing or consolidating existing
+assertions do not require a separate approval step.
 
-Test successful use, refusal when resources/choices are invalid, recovery, and persistence where
-applicable. Avoid giant snapshots, tests that reproduce the implementation algorithm, and mocking all
-of a feature's dependencies. Include a negative assertion when a rule must preserve something—for
-example, a ritual cast must leave spell slots unchanged.
+Prefer strengthening an existing behavior test over adding another one. For approved additions,
+choose a few concrete risks such as lost edits, double transfers, authorization failures, or failed
+recovery. Keep numerical edge cases in rules tests and use browser tests for behavior that needs a
+real browser. Avoid checking the same copy or cosmetic value at multiple layers. A content matrix
+checks consistency; it is not a substitute for an independent expected outcome when a mechanic is
+in the agreed test scope.
 
 No blanket coverage percentage is imposed. The optional frontend coverage report includes character
 page logic, sheet components (including TSX), background character synchronization, and the active
 sheet store. It measures the Vitest suite, not browser journeys. The broader denominator deliberately
 exposes untouched UI and synchronization code rather than reporting rules-only coverage as sheet
 coverage. A high line count is not evidence of correct gameplay. Remaining areas include exhaustive
-subclass/feat combinations, multiplayer chest HTTP
-races, GM encounter flows, real email/image upload services, other browser engines, visual snapshots,
+subclass/feat combinations, account changes or deletion during an in-flight cloud upload,
+Master Chest process crashes between document writes, GM encounter flows,
+real email/image upload services, other browser engines, visual snapshots,
 service-worker behavior, and exhaustive dice/spell-effect execution paths.
 
-### Known failing regression: simultaneous cloud saves
+### Concurrent writes and recovery
 
-`server/tests/characters.test.ts` contains `only one competing save can commit the same base revision`.
-Two authenticated requests submit different HP values with the same base revision. Both must read
-the same starting document; the test synchronizes those real MongoDB reads, leaving the real HTTP
-handler and database writes intact. Exactly one request should succeed and the other should receive
-409, with the winning sheet durably stored and the revision incremented once.
+`server/tests/characters.test.ts` synchronizes competing reads through the real HTTP handler and
+MongoDB, then checks that only one save commits the same base revision. The production conditional
+write now enforces this; the earlier description of an intentionally failing test is obsolete.
 
-The current implementation returns 200 for both requests. Its revision check and save are separate,
-allowing a lost update. This ordinary regression test intentionally remains failing; it is neither
-skipped nor marked as an expected failure. The tests-only expansion does not change production save
-behavior. Run `npm --prefix server test -- tests/characters.test.ts` to reproduce it in the disposable
-test database. `npm test` will remain red until the production race is fixed.
+`server/tests/master-chest-http.test.ts` covers three workflows: replay and key/actor rejection,
+competing withdrawals of the final item, and repeated chest revision conflicts followed by a safe
+retry. The last case introduces a real competing database revision update before each chest write;
+it retains the actual guard, bounded retries, and character compensation, then checks both durable
+balances. It does not simulate process crashes or prove multi-document atomicity. See
+[Master Chest transactions](master-chest-transactions.md) for that known limit.
 
 ## CI and failures
 
@@ -190,7 +235,7 @@ Browser failures retain screenshots and Playwright traces under `app/test-result
 `npx playwright show-report` or inspect a trace with Playwright's trace viewer.
 Automatic retries are disabled so a flaky failure stays visible.
 
-## Multiclass regression coverage
+## Multiclass coverage
 
 - `app/e2e/hit-points.spec.ts` checks the HP formula range, class labels, Auto/Manual guidance,
   manual HP saving, and reloads for legacy, inactive-class, and multiclass characters on desktop
@@ -233,6 +278,6 @@ Automatic retries are disabled so a flaky failure stays visible.
 - `server/tests/characters.test.ts` covers v3 validation, revision conflicts, original backup privacy,
   rejected downgrades, and v3 sharing/import through HTTP and disposable MongoDB.
 
-The matrix checks composition and durable state. Add a targeted expected-outcome test when extending
-an individual subclass interaction; a matrix pass alone is not proof that every feature combination
-works. [Multiclass behavior and compatibility](multiclass.md) describes the implemented boundaries.
+The matrix checks composition and durable state. Within an approved test scope, prefer a targeted
+expected outcome for an individual subclass interaction; a matrix pass alone is not proof that every
+feature combination works. [Multiclass behavior and compatibility](multiclass.md) describes the implemented boundaries.

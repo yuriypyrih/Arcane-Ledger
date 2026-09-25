@@ -215,33 +215,6 @@ export const animalMessenger: SpellEntry = {
   ritual: true
 };
 
-export const arcaneHacking: SpellEntry = {
-  id: "spell-arcane-hacking",
-  name: "Arcane Hacking",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "You gain Advantage on all Intelligence checks using hacking tools to break software encryption or online security when using a foreign system.",
-    "This spell also allows you to break 2nd-level and lower protective spells such as Arcane Lock or Glyph of Warding by making an Intelligence check using hacking tools against the spell save DC of the spell's caster.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can attempt to counteract a spell set to secure the foreign system if the spell's level is equal to or less than the level of the spell slot you used."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 2
-};
-
 export const arcaneLock: SpellEntry = {
   id: "spell-arcane-lock",
   name: "Arcane Lock",
@@ -767,31 +740,6 @@ export const detectThoughts: SpellEntry = {
   spellLevel: 2
 };
 
-export const digitalPhantom: SpellEntry = {
-  id: "spell-digital-phantom",
-  name: "Digital Phantom",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "This spell works to actively hide your presence within a computer system. For the spell's duration, you and any other users you choose on your local network gain a +10 bonus to Intelligence checks to avoid detection by administrators, knowbots, tracking software, and the like. Whenever you and your chosen users leave any computer system you are working in while this spell is in effect, all trace of your previous presence in that system is erased."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 2
-};
-
 export const dragonsBreath: SpellEntry = {
   id: "spell-dragons-breath",
   name: "Dragon's Breath",
@@ -1082,40 +1030,6 @@ export const findTraps: SpellEntry = {
   damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
-  spellLevel: 2
-};
-
-export const findVehicle: SpellEntry = {
-  id: "spell-find-vehicle",
-  name: "Find Vehicle",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.TEN_MINUTES],
-  range: "30 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["8 hours"],
-  description: [
-    "You summon a spirit that assumes the form of a nonmilitary land vehicle of your choice, appearing in an unoccupied space within range. The vehicle has the statistics of a normal vehicle of its sort, though it is Celestial, Fey, or Fiendish, your choice in origin. The physical characteristics of the vehicle reflect its origin to some degree. For example, a fiendish SUV might be jet black in color, with tinted windows and a sinister-looking front grille.",
-    "You have a supernatural bond with the conjured vehicle that allows you to drive beyond your normal ability. While driving the conjured vehicle, you are considered proficient with vehicles of its type, and you add double your Proficiency Bonus to ability checks related to driving the vehicle. While driving the vehicle, you can make any spell you cast that targets only you also target the vehicle.",
-    "If the vehicle drops to 0 Hit Points, it disappears, leaving behind no physical form. You can also dismiss the vehicle at any time as an action, causing it to disappear.",
-    "You can't have more than one vehicle bonded by this spell at a time. As an action, you can release the vehicle from its bond at any time, causing it to disappear.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can conjure a nonmilitary water vehicle large enough to carry six Medium creatures. When you cast this spell using a spell slot of 5th level or higher, you can conjure a nonmilitary air vehicle large enough to carry ten Medium creatures. When you cast this spell using a spell slot of 7th level or higher, you can conjure any type of vehicle, subject to the GM's approval."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.PALADIN,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
   spellLevel: 2
 };
 
@@ -1881,34 +1795,6 @@ export const maximilliansEarthenGrasp: SpellEntry = {
   spellLevel: 2
 };
 
-export const mentalBarrier: SpellEntry = {
-  id: "spell-mental-barrier",
-  name: "Mental Barrier",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [
-    ACTION_TYPE.REACTION,
-    "which you take when you are forced to make an Intelligence, a Wisdom, or a Charisma saving throw"
-  ],
-  range: "Self",
-  components: [SPELL_COMPONENT.V],
-  duration: ["1 round"],
-  description: [
-    "You protect your mind with a wall of looping, repetitive thought. Until the start of your next turn, you have Advantage on Intelligence, Wisdom, and Charisma saving throws, and you have Resistance to Psychic damage."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 2
-};
-
 export const mindSpike: SpellEntry = {
   id: "spell-mind-spike",
   name: "Mind Spike",
@@ -1935,39 +1821,6 @@ export const mindSpike: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 2
-};
-
-export const mindThrust: SpellEntry = {
-  id: "spell-mind-thrust",
-  name: "Mind Thrust",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.BONUS_ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["1 round"],
-  description: [
-    "You thrust a lance of psychic disruption into the mind of one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes <strong>3d6</strong> Psychic damage, and it can't take a Reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a Bonus Action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd. The creatures must be within 30 feet of each other when you target them."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.INT,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC],
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC],
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC]
-  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
@@ -2055,6 +1908,7 @@ export const moonbeam: SpellEntry = {
   materialSpecified: "a moonseed leaf",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
+    "A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high Cylinder centered on a point within range. Until the spell ends, Dim Light fills the Cylinder, and you can take a Magic action on later turns to move the Cylinder up to 60 feet.",
     "When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes <strong>2d10</strong> Radiant damage, and if the creature is shape-shifted (as a result of the Polymorph spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.",
     "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d10</strong> for each spell slot level above 2."
   ],
@@ -2842,31 +2696,6 @@ export const tashasMindWhip: SpellEntry = {
   spellLevel: 2
 };
 
-export const thoughtShield: SpellEntry = {
-  id: "spell-thought-shield",
-  name: "Thought Shield",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["8 hours"],
-  description: [
-    "You weave a clouding veil over the mind of one creature you touch. For the duration, the target's mind can't be read or detected, creatures can't telepathically communicate with the target unless the target allows it, and the target has Advantage on saving throws against any effect that would determine whether it is telling the truth."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 2
-};
-
 export const vortexWarp: SpellEntry = {
   id: "spell-vortex-warp",
   name: "Vortex Warp",
@@ -3114,7 +2943,6 @@ export const spellEntries2: SpellEntry[] = [
   airBubble,
   alterSelf,
   animalMessenger,
-  arcaneHacking,
   arcaneLock,
   arcaneVigor,
   arcanistsMagicAura,
@@ -3132,7 +2960,6 @@ export const spellEntries2: SpellEntry[] = [
   darkness,
   darkvision,
   detectThoughts,
-  digitalPhantom,
   dragonsBreath,
   dustDevil,
   earthbind,
@@ -3141,7 +2968,6 @@ export const spellEntries2: SpellEntry[] = [
   enthrall,
   findSteed,
   findTraps,
-  findVehicle,
   flameBlade,
   flamingSphere,
   flockOfFamiliars,
@@ -3166,9 +2992,7 @@ export const spellEntries2: SpellEntry[] = [
   magicMouth,
   magicWeapon,
   maximilliansEarthenGrasp,
-  mentalBarrier,
   mindSpike,
-  mindThrust,
   mirrorImage,
   mistyStep,
   moonbeam,
@@ -3196,7 +3020,6 @@ export const spellEntries2: SpellEntry[] = [
   suggestion,
   summonBeast,
   tashasMindWhip,
-  thoughtShield,
   vortexWarp,
   wardingBond,
   wardingWind,

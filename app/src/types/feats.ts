@@ -78,6 +78,10 @@ export type ChargerChoice = {
   ability: "STR" | "DEX";
 };
 
+export type GrapplerChoice = {
+  ability: "STR" | "DEX";
+};
+
 export type ChefChoice = {
   ability: "CON" | "WIS";
 };
@@ -361,6 +365,7 @@ export type CharacterFeatEntry = {
   abilityScoreImprovement?: AbilityScoreImprovementChoice;
   athlete?: AthleteChoice;
   charger?: ChargerChoice;
+  grappler?: GrapplerChoice;
   chef?: ChefChoice;
   coldCaster?: ColdCasterChoice;
   dragonscarred?: DragonscarredChoice;

@@ -64,6 +64,7 @@ import type {
   AthleteChoice,
   BoonOfIrresistibleOffenseChoice,
   ChargerChoice,
+  GrapplerChoice,
   ChefChoice,
   EpicBoonAbilityChoice,
   SkilledChoice,
@@ -308,7 +309,7 @@ export const featAbilityIncreaseConfigs = new Map<FEATS, FeatAbilityIncreaseConf
   [FEATS.BOON_OF_FORTITUDE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_FORTUNES_FAVOR, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_FURIOUS_STORM, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
-  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, { abilityOptions: ["STR", "DEX"], maxScore: 30 }],
   [FEATS.BOON_OF_POISON_MASTERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_RECOVERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_REVELRY, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
@@ -401,6 +402,22 @@ export function normalizeChargerChoice(value: unknown): ChargerChoice | undefine
   }
 
   const record = value as Partial<ChargerChoice>;
+
+  if (record.ability === "STR" || record.ability === "DEX") {
+    return {
+      ability: record.ability
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeGrapplerChoice(value: unknown): GrapplerChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<GrapplerChoice>;
 
   if (record.ability === "STR" || record.ability === "DEX") {
     return {
@@ -1544,6 +1561,10 @@ export function getChargerChoiceSummary(choice?: ChargerChoice): string | null {
   return choice ? `${choice.ability} +1` : null;
 }
 
+export function getGrapplerChoiceSummary(choice?: GrapplerChoice): string | null {
+  return choice ? `${choice.ability} +1` : null;
+}
+
 export function getColdCasterChoiceSummary(choice?: ColdCasterChoice): string | null {
   if (!choice) {
     return null;
@@ -1831,6 +1852,10 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.CHARGER) {
     return getChargerChoiceSummary(entry.charger);
+  }
+
+  if (entry.feat === FEATS.GRAPPLER) {
+    return getGrapplerChoiceSummary(entry.grappler);
   }
 
   if (entry.feat === FEATS.COLD_CASTER) {

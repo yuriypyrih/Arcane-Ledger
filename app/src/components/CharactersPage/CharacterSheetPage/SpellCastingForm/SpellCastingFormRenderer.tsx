@@ -30,6 +30,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     character,
     className,
     sourceControls,
+    spellSourceControl,
     closeSelectedSpell,
     closeSpellSlotActionSheet,
     clsx,
@@ -317,6 +318,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
 
       <div className={styles.spellSlotHeader}>
         <p className={styles.spellGroupTitle}>Spell slots</p>
+        {spellSourceControl}
       </div>
       <div className={styles.spellSlotGrid}>
         {spellSlotLevels.map((slotLevel) => {

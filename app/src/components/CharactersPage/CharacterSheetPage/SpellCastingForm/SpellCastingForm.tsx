@@ -236,6 +236,7 @@ type SpellCastingFormProps = {
   character: Character;
   className?: string;
   sourceControls?: ReactNode;
+  spellSourceControl?: ReactNode;
   onPersistCharacter: PersistCharacterUpdater;
 };
 
@@ -278,6 +279,7 @@ function SpellCastingForm({
   character,
   className,
   sourceControls,
+  spellSourceControl,
   onPersistCharacter
 }: SpellCastingFormProps) {
   const isCustomClass = isCustomClassName(character.className);
@@ -2532,6 +2534,7 @@ function SpellCastingForm({
   return renderSpellCastingForm({
     readOnly,
     sourceControls,
+    spellSourceControl,
     ActionButton,
     CharacterSpellDrawer,
     CircleHelp,

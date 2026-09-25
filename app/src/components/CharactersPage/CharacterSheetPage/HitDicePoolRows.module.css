@@ -12,6 +12,9 @@
   border-radius: var(--radius-tiny);
   background: var(--theme-surface-panel);
 }
+.pool:has(.actions) {
+  grid-template-columns: minmax(0, 1fr);
+}
 .summary {
   display: grid;
   gap: 0.2rem;
@@ -29,34 +32,18 @@
   font-variant-numeric: tabular-nums;
 }
 .actions {
-  display: flex;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
 }
 .actions > button {
-  min-height: 36px;
-  padding: 0 0.65rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 @media (max-width: 599px) {
   .pool {
     gap: 0.65rem;
     padding: 0.6rem;
-  }
-  .actions {
-    gap: 0.3rem;
-  }
-  .actions > button {
-    padding: 0 0.45rem;
-  }
-}
-@media (max-width: 359px) {
-  .pool:has(.actions) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

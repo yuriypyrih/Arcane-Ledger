@@ -34,8 +34,8 @@ describe("spending and recovering class resources", () => {
   });
   it("Second Wind restores one use on a short rest and all uses on a long rest", () => {
     let fighter = characterFixture();
-    const total = getFighterSecondWindUsesRemainingForCharacter(fighter);
-    for (let i = 0; i < total; i++) fighter = consumeFighterSecondWindUseForCharacter(fighter);
+    expect(getFighterSecondWindUsesRemainingForCharacter(fighter)).toBe(2);
+    for (let i = 0; i < 3; i++) fighter = consumeFighterSecondWindUseForCharacter(fighter);
     expect(getFighterSecondWindUsesRemainingForCharacter(fighter)).toBe(0);
     expect(
       getFighterSecondWindUsesRemainingForCharacter(
@@ -46,7 +46,7 @@ describe("spending and recovering class resources", () => {
       getFighterSecondWindUsesRemainingForCharacter(
         restoreFighterSecondWindOnLongRestForCharacter(fighter)
       )
-    ).toBe(total);
+    ).toBe(2);
     expect(createShortRestOptions(fighter).some((o) => /Second Wind/i.test(o.label))).toBe(true);
     expect(createLongRestOptions(fighter).some((o) => /Second Wind/i.test(o.label))).toBe(true);
   });
@@ -55,12 +55,10 @@ describe("spending and recovering class resources", () => {
       className: "Barbarian",
       subclassId: "barbarian-berserker"
     });
-    const total = getBarbarianRageUsesRemainingForCharacter(barbarian);
+    expect(getBarbarianRageUsesRemainingForCharacter(barbarian)).toBe(3);
     const spent = expendBarbarianRageUseForCharacter(barbarian);
-    expect(getBarbarianRageUsesRemainingForCharacter(spent)).toBe(total - 1);
+    expect(getBarbarianRageUsesRemainingForCharacter(spent)).toBe(2);
     expect(spent.currentHitPoints).toBe(barbarian.currentHitPoints);
-    expect(getBarbarianRageUsesRemainingForCharacter(applyLongRestToFeatureState(spent))).toBe(
-      total
-    );
+    expect(getBarbarianRageUsesRemainingForCharacter(applyLongRestToFeatureState(spent))).toBe(3);
   });
 });

@@ -132,6 +132,7 @@ export const characterCustomTraitDiceValues = [
 ] as const;
 export type CharacterCustomTraitDiceValue = (typeof characterCustomTraitDiceValues)[number];
 export type CharacterCustomTraitEffectValue = number | AbilityKey | CharacterCustomTraitDiceValue;
+export const characterCustomTraitNumericValueMax = 30;
 
 type CharacterCustomTraitEffectRoll = {
   rollMode?: CharacterCustomTraitRollMode;
@@ -154,6 +155,13 @@ type CharacterCustomTraitDefenseValue<Value extends string> = {
 };
 
 export type CharacterCustomTraitEffect =
+  | {
+      type: "hardSetAbilityScore";
+      ability: AbilityKey;
+      value: number;
+      valueMode?: never;
+      rollMode?: never;
+    }
   | ({
       type: "actualMaxHitPoints";
     } & CharacterCustomTraitNumericValue &

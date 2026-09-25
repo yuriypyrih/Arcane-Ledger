@@ -81,10 +81,19 @@ it("replaces all selected data when moving to another character", () => {
   act(() => {
     store.dispatch(
       setActiveCharacterSheet({
-        character: characterFixture({ id: 102, currentHitPoints: 3 }),
+        character: characterFixture({
+          id: 102,
+          className: "Wizard",
+          subclassId: "wizard-evoker",
+          currentHitPoints: 3,
+          abilities: { STR: 8, DEX: 10, CON: 10, INT: 16, WIS: 10, CHA: 10 },
+          spellSlotsExpended: [2, 0, 0, 0, 0, 0, 0, 0, 0]
+        }),
         characterId: 102
       })
     );
   });
   expect(screen.getByLabelText("Health")).toHaveTextContent("3");
+  expect(screen.getByLabelText("Strength modifier")).toHaveTextContent("-1");
+  expect(screen.getByLabelText("Spent slots")).toHaveTextContent("2");
 });

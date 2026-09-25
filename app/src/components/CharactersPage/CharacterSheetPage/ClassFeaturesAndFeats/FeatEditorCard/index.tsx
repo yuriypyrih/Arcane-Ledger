@@ -109,6 +109,7 @@ import {
   getPendingBoonOfEnergyResistanceChoiceSummary,
   getPendingBoonOfSkillChoiceSummary,
   getPendingChargerChoiceSummary,
+  getPendingGrapplerChoiceSummary,
   getPendingChefChoiceSummary,
   getPendingColdCasterChoiceSummary,
   getPendingCrusherChoiceSummary,
@@ -284,6 +285,7 @@ type FeatEditorCardProps = {
   onSavePendingAbilityScoreImprovement: () => void;
   onSavePendingAthleteChoice: () => void;
   onSavePendingChargerChoice: () => void;
+  onSavePendingGrapplerChoice: () => void;
   onSavePendingChefChoice: () => void;
   onSavePendingCrusherChoice: () => void;
   onSavePendingDualWielderChoice: () => void;
@@ -2330,6 +2332,7 @@ function renderInlineEditor({
   onSavePendingAbilityScoreImprovement,
   onSavePendingAthleteChoice,
   onSavePendingChargerChoice,
+  onSavePendingGrapplerChoice,
   onSavePendingChefChoice,
   onSavePendingCrusherChoice,
   onSavePendingDualWielderChoice,
@@ -2459,6 +2462,36 @@ function renderInlineEditor({
                   ability: nextValue as "STR" | "DEX"
                 }
               : current.chargerChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.GRAPPLER && pendingFeatState.grapplerChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Grappler"
+        cancelLabel="Cancel grappler selection"
+        label="Ability"
+        summary={getPendingGrapplerChoiceSummary(pendingFeatState.grapplerChoice) ?? ""}
+        value={pendingFeatState.grapplerChoice.ability}
+        options={["STR", "DEX"]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            grapplerChoice: null
+          }))
+        }
+        onSave={onSavePendingGrapplerChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            grapplerChoice: current.grapplerChoice
+              ? {
+                  ability: nextValue as "STR" | "DEX"
+                }
+              : current.grapplerChoice
           }))
         }
       />
@@ -4002,6 +4035,7 @@ function FeatEditorCard({
   onSavePendingAbilityScoreImprovement,
   onSavePendingAthleteChoice,
   onSavePendingChargerChoice,
+  onSavePendingGrapplerChoice,
   onSavePendingChefChoice,
   onSavePendingCrusherChoice,
   onSavePendingDualWielderChoice,
@@ -4159,6 +4193,7 @@ function FeatEditorCard({
         onSavePendingAbilityScoreImprovement,
         onSavePendingAthleteChoice,
         onSavePendingChargerChoice,
+        onSavePendingGrapplerChoice,
         onSavePendingChefChoice,
         onSavePendingCrusherChoice,
         onSavePendingDualWielderChoice,

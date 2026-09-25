@@ -47,43 +47,25 @@ function MulticlassSpells({ character, className, onPersistCharacter }: Props) {
   );
 
   const sourceControls =
-    sources.length > 1 || pools.length > 1 ? (
+    pools.length > 1 ? (
       <div className={styles.sourceControls}>
-        {sources.length > 1 ? (
-          <label className={styles.sourceField}>
-            <span>Spell source</span>
-            <SelectInput
-              aria-label="Spell source"
-              value={source.id}
-              onChange={(event) => setSourceId(event.target.value)}
-            >
-              {sources.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.customClass?.name || entry.className} {entry.level}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-        ) : null}
-        {pools.length > 1 ? (
-          <label className={styles.sourceField}>
-            <span>Cast using</span>
-            <SelectInput
-              aria-label="Spell slot pool"
-              value={selectedPoolId}
-              onChange={(event) => setPoolId(event.target.value)}
-            >
-              {pools.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.label}
-                </option>
-              ))}
-            </SelectInput>
-            <small className={styles.sourceHint}>
-              Recovers on a {pool?.recovery === "short-rest" ? "Short Rest" : "Long Rest"}.
-            </small>
-          </label>
-        ) : null}
+        <label className={styles.sourceField}>
+          <span>Cast using</span>
+          <SelectInput
+            aria-label="Spell slot pool"
+            value={selectedPoolId}
+            onChange={(event) => setPoolId(event.target.value)}
+          >
+            {pools.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.label}
+              </option>
+            ))}
+          </SelectInput>
+          <small className={styles.sourceHint}>
+            Recovers on a {pool?.recovery === "short-rest" ? "Short Rest" : "Long Rest"}.
+          </small>
+        </label>
       </div>
     ) : null;
   return (
@@ -91,6 +73,23 @@ function MulticlassSpells({ character, className, onPersistCharacter }: Props) {
       key={`${source.id}:${selectedPoolId}`}
       className={className}
       sourceControls={sourceControls}
+      spellSourceControl={
+        sources.length > 1 ? (
+          <SelectInput
+            compact
+            className={styles.spellSourceSelect}
+            aria-label="Spell source"
+            value={source.id}
+            onChange={(event) => setSourceId(event.target.value)}
+          >
+            {sources.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.customClass?.name || entry.className} {entry.level}
+              </option>
+            ))}
+          </SelectInput>
+        ) : null
+      }
       character={view}
       onPersistCharacter={persist}
     />

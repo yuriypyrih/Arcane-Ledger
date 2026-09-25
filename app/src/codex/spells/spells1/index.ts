@@ -155,46 +155,6 @@ export const animalFriendship: SpellEntry = {
   spellLevel: 1
 };
 
-export const arcaneWeapon: SpellEntry = {
-  id: "spell-arcane-weapon",
-  name: "Arcane Weapon",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.BONUS_ACTION],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "You channel arcane energy into one Simple or Martial weapon you're holding, and choose one damage type: Acid, Cold, Fire, Lightning, Poison, or Thunder. Until the spell ends, you deal an extra <strong>1d6</strong> damage of the chosen type to any target you hit with the weapon. If the weapon isn't magical, it becomes a magic weapon for the spell's duration.",
-    "As a Bonus Action, you can change the damage type, choosing from the options above.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can maintain your Concentration on the spell for up to 8 hours."
-  ],
-  isDamagingSpell: true,
-  damage: [
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.POISON,
-        DAMAGE_TYPE.THUNDER
-      ]
-    ]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER],
-  spellLevel: 1
-};
-
 export const armorOfAgathys: SpellEntry = {
   id: "spell-armor-of-agathys",
   name: "Armor of Agathys",
@@ -1566,38 +1526,6 @@ export const guidingBolt: SpellEntry = {
   spellLevel: 1
 };
 
-export const guidingHand: SpellEntry = {
-  id: "spell-guiding-hand",
-  name: "Guiding Hand",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.DIVINATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "5 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 8 hours"],
-  description: [
-    "You create a Tiny incorporeal hand of shimmering light in an unoccupied space you can see within range. The hand exists for the duration, but it disappears if you teleport or you travel to a different plane of existence.",
-    "When the hand appears, you name one major landmark, such as a city, mountain, castle, or battlefield on the same plane of existence as you. Someone in history must have visited the site and mapped it. If the landmark appears on no map in existence, the spell fails. Otherwise, whenever you move toward the hand, it moves away from you at the same speed you moved, and it moves in the direction of the landmark, always remaining 5 feet away from you.",
-    "If you don't move toward the hand, it remains in place until you do and beckons for you to follow once every <strong>1d4</strong> minutes."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 1
-};
-
 export const hailOfThorns: SpellEntry = {
   id: "spell-hail-of-thorns",
   name: "Hail of Thorns",
@@ -1624,33 +1552,6 @@ export const hailOfThorns: SpellEntry = {
   damage: [[DICE.D10, DAMAGE_TYPE.PIERCING]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
-  spellLevel: 1
-};
-
-export const healingElixir: SpellEntry = {
-  id: "spell-healing-elixir",
-  name: "Healing Elixir",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["24 hours"],
-  description: [
-    "You create a healing elixir in a simple vial that appears in your hand. The elixir retains its potency for the duration or until it's consumed, at which point the vial vanishes.",
-    "As an action, a creature can drink the elixir or administer it to another creature. The drinker regains <strong>2d4</strong> + 2 Hit Points."
-  ],
-  isHealingSpell: true,
-  damage: [],
-  healing: [DICE.D4, DICE.D4, 2],
-  spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
 
@@ -1876,34 +1777,6 @@ export const iceKnife: SpellEntry = {
   spellLevel: 1
 };
 
-export const idInsinuation: SpellEntry = {
-  id: "spell-id-insinuation",
-  name: "Id Insinuation",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "You unleash a torrent of conflicting desires in the mind of one creature you can see within range, impairing its ability to make decisions. The target must succeed on a Wisdom saving throw or be Incapacitated. At the end of each of its turns, it takes <strong>1d12</strong> Psychic damage, and it can then make another Wisdom saving throw. On a success, the spell ends on the target."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.WIS,
-  isDamagingSpell: true,
-  damage: [[DICE.D12, DAMAGE_TYPE.PSYCHIC]],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 1
-};
-
 export const identify: SpellEntry = {
   id: "spell-identify",
   name: "Identify",
@@ -1961,34 +1834,6 @@ export const illusoryScript: SpellEntry = {
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1,
   ritual: true
-};
-
-export const infallibleRelay: SpellEntry = {
-  id: "spell-infallible-relay",
-  name: "Infallible Relay",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.DIVINATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
-  description: [
-    "With this spell, you can target any creature with whom you have spoken previously, as long as the two of you are on the same plane of existence. When you cast the spell, the nearest functioning telephone or similar communications device within 100 feet of the target begins to ring. If there is no suitable device close enough to the target, the spell fails.",
-    "The target must make a successful Charisma saving throw or be compelled to answer your call. Once the connection is established, the call is crystal clear and cannot be dropped until the conversation has ended or the spell's duration ends. You can end the conversation at any time, but a target must succeed on a Charisma saving throw to end the conversation."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.CHA,
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 1
 };
 
 export const inflictWounds: SpellEntry = {
@@ -2251,32 +2096,6 @@ export const protectionFromEvilAndGood: SpellEntry = {
   spellLevel: 1
 };
 
-export const puppet: SpellEntry = {
-  id: "spell-puppet",
-  name: "Puppet",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "120 feet",
-  components: [SPELL_COMPONENT.V],
-  duration: ["Instantaneous"],
-  description: [
-    "Your gesture forces one Humanoid you can see within range to make a Constitution saving throw. On a failed save, the target must move up to its Speed in a direction you choose. In addition, you can cause the target to drop whatever it is holding. This spell has no effect on a Humanoid that is immune to being Charmed."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.CON,
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 1
-};
-
 export const purifyFoodAndDrink: SpellEntry = {
   id: "spell-purify-food-and-drink",
   name: "Purify Food and Drink",
@@ -2340,31 +2159,6 @@ export const rayOfSickness: SpellEntry = {
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 1
-};
-
-export const remoteAccess: SpellEntry = {
-  id: "spell-remote-access",
-  name: "Remote Access",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "120 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["10 minutes"],
-  description: [
-    "You can use any electronic device within range as if it were in your hands. This is not a telekinesis effect. Rather, this spell allows you to simulate a device's mechanical functions electronically. You are able to access only functions that a person using the device manually would be able to access. You can use Remote Access with only one device at a time."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
 
@@ -2432,31 +2226,6 @@ export const searingSmite: SpellEntry = {
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
-  spellLevel: 1
-};
-
-export const senseEmotion: SpellEntry = {
-  id: "spell-sense-emotion",
-  name: "Sense Emotion",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.DIVINATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "You attune your senses to pick up the emotions of others for the duration. When you cast the spell, and as your action on each turn until the spell ends, you can focus your senses on one Humanoid you can see within 30 feet of you. You instantly learn the target's prevailing emotion, whether it's love, anger, pain, fear, calm, or something else. If the target isn't actually Humanoid or it is immune to being Charmed, you sense that it is calm."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
 
@@ -2678,35 +2447,6 @@ export const speakWithAnimals: SpellEntry = {
   ritual: true
 };
 
-export const suddenAwakening: SpellEntry = {
-  id: "spell-sudden-awakening",
-  name: "Sudden Awakening",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.BONUS_ACTION],
-  range: "10 feet",
-  components: [SPELL_COMPONENT.V],
-  duration: ["Instantaneous"],
-  description: [
-    "Each sleeping creature you choose within range awakens, and then each Prone creature within range can stand up without expending any movement."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.RANGER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 1
-};
-
 export const tashasCausticBrew: SpellEntry = {
   id: "spell-tashas-caustic-brew",
   name: "Tasha's Caustic Brew",
@@ -2807,34 +2547,6 @@ export const thunderwave: SpellEntry = {
     SPELL_LIST_CLASS.SORCERER,
     SPELL_LIST_CLASS.WIZARD
   ],
-  spellLevel: 1
-};
-
-export const unearthlyChorus: SpellEntry = {
-  id: "spell-unearthly-chorus",
-  name: "Unearthly Chorus",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ILLUSION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self (30-foot radius)",
-  components: [SPELL_COMPONENT.V],
-  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
-  description: [
-    "Music of a style you choose fills the air around you in a 30-foot radius. The music spreads around corners and can be heard from up to 100 feet away. The music moves with you, centered on you for the duration.",
-    "Until the spell ends, you make Charisma (Performance) checks with Advantage. In addition, you can use a Bonus Action on each of your turns to beguile one creature you choose within 30 feet of you that can see you and hear the music. The creature must make a Charisma saving throw. If you or your companions are attacking it, the creature automatically succeeds on the saving throw. On a failure, the creature becomes friendly to you for as long as it can hear the music and for 1 hour thereafter. You make Charisma (Deception) checks and Charisma (Persuasion) checks against creatures made friendly by this spell with Advantage."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.CHA,
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 1
 };
 
@@ -2963,7 +2675,6 @@ export const spellEntries1: SpellEntry[] = [
   acidStream,
   alarm,
   animalFriendship,
-  arcaneWeapon,
   armorOfAgathys,
   armsOfHadar,
   bane,
@@ -3005,9 +2716,7 @@ export const spellEntries1: SpellEntry[] = [
   goodberry,
   grease,
   guidingBolt,
-  guidingHand,
   hailOfThorns,
-  healingElixir,
   healingWord,
   hellishRebuke,
   heroism,
@@ -3015,10 +2724,8 @@ export const spellEntries1: SpellEntry[] = [
   hideousLaughter,
   huntersMark,
   iceKnife,
-  idInsinuation,
   identify,
   illusoryScript,
-  infallibleRelay,
   inflictWounds,
   jimsMagicMissile,
   jump,
@@ -3027,13 +2734,10 @@ export const spellEntries1: SpellEntry[] = [
   magicMissile,
   magnifyGravity,
   protectionFromEvilAndGood,
-  puppet,
   purifyFoodAndDrink,
   rayOfSickness,
-  remoteAccess,
   sanctuary,
   searingSmite,
-  senseEmotion,
   shield,
   shieldOfFaith,
   silentImage,
@@ -3041,11 +2745,9 @@ export const spellEntries1: SpellEntry[] = [
   sleep,
   snare,
   speakWithAnimals,
-  suddenAwakening,
   tashasCausticBrew,
   thunderousSmite,
   thunderwave,
-  unearthlyChorus,
   unseenServant,
   witchBolt,
   wrathfulSmite,

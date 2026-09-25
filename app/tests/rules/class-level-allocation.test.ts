@@ -7,6 +7,16 @@ import {
 import { createMulticlassDraft } from "../../src/pages/CharactersPage/multiclassProgression";
 import { createPortableCharacterSheet } from "../../src/pages/CharactersPage/portableCharacterSheet";
 import { normalizeCharacter } from "../../src/pages/CharactersPage/storage";
+import { getAutomaticMaxHitPointsForCharacter } from "../../src/pages/CharactersPage/gameplay";
+import { getEffectiveHitPointMaximumForCharacter } from "../../src/pages/CharactersPage/traits";
+import {
+  applyClassDefinitions,
+  createClassDefinitionsDraft,
+  createDeclaredClass,
+  setEntryRulesEnforced
+} from "../../src/pages/CharactersPage/classDefinitions";
+import { createCharacterStatusEntry } from "../../src/pages/CharactersPage/statusEntries";
+import { STATUS_ENTRY_GROUP } from "../../src/types";
 import { characterFixture } from "../fixtures/character";
 import { multiclassFixture } from "../fixtures/multiclass";
 
@@ -105,7 +115,7 @@ describe("character level point allocation", () => {
     ).toThrow(/whole level/);
   });
   it("redistributes existing levels without changing XP, healing wounds, or granting equipment", () => {
-    const character = split();
+    const character = { ...split(), maxHitPointsMode: "automatic" as const, hitPoints: 40 };
     const draft = createMulticlassDraft(character);
     draft.classes[0].level = 2;
     draft.classes[1].level = 3;
@@ -113,6 +123,7 @@ describe("character level point allocation", () => {
     expect(result.level).toBe(5);
     expect(result.xp).toBe(7000);
     expect(result.currentHitPoints).toBe(12);
+    expect(result.hitPoints).toBe(38); // Fighter 12 + 8, Wizard 3 × 6.
     expect(result.heroicInspiration).toBe(false);
     expect(result.equipment).toEqual(character.equipment);
     expect(result.inventoryItems).toEqual(character.inventoryItems);
@@ -120,6 +131,68 @@ describe("character level point allocation", () => {
     const reopened = normalizeCharacter(createPortableCharacterSheet(result))!;
     expect(reopened.multiclass?.classes.map((entry) => entry.level)).toEqual([2, 3]);
     expect(reopened.level).toBe(5);
+    expect(reopened.hitPoints).toBe(38);
+  });
+  it("recalculates declared class Hit Dice while keeping Tough and Aid separate from base HP", () => {
+    const character = characterFixture({
+      maxHitPointsMode: "automatic",
+      hitPoints: 28, // Fighter 3 at CON 14.
+      currentHitPoints: 7,
+      feats: [{ id: "tough", feat: FEATS.TOUGH, takenAtLevel: 1, source: { type: "manual" } }],
+      statusEntries: [
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Aid",
+          source: "Aid",
+          sourceSpellId: "spell-aid",
+          sourceSpellTarget: "self",
+          sourceSpellSlotLevel: 2
+        })
+      ]
+    });
+    const definition = createClassDefinitionsDraft(character);
+    definition.progression.classes.push(createDeclaredClass("Wizard"));
+    let updated = applyClassDefinitions(character, definition);
+    expect(updated.hitPoints).toBe(28);
+    expect(updated.multiclass?.hitPointsAdjustment).toBe(0);
+
+    const allocation = createMulticlassDraft(updated);
+    allocation.classes[0].level = 1;
+    allocation.classes[1].level = 2;
+    updated = applyClassLevelAllocation(updated, allocation, 3, 900);
+    expect(updated.hitPoints).toBe(24); // Fighter 12, Wizard 2 × 6.
+    expect(getEffectiveHitPointMaximumForCharacter(updated)).toBe(35); // Tough +6, Aid +5.
+
+    const changedDie = createClassDefinitionsDraft(updated);
+    const wizard = setEntryRulesEnforced(updated, changedDie.progression.classes[1], false);
+    changedDie.progression.classes[1] = {
+      ...wizard,
+      classRules: { ...wizard.classRules!, hitDie: "d12" }
+    };
+    updated = normalizeCharacter(
+      createPortableCharacterSheet(applyClassDefinitions(updated, changedDie))
+    )!;
+    expect(updated.hitPoints).toBe(30); // Fighter 12, custom Wizard 2 × 9.
+    expect(getEffectiveHitPointMaximumForCharacter(updated)).toBe(41);
+    expect(updated.currentHitPoints).toBe(7);
+    expect(updated.multiclass?.hitPointsAdjustment).toBe(0);
+    expect(
+      getEffectiveHitPointMaximumForCharacter({ ...updated, feats: [], statusEntries: [] })
+    ).toBe(30);
+  });
+  it("uses the same minimum HP gain before and after declaring another class", () => {
+    const character = characterFixture({
+      className: "Wizard",
+      maxHitPointsMode: "automatic",
+      hitPoints: 4,
+      abilities: { STR: 10, DEX: 10, CON: 2, INT: 16, WIS: 10, CHA: 10 }
+    });
+    expect(getAutomaticMaxHitPointsForCharacter(character)).toBe(4); // (6 - 4) + 1 + 1.
+    const draft = createClassDefinitionsDraft(character);
+    draft.progression.classes.push(createDeclaredClass("Fighter"));
+    const declared = applyClassDefinitions(character, draft);
+    expect(declared.hitPoints).toBe(4);
+    expect(declared.multiclass?.hitPointsAdjustment).toBe(0);
   });
   it("keeps confirmed XP when decreasing the level budget", () => {
     const character = split();

@@ -59,6 +59,7 @@ type FeatEditorModalProps = {
   onSavePendingAbilityScoreImprovement: () => void;
   onSavePendingAthleteChoice: () => void;
   onSavePendingChargerChoice: () => void;
+  onSavePendingGrapplerChoice: () => void;
   onSavePendingChefChoice: () => void;
   onSavePendingCrusherChoice: () => void;
   onSavePendingDualWielderChoice: () => void;
@@ -159,6 +160,7 @@ function FeatEditorModal({
   onSavePendingAbilityScoreImprovement,
   onSavePendingAthleteChoice,
   onSavePendingChargerChoice,
+  onSavePendingGrapplerChoice,
   onSavePendingChefChoice,
   onSavePendingCrusherChoice,
   onSavePendingDualWielderChoice,
@@ -299,6 +301,7 @@ function FeatEditorModal({
                 onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}
                 onSavePendingAthleteChoice={onSavePendingAthleteChoice}
                 onSavePendingChargerChoice={onSavePendingChargerChoice}
+                onSavePendingGrapplerChoice={onSavePendingGrapplerChoice}
                 onSavePendingChefChoice={onSavePendingChefChoice}
                 onSavePendingCrusherChoice={onSavePendingCrusherChoice}
                 onSavePendingDualWielderChoice={onSavePendingDualWielderChoice}

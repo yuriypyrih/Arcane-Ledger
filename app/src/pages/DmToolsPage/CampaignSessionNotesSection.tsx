@@ -133,7 +133,9 @@ function CampaignSessionNotesSection({
               setIsCreatingNote(true);
             }}
           >
-            Add Note
+            <span>
+              Add<span className={styles.actionLabelNoun}> Note</span>
+            </span>
           </ActionButton>
         </div>
       </div>

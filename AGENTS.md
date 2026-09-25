@@ -2,7 +2,7 @@
 
 ## Working agreements
 
-- Preserve working character-sheet behavior. Add a regression test for a bug fix and meaningful behavior tests for new mechanics. Tests are explicitly encouraged.
+- Preserve working character-sheet behavior and use existing tests for routine verification. A code change does not automatically require a new regression test.
 - Keep changes focused. Do not combine a test-foundation change with architectural refactoring or unrelated cleanup.
 - Prefer small modules with clear ownership. Extract a concern when necessary instead of expanding an already mixed component; file splitting is a means, not the first priority of every task.
 - Derive rules from codex content and character state. Avoid repeating class/subclass rules in UI components or maintaining duplicate resource counters.
@@ -28,7 +28,14 @@ Run from the repository root:
 - `npm --prefix app run build`
 - `npm --prefix server run build`
 
-See `docs/testing.md` for installation, browser/database downloads, individual suites, and failure artifacts. Add tests to the existing harness rather than introducing another runner. Prefer behavior assertions over implementation snapshots or tests that merely repeat code.
+See `docs/testing.md` for installation, browser/database downloads, individual suites, and failure artifacts.
+
+## Test scope and approval
+
+- Do not add tests by default whenever an agent works on the codebase. Routine fixes, refactoring, styling, and copy changes should normally use the existing suite.
+- Add new test cases only when the user explicitly approves testing work, or when their scope is agreed during new-feature design in Plan mode. An explicit request to improve tests authorizes focused additions within that request; it does not authorize a broad suite expansion.
+- Prefer strengthening or consolidating an existing behavior test. Keep approved additions small and tied to a material risk, such as data loss, unauthorized access, incorrect resource spending, or failed recovery. Avoid duplicate coverage, trivial assertions, cosmetic snapshots, and a regression test for every implementation detail.
+- Running existing tests, repairing outdated assertions, and reducing repetition are routine maintenance and do not need separate approval. Follow the existing harness rather than introducing another runner. Do not block otherwise authorized code work on adding tests.
 
 ## Character-sheet data flow
 

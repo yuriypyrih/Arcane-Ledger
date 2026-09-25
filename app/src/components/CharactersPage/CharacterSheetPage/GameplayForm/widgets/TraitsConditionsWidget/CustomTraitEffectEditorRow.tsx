@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Trash2 } from "lucide-react";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import { characterCustomTraitNumericValueMax } from "../../../../../../types/traits";
 import type {
   CharacterCustomTraitRollMode,
   CharacterCustomTraitValueMode,
@@ -17,6 +18,7 @@ import {
   getCustomTraitDefenseValueOptions,
   isCustomTraitEffectRollModeDisabled,
   isCustomTraitDefenseTarget,
+  isCustomTraitHardSetTarget,
   isCustomTraitWeaponTarget,
   normalizeDraftWeaponFormulaTarget
 } from "./customTraitDraft";
@@ -59,7 +61,7 @@ const valueModeOptions: Array<{ value: CharacterCustomTraitValueMode; label: str
 ];
 
 const valueOptions = [
-  ...Array.from({ length: 11 }, (_, value) => ({
+  ...Array.from({ length: characterCustomTraitNumericValueMax + 1 }, (_, value) => ({
     value: String(value),
     label: String(value),
     kind: "flat" as const
@@ -203,6 +205,9 @@ function CustomTraitEffectEditorRow({
   onRemove
 }: CustomTraitEffectEditorRowProps) {
   const isDefenseTarget = isCustomTraitDefenseTarget(effect.target);
+  const availableValueOptions = isCustomTraitHardSetTarget(effect.target)
+    ? valueOptions.filter((option) => option.kind === "flat")
+    : valueOptions;
   const allowAbilityValues = doesCustomTraitTargetAllowAbilityValue(effect.target);
   const allowDiceValues = doesCustomTraitTargetAllowDiceValue(effect.target);
   const defenseValueOptions = isDefenseTarget
@@ -232,7 +237,7 @@ function CustomTraitEffectEditorRow({
                   {formatCustomTraitDefenseValueOptionLabel(effect.target, option)}
                 </option>
               ))
-            : valueOptions.map((option) => (
+            : availableValueOptions.map((option) => (
                 <option
                   key={option.value}
                   value={option.value}

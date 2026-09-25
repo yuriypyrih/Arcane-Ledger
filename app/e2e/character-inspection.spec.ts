@@ -10,7 +10,7 @@ async function login(api: APIRequestContext, email: string) {
   expect(response.status()).toBe(200);
   return (await response.json()).user;
 }
-async function assertReadOnly(page: Page) {
+async function assertReadOnly(page: Page, expectsSpells: boolean) {
   const modal = page.getByRole("dialog", { name: "Character Inspection", exact: true });
   await expect(modal).toBeVisible();
   await expect(modal.getByText("Read-only", { exact: true })).toBeVisible();
@@ -181,7 +181,8 @@ async function assertReadOnly(page: Page) {
   await expect(feature).toHaveAttribute("aria-expanded", "true");
   await feature.click();
   const spell = modal.getByRole("button", { name: /^Shield/ }).filter({ hasText: "Abjuration" });
-  if (await spell.count()) {
+  await expect(spell).toHaveCount(expectsSpells ? 1 : 0);
+  if (expectsSpells) {
     await spell.click();
     const drawer = page.getByRole("dialog", { name: "Shield", exact: true });
     await expect(drawer).toBeVisible();
@@ -342,7 +343,7 @@ for (const mode of ["gm", "admin"] as const) {
         page.getByRole("dialog", { name: "Character Inspection", exact: true })
       ).toBeVisible();
       await page.screenshot({ path: info.outputPath("character-inspection-top.png") });
-      const modal = await assertReadOnly(page);
+      const modal = await assertReadOnly(page, mode === "admin");
       await page.screenshot({ path: info.outputPath("character-inspection.png") });
       const afterInspection = await owner.get(`${base}/characters/${character.id}`);
       expect((await afterInspection.json()).character.revision).toBe(character.revision);

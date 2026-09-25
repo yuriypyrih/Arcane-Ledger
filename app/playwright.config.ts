@@ -20,7 +20,8 @@ export default defineConfig({
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } }
+    // Explicit viewport sweeps already cover phone widths; run those once.
+    { name: "mobile", grepInvert: /@layout/, use: { ...devices["Pixel 7"] } }
   ],
   webServer: [
     {

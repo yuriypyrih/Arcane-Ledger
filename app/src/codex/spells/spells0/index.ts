@@ -348,33 +348,6 @@ export const elementalism: SpellEntry = {
   spellLevel: 0
 };
 
-export const encodeThoughts: SpellEntry = {
-  id: "spell-encode-thoughts",
-  name: "Encode Thoughts",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self",
-  components: [SPELL_COMPONENT.S],
-  duration: ["8 hours"],
-  description: [
-    "You pull a memory, an idea, or a message from your mind and transform it into a tangible string of glowing energy called a thought strand, which persists for the duration or until you cast this spell again. The thought strand appears in an unoccupied space within 5 feet of you as a Tiny, weightless, semisolid object that can be held and carried like a ribbon. It is otherwise stationary.",
-    "If you cast this spell while concentrating on a spell or an ability that allows you to read or manipulate the thoughts of others, such as Detect Thoughts or Modify Memory, you can transform the thoughts or memories you read, rather than your own, into a thought strand.",
-    "Casting this spell while holding a thought strand allows you to instantly receive whatever memory, idea, or message the thought strand contains. Casting Detect Thoughts on the strand has the same effect."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [],
-  spellLevel: 0
-};
-
 export const fireBolt: SpellEntry = {
   cantripScaling: "damage",
   id: "spell-fire-bolt",
@@ -915,30 +888,6 @@ export const moldEarth: SpellEntry = {
   damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 0
-};
-
-export const onOff: SpellEntry = {
-  id: "spell-on-off",
-  name: "On/Off",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Instantaneous"],
-  description: [
-    "This cantrip allows you to activate or deactivate any electronic device within range, as long as the device has a clearly defined on or off function that can be easily accessed from the outside of the device. Any device that requires a software-based shutdown sequence to activate or deactivate cannot be affected by On/Off."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -1625,31 +1574,6 @@ export const viciousMockery: SpellEntry = {
   spellLevel: 0
 };
 
-export const virtue: SpellEntry = {
-  id: "spell-virtue",
-  name: "Virtue",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["1 round"],
-  description: [
-    "You touch one creature, imbuing it with vitality. If the target has at least 1 Hit Point, it gains a number of Temporary Hit Points equal to <strong>1d4</strong> + your spellcasting ability modifier. The Temporary Hit Points are lost when the spell ends."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC],
-  spellLevel: 0
-};
-
 export const wordOfRadiance: SpellEntry = {
   cantripScaling: "damage",
   id: "spell-word-of-radiance",
@@ -1690,7 +1614,6 @@ export const spellEntries0: SpellEntry[] = [
   druidcraft,
   eldritchBlast,
   elementalism,
-  encodeThoughts,
   fireBolt,
   friends,
   frostbite,
@@ -1708,7 +1631,6 @@ export const spellEntries0: SpellEntry[] = [
   mindSliver,
   minorIllusion,
   moldEarth,
-  onOff,
   poisonSpray,
   prestidigitation,
   primalSavagery,
@@ -1730,6 +1652,5 @@ export const spellEntries0: SpellEntry[] = [
   tollTheDead,
   trueStrike,
   viciousMockery,
-  virtue,
   wordOfRadiance
 ];

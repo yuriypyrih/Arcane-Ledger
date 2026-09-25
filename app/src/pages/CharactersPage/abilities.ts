@@ -5,6 +5,7 @@ import { getAbilityScoreBonusesForCharacter, type FeatureAbilityScoreBonus } fro
 import {
   formatCustomTraitBonusFormulaTerm,
   getCustomTraitAbilityModifierBonuses,
+  getCustomTraitAbilityScoreOverride,
   type CustomTraitBonusInput
 } from "./customTraitEffects";
 import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime/derivedSelectors";
@@ -131,6 +132,16 @@ export function getAbilityScoreBreakdownForCharacter(
   const baseScore = normalizeAbilityScore(character.abilities?.[ability] ?? 10);
   const customTraitEffectInput =
     options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
+  const override = getCustomTraitAbilityScoreOverride(customTraitEffectInput, ability);
+
+  if (override !== null) {
+    return {
+      ability,
+      total: override.value,
+      entries: [{ label: `HARD SET: ${override.label}`, value: override.value }]
+    };
+  }
+
   const relevantBonuses: FeatureAbilityScoreBonus[] = [
     ...(typeof character.className === "string"
       ? getAbilityScoreBonusesForCharacter(

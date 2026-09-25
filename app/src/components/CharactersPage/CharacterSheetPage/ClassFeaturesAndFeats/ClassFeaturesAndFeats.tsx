@@ -117,6 +117,7 @@ import {
   decodePendingBoonOfEnergyResistanceChoice,
   decodePendingBoonOfSkillChoice,
   decodePendingChargerChoice,
+  decodePendingGrapplerChoice,
   decodePendingChefChoice,
   decodePendingColdCasterChoice,
   decodePendingCultOfDragonInitiateChoice,
@@ -1106,6 +1107,26 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.CHARGER, {
         charger
+      })
+    );
+  }
+
+  function savePendingGrapplerChoice() {
+    const choice = pendingFeatState.grapplerChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const grappler = decodePendingGrapplerChoice(choice);
+
+    if (!grappler) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.GRAPPLER, {
+        grappler
       })
     );
   }
@@ -2341,12 +2362,32 @@ function ClassFeaturesAndFeats({
 
           </> : null}
           <section className={styles.subsection} aria-labelledby="character-class-features-title">
-            <div className={styles.subsectionHeader}>
+            <div className={clsx(styles.subsectionHeader, styles.classFeaturesHeader)}>
               <div className={styles.subsectionHeaderText}>
                 <div className={styles.subsectionTitleRow}>
-                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                    {inspectionClassId ? `${selectedClass.className} Features` : "Class Features"}
-                  </h3>
+                  <div className={styles.classBuildTitleRow}>
+                    <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                      {inspectionClassId ? `${selectedClass.className} Features` : "Class Features"}
+                    </h3>
+                    {getCharacterClasses(rootCharacter).length > 1 ? (
+                      <SelectInput
+                        compact
+                        className={styles.classBuildSelect}
+                        aria-label="Class build"
+                        value={selectedClass.id}
+                        onChange={(event) => {
+                          setSelectedClassId(event.target.value);
+                          setExpandedFeatureKeys([]);
+                        }}
+                      >
+                        {getCharacterClasses(rootCharacter).map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {entry.customClass?.name || entry.className} {entry.level}
+                          </option>
+                        ))}
+                      </SelectInput>
+                    ) : null}
+                  </div>
                   {hasExpandedVisibleClassFeature ? (
                     <InlineToggleButton
                       label="Close Expanded Items"
@@ -2366,26 +2407,6 @@ function ClassFeaturesAndFeats({
                 Edit
               </SheetActionButton>
             </div>
-
-            {getCharacterClasses(rootCharacter).length > 1 ? (
-              <label className={styles.classBuildField}>
-                <span>Class build</span>
-                <SelectInput
-                  aria-label="Class build"
-                  value={selectedClass.id}
-                  onChange={(event) => {
-                    setSelectedClassId(event.target.value);
-                    setExpandedFeatureKeys([]);
-                  }}
-                >
-                  {getCharacterClasses(rootCharacter).map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.customClass?.name || entry.className} {entry.level}
-                    </option>
-                  ))}
-                </SelectInput>
-              </label>
-            ) : null}
 
             {renderClassNeutralMechanicsPanel()}
 
@@ -2513,6 +2534,7 @@ function ClassFeaturesAndFeats({
           onSavePendingAbilityScoreImprovement={savePendingAbilityScoreImprovement}
           onSavePendingAthleteChoice={savePendingAthleteChoice}
           onSavePendingChargerChoice={savePendingChargerChoice}
+          onSavePendingGrapplerChoice={savePendingGrapplerChoice}
           onSavePendingChefChoice={savePendingChefChoice}
           onSavePendingCrusherChoice={savePendingCrusherChoice}
           onSavePendingDualWielderChoice={savePendingDualWielderChoice}

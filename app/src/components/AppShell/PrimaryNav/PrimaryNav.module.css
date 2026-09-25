@@ -303,7 +303,8 @@ button.syncStatusBadge:focus-visible {
     0 0 8px rgba(30, 132, 255, 0.28);
 }
 
-.navLinkActive > span::after {
+.navLinkActive > span::after,
+.navLinkActive::after {
   content: "";
   position: absolute;
   right: 0.05rem;
@@ -319,6 +320,10 @@ button.syncStatusBadge:focus-visible {
     rgba(44, 145, 255, 0.58) 78%,
     rgba(44, 145, 255, 0)
   );
+}
+
+.navLinkActive::after {
+  display: none;
 }
 
 .navLinkActive svg,
@@ -505,6 +510,7 @@ button.syncStatusBadge:focus-visible {
 
   .navLink,
   .navButton {
+    position: relative;
     min-width: 34px;
     font-size: 0.8rem;
     padding: 0;
@@ -522,6 +528,16 @@ button.syncStatusBadge:focus-visible {
   .navLink > span,
   .navButton > span {
     display: none;
+  }
+
+  .navLink.navLinkActive::after,
+  .navButton.navLinkActive::after {
+    display: block;
+    right: auto;
+    bottom: 4px;
+    left: 50%;
+    width: 15px;
+    transform: translateX(-50%);
   }
 
   .syncStatusBadge {

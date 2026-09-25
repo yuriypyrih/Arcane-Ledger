@@ -21,6 +21,7 @@ import {
   getResistanceOptions
 } from "../../../../../../pages/CharactersPage/traits";
 import { formatDamageDefenseOptionLabel } from "../../../../../../pages/CharactersPage/damageCoverageStatuses";
+import { isValidHardSetAbilityScore } from "../../../../../../pages/CharactersPage/customTraitEffects";
 import { skillGroupsByAbility } from "../../../../../../pages/CharactersPage/skillDefinitions";
 import {
   defaultManualStatusDurationDraft,
@@ -106,6 +107,7 @@ export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
     trimmedTarget === "armorClass" ||
     trimmedTarget === "speed" ||
     trimmedTarget === "spellDc" ||
+    isCustomTraitHardSetTarget(trimmedTarget) ||
     isCustomTraitDefenseTarget(trimmedTarget)
   );
 }
@@ -114,6 +116,11 @@ export function isCustomTraitDefenseTarget(
   target: string
 ): target is CustomTraitDefenseTarget {
   return customTraitDefenseTargetValues.has(target.trim());
+}
+
+export function isCustomTraitHardSetTarget(target: string): boolean {
+  const [type, ability] = target.trim().split(":");
+  return type === "hardSetAbilityScore" && abilityKeys.includes(ability as AbilityKey);
 }
 
 export function isCustomTraitWeaponTarget(target: string): boolean {
@@ -163,6 +170,7 @@ export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean 
     type !== "actualMaxHitPoints" &&
     !isCustomTraitDefenseTarget(type) &&
     type !== "abilityScore" &&
+    type !== "hardSetAbilityScore" &&
     type !== "abilityModifier" &&
     type !== "savingThrow" &&
     type !== allSavingThrowsTarget
@@ -206,6 +214,10 @@ export function normalizeCustomTraitEffectDraftValueForTarget(
 ): string {
   if (isCustomTraitDefenseTarget(target)) {
     return normalizeCustomTraitDefenseValueForTarget(value, target);
+  }
+
+  if (isCustomTraitHardSetTarget(target)) {
+    return value.trim() && isValidHardSetAbilityScore(Number(value)) ? value : "0";
   }
 
   const numericValue = value.trim().length > 0 ? Number(value) : 0;
@@ -253,6 +265,10 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
   ...abilityKeys.map((ability) => ({
     value: `abilityScore:${ability}`,
     label: `${ability} Ability Score`
+  })),
+  ...abilityKeys.map((ability) => ({
+    value: `hardSetAbilityScore:${ability}`,
+    label: `HARD SET ${ability} Ability Score`
   })),
   ...abilityKeys.map((ability) => ({
     value: `abilityModifier:${ability}`,
@@ -303,6 +319,15 @@ export function createCustomTraitEffectDraftFromEntry(
   effect: CharacterCustomTraitEffect
 ): CustomTraitEffectDraft {
   switch (effect.type) {
+    case "hardSetAbilityScore":
+      return {
+        id: createDraftId(),
+        target: `${effect.type}:${effect.ability}`,
+        value: String(effect.value),
+        valueMode: "buff",
+        rollMode: "normal",
+        weaponFormulaTarget: "damage"
+      };
     case "actualMaxHitPoints":
     case "armorClass":
     case "initiative":
@@ -385,6 +410,13 @@ export function parseCustomTraitEffectDraft(
 ): CharacterCustomTraitEffect | null {
   const trimmedTarget = draft.target.trim();
   const trimmedValue = draft.value.trim();
+
+  if (isCustomTraitHardSetTarget(trimmedTarget)) {
+    const value = Number(trimmedValue);
+    return trimmedValue && isValidHardSetAbilityScore(value)
+      ? { type: "hardSetAbilityScore", ability: trimmedTarget.split(":")[1] as AbilityKey, value }
+      : null;
+  }
 
   if (isCustomTraitDefenseTarget(trimmedTarget)) {
     const normalizedValue = normalizeCustomTraitDefenseValueForTarget(trimmedValue, trimmedTarget);
@@ -552,7 +584,7 @@ export function parseCustomTraitEffectDraft(
 }
 
 export function isCustomTraitEffectDraftEmpty(draft: CustomTraitEffectDraft): boolean {
-  if (isCustomTraitDefenseTarget(draft.target)) {
+  if (isCustomTraitDefenseTarget(draft.target) || isCustomTraitHardSetTarget(draft.target)) {
     return false;
   }
 

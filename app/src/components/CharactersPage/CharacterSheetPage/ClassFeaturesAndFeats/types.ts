@@ -174,6 +174,10 @@ export type PendingChargerChoice = {
   ability: "STR" | "DEX";
 };
 
+export type PendingGrapplerChoice = {
+  ability: "STR" | "DEX";
+};
+
 export type PendingChefChoice = {
   ability: "CON" | "WIS";
 };
@@ -384,6 +388,7 @@ export type PendingFeatState = {
   abilityScoreImprovement: PendingAbilityScoreImprovement | null;
   athleteChoice: PendingAthleteChoice | null;
   chargerChoice: PendingChargerChoice | null;
+  grapplerChoice: PendingGrapplerChoice | null;
   chefChoice: PendingChefChoice | null;
   crusherChoice: PendingCrusherChoice | null;
   dualWielderChoice: PendingDualWielderChoice | null;

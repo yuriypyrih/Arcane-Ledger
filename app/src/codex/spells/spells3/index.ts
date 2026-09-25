@@ -426,34 +426,6 @@ export const conjureBarrage: SpellEntry = {
   spellLevel: 3
 };
 
-export const conjureLesserDemon: SpellEntry = {
-  id: "spell-conjure-lesser-demon",
-  name: "Conjure Lesser Demon",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "You summon up to a total of eight manes or dretches that appear in unoccupied spaces you can see within range. A manes or dretch disappears when it drops to 0 Hit Points or when the spell ends.",
-    "The demons are hostile to all creatures. Roll Initiative for the summoned demons as a group, which has its own turns. The demons attack the nearest non-demons to the best of their ability.",
-    "As part of casting the spell, you can scribe a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. The summoned demons cannot cross the circle or target anyone in it while the spell lasts. Using the material component in this manner consumes it.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th or 7th level, you summon sixteen demons. If you cast it using a spell slot of 8th or 9th level, you summon thirty-two demons."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 3
-};
-
 export const counterspell: SpellEntry = {
   id: "spell-counterspell",
   name: "Counterspell",
@@ -1140,79 +1112,6 @@ export const haste: SpellEntry = {
   spellLevel: 3
 };
 
-export const haywire: SpellEntry = {
-  id: "spell-haywire",
-  name: "Haywire",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "90 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "This spell plays havoc with electronic devices, making the use of such devices all but impossible. Each electronic device in a 10-foot-radius sphere centered on a point you choose within range is subject to random behavior while it remains within the area. A device not held by a creature is automatically affected. If an electronic device is held by a creature, that creature must succeed on a Wisdom saving throw or have the device affected by the spell.",
-    "At the start of each of your turns, roll a <strong>d6</strong> for each affected device to determine its behavior. Except where otherwise indicated, that behavior lasts until the start of your next turn while this spell is in effect.",
-    "<strong>1.</strong> The device shuts down and must be restarted. Do not roll again for this device until it is restarted.",
-    "<strong>2-4.</strong> The device does not function.",
-    "<strong>5.</strong> The device experiences a power surge, causing an electric shock to the wielder if any and one random creature within 5 feet of the device. Each affected creature must make a Dexterity saving throw against your spell save DC, taking <strong>6d6</strong> Lightning damage on a failed save, or half as much damage on a successful one.",
-    "<strong>6.</strong> The device is usable as normal.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the radius of the sphere affected by the spell increases by 5 feet for each slot level above 3rd."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.WIS,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
-    [DICE.D6, DAMAGE_TYPE.LIGHTNING]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 3
-};
-
-export const houseOfCards: SpellEntry = {
-  id: "spell-house-of-cards",
-  name: "House of Cards",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["24 hours"],
-  description: [
-    "You touch the ground and conjure forth a defensive structure made of enormous playing cards. The structure rises with you at its center, harmlessly lifting you and any creatures in the area. The house of cards has a square base that is 30 feet on each side, and it has three floors with 10-foot-high ceilings. The second floor is 20 feet on each side, and the top floor is 10 feet on each side, both centered above the bottom floor. Ramps connect the interior of each floor, and empty doorframes connect the interior and exterior of each level. Creatures inside or on top of the structure have half cover.",
-    "Each card that comprises the house is 5 feet wide and 10 feet tall and is very fragile. A card has AC 10 and 1 Hit Point. The cards are immune to Poison and Psychic damage. Reducing a card to 0 Hit Points destroys it. Every time a card is destroyed, roll <strong>1d6</strong>. If you roll a 5 or a 6, the house collapses, ending the spell.",
-    "The house and all its cards vanish when the spell ends."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 3
-};
-
 export const hungerOfHadar: SpellEntry = {
   id: "spell-hunger-of-hadar",
   name: "Hunger of Hadar",
@@ -1345,31 +1244,6 @@ export const intellectFortress: SpellEntry = {
     SPELL_LIST_CLASS.WARLOCK,
     SPELL_LIST_CLASS.WIZARD
   ],
-  spellLevel: 3
-};
-
-export const invisibilityToCameras: SpellEntry = {
-  id: "spell-invisibility-to-cameras",
-  name: "Invisibility To Cameras",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ILLUSION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "10 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "Four creatures of your choice within range become undetectable to electronic sensors and cameras for the duration of the spell. Anything a target is wearing or carrying is likewise undetectable as long as it is on the target's person. The targets remain visible to vision."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
 };
 
@@ -1765,31 +1639,6 @@ export const plantGrowth: SpellEntry = {
   spellLevel: 3
 };
 
-export const protectionFromBallistics: SpellEntry = {
-  id: "spell-protection-from-ballistics",
-  name: "Protection from Ballistics",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
-  description: [
-    "This spell enchants the flesh of the target against the impact of bullets. Until the spell ends, the target has Resistance to nonmagical ballistic damage."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 3
-};
-
 export const protectionFromEnergy: SpellEntry = {
   id: "spell-protection-from-energy",
   name: "Protection from Energy",
@@ -1822,40 +1671,6 @@ export const protectionFromEnergy: SpellEntry = {
     SPELL_LIST_CLASS.SORCERER,
     SPELL_LIST_CLASS.WIZARD
   ],
-  spellLevel: 3
-};
-
-export const psionicBlast: SpellEntry = {
-  id: "spell-psionic-blast",
-  name: "Psionic Blast",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.EVOCATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Self (30-foot cone)",
-  components: [SPELL_COMPONENT.V],
-  duration: ["Instantaneous"],
-  description: [
-    "You unleash a destructive wave of mental power in a 30-foot cone. Each creature in the area must make a Dexterity saving throw. On a failed save, a target takes <strong>5d8</strong> Force damage, is pushed 20 feet directly away from you, and is knocked Prone. On a successful save, a target takes half as much damage and isn't pushed or knocked Prone.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 3rd."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.DEX,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE],
-    [DICE.D8, DAMAGE_TYPE.FORCE]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
 };
 
@@ -2340,37 +2155,6 @@ export const summonUndead: SpellEntry = {
   spellLevel: 3
 };
 
-export const summonWarriorSpirit: SpellEntry = {
-  id: "spell-summon-warrior-spirit",
-  name: "Summon Warrior Spirit",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "90 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "You call forth a warrior spirit from the legendary Deck of Many Things. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Warrior Spirit stat block. When you cast the spell, choose a type of warrior: Barbarian, Fighter, or Monk. The warrior resembles a Humanoid armed appropriately to the chosen class, which determines certain traits in its stat block. The warrior disappears when it drops to 0 Hit Points or when the spell ends.",
-    "The warrior is an ally to you and your companions. In combat, the warrior shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the creature assumes the higher level for that casting wherever it uses the spell's level in its stat block."
-  ],
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D12, [DAMAGE_TYPE.SLASHING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.BLUDGEONING]],
-    [6, [DAMAGE_TYPE.SLASHING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.BLUDGEONING]]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 3
-};
-
 export const thunderStep: SpellEntry = {
   id: "spell-thunder-step",
   name: "Thunder Step",
@@ -2734,7 +2518,6 @@ export const spellEntries3: SpellEntry[] = [
   clairvoyance,
   conjureAnimals,
   conjureBarrage,
-  conjureLesserDemon,
   counterspell,
   createFoodAndWater,
   crusadersMantle,
@@ -2754,13 +2537,10 @@ export const spellEntries3: SpellEntry[] = [
   gaseousForm,
   glyphOfWarding,
   haste,
-  haywire,
-  houseOfCards,
   hungerOfHadar,
   hypnoticPattern,
   inciteGreed,
   intellectFortress,
-  invisibilityToCameras,
   lifeTransference,
   lightningArrow,
   lightningBolt,
@@ -2773,9 +2553,7 @@ export const spellEntries3: SpellEntry[] = [
   nondetection,
   phantomSteed,
   plantGrowth,
-  protectionFromBallistics,
   protectionFromEnergy,
-  psionicBlast,
   pulseWave,
   removeCurse,
   revivify,
@@ -2791,7 +2569,6 @@ export const spellEntries3: SpellEntry[] = [
   summonLesserDemons,
   summonShadowspawn,
   summonUndead,
-  summonWarriorSpirit,
   thunderStep,
   tidalWave,
   tinyHut,

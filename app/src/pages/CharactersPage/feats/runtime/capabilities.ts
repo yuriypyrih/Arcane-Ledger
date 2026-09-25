@@ -150,7 +150,7 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.FEY_TOUCHED,
     capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform"]
   },
-  [FEATS.GRAPPLER]: { feat: FEATS.GRAPPLER, capabilities: [] },
+  [FEATS.GRAPPLER]: { feat: FEATS.GRAPPLER, capabilities: ["abilityBonus", "choice"] },
   [FEATS.GREAT_WEAPON_FIGHTING]: {
     feat: FEATS.GREAT_WEAPON_FIGHTING,
     capabilities: ["weaponActionTransform"]

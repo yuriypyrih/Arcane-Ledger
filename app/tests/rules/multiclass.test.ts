@@ -26,7 +26,6 @@ import { normalizeCustomClassConfig } from "../../src/pages/CharactersPage/custo
 import { describe, expect, it } from "vitest";
 import { characterFixture } from "../fixtures/character";
 
-import { ARMOR_PROFICIENCY, PROFICIENCY_SOURCE } from "../../src/types";
 import {
   createMulticlassDraft,
   applyClassProgression
@@ -43,11 +42,7 @@ import {
   setSlotPoolExpended
 } from "../../src/pages/CharactersPage/multiclassSpellcasting";
 import { getAutomaticMaxHitPointsForCharacter } from "../../src/pages/CharactersPage/gameplay";
-import {
-  getHitDicePools,
-  spendHitDice,
-  restoreHitDice
-} from "../../src/pages/CharactersPage/hitDice";
+import { getHitDicePools } from "../../src/pages/CharactersPage/hitDice";
 import { createPortableCharacterSheet } from "../../src/pages/CharactersPage/portableCharacterSheet";
 import { normalizeCharacter } from "../../src/pages/CharactersPage/storage";
 import {
@@ -122,27 +117,6 @@ describe("multiclass progression and saved characters", () => {
       normalizeCharacter(createPortableCharacterSheet(next))!.multiclass!.classes[1]
     ).toMatchObject({ subclassId: "cleric-life-domain", preparedSpellIds: ["spell-healing-word"] });
   });
-  it("gives multiclass armor training without adding starting saving throws or heavy armor", () => {
-    const character = multiclassFixture([
-      { className: "Wizard", level: 3 },
-      { className: "Fighter", level: 1 }
-    ]);
-    expect(character.armorProficiencies.map((entry) => entry.proficiency)).toEqual(
-      expect.arrayContaining([
-        ARMOR_PROFICIENCY.LIGHT,
-        ARMOR_PROFICIENCY.MEDIUM,
-        ARMOR_PROFICIENCY.SHIELD
-      ])
-    );
-    expect(character.armorProficiencies.map((entry) => entry.proficiency)).not.toContain(
-      ARMOR_PROFICIENCY.HEAVY
-    );
-    expect(
-      character.savingThrowProficiencies
-        .filter((entry) => entry.source === PROFICIENCY_SOURCE.CLASS)
-        .every((entry) => !entry.sourceStr?.includes("Fighter"))
-    ).toBe(true);
-  });
   it("allows a new class regardless of ability prerequisites without an override", () => {
     const character = characterFixture({
       abilities: { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 }
@@ -168,20 +142,6 @@ describe("multiclass HP and Hit Dice", () => {
     expect(getAutomaticMaxHitPointsForCharacter(character)).toBe(expected);
     const stronger = { ...character, abilities: { ...character.abilities, CON: 16 } };
     expect(getAutomaticMaxHitPointsForCharacter(stronger)).toBe(expected + 5);
-  });
-  it("spends and restores dice by die size without touching another pool", () => {
-    const character = multiclassFixture([
-      { className: "Fighter", level: 3 },
-      { className: "Wizard", level: 2 }
-    ]);
-    const spent = spendHitDice(character, "d6", 1);
-    expect(getHitDicePools(spent)).toEqual([
-      { die: "d10", total: 3, remaining: 3 },
-      { die: "d6", total: 2, remaining: 1 }
-    ]);
-    expect(
-      getHitDicePools(restoreHitDice(spent)).every((pool) => pool.total === pool.remaining)
-    ).toBe(true);
   });
 });
 

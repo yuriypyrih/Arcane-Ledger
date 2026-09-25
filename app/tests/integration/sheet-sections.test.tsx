@@ -1,4 +1,5 @@
 import { act, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider } from "react-redux";
 import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
@@ -19,14 +20,15 @@ import { createCharacterInventoryItem } from "../../src/pages/CharactersPage/inv
 import type { CharacterSheetDomain } from "../../src/pages/CharactersPage/CharacterSheetPage/domains";
 import { characterFixture } from "../fixtures/character";
 import { magicInitiateFeat } from "../fixtures/feats";
+import { effectItem, effectStatus, hardSet } from "../fixtures/custom-effects";
 
 beforeEach(() => {
   clearRawStoredCharacters();
   store.dispatch(setGuestSession());
   store.dispatch(setActiveCharacterSheet({ character: null, characterId: null }));
 });
-async function mountSheet() {
-  upsertTrustedCharacter(characterFixture({ level: 4, xp: 2700 }));
+async function mountSheet(overrides: Partial<Character> = {}) {
+  upsertTrustedCharacter(characterFixture({ level: 4, xp: 2700, ...overrides }));
   vi.useFakeTimers();
   render(
     <Provider store={store}>
@@ -56,6 +58,48 @@ function update(updater: (character: Character) => Character, domain: CharacterS
 }
 
 describe("the real character sheet with independent section updates", () => {
+  it("refreshes hard-set scores, skills and an open spell drawer after inventory-only changes", async () => {
+    await mountSheet({ feats: [magicInitiateFeat()] });
+    const arcana = () => screen.getByRole("button", { name: "Arcana" }).closest("li")!;
+    expect(within(arcana()).getByText("+3", { exact: true })).toBeVisible();
+    await userEvent.click(screen.getByText("Fire Bolt", { exact: true }));
+    expect(screen.getByText(/^Spell Attack .* = .*5$/)).toBeVisible();
+    update(
+      (c) => ({ ...c, inventoryItems: [effectItem("Fixed Intellect", [hardSet("INT", 20)])] }),
+      "inventory"
+    );
+    expect(screen.getByLabelText("INT score 20")).toBeVisible();
+    expect(screen.getByText(/^Spell Attack .* = .*7$/)).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    expect(within(arcana()).getByText("+5", { exact: true })).toBeVisible();
+    update((c) => ({ ...c, inventoryItems: [] }), "inventory");
+    expect(screen.getByLabelText("INT score 16")).toBeVisible();
+    expect(within(arcana()).getByText("+3", { exact: true })).toBeVisible();
+  });
+
+  it("refreshes carrying capacity and modifiers after status-only changes, including zero", async () => {
+    await mountSheet();
+    expect(screen.getByLabelText(/Carried weight .* out of 240 pounds/)).toBeVisible();
+    update(
+      (c) => ({ ...c, statusEntries: [effectStatus("Fixed Strength", [hardSet("STR", 30)])] }),
+      "statuses"
+    );
+    expect(screen.getByLabelText("STR score 30")).toBeVisible();
+    expect(screen.getByLabelText(/Carried weight .* out of 450 pounds/)).toBeVisible();
+    const athletics = () => screen.getByRole("button", { name: "Athletics" }).closest("li")!;
+    expect(within(athletics()).getByText("+10", { exact: true })).toBeVisible();
+    update(
+      (c) => ({ ...c, statusEntries: [effectStatus("Fixed Strength", [hardSet("STR", 0)])] }),
+      "statuses"
+    );
+    expect(screen.getByLabelText("STR score 0")).toBeVisible();
+    expect(screen.getByLabelText(/Carried weight .* out of 0 pounds/)).toBeVisible();
+    expect(within(athletics()).getByText("-5", { exact: true })).toBeVisible();
+    update((c) => ({ ...c, statusEntries: [] }), "statuses");
+    expect(screen.getByLabelText("STR score 16")).toBeVisible();
+    expect(screen.getByLabelText(/Carried weight .* out of 240 pounds/)).toBeVisible();
+  });
+
   it("a feat-only update changes maximum HP without changing health or saved base HP", async () => {
     await mountSheet();
     expect(screen.getByText("30/30 HP", { exact: true })).toBeVisible();

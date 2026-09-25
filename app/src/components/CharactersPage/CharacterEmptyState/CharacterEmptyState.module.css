@@ -6,7 +6,7 @@
   border-radius: var(--radius-field);
   background: var(--color-panel-muted);
   color: var(--theme-text-secondary);
-  padding: 0 0.7rem;
+  padding: 0 1rem;
 }
 
 .root svg {

@@ -30,30 +30,6 @@ export const generalFeatDefinitions: FeatDefinition[] = [
     trackingState: TRACKER.SEMI_TRACKED
   },
   {
-    feat: FEATS.BLESSED_WARRIOR,
-    label: "Blessed Warrior",
-    category: FEAT_CATEGORY.GENERAL,
-    prerequisite: "Paladin Fighting Style Feature",
-    description: [
-      "You learn two Cleric cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Sacred Flame>Sacred Flame</spell> are recommended.",
-      "The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them.",
-      "Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
-    ],
-    trackingState: TRACKER.TRACKED
-  },
-  {
-    feat: FEATS.DRUIDIC_WARRIOR,
-    label: "Druidic Warrior",
-    category: FEAT_CATEGORY.GENERAL,
-    prerequisite: "Ranger Fighting Style Feature",
-    description: [
-      "You learn two Druid cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Starry Wisp>Starry Wisp</spell> are recommended.",
-      "The chosen cantrips count as Ranger spells for you, and <link:WIS>Wisdom</link> is your spellcasting ability for them.",
-      "Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip."
-    ],
-    trackingState: TRACKER.TRACKED
-  },
-  {
     feat: FEATS.ACTOR,
     label: "Actor",
     category: FEAT_CATEGORY.GENERAL,
@@ -351,7 +327,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 4+, Intelligence or Wisdom 13+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase your Intelligence or Wisdom by 1, to a maximum of 10.",
+      "<strong>Ability Score Increase.</strong> Increase your Intelligence or Wisdom by 1, to a maximum of 20.",
       "<strong>Keen Observer.</strong> Choose one of the following skills: Insight, Investigation, or Perception. If you lack proficiency with the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain Expertise in it.",
       "<strong>Quick Search.</strong> You can take the Search action as a Bonus Action."
     ],

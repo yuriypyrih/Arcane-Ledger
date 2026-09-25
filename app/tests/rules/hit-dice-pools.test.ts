@@ -6,6 +6,7 @@ import {
   restoreClassHitDice,
   getHitDiceRemainingForCharacter,
   restoreHitDicePool,
+  restoreHitDice,
   spendHitDice
 } from "../../src/pages/CharactersPage/hitDice";
 import {
@@ -55,6 +56,11 @@ describe("manual Hit Dice pool management", () => {
     ]);
     expect(getHitDiceRemainingForCharacter(reopened)).toBe(7);
     expect(reopened.currentHitPoints).toBe(original.currentHitPoints);
+    expect(getHitDicePools(restoreHitDice(reopened))).toEqual([
+      { die: "d6", remaining: 4, total: 4 },
+      { die: "d10", remaining: 3, total: 3 },
+      { die: "d12", remaining: 1, total: 1 }
+    ]);
   });
   it("clamps a reset to the pool capacity and never changes unrelated pools", () => {
     const character = spendHitDice(spendHitDice(mixed(), "d6", 4), "d10", 3);

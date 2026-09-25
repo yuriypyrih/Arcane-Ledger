@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -15,6 +16,13 @@ type MulticlassGuideModalProps = {
 };
 
 function MulticlassGuideModal({ onClose }: MulticlassGuideModalProps) {
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
+
   return (
     <SheetModal titleId="multiclass-guide-modal-title" onClose={onClose}>
       <OverlayHeader>

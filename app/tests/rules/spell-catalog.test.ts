@@ -3,21 +3,85 @@ import { getSpellEntryById, getSpellEntryByName } from "../../src/codex/spells";
 import { getSpellEntries } from "../../src/codex/selectors";
 import {
   getPreparedSpellSelectionOptionsForCharacter,
+  normalizeSpellbookSpellIds,
+  normalizeTrackedSpellIds,
   normalizePreparedSpellIds
 } from "../../src/pages/CharactersPage/spellcasting";
 
+import { getSpellSummonDefinitionConfig } from "../../src/pages/CharactersPage/spellSummons";
+
+const removedSpellNames = [
+  "Encode Thoughts",
+  "On/Off",
+  "Virtue",
+  "Arcane Weapon",
+  "Guiding Hand",
+  "Healing Elixir",
+  "Id Insinuation",
+  "Infallible Relay",
+  "Puppet",
+  "Remote Access",
+  "Sense Emotion",
+  "Sudden Awakening",
+  "Unearthly Chorus",
+  "Wild Cunning",
+  "Arcane Hacking",
+  "Digital Phantom",
+  "Find Vehicle",
+  "Mental Barrier",
+  "Mind Thrust",
+  "Thought Shield",
+  "Conjure Lesser Demon",
+  "Haywire",
+  "House of Cards",
+  "Invisibility To Cameras",
+  "Protection from Ballistics",
+  "Psionic Blast",
+  "Summon Warrior Spirit",
+  "Conjure Barlgura",
+  "Conjure Knowbot",
+  "Conjure Shadow Demon",
+  "Synchronicity",
+  "System Backdoor",
+  "Commune with City"
+];
+
 describe("spell catalog corrections", () => {
-  it("removes Wild Cunning from lookup, class choices, and saved preparation", () => {
-    expect(getSpellEntryById("spell-wild-cunning")).toBeNull();
-    expect(getSpellEntryByName("Wild Cunning")).toBeNull();
-    for (const className of ["Druid", "Ranger"]) {
+  it.each(removedSpellNames)("removes %s without consuming saved selection capacity", (name) => {
+    const id = "spell-" + name.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-");
+    expect(getSpellEntryById(id)).toBeNull();
+    expect(getSpellEntryByName(name)).toBeNull();
+    expect(getSpellSummonDefinitionConfig(id)).toBeNull();
+    const entries = getSpellEntries();
+    expect(normalizePreparedSpellIds([id, "spell-cure-wounds"], entries, 1)).toEqual([
+      "spell-cure-wounds"
+    ]);
+    expect(normalizeSpellbookSpellIds([id, "spell-shield"], entries)).toEqual(["spell-shield"]);
+    expect(normalizeTrackedSpellIds([id, "spell-fire-bolt"], entries, 1)).toEqual([
+      "spell-fire-bolt"
+    ]);
+    for (const className of [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]) {
       expect(
-        getPreparedSpellSelectionOptionsForCharacter(className, 3).map((s) => s.id)
-      ).not.toContain("spell-wild-cunning");
+        getPreparedSpellSelectionOptionsForCharacter(className, 20).map((spell) => spell.id)
+      ).not.toContain(id);
     }
-    expect(
-      normalizePreparedSpellIds(["spell-wild-cunning", "spell-cure-wounds"], getSpellEntries(), 4)
-    ).toEqual(["spell-cure-wounds"]);
+  });
+
+  it("preserves other demon summoning spells and their companion configuration", () => {
+    for (const id of ["spell-summon-lesser-demons", "spell-summon-greater-demon"]) {
+      expect(getSpellEntryById(id)).not.toBeNull();
+      expect(getSpellSummonDefinitionConfig(id)).not.toBeNull();
+    }
   });
 
   it("finds Bigby's Hand by name while preserving existing saved spell IDs", () => {

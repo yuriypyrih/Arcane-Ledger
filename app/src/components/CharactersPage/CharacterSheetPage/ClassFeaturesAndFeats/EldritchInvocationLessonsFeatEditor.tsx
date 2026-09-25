@@ -260,6 +260,7 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingAbilityScoreImprovement={noopSavePendingChoice}
         onSavePendingAthleteChoice={noopSavePendingChoice}
         onSavePendingChargerChoice={noopSavePendingChoice}
+        onSavePendingGrapplerChoice={noopSavePendingChoice}
         onSavePendingChefChoice={noopSavePendingChoice}
         onSavePendingCrusherChoice={noopSavePendingChoice}
         onSavePendingDualWielderChoice={noopSavePendingChoice}

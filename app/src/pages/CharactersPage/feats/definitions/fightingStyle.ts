@@ -11,6 +11,30 @@ export const fightingStyleFeatDefinitions: FeatDefinition[] = [
     trackingState: TRACKER.SEMI_TRACKED
   },
   {
+    feat: FEATS.BLESSED_WARRIOR,
+    label: "Blessed Warrior",
+    category: FEAT_CATEGORY.FIGHTING_STYLE,
+    prerequisite: "Paladin Fighting Style Feature",
+    description: [
+      "You learn two Cleric cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Sacred Flame>Sacred Flame</spell> are recommended.",
+      "The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them.",
+      "Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
+    ],
+    trackingState: TRACKER.TRACKED
+  },
+  {
+    feat: FEATS.DRUIDIC_WARRIOR,
+    label: "Druidic Warrior",
+    category: FEAT_CATEGORY.FIGHTING_STYLE,
+    prerequisite: "Ranger Fighting Style Feature",
+    description: [
+      "You learn two Druid cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Starry Wisp>Starry Wisp</spell> are recommended.",
+      "The chosen cantrips count as Ranger spells for you, and <link:WIS>Wisdom</link> is your spellcasting ability for them.",
+      "Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip."
+    ],
+    trackingState: TRACKER.TRACKED
+  },
+  {
     feat: FEATS.DEFENSE,
     label: "Defense",
     category: FEAT_CATEGORY.FIGHTING_STYLE,

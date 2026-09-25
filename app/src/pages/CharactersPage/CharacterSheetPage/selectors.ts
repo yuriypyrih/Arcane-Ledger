@@ -187,6 +187,7 @@ export const selectSkillsCharacter = createCharacterFieldsSelector(
     "abilities",
     "classFeatureState",
     "statusEntries",
+    "inventoryItems",
     "skillProficiencies",
     "savingThrowProficiencies",
     "weaponProficiencies",
@@ -195,7 +196,7 @@ export const selectSkillsCharacter = createCharacterFieldsSelector(
     "languageProficiencies",
     "feats"
   ],
-  ["profile", "features", "statuses", "proficiencies"]
+  ["profile", "features", "statuses", "inventory", "proficiencies"]
 );
 
 export const selectFeaturesCharacter = createCharacterFieldsSelector(
@@ -214,6 +215,7 @@ export const selectFeaturesCharacter = createCharacterFieldsSelector(
     "abilities",
     "classFeatureState",
     "statusEntries",
+    "inventoryItems",
     "skillProficiencies",
     "toolProficiencies",
     "weaponProficiencies",
@@ -224,7 +226,7 @@ export const selectFeaturesCharacter = createCharacterFieldsSelector(
     "preparedSpellIds",
     "feats"
   ],
-  ["profile", "features", "spells", "statuses", "proficiencies"]
+  ["profile", "features", "spells", "statuses", "inventory", "proficiencies"]
 );
 
 export const selectCompanionsCharacter = createCharacterFieldsSelector(
@@ -247,12 +249,13 @@ export const selectEquipmentCharacter = createCharacterFieldsSelector(
     "currencies",
     "equipment",
     "inventoryItems",
+    "statusEntries",
     "customEquipment",
     "classFeatureState",
     "weaponProficiencies",
     "storageMetadata"
   ],
-  ["profile", "equipment", "inventory", "features", "proficiencies"]
+  ["profile", "equipment", "inventory", "features", "statuses", "proficiencies"]
 );
 
 export const selectSpellcastingCharacter = createCharacterFieldsSelector(
@@ -271,6 +274,7 @@ export const selectSpellcastingCharacter = createCharacterFieldsSelector(
     "abilities",
     "classFeatureState",
     "statusEntries",
+    "inventoryItems",
     "roundTracker",
     "cantripIds",
     "spellbookSpellIds",
@@ -278,5 +282,5 @@ export const selectSpellcastingCharacter = createCharacterFieldsSelector(
     "spellSlotsExpended",
     "feats"
   ],
-  ["profile", "resources", "spells", "features", "statuses"]
+  ["profile", "resources", "spells", "features", "statuses", "inventory"]
 );

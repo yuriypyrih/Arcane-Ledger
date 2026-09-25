@@ -3,6 +3,7 @@ import {
   CONDITION_NAME,
   EFFECT_NAME,
   characterCustomTraitDiceValues,
+  characterCustomTraitNumericValueMax,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
@@ -55,6 +56,7 @@ const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "spellAttack",
   "spellDc",
   "abilityScore",
+  "hardSetAbilityScore",
   "abilityModifier",
   "savingThrow",
   "savingThrows",
@@ -274,6 +276,15 @@ function normalizeCustomTraitDefenseEffect(
   }
 }
 
+export function isValidHardSetAbilityScore(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= characterCustomTraitNumericValueMax
+  );
+}
+
 function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTraitEffect | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -286,6 +297,12 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
   }
 
   const effectType = record.type as CharacterCustomTraitEffect["type"];
+
+  if (effectType === "hardSetAbilityScore") {
+    return isAbilityKey(record.ability) && isValidHardSetAbilityScore(record.value)
+      ? { type: effectType, ability: record.ability, value: record.value }
+      : null;
+  }
 
   if (isCustomTraitDefenseEffectType(effectType)) {
     return normalizeCustomTraitDefenseEffect(effectType, record.value);
@@ -701,6 +718,27 @@ export function getCustomTraitAbilityScoreBonuses(
   );
 }
 
+export function getCustomTraitAbilityScoreOverride(
+  input: CustomTraitBonusInput,
+  ability: AbilityKey
+): { label: string; value: number } | null {
+  let override: { label: string; value: number } | null = null;
+
+  for (const { label, effect } of mapCustomTraitEffectSources(
+    input,
+    (effect) => effect.type === "hardSetAbilityScore" && effect.ability === ability
+  )) {
+    if (
+      isValidHardSetAbilityScore(effect.value) &&
+      (override === null || effect.value > override.value)
+    ) {
+      override = { label, value: effect.value };
+    }
+  }
+
+  return override;
+}
+
 export function getCustomTraitAbilityModifierBonuses(
   statusEntries: CustomTraitBonusInput,
   ability: AbilityKey
@@ -893,6 +931,8 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return "Spell DC";
     case "abilityScore":
       return `${effect.ability} Ability Score`;
+    case "hardSetAbilityScore":
+      return `HARD SET ${effect.ability} Ability Score`;
     case "abilityModifier":
       return `${effect.ability} Modifier`;
     case "savingThrow":
@@ -929,7 +969,7 @@ function createCustomTraitFlatBonus(
   label: string,
   effect: CharacterCustomTraitEffect
 ): CustomTraitFlatBonus | null {
-  if (isCustomTraitDefenseEffect(effect)) {
+  if (isCustomTraitDefenseEffect(effect) || effect.type === "hardSetAbilityScore") {
     return null;
   }
 
@@ -1043,6 +1083,10 @@ function formatCharacterCustomTraitDefenseEffectValue(effect: CustomTraitDefense
 export function formatCharacterCustomTraitEffectSummary(
   effect: CharacterCustomTraitEffect
 ): string {
+  if (effect.type === "hardSetAbilityScore") {
+    return `${formatCharacterCustomTraitEffectTargetLabel(effect)}: ${effect.value}`;
+  }
+
   if (isCustomTraitDefenseEffect(effect)) {
     return `${formatCharacterCustomTraitEffectTargetLabel(effect)}: ${formatCharacterCustomTraitDefenseEffectValue(effect)}`;
   }

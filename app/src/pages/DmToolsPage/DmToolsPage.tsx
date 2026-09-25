@@ -110,11 +110,13 @@ function DmToolsPage() {
                 id={getTabButtonId(id)}
                 aria-controls={getTabPanelId(id)}
                 aria-selected={selected}
+                aria-label={label}
+                title={label}
                 className={getTabClassName(id, selected)}
                 onClick={() => handleTabChange(id)}
               >
                 <TabIcon size={16} aria-hidden="true" />
-                <span>{label}</span>
+                <span className={styles.tabLabel}>{label}</span>
               </button>
             );
           })}

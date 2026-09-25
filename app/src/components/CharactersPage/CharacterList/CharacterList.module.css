@@ -9,14 +9,6 @@
   padding: var(--space-card-padding);
 }
 
-.eyebrow {
-  margin: 0;
-  color: var(--theme-accent);
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .title {
   margin: 0;
 }
@@ -26,17 +18,12 @@
   gap: 0.78rem;
 }
 
-.listEyebrowRow,
-.listTitleRow {
+.listHeadingRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   min-width: 0;
-}
-
-.listEyebrowRow {
-  align-items: flex-start;
 }
 
 .listHeaderActions {
@@ -64,15 +51,9 @@
 }
 
 @media (max-width: 599px) {
-  .listEyebrowRow,
-  .listTitleRow {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.62rem;
-  }
-
-  .joinPartyButton.joinPartyButton {
-    width: 100%;
+  .listHeadingRow {
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .listHeaderActions {

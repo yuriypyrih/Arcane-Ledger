@@ -20,7 +20,7 @@ export default defineConfig({
       include: [
         "src/pages/CharactersPage/**/*.{ts,tsx}",
         "src/components/CharactersPage/CharacterSheetPage/**/*.{ts,tsx}",
-        "src/characterSync/**/*.ts",
+        "src/characterSync/**/*.{ts,tsx}",
         "src/store/activeCharacterSheetSlice.ts"
       ],
       exclude: ["**/*.d.ts"]

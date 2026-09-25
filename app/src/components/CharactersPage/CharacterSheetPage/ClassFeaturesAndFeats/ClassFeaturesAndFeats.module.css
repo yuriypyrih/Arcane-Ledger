@@ -373,15 +373,17 @@
   }
 }
 
-.classBuildField {
-  display: grid;
-  gap: 0.38rem;
-  min-width: 0;
+.classFeaturesHeader {
+  flex-wrap: wrap;
 }
-.classBuildField > span {
-  color: var(--theme-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 750;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+
+.classBuildTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.classBuildSelect {
+  flex: 0 0 auto;
+  width: 9.5rem;
 }

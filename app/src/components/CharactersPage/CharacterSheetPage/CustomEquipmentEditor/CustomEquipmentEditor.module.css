@@ -409,8 +409,4 @@
     margin-left: 0.42rem;
     padding-left: 0.58rem;
   }
-
-  .customEquipmentActionRow {
-    grid-template-columns: 1fr;
-  }
 }

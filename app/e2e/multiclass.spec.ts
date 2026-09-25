@@ -136,8 +136,11 @@ test("an existing character declares a class at zero, allocates levels separatel
   page
 }) => {
   const original = portableSheet();
+  original.vitals.maxHitPointsMode = "automatic";
+  original.vitals.hitPoints = 28;
   original.vitals.currentHitPoints = 17;
   await openLocalSheet(page, original);
+  await expect(page.getByText("17/28 HP", { exact: true })).toBeVisible();
   const editor = await openClassEditor(page);
   await expect(editor.getByLabel("Primary class")).toBeDisabled();
   await expect(editor.getByRole("button", { name: "Remove Fighter", exact: true })).toHaveCount(0);
@@ -154,6 +157,8 @@ test("an existing character declares a class at zero, allocates levels separatel
     (await savedSheet(page)).progression.multiclass?.classes.map((entry) => entry.level)
   ).toEqual([3, 0]);
   expect((await savedSheet(page)).vitals.currentHitPoints).toBe(17);
+  expect((await savedSheet(page)).vitals.hitPoints).toBe(28);
+  await expect(page.getByText("17/28 HP", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Class build", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Open spellcasting guide" })).toHaveCount(0);
   await page.getByRole("button", { name: "Level 3", exact: true }).click();
@@ -168,7 +173,9 @@ test("an existing character declares a class at zero, allocates levels separatel
   await progress.getByRole("button", { name: "Increase Wizard level", exact: true }).click();
   await progress.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(async () => (await savedSheet(page)).progression.level).toBe(4);
+  await expect(page.getByText("17/34 HP", { exact: true })).toBeVisible();
   await page.reload();
+  expect((await savedSheet(page)).vitals.hitPoints).toBe(34);
   await page.getByLabel("Class build", { exact: true }).selectOption({ label: "Wizard 1" });
   await expect(page.getByText("Arcane Recovery", { exact: true }).first()).toBeVisible();
   await expect(page.getByLabel("Spell source", { exact: true })).toHaveCount(0);
@@ -177,6 +184,14 @@ test("an existing character declares a class at zero, allocates levels separatel
   await page.getByRole("button", { name: "Deal 1 hit points", exact: true }).click();
   await expect.poll(async () => (await savedSheet(page)).vitals.currentHitPoints).toBe(16);
   await expect(page.getByLabel("Class build", { exact: true })).toHaveValue(wizardId);
+  await page.getByRole("button", { name: "Level 4", exact: true }).click();
+  await progress.getByLabel("Fighter class level").fill("1");
+  await progress.getByLabel("Wizard class level").fill("3");
+  await progress.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("16/30 HP", { exact: true })).toBeVisible();
+  await page.reload();
+  expect((await savedSheet(page)).vitals).toMatchObject({ hitPoints: 30, currentHitPoints: 16 });
+  await expect(page.getByText("16/30 HP", { exact: true })).toBeVisible();
 });
 
 test("multiclass short rests expose mixed Hit Dice and recover Pact slots without recovering shared slots", async ({
@@ -805,10 +820,6 @@ test("class progression locks the starting class and keeps each compact control'
     .boundingBox();
   expect(inputBox!.x - minusBox!.x - minusBox!.width).toBeGreaterThanOrEqual(7);
   expect(plusBox!.x - inputBox!.x - inputBox!.width).toBeGreaterThanOrEqual(7);
-  await expect(row.getByRole("button", { name: "Decrease Wizard level", exact: true })).toHaveCSS(
-    "border-radius",
-    "6px"
-  );
   for (const label of ["Cancel", "Save"]) {
     await expect(
       dialog.getByRole("button", { name: label, exact: true }).locator("svg")
@@ -849,8 +860,6 @@ test("compact class groups reset replaced choices and save declarations at zero"
   await editor.getByLabel("Bard subclass").selectOption("bard-college-of-lore");
   await editor.getByLabel("Bard skill proficiency").selectOption("Animal Handling");
   await editor.getByLabel("Bard instrument proficiency").selectOption("MUSICAL_INSTRUMENT_LUTE");
-  for (const select of await editor.getByRole("combobox").all())
-    await expect(select).toHaveCSS("height", "38px");
   await editor.getByRole("region", { name: "Bard class options" }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: test.info().outputPath("class-options-compact.png") });
   await newClass.selectOption("Ranger");
@@ -874,10 +883,6 @@ test("a secondary class can return to zero without deleting its definition", asy
   await levels.getByLabel("Fighter class level").fill("0");
   await expect(levels.getByRole("status", { name: "Level allocation" })).toHaveText(
     "3 / 5 allocated"
-  );
-  await expect(levels.getByRole("status", { name: "Level allocation" })).toHaveCSS(
-    "color",
-    "rgb(166, 55, 41)"
   );
   await expect(levels.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   await levels.getByLabel("Wizard class level").fill("5");

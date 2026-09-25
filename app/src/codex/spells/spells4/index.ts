@@ -309,61 +309,6 @@ export const confusion: SpellEntry = {
   spellLevel: 4
 };
 
-export const conjureBarlgura: SpellEntry = {
-  id: "spell-conjure-barlgura",
-  name: "Conjure Barlgura",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Up to 10 minutes"],
-  description: [
-    "You summon a barlgura that appears in an unoccupied space you can see within range. The barlgura disappears when it drops to 0 Hit Points or when the spell ends.",
-    "The barlgura is hostile to all non-demons. Roll Initiative for the barlgura, which has its own turns. At the start of its turn, it moves toward and attacks the nearest non-demon it can perceive. If two or more creatures are equally near, it picks one at random. If it cannot see any potential enemies, the barlgura moves in a random direction in search of foes.",
-    "As part of casting the spell, you can scribe a circle on the ground using the blood of an intelligent Humanoid slain within the past 24 hours. The circle is large enough to encompass your space. The summoned barlgura cannot cross the circle or target anyone in it while the spell lasts."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
-export const conjureKnowbot: SpellEntry = {
-  id: "spell-conjure-knowbot",
-  name: "Conjure Knowbot",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["10 minutes"],
-  description: [
-    "You touch a single computerized device or computer system to conjure a knowbot, a partially sentient piece of software imprinted with vestiges of your own skills and computer abilities. For the duration of the spell, you can use a Bonus Action to have the knowbot execute a computer-related task that would normally require an action. The knowbot makes Intelligence ability checks using your ability score and proficiency bonuses including your proficiency with hacking tools, if applicable.",
-    "You have a limited telepathic bond with the knowbot, out to a range of 500 feet from the device or system where the knowbot was conjured. If you move beyond this range, the knowbot disappears in <strong>2d4</strong> rounds, as if the duration of the spell had expired. Moving within range again immediately reestablishes the bond.",
-    "The knowbot is bound to the system in which it was created, and it stays there until it is dismissed or the spell's duration expires.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the spell's duration increases to 1 hour. Additionally, your telepathic bond with the knowbot is effective out to a range of 1,000 feet, and if you leave the range of the bond, the knowbot continues performing its last directed task until the spell expires."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
 export const conjureMinorElementals: SpellEntry = {
   id: "spell-conjure-minor-elementals",
   name: "Conjure Minor Elementals",
@@ -390,33 +335,6 @@ export const conjureMinorElementals: SpellEntry = {
   damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
-export const conjureShadowDemon: SpellEntry = {
-  id: "spell-conjure-shadow-demon",
-  name: "Conjure Shadow Demon",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "You summon a shadow demon that appears in an unoccupied space you can see within range. The shadow demon disappears when it drops to 0 Hit Points or when the spell ends.",
-    "Roll Initiative for the shadow demon, which has its own turns. You can issue orders to the shadow demon, and it obeys you as long as it can attack a creature on each of its turns and does not start its turn in an area of bright light. If either of these conditions is not met, the shadow demon immediately makes a Charisma check contested by your Charisma check. If you fail the check, the spell no longer requires Concentration and the demon is no longer under your control. The demon automatically succeeds on the check if it is more than 100 feet away from you.",
-    "As part of casting the spell, you can scribe a circle on the ground using the blood of an intelligent Humanoid slain within the past 24 hours. The circle is large enough to encompass your space. The summoned shadow demon cannot cross the circle or target anyone in it while the spell lasts."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1771,60 +1689,6 @@ export const summonGreaterDemon: SpellEntry = {
   spellLevel: 4
 };
 
-export const synchronicity: SpellEntry = {
-  id: "spell-synchronicity",
-  name: "Synchronicity",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "The creature you touch feels reality subtly shifted to its favor while this spell is in effect. The target isn't inconvenienced by mundane delays of any sort. Traffic lights are always green, there's always a waiting elevator, and a taxi is always around the corner. The target can run at full Speed through dense crowds, and Opportunity Attacks provoked by the target's movement are made with Disadvantage.",
-    "Synchronicity grants Advantage to Dexterity (Stealth) checks, since the target always finds a handy piece of cover available. Additionally, the target has Advantage on all ability checks made to drive a vehicle.",
-    "In the event that two or more creatures under the effect of Synchronicity are attempting to avoid being inconvenienced by each other, the creatures engage in a contest of Charisma each time the effects of the spells would oppose each other."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
-export const systemBackdoor: SpellEntry = {
-  id: "spell-system-backdoor",
-  name: "System Backdoor",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "Self",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
-  description: [
-    "This spell allows you to bypass system security in order to create a secure login on a foreign system. The login you create allows you administrator-level privileges in any computer system not enhanced through technomagic. The login defeats any technomagic spells of 3rd level or lower.",
-    "Once the duration of the spell expires, the login and all privileges are wiped from the system. System logs still show the activity of the user, but the user identification cannot be found or traced.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you are able to bypass technomagic spells if the spell's level is equal to or less than the level of the spell slot you used."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
 export const vitriolicSphere: SpellEntry = {
   id: "spell-vitriolic-sphere",
   name: "Vitriolic Sphere",
@@ -1958,10 +1822,7 @@ export const spellEntries4: SpellEntry[] = [
   charmMonster,
   compulsion,
   confusion,
-  conjureBarlgura,
-  conjureKnowbot,
   conjureMinorElementals,
-  conjureShadowDemon,
   conjureWoodlandBeings,
   controlWater,
   deathWard,
@@ -2003,8 +1864,6 @@ export const spellEntries4: SpellEntry[] = [
   summonConstruct,
   summonElemental,
   summonGreaterDemon,
-  synchronicity,
-  systemBackdoor,
   vitriolicSphere,
   wallOfFire,
   waterySphere
