@@ -6,6 +6,8 @@ import type { AnalyticsGeoRecord, AnalyticsRollupRecord } from "../models/Analyt
 import { getAnalyticsGeo } from "./analyticsGeoService.js";
 import { getRequestStatusBucket } from "./analyticsStatusBuckets.js";
 import { captureServerError } from "../sentry.js";
+import { isAnalyticsActivityEvent } from "./analyticsActivityEvents.js";
+import { recordAnalyticsAccountActivity } from "./analyticsActivityService.js";
 
 export const frontendAnalyticsEventNames = [
   "app_boot",
@@ -402,6 +404,9 @@ export async function captureFrontendAnalyticsBatch(options: {
     .filter((event): event is FrontendRollupEvent => Boolean(event));
 
   if (records.length > 0) {
+    if (options.userId && records.some((record) => isAnalyticsActivityEvent(record.eventName))) {
+      await recordAnalyticsAccountActivity(options.userId);
+    }
     await Promise.all(
       records.map((record) =>
         incrementRollup({

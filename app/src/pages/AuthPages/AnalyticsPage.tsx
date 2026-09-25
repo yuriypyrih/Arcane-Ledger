@@ -14,6 +14,7 @@ import ActionButton from "../../components/ActionButton";
 import { useAppSelector } from "../../store";
 import styles from "./AnalyticsPage.module.css";
 import { ServerHealthStatusTable } from "./ServerHealthStatusTable";
+import { AnalyticsActivityChart } from "./AnalyticsActivityChart";
 
 type DemographicFilter = keyof AnalyticsSummary["demographics"];
 
@@ -612,6 +613,10 @@ function AnalyticsPage() {
                 ) : null}
               </div>
             </section>
+
+            {summary.activityTimeline ? (
+              <AnalyticsActivityChart timeline={summary.activityTimeline} />
+            ) : null}
 
             <MetricBlock title="Activity In Range">
               <MetricGroupPanel groups={activityMetricGroups} />

@@ -2,6 +2,23 @@
   gap: 1rem;
 }
 
+.phase {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.phase + .phase {
+  border-top: 1px solid var(--theme-border-subtle);
+  padding-top: 1rem;
+}
+
+.phaseTitle {
+  margin: 0;
+  color: var(--theme-text-primary);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
 .intro,
 .sectionText,
 .steps {

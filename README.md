@@ -48,6 +48,7 @@ server-backed workflows under one versioned API surface.
 Architecture guides:
 
 - [Concurrent Master Chest transactions](docs/master-chest-transactions.md)
+- [Visitor activity analytics and historical coverage](docs/analytics-activity.md)
 
 ## Tech Stack
 

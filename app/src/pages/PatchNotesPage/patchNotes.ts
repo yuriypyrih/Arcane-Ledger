@@ -9,6 +9,23 @@ export type PatchNote = {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: "v1.0.2",
+    title: "Multiclass expansion",
+    date: "2026-09-25",
+    description: [
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Added proper multiclassing support.",
+          "You can now HARD SET ability scores with the Target/Effect system. Values have also increased from 0–10 to 0–30.",
+          "Added a new shortcut to reach the spellcasting section faster on mobile devices.",
+          "Various bug fixes, from incorrect spell descriptions to Firefox misbehaving with the UI."
+        ]
+      }
+    ]
+  },
+  {
     version: "v1.0.1",
     title: "The Adventure Begins",
     date: "2026-07-14",

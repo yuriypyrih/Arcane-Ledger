@@ -50,7 +50,7 @@ it("opening and dismissing the multiclass guide preserves unsaved profile values
   const guide = screen.getByRole("dialog", { name: "Multiclass Guide" });
   expect(within(guide).getAllByRole("listitem")).toHaveLength(3);
   expect(guide).toHaveTextContent("Arcane Ledger now supports proper multiclassing!");
-  expect(guide).toHaveTextContent("Build Section and press Edit");
+  expect(guide).toHaveTextContent("Build Section on your character sheet and press Edit");
   await user.click(within(guide).getByRole("button", { name: "Close multiclass guide" }));
   expect(screen.queryByRole("dialog", { name: "Multiclass Guide" })).not.toBeInTheDocument();
   await user.click(open);

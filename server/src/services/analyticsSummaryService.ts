@@ -8,6 +8,8 @@ import { CustomSpell } from "../models/CustomSpell.js";
 import { EncounterTemplate } from "../models/EncounterTemplate.js";
 import { PartyGroup } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
+import { getAnalyticsActivityTimeline } from "./analyticsActivityService.js";
+import type { AnalyticsActivityTimeline } from "./analyticsTimeline.js";
 import { getDemographics, type AnalyticsCountryBucket } from "./analyticsDemographics.js";
 import {
   ANALYTICS_STATUS_BUCKETS,
@@ -75,6 +77,7 @@ export type AnalyticsSummaryOptions = {
 };
 
 export type AnalyticsSummary = {
+  activityTimeline: AnalyticsActivityTimeline;
   range: {
     end: string;
     start: string | null;
@@ -537,13 +540,15 @@ export async function getAnalyticsSummary(
   const emailSentRollups = rollups.filter(
     (record) => record.source === "backend" && record.eventName === "email_sent"
   );
-  const [totals, activity, characters] = await Promise.all([
+  const [totals, activity, characters, activityTimeline] = await Promise.all([
     getTotalsSummary(),
     getActivitySummary(range, anonymousVisitorRollups, emailSentRollups),
-    getCharacterSummary(range)
+    getCharacterSummary(range),
+    getAnalyticsActivityTimeline(range, frontendRollups)
   ]);
 
   return {
+    activityTimeline,
     range: {
       type: range.type,
       start: range.start?.toISOString() ?? null,

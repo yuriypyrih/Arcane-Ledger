@@ -41,7 +41,31 @@ export type AnalyticsEntityCounts = {
   users: number;
 };
 
+export type AnalyticsTimelineValue = {
+  count: number | null;
+  from: string | null;
+  through: string | null;
+  partial: boolean;
+  incomplete: boolean;
+};
+
+export type AnalyticsTimelineBucket = {
+  start: string;
+  end: string;
+  partial: boolean;
+  accounts: AnalyticsTimelineValue;
+  anonymous: AnalyticsTimelineValue;
+  legacy: AnalyticsTimelineValue;
+};
+
+export type AnalyticsActivityTimeline = {
+  accountHistoryStartedAt: string | null;
+  daily: AnalyticsTimelineBucket[];
+  weekly: AnalyticsTimelineBucket[];
+};
+
 export type AnalyticsSummary = {
+  activityTimeline: AnalyticsActivityTimeline;
   range: {
     end: string;
     start: string | null;
