@@ -1,11 +1,12 @@
-import { CLASS_FEATURE, FEATS, type SpellDescriptionEntry } from "../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../codex/entries";
+import { CLASS_FEATURE, FEATS } from "../../../codex/entries/enums";
 import type { Character } from "../../../types";
 import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
 import { hasFeatForCharacter } from "../feats/runtime";
-import { getFeatDefinition } from "../feats";
+import { getFeatDefinition } from "../feats/catalog";
 import { getBarbarianFeatureDescriptionAdditions } from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkFeatureDescriptionAdditions } from "./monk/contributions";

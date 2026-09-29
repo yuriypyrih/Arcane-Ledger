@@ -1,6 +1,6 @@
 import { useReadOnlySheet } from "../readOnlySheetContext";
 import { withReadOnlySheet } from "../withReadOnlySheet";
-import { getClassSummary } from "../../../../pages/CharactersPage/multiclass";
+import { getClassSummary } from "../../../../pages/CharactersPage/multiclassState";
 import clsx from "clsx";
 import { ScrollText, UsersRound } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";

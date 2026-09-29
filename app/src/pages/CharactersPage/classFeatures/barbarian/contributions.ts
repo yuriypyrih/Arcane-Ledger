@@ -1,9 +1,9 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   getFeatureDescriptionAdditions,
   projectCompiledContributionsToClassFeatureDerivedState,
@@ -45,8 +45,7 @@ import {
 } from "./barbarian";
 import { transformBarbarianRecklessAttackWeaponAction } from "./barbarianRecklessAttack";
 
-export const barbarianLifeAndDeathLedgerDescriptionTargetKey =
-  "barbarian-life-and-death-ledger";
+export const barbarianLifeAndDeathLedgerDescriptionTargetKey = "barbarian-life-and-death-ledger";
 
 function compactActions<TAction>(actions: Array<TAction | null>): TAction[] {
   return actions.filter((action): action is TAction => action !== null);
@@ -417,7 +416,7 @@ export function getBarbarianClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectBarbarianFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianFeatureContributions),
     {
       character: character as Character
     }
@@ -430,7 +429,7 @@ export function getBarbarianFeatureDescriptionAdditions(
   targetKey?: string
 ): SpellDescriptionEntry[][] {
   return getFeatureDescriptionAdditions(
-    compileFeatureContributions(collectBarbarianFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianFeatureContributions),
     target,
     {
       character: character as Character,

@@ -1,4 +1,5 @@
-import { CURRENCY_TYPE, type EquipmentCost } from "../../codex/entries";
+import { type EquipmentCost } from "../../codex/entries";
+import { CURRENCY_TYPE } from "../../codex/entries/enums";
 
 export function normalizeItemDecimalString(value: string | null | undefined) {
   if (!value) {

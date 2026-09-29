@@ -1,4 +1,4 @@
-import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
 import type {
   SubclassDerivedFeatureState,
   SubclassRuntimeCharacter,

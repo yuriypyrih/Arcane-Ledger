@@ -1,6 +1,9 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { spendClassResource } from "../../shared/resourceState";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { sorcererFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -10,7 +13,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -123,11 +126,7 @@ function hasSorcererDragonCompanionFeature(character: DraconicSorceryCharacter):
 
 function getSorcererFeatureRow(level: number | undefined) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(sorcererFeatures, normalizedLevel);
 }
 
 function getSorcererDraconicSorceryPointsTotal(
@@ -154,38 +153,16 @@ function getSorcererDraconicSorceryPointsRemaining(
 }
 
 function spendSorcererDraconicSorceryPoints(character: Character, cost: number): Character {
-  const normalizedCost = Math.max(0, Math.floor(cost));
-
-  if (normalizedCost <= 0) {
-    return character;
-  }
-
-  const totalPoints = getSorcererDraconicSorceryPointsTotal(character);
-  const remainingPoints = getSorcererDraconicSorceryPointsRemaining(character);
-
-  if (totalPoints <= 0 || remainingPoints < normalizedCost) {
-    return character;
-  }
-
-  const currentExpended = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
-  const nextExpended = Math.max(
-    0,
-    Math.min(
-      totalPoints,
-      (Number.isFinite(currentExpended) ? Math.floor(currentExpended) : 0) + normalizedCost
-    )
+  return spendClassResource(
+    character,
+    {
+      stateKey: "sorcerer",
+      counter: "sorceryPointsExpended",
+      total: getSorcererDraconicSorceryPointsTotal(character),
+      remaining: getSorcererDraconicSorceryPointsRemaining(character)
+    },
+    cost
   );
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        sorceryPointsExpended: nextExpended
-      }
-    }
-  };
 }
 
 export function getSorcererDraconicDragonWingsUsesTotal(
@@ -345,19 +322,13 @@ export function activateSorcererDragonWings(character: Character): Character {
   if (usesRemaining > 0) {
     const sorcererState = character.classFeatureState?.sorcerer ?? {};
 
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...sorcererState,
-          dragonWingsUsesExpended: Math.max(
-            0,
-            Math.min(dragonWingsUsesTotal, (sorcererState.dragonWingsUsesExpended ?? 0) + 1)
-          )
-        }
-      }
-    };
+    nextCharacter = replaceClassFeatureState(character, "sorcerer", {
+      ...sorcererState,
+      dragonWingsUsesExpended: Math.max(
+        0,
+        Math.min(dragonWingsUsesTotal, (sorcererState.dragonWingsUsesExpended ?? 0) + 1)
+      )
+    });
   } else {
     nextCharacter = spendSorcererDraconicSorceryPoints(
       character,
@@ -399,16 +370,10 @@ export function restoreSorcererDragonWingsOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        dragonWingsUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    dragonWingsUsesExpended: 0
+  });
 }
 
 export function consumeSorcererDragonCompanionUse(character: Character): Character {
@@ -424,16 +389,10 @@ export function consumeSorcererDragonCompanionUse(character: Character): Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        dragonCompanionUsesExpended: Math.min(totalUses, usesExpended + 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    dragonCompanionUsesExpended: Math.min(totalUses, usesExpended + 1)
+  });
 }
 
 export function restoreSorcererDragonCompanionOnLongRest(character: Character): Character {
@@ -447,16 +406,10 @@ export function restoreSorcererDragonCompanionOnLongRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        dragonCompanionUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    dragonCompanionUsesExpended: 0
+  });
 }
 
 export function normalizeSorcererDraconicElementalAffinityDamageType(
@@ -499,16 +452,10 @@ export function setSorcererDraconicElementalAffinityDamageTypeSelection(
 
   const sorcererState = character.classFeatureState?.sorcerer ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        draconicElementalAffinityDamageType: nextDamageType
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    draconicElementalAffinityDamageType: nextDamageType
+  });
 }
 
 export function getSorcererDraconicResilienceArmorClassModes(
@@ -678,7 +625,7 @@ function collectSorcererDraconicSorceryContributions(
 
 export const getSorcererDraconicSorceryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectSorcererDraconicSorceryContributions(character)),
+    getCompiledFeatureContributions(character, collectSorcererDraconicSorceryContributions),
     {
       character: character as Character
     }

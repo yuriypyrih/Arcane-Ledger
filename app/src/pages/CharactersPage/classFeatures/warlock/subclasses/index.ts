@@ -1,4 +1,4 @@
-import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,

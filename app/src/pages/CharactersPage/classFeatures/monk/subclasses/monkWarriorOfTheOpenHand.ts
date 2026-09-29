@@ -1,6 +1,8 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
@@ -19,7 +21,7 @@ import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -76,11 +78,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
   }
 
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(monkFeatures, normalizedLevel);
 }
 
 function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>): number | null {
@@ -284,17 +282,11 @@ export function grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character: Cha
 
   const monkState = character.classFeatureState?.monk ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn:
-          getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn:
+      getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) + 1
+  });
 }
 
 export function consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(
@@ -308,16 +300,10 @@ export function consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(
 
   const monkState = character.classFeatureState?.monk ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: usesRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: usesRemaining - 1
+  });
 }
 
 function spendMonkFocusPoints(character: Character, focusPointCost: number): Character | null {
@@ -334,16 +320,10 @@ function spendMonkFocusPoints(character: Character, focusPointCost: number): Cha
     ? Math.max(0, Math.floor(rawFocusPointsExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost)
+  });
 }
 
 export function activateMonkWarriorOfTheOpenHandWholenessOfBody(character: Character): Character {
@@ -360,17 +340,11 @@ export function activateMonkWarriorOfTheOpenHandWholenessOfBody(character: Chara
   const monkState = character.classFeatureState?.monk ?? {};
   const usesExpended = Number(monkState.warriorOfTheOpenHandWholenessOfBodyUsesExpended);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfTheOpenHandWholenessOfBodyUsesExpended:
-          (Number.isFinite(usesExpended) ? Math.max(0, Math.floor(usesExpended)) : 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfTheOpenHandWholenessOfBodyUsesExpended:
+      (Number.isFinite(usesExpended) ? Math.max(0, Math.floor(usesExpended)) : 0) + 1
+  });
 }
 
 export function restoreMonkWarriorOfTheOpenHandWholenessOfBodyOnLongRest(
@@ -386,16 +360,10 @@ export function restoreMonkWarriorOfTheOpenHandWholenessOfBodyOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfTheOpenHandWholenessOfBodyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfTheOpenHandWholenessOfBodyUsesExpended: 0
+  });
 }
 
 export function isMonkWarriorOfTheOpenHandQuiveringPalmActive(
@@ -642,7 +610,7 @@ export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectMonkWarriorOfTheOpenHandContributions(character)),
+    getCompiledFeatureContributions(character, collectMonkWarriorOfTheOpenHandContributions),
     {
       character: character as Character
     }

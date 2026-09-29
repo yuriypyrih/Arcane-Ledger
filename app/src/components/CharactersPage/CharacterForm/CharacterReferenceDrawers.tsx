@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  FEATS,
-  TRACKER,
   type BackgroundEntry,
   type ClassEntry,
   type DivinityEntry,
@@ -9,6 +7,7 @@ import {
   type SpellEntry,
   type SubclassEntry
 } from "../../../codex/entries";
+import { FEATS, TRACKER } from "../../../codex/entries/enums";
 import { formatCodexLabel } from "../../../utils/codex";
 import {
   renderCodexRichText,
@@ -135,7 +134,11 @@ function BackgroundReferenceDrawer({
   );
 }
 
-function SubclassReferenceDrawer({ entry, onClose, richTextOptions }: SubclassReferenceDrawerProps) {
+function SubclassReferenceDrawer({
+  entry,
+  onClose,
+  richTextOptions
+}: SubclassReferenceDrawerProps) {
   const featureRows = useMemo(
     () => [...entry.features].filter((row) => row.classFeatures.length > 0),
     [entry.features]
@@ -212,8 +215,9 @@ function CharacterReferenceDrawers({
     null
   );
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-  const [selectedFeatReference, setSelectedFeatReference] =
-    useState<SelectedFeatReference | null>(null);
+  const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
+    null
+  );
   const linkedReferenceBackdropClassName = styles.linkedReferenceBackdrop;
   const richTextOptions: RenderCodexRichTextOptions = {
     linkClassName: featureDisclosureStyles.inlineLinkButton,

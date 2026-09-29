@@ -1,5 +1,8 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import { paladinFeatures } from "../../../../codex/classes";
 import type { Character } from "../../../../types";
 import { CONDITION_NAME } from "../../../../types";
@@ -7,25 +10,13 @@ import { hasStatusCondition } from "../../statusEntries";
 
 export function getPaladinFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = paladinFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(paladinFeatures, normalizedLevel);
 }
 
 function getUnlockedPaladinFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return paladinFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(paladinFeatures, normalizedLevel);
 }
 
 export function hasPaladinFeature(
@@ -80,16 +71,10 @@ export function expendPaladinChannelDivinityUse(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...character.classFeatureState?.paladin,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...character.classFeatureState?.paladin,
+    channelDivinityUsesExpended: usesExpended + 1
+  });
 }
 
 export function hasActivePaladinAuraOfProtection(

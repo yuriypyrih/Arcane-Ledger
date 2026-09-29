@@ -1,9 +1,11 @@
-import { getCharacterLevel, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import {
+  getAppliedAbilityScoreBonus,
+  compareAbilityScoreBonusOrder
+} from "../../shared/abilityBonusMath";
+import { getCharacterLevel, getClassLevel } from "../../multiclassState";
 import { getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  DICE,
   getDivinityEntryById,
   getResolvedDivinityValue,
   type DivinityEntry,
@@ -11,6 +13,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, DICE } from "../../../../codex/entries/enums";
 import { getSpellEntryById } from "../../../../codex/selectors";
 import type {
   AbilityKey,
@@ -114,28 +117,6 @@ export {
   restoreClericChannelDivinityOnShortRest
 };
 
-function getAppliedAbilityScoreBonus(
-  currentScore: number,
-  value: number,
-  maxScore?: number | null
-): number {
-  const normalizedValue = Math.floor(value);
-
-  if (!Number.isFinite(normalizedValue) || normalizedValue === 0) {
-    return 0;
-  }
-
-  if (maxScore === null || maxScore === undefined) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue > 0) {
-    return Math.max(0, Math.min(normalizedValue, maxScore - currentScore));
-  }
-
-  return normalizedValue;
-}
-
 function getFeatAdjustedAbilityScore(
   character: Pick<Character, "abilities" | "level" | "feats"> &
     Partial<Pick<Character, "background" | "backgroundChoices">>,
@@ -148,24 +129,9 @@ function getFeatAdjustedAbilityScore(
     ...getFeatAbilityScoreBonusesForCharacter(character)
   ]
     .filter((bonus) => bonus.ability === ability)
-    .sort((left, right) => {
-      const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
-      const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
-
-      if (leftHasCap !== rightHasCap) {
-        return leftHasCap ? -1 : 1;
-      }
-
-      if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-        return (
-          (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
-        );
-      }
-
-      return (left.order ?? 0) - (right.order ?? 0);
-    })
+    .sort(compareAbilityScoreBonusOrder)
     .forEach((bonus) => {
-      total += getAppliedAbilityScoreBonus(total, bonus.value, bonus.maxScore);
+      total += getAppliedAbilityScoreBonus(total, bonus);
     });
 
   return total;
@@ -436,16 +402,10 @@ export function setClericDivineOrderChoice(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...normalizeClericFeatureState(character.classFeatureState?.cleric, character),
-        divineOrderChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...normalizeClericFeatureState(character.classFeatureState?.cleric, character),
+    divineOrderChoice
+  });
 }
 
 export function getClericBlessedStrikesChoice(
@@ -469,17 +429,11 @@ export function setClericBlessedStrikesChoice(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...normalizeClericFeatureState(character.classFeatureState?.cleric, character),
-        blessedStrikesChoice,
-        blessedStrikeUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...normalizeClericFeatureState(character.classFeatureState?.cleric, character),
+    blessedStrikesChoice,
+    blessedStrikeUsedThisTurn: false
+  });
 }
 
 export function markClericBlessedStrikeUsed(character: Character): Character {
@@ -496,16 +450,10 @@ export function markClericBlessedStrikeUsed(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    blessedStrikeUsedThisTurn: true
+  });
 }
 
 export function advanceClericFeaturesForNewRound(character: Character): Character {
@@ -1170,16 +1118,10 @@ export function activateClericDivineIntervention(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        divineInterventionUsed: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    divineInterventionUsed: true
+  });
 }
 
 export function activateClericPreserveLife(character: Character): Character {
@@ -1293,16 +1235,10 @@ export function restoreClericDivineInterventionOnLongRest(character: Character):
 
   const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        divineInterventionUsed: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    divineInterventionUsed: false
+  });
 }
 
 export function restoreClericDivineForeknowledgeOnLongRest(character: Character): Character {

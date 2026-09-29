@@ -1,15 +1,13 @@
 import type {
   ArmorEntry,
-  CLASS_FEATURE,
-  DICE,
   ItemEntry,
-  TRACKER,
   ReactionEntry,
   SpellDescriptionEntry,
   SpellEntry,
   WeaponEntry
 } from "../../../codex/entries";
-import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
+import type { CLASS_FEATURE, DICE, TRACKER } from "../../../codex/entries/enums";
+import { WEAPON_COMBAT_TYPE } from "../../../codex/entries/enums";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type { ACTION_CARD_THEME } from "../actionCardTheme";
 import type {

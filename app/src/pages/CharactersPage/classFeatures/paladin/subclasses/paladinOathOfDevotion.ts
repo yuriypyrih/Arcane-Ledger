@@ -1,11 +1,13 @@
+import { activatePaladinTimedFeature } from "../timedActivation";
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -18,7 +20,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { AbilityModifierBonusEntry } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -363,52 +365,14 @@ export function applyPaladinOathOfDevotionHolyNimbusStatus(character: Character)
 }
 
 export function activatePaladinOathOfDevotionHolyNimbus(character: Character): Character {
-  if (
-    !hasPaladinOathOfDevotionHolyNimbusFeature(character) ||
-    hasActivePaladinOathOfDevotionHolyNimbus(character)
-  ) {
-    return character;
-  }
-
-  const usesRemaining = getPaladinOathOfDevotionHolyNimbusUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const paladinState = character.classFeatureState?.paladin ?? {};
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        paladin: {
-          ...paladinState,
-          holyNimbusUsesExpended: (paladinState.holyNimbusUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getPaladinOathOfDevotionHolyNimbusFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSheetSpellSlotTotals(character);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyPaladinOathOfDevotionHolyNimbusStatus(nextCharacter);
+  return activatePaladinTimedFeature(character, {
+    hasFeature: hasPaladinOathOfDevotionHolyNimbusFeature,
+    isActive: hasActivePaladinOathOfDevotionHolyNimbus,
+    getRemaining: getPaladinOathOfDevotionHolyNimbusUsesRemaining,
+    counter: "holyNimbusUsesExpended",
+    getFallbackSlotLevel: getPaladinOathOfDevotionHolyNimbusFallbackSlotLevel,
+    applyStatus: applyPaladinOathOfDevotionHolyNimbusStatus
+  });
 }
 
 export function restorePaladinOathOfDevotionHolyNimbusOnLongRest(character: Character): Character {
@@ -422,16 +386,10 @@ export function restorePaladinOathOfDevotionHolyNimbusOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        holyNimbusUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    holyNimbusUsesExpended: 0
+  });
 }
 
 function getDamageBonusLabel(entry: FeatureDamageBonus): string | null {
@@ -821,7 +779,7 @@ function collectPaladinOathOfDevotionContributions(
 
 export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectPaladinOathOfDevotionContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinOathOfDevotionContributions),
     {
       character: character as Character
     }

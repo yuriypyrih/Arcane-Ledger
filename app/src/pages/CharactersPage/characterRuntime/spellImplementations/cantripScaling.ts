@@ -1,5 +1,5 @@
 import { getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
-import { getCharacterLevel } from "../../multiclass";
+import { getCharacterLevel } from "../../multiclassState";
 
 /** The codex opts each spell into its own scaling rule; never infer it from damage alone. */
 export function scaleCantripForCharacter(character: object, spell: SpellEntry): SpellEntry {

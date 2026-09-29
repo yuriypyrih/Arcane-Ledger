@@ -1,4 +1,5 @@
-import { FEATS, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
@@ -10,11 +11,8 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createChargesCardUsage, createChargesHeaderTag } from "../../classFeatures/cardUsage";
 import type { FeatureActionCard } from "../../classFeatures/types";
-import {
-  createCharacterStatusEntry,
-  normalizeCharacterStatusEntries
-} from "../../statusEntries";
-import { getFeatDefinition } from "..";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
+import { getFeatDefinition } from "../catalog";
 import {
   lordlyResolveStandardBearerActionKey,
   lordlyResolveStandardBearerStatusSourceId

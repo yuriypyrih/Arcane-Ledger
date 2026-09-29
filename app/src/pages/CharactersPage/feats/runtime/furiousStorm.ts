@@ -1,8 +1,5 @@
-import {
-  DAMAGE_TYPE,
-  FEATS,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE, FEATS } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -13,8 +10,7 @@ import {
 import { filterDescriptionEntries } from "./descriptionMatchers";
 
 const boonOfFuriousStormSource = "Boon of the Furious Storm";
-const boonOfFuriousStormEyeOfTheStormSourceId =
-  "feat-boon-of-furious-storm-eye-of-the-storm";
+const boonOfFuriousStormEyeOfTheStormSourceId = "feat-boon-of-furious-storm-eye-of-the-storm";
 const boonOfFuriousStormDamageTypes = [DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER] as const;
 
 type FeatDescriptionGetter = (feat: FEATS) => SpellDescriptionEntry[];

@@ -1,4 +1,10 @@
-import { getCharacterLevel, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getCharacterLevel, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import {
+  type ReactionEntry,
+  type SpellDescriptionEntry,
+  type WeaponDamage
+} from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
   DICE,
@@ -6,11 +12,8 @@ import {
   REACTION,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type ReactionEntry,
-  type SpellDescriptionEntry,
-  type WeaponDamage
-} from "../../../../../codex/entries";
+  WEAPON_TRAINING
+} from "../../../../../codex/entries/enums";
 import {
   ARMOR_PROFICIENCY,
   SKILL,
@@ -37,7 +40,7 @@ import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "..
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -599,17 +602,11 @@ export function activateArtificerArmorerArcaneArmor(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        armorerArcaneArmorTargetKey: wornArmor.key,
-        armorerArmorModel: armorModel
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    armorerArcaneArmorTargetKey: wornArmor.key,
+    armorerArmorModel: armorModel
+  });
 }
 
 export function activateArtificerArmorerArcaneArmorOption(
@@ -1219,16 +1216,10 @@ export function restoreArtificerArmorerGiantStatureOnLongRest(character: Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        armorerGiantStatureUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    armorerGiantStatureUsesExpended: 0
+  });
 }
 
 export function consumeArtificerArmorerPerfectedArmorGuardianUse(character: Character): Character {
@@ -1246,16 +1237,10 @@ export function consumeArtificerArmorerPerfectedArmorGuardianUse(character: Char
     usesTotal
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        armorerPerfectedArmorGuardianUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    armorerPerfectedArmorGuardianUsesExpended: usesExpended + 1
+  });
 }
 
 export function restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(
@@ -1277,16 +1262,10 @@ export function restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        armorerPerfectedArmorGuardianUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    armorerPerfectedArmorGuardianUsesExpended: 0
+  });
 }
 
 function getArtificerArmorerInfiltratorsFlightAction(
@@ -1400,16 +1379,10 @@ export function restoreArtificerArmorerInfiltratorsFlightOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        armorerInfiltratorsFlightUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    armorerInfiltratorsFlightUsesExpended: 0
+  });
 }
 
 export function getArtificerArmorerWeaponAttackMultiCount(
@@ -1453,16 +1426,10 @@ export function consumeArtificerArmorerWeaponAttack(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function advanceArtificerArmorerFeaturesForNewRound(character: Character): Character {
@@ -1476,16 +1443,10 @@ export function advanceArtificerArmorerFeaturesForNewRound(character: Character)
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        extraAttacksRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    extraAttacksRemainingThisTurn: 0
+  });
 }
 
 function getArtificerArmorerInfiltratorSpeedBonuses(
@@ -1699,7 +1660,7 @@ export function collectArtificerArmorerContributions(
 
 export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectArtificerArmorerContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerArmorerContributions),
     {
       character: character as Character
     }

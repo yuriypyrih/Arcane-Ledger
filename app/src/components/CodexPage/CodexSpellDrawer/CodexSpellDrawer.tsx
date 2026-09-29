@@ -1,17 +1,12 @@
+import { useNestedReferences } from "../useNestedReferences";
+import { NestedReferenceDrawers } from "../NestedReferenceDrawers";
 import { lazy, Suspense, useState } from "react";
 import CellContainer from "../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../ConcentrationLabel";
 import SpellSubtitle from "../../SpellSubtitle";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
-import {
-  ENTRY_CATEGORIES,
-  FEATS,
-  KeywordTooltip,
-  TRACKER,
-  getSpellTrackingState,
-  type DivinityEntry,
-  type SpellEntry
-} from "../../../codex/entries";
+import { KeywordTooltip, getSpellTrackingState, type SpellEntry } from "../../../codex/entries";
+import { ENTRY_CATEGORIES, TRACKER } from "../../../codex/entries/enums";
 import type { CharacterCustomTraitEffect } from "../../../types";
 import {
   OverlayBadge,
@@ -26,10 +21,7 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../Overlay";
-import {
-  resolveKeywordReference,
-  type ResolvedKeywordReference
-} from "../../../utils/codex/renderCodexRichText";
+import { resolveKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import { FeatureTrackingBadgeButton } from "../../FeatureDisclosure";
 import {
   formatCodexLabel,
@@ -46,17 +38,9 @@ import {
 } from "../../../pages/CharactersPage/shared/spellFormulas";
 import CustomTraitEffectList from "../../CharactersPage/CharacterSheetPage/GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectList";
 import styles from "./CodexSpellDrawer.module.css";
-
-const CodexDivinityDrawer = lazy(() => import("../CodexDivinityDrawer/CodexDivinityDrawer"));
-const CodexFeatDrawer = lazy(() => import("../CodexFeatDrawer/CodexFeatDrawer"));
 const KeywordReferenceDrawer = lazy(
   () => import("../../KeywordReferenceDrawer/KeywordReferenceDrawer")
 );
-
-type SelectedFeatReference = {
-  feat: FEATS;
-  label: string;
-};
 
 type CodexSpellDrawerProps = {
   spell: SpellEntry;
@@ -82,14 +66,14 @@ function CodexSpellDrawer({
   isCustomSpell = false
 }: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
-  const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
-  const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
-    null
-  );
-  const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-  const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
-    null
-  );
+  const references = useNestedReferences();
+  const {
+    setSelectedSpellReference,
+    setSelectedDivinityReference,
+    setSelectedKeyword,
+    setSelectedFeatReference
+  } = references;
+
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
   const spellFormulaCells = [
@@ -114,25 +98,7 @@ function CodexSpellDrawer({
         backdropClassName={backdropClassName}
         stacked={stacked}
         onEscape={() => {
-          if (selectedFeatReference) {
-            setSelectedFeatReference(null);
-            return;
-          }
-
-          if (selectedKeyword) {
-            setSelectedKeyword(null);
-            return;
-          }
-
-          if (selectedDivinityReference) {
-            setSelectedDivinityReference(null);
-            return;
-          }
-
-          if (selectedSpellReference) {
-            setSelectedSpellReference(null);
-            return;
-          }
+          if (references.closeTopReference()) return;
 
           if (isComponentsTooltipOpen) {
             setIsComponentsTooltipOpen(false);
@@ -256,47 +222,11 @@ function CodexSpellDrawer({
             onClose={() => setIsComponentsTooltipOpen(false)}
           />
         ) : null}
-        {selectedSpellReference ? (
-          <CodexSpellDrawer
-            spell={selectedSpellReference}
-            backdropClassName={backdropClassName}
-            stacked
-            onClose={() => setSelectedSpellReference(null)}
-          />
-        ) : null}
-        {selectedDivinityReference ? (
-          <CodexDivinityDrawer
-            divinity={selectedDivinityReference}
-            backdropClassName={backdropClassName}
-            stacked
-            onClose={() => setSelectedDivinityReference(null)}
-          />
-        ) : null}
-        {selectedKeyword ? (
-          <KeywordReferenceDrawer
-            title={selectedKeyword.title}
-            entries={[
-              {
-                title: selectedKeyword.title,
-                description: selectedKeyword.description,
-                trackingMessage: selectedKeyword.trackingMessage
-              }
-            ]}
-            badgeLabel="Keyword"
-            backdropClassName={backdropClassName}
-            stacked
-            onClose={() => setSelectedKeyword(null)}
-          />
-        ) : null}
-        {selectedFeatReference ? (
-          <CodexFeatDrawer
-            feat={selectedFeatReference.feat}
-            label={selectedFeatReference.label}
-            backdropClassName={backdropClassName}
-            stacked
-            onClose={() => setSelectedFeatReference(null)}
-          />
-        ) : null}
+        <NestedReferenceDrawers
+          references={references}
+          backdropClassName={backdropClassName}
+          stacked
+        />
       </Suspense>
     </>
   );

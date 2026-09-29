@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   STATUS_DURATION_KIND,
@@ -33,7 +34,7 @@ import type {
 import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -527,16 +528,10 @@ export function consumeBarbarianPathOfTheZealotWarriorOfTheGodsCharges(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        warriorOfTheGodsUsesExpended: (rageState.warriorOfTheGodsUsesExpended ?? 0) + chargesToSpend
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    warriorOfTheGodsUsesExpended: (rageState.warriorOfTheGodsUsesExpended ?? 0) + chargesToSpend
+  });
 }
 
 export function activateBarbarianPathOfTheZealotZealousPresence(
@@ -554,32 +549,24 @@ export function activateBarbarianPathOfTheZealotZealousPresence(
   );
 
   if (usesRemaining > 0) {
-    return applyBarbarianPathOfTheZealotZealousPresenceStatus({
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        rage: {
-          ...rageState,
-          zealousPresenceUsesExpended: (rageState.zealousPresenceUsesExpended ?? 0) + 1
-        }
-      }
-    });
+    return applyBarbarianPathOfTheZealotZealousPresenceStatus(
+      replaceClassFeatureState(character, "rage", {
+        ...rageState,
+        zealousPresenceUsesExpended: (rageState.zealousPresenceUsesExpended ?? 0) + 1
+      })
+    );
   }
 
   if (rageUsesRemaining <= 0) {
     return character;
   }
 
-  return applyBarbarianPathOfTheZealotZealousPresenceStatus({
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: rageState.usesExpended + 1
-      }
-    }
-  });
+  return applyBarbarianPathOfTheZealotZealousPresenceStatus(
+    replaceClassFeatureState(character, "rage", {
+      ...rageState,
+      usesExpended: rageState.usesExpended + 1
+    })
+  );
 }
 
 export function consumeBarbarianPathOfTheZealotDivineFuryBonus(
@@ -594,16 +581,10 @@ export function consumeBarbarianPathOfTheZealotDivineFuryBonus(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        divineFuryUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    divineFuryUsedThisTurn: true
+  });
 }
 
 export function restoreBarbarianPathOfTheZealotWarriorOfTheGodsOnLongRest(
@@ -618,16 +599,10 @@ export function restoreBarbarianPathOfTheZealotWarriorOfTheGodsOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        warriorOfTheGodsUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    warriorOfTheGodsUsesExpended: 0
+  });
 }
 
 export function restoreBarbarianPathOfTheZealotZealousPresenceOnLongRest(
@@ -642,16 +617,10 @@ export function restoreBarbarianPathOfTheZealotZealousPresenceOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        zealousPresenceUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    zealousPresenceUsesExpended: 0
+  });
 }
 
 export function restoreBarbarianPathOfTheZealotRageOfTheGodsOnLongRest(
@@ -666,16 +635,10 @@ export function restoreBarbarianPathOfTheZealotRageOfTheGodsOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        rageOfTheGodsUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    rageOfTheGodsUsesExpended: 0
+  });
 }
 
 function appendDivineFuryDescription(
@@ -796,7 +759,7 @@ export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeReso
   character
 ) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBarbarianPathOfTheZealotContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianPathOfTheZealotContributions),
     {
       character: character as Character
     }

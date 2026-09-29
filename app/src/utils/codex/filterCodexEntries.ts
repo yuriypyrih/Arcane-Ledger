@@ -1,14 +1,16 @@
 import {
-  ACTION_TYPE,
-  DURATION,
-  ENTRY_CATEGORIES,
   type CodexCategory,
   type CodexEntry,
   type BackgroundSource,
-  type SpeciesSource,
+  type SpeciesSource
+} from "../../codex/entries";
+import {
+  ACTION_TYPE,
+  DURATION,
+  ENTRY_CATEGORIES,
   type MAGIC_SCHOOL,
   type SPELL_LIST_CLASS
-} from "../../codex/entries";
+} from "../../codex/entries/enums";
 
 export const CODEX_FEATS_CATEGORY = "FEATS" as const;
 

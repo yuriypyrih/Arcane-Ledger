@@ -1,5 +1,6 @@
-import { getCharacterLevel } from "../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../codex/entries";
+import { getCharacterLevel } from "../multiclassState";
+import { type SpellDescriptionEntry } from "../../../codex/entries";
+import { CLASS_FEATURE } from "../../../codex/entries/enums";
 import type { AbilityKey, Character, CoreStats } from "../../../types";
 import {
   getArmorClassResolutionForCharacter,

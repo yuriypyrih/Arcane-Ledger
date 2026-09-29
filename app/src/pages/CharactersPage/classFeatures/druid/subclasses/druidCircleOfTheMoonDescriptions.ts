@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
   type DruidFeatureDescriptionCharacter,

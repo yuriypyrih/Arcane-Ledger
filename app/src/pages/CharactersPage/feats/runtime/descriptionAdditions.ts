@@ -1,14 +1,14 @@
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
   FEATS,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
-  WEAPON_PROPERTY,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+  WEAPON_PROPERTY
+} from "../../../../codex/entries/enums";
 import type { AbilityKey, Character } from "../../../../types";
 import type { FeatureActionCard } from "../../classFeatures/types";
 import { getFeatureDescriptionAdditions } from "../../featureContributions";
-import { getFeatLabel } from "..";
+import { getFeatLabel } from "../catalog";
 import { featDescriptionTargetKeys } from "./descriptionContributions";
 import { collectFeatDerivedState, hasFeatForCharacter } from "./state";
 import type { FeatRuntimeCharacter } from "./types";
@@ -228,11 +228,7 @@ function getFeatDescriptionEntriesForTarget(
 export function getAthleteSpeedDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  return getFeatDescriptionAdditionsForTarget(
-    character,
-    "stat",
-    featDescriptionTargetKeys.speed
-  );
+  return getFeatDescriptionAdditionsForTarget(character, "stat", featDescriptionTargetKeys.speed);
 }
 
 export function getChargerDashDescriptionAdditionsForCharacter(
@@ -556,9 +552,7 @@ export function getChefShortRestDescriptionAdditionsForCharacter(
     "rest",
     featDescriptionTargetKeys.shortRest
   ).filter((section) =>
-    section.some((entry) =>
-      typeof entry === "string" ? entry.includes("<strong>Chef.") : false
-    )
+    section.some((entry) => (typeof entry === "string" ? entry.includes("<strong>Chef.") : false))
   );
 }
 
@@ -570,9 +564,7 @@ export function getChefLongRestDescriptionAdditionsForCharacter(
     "rest",
     featDescriptionTargetKeys.longRest
   ).filter((section) =>
-    section.some((entry) =>
-      typeof entry === "string" ? entry.includes("<strong>Chef.") : false
-    )
+    section.some((entry) => (typeof entry === "string" ? entry.includes("<strong>Chef.") : false))
   );
 }
 

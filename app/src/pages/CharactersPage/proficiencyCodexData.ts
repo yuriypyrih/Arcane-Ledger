@@ -1,16 +1,18 @@
 import {
-  ARMOR_TYPES,
-  ENTRY_CATEGORIES,
-  ITEM_TYPES,
-  WEAPON_BASE,
-  WEAPON_COMBAT_TYPE,
-  WEAPON_PROPERTY,
   type ArmorEntry,
   type BackgroundEntry,
   type ItemEntry,
   type SpeciesEntry,
   type WeaponEntry
 } from "../../codex/entries";
+import {
+  ARMOR_TYPES,
+  ENTRY_CATEGORIES,
+  ITEM_TYPES,
+  WEAPON_BASE,
+  WEAPON_COMBAT_TYPE,
+  WEAPON_PROPERTY
+} from "../../codex/entries/enums";
 import { getBackgroundEntries, getLoadoutEntries, getSpeciesEntries } from "../../codex/selectors";
 import { psychicBladeWeaponName } from "../../codex/entries/featureWeapons";
 import type { ArmorType } from "./proficiencyClassData";

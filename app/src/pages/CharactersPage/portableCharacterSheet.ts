@@ -1,4 +1,5 @@
-import { readMulticlass } from "./multiclass";
+import { isObjectRecord } from "../../utils/normalize";
+import { readMulticlass } from "./multiclassState";
 import type {
   CharacterAvatarMetadata,
   CharacterBackgroundTextureMetadata,
@@ -7,17 +8,13 @@ import type {
   CharacterSheetSyncStatus,
   CharacterSyncMetadata
 } from "../../types";
-import { PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION } from "../../types";
+import { PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION } from "../../types/characterSheets";
 import { getSerializedJsonSizeBytes, normalizeSheetSizeBytes } from "./characterSheetSize";
 import {
   getCharacterBackgroundDisplayName,
   getCharacterClassDisplayName,
   getCharacterSpeciesDisplayName
 } from "./customOrigins";
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function readNumber(value: unknown): number | null {
   const numberValue = Number(value);

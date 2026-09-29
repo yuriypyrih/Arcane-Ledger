@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { memo, type ReactNode } from "react";
-import { DURATION, type SpellEntry } from "../../codex/entries";
+import { type SpellEntry } from "../../codex/entries";
+import { DURATION } from "../../codex/entries/enums";
 import ActionShape, { getActionShapeForCastingTime, type ActionShapeType } from "../ActionShape";
 import Checkbox from "../CharactersPage/FormInputs/Checkbox";
 import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";

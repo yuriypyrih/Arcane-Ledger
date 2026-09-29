@@ -1,6 +1,9 @@
+import { activatePaladinTimedFeature } from "../timedActivation";
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -11,7 +14,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -553,52 +556,14 @@ export function activatePaladinOathOfVengeanceVowOfEnmity(character: Character):
 }
 
 export function activatePaladinOathOfVengeanceAvengingAngel(character: Character): Character {
-  if (
-    !hasPaladinOathOfVengeanceAvengingAngelFeature(character) ||
-    hasActivePaladinOathOfVengeanceAvengingAngel(character)
-  ) {
-    return character;
-  }
-
-  const usesRemaining = getPaladinOathOfVengeanceAvengingAngelUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const paladinState = character.classFeatureState?.paladin ?? {};
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        paladin: {
-          ...paladinState,
-          avengingAngelUsesExpended: (paladinState.avengingAngelUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getPaladinOathOfVengeanceAvengingAngelFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSheetSpellSlotTotals(character);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyPaladinOathOfVengeanceAvengingAngelStatus(nextCharacter);
+  return activatePaladinTimedFeature(character, {
+    hasFeature: hasPaladinOathOfVengeanceAvengingAngelFeature,
+    isActive: hasActivePaladinOathOfVengeanceAvengingAngel,
+    getRemaining: getPaladinOathOfVengeanceAvengingAngelUsesRemaining,
+    counter: "avengingAngelUsesExpended",
+    getFallbackSlotLevel: getPaladinOathOfVengeanceAvengingAngelFallbackSlotLevel,
+    applyStatus: applyPaladinOathOfVengeanceAvengingAngelStatus
+  });
 }
 
 export function restorePaladinOathOfVengeanceAvengingAngelOnLongRest(
@@ -614,16 +579,10 @@ export function restorePaladinOathOfVengeanceAvengingAngelOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        avengingAngelUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    avengingAngelUsesExpended: 0
+  });
 }
 
 function collectPaladinOathOfVengeanceContributions(
@@ -739,7 +698,7 @@ function collectPaladinOathOfVengeanceContributions(
 
 export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectPaladinOathOfVengeanceContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinOathOfVengeanceContributions),
     {
       character: character as Character
     }

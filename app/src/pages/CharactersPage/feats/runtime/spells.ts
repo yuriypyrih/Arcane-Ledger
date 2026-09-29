@@ -1,9 +1,6 @@
-import {
-  FEATS,
-  SPELL_LIST_CLASS,
-  getSpellEntryById,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { cantripChoices } from "../cantripChoices";
+import { getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
+import { FEATS, SPELL_LIST_CLASS } from "../../../../codex/entries/enums";
 import { getSpellEntriesForSpellListClass } from "../../../../codex/classes/spellAccess";
 import type { CharacterFeatEntry, MagicInitiateChoice } from "../../../../types";
 import {
@@ -16,18 +13,6 @@ import {
   telekineticMageHandSpellId,
   telepathicDetectThoughtsSpellId
 } from "./constants";
-
-const blessedWarriorCantripOptionsById = new Map(
-  getSpellEntriesForSpellListClass(SPELL_LIST_CLASS.CLERIC)
-    .filter((spell) => spell.spellLevel === 0)
-    .map((spell) => [spell.id, spell] as const)
-);
-
-const druidicWarriorCantripOptionsById = new Map(
-  getSpellEntriesForSpellListClass(SPELL_LIST_CLASS.DRUID)
-    .filter((spell) => spell.spellLevel === 0)
-    .map((spell) => [spell.id, spell] as const)
-);
 
 const magicInitiateSpellLists = [
   SPELL_LIST_CLASS.CLERIC,
@@ -65,19 +50,10 @@ const magicInitiateLevelOneSpellOptionsBySpellListAndId = new Map<
 
 export function getFeatCantripEntries(entry: CharacterFeatEntry): SpellEntry[] {
   if (entry.feat === FEATS.BLESSED_WARRIOR && entry.blessedWarrior) {
-    return entry.blessedWarrior.cantripIds.flatMap((cantripId) => {
-      const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
-
-      return cantrip ? [cantrip] : [];
-    });
+    return cantripChoices[FEATS.BLESSED_WARRIOR].getEntries(entry.blessedWarrior);
   }
-
   if (entry.feat === FEATS.DRUIDIC_WARRIOR && entry.druidicWarrior) {
-    return entry.druidicWarrior.cantripIds.flatMap((cantripId) => {
-      const cantrip = druidicWarriorCantripOptionsById.get(cantripId);
-
-      return cantrip ? [cantrip] : [];
-    });
+    return cantripChoices[FEATS.DRUIDIC_WARRIOR].getEntries(entry.druidicWarrior);
   }
 
   if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
@@ -101,9 +77,7 @@ export function getFeatCantripEntries(entry: CharacterFeatEntry): SpellEntry[] {
   return [];
 }
 
-export function getMagicInitiateLevelOneSpellEntry(
-  entry: CharacterFeatEntry
-): SpellEntry | null {
+export function getMagicInitiateLevelOneSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
   if (entry.feat !== FEATS.MAGIC_INITIATE || !entry.magicInitiate) {
     return null;
   }
@@ -115,9 +89,7 @@ export function getMagicInitiateLevelOneSpellEntry(
   );
 }
 
-export function getEmeraldEnclaveFledglingSpellEntry(
-  entry: CharacterFeatEntry
-): SpellEntry | null {
+export function getEmeraldEnclaveFledglingSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
   if (entry.feat !== FEATS.EMERALD_ENCLAVE_FLEDGLING || !entry.emeraldEnclaveFledgling) {
     return null;
   }
@@ -189,9 +161,7 @@ export function getShadowTouchedSpellEntries(entry: CharacterFeatEntry): SpellEn
   });
 }
 
-export function getTelekineticMageHandSpellEntry(
-  entry: CharacterFeatEntry
-): SpellEntry | null {
+export function getTelekineticMageHandSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
   if (entry.feat !== FEATS.TELEKINETIC || !entry.telekinetic) {
     return null;
   }

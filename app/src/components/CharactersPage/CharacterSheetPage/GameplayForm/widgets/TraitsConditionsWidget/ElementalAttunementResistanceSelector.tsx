@@ -1,4 +1,4 @@
-import { type DAMAGE_TYPE } from "../../../../../../codex/entries";
+import { type DAMAGE_TYPE } from "../../../../../../codex/entries/enums";
 import { formatCodexLabel } from "../../../../../../utils/codex";
 import { monkWarriorOfTheElementsElementalResistanceDamageTypeOptions } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";

@@ -1,17 +1,9 @@
-import { useState, type ReactNode } from "react";
-import type {
-  DivinityEntry,
-  FEATS,
-  SpellDescriptionEntry,
-  SpellEntry
-} from "../../../../../../codex/entries";
+import { useNestedReferences } from "../../../../../CodexPage/useNestedReferences";
+import { NestedReferenceDrawers } from "../../../../../CodexPage/NestedReferenceDrawers";
+import { type ReactNode } from "react";
+import type { SpellDescriptionEntry } from "../../../../../../codex/entries";
 import DescriptionContent from "../../../../../DescriptionContent/DescriptionContent";
-import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer,
-  LazyCodexFeatDrawer as CodexFeatDrawer,
-  LazyCodexSpellDrawer as CodexSpellDrawer
-} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
+
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -28,7 +20,7 @@ import type {
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import { orderDescriptionAdditionSections } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
-import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
+
 import FeatureActionFacts from "./FeatureActionFacts";
 import FeatureActionHeaderTags from "./FeatureActionHeaderTags";
 import styles from "./GameplayActionDrawer.module.css";
@@ -76,15 +68,14 @@ function GameplayActionDrawer({
   backdropClassName,
   drawerClassName
 }: GameplayActionDrawerProps) {
-  const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
-  const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
-    null
-  );
-  const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-  const [selectedFeatReference, setSelectedFeatReference] = useState<{
-    feat: FEATS;
-    label: string;
-  } | null>(null);
+  const references = useNestedReferences();
+  const {
+    setSelectedSpellReference,
+    setSelectedDivinityReference,
+    setSelectedKeyword,
+    setSelectedFeatReference
+  } = references;
+
   const hasBaseDescription = description.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const hasHeaderAside = headerTags.length > 0 || Boolean(headerAside) || badges.length > 0;
@@ -95,25 +86,7 @@ function GameplayActionDrawer({
         titleId="gameplay-action-drawer-title"
         onClose={onClose}
         onEscape={() => {
-          if (selectedFeatReference) {
-            setSelectedFeatReference(null);
-            return;
-          }
-
-          if (selectedKeyword) {
-            setSelectedKeyword(null);
-            return;
-          }
-
-          if (selectedDivinityReference) {
-            setSelectedDivinityReference(null);
-            return;
-          }
-
-          if (selectedSpellReference) {
-            setSelectedSpellReference(null);
-            return;
-          }
+          if (references.closeTopReference()) return;
 
           onClose();
         }}
@@ -218,43 +191,7 @@ function GameplayActionDrawer({
         </div>
       </SheetDrawer>
 
-      {selectedSpellReference ? (
-        <CodexSpellDrawer
-          spell={selectedSpellReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedSpellReference(null)}
-        />
-      ) : null}
-      {selectedDivinityReference ? (
-        <CodexDivinityDrawer
-          divinity={selectedDivinityReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedDivinityReference(null)}
-        />
-      ) : null}
-      {selectedKeyword ? (
-        <KeywordReferenceDrawer
-          title={selectedKeyword.title}
-          entries={[
-            {
-              title: selectedKeyword.title,
-              description: selectedKeyword.description,
-              trackingMessage: selectedKeyword.trackingMessage
-            }
-          ]}
-          badgeLabel="Keyword"
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedKeyword(null)}
-        />
-      ) : null}
-      {selectedFeatReference ? (
-        <CodexFeatDrawer
-          feat={selectedFeatReference.feat}
-          label={selectedFeatReference.label}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedFeatReference(null)}
-        />
-      ) : null}
+      <NestedReferenceDrawers references={references} backdropClassName={backdropClassName} />
     </>
   );
 }

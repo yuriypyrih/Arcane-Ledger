@@ -1,12 +1,11 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  REACTION,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   getSkillProficiencyForSkillName,
@@ -33,7 +32,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -306,16 +305,10 @@ export function setWizardBladesingerTrainingInWarAndSongSkillSelection(
       ? undefined
       : normalizeWizardBladesingerTrainingInWarAndSongSkillSelection(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...character.classFeatureState?.wizard,
-        trainingInWarAndSongSkill: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...character.classFeatureState?.wizard,
+    trainingInWarAndSongSkill: normalizedSelection
+  });
 }
 
 function getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(
@@ -430,16 +423,10 @@ export function applyWizardBladesingerFeaturesAfterSpellCast(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...character.classFeatureState?.wizard,
-        spellcastWeaponBonusActionAvailable: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...character.classFeatureState?.wizard,
+    spellcastWeaponBonusActionAvailable: true
+  });
 }
 
 export function consumeWizardBladesingerWeaponAttack(
@@ -496,16 +483,10 @@ export function consumeWizardBladesingerWeaponAttack(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...rawWizardState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...rawWizardState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function consumeWizardBladesingerActionCantrip(character: Character): Character {
@@ -543,17 +524,11 @@ export function consumeWizardBladesingerActionCantrip(character: Character): Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...rawWizardState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
-        bladesingerCantripReplacementUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...rawWizardState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
+    bladesingerCantripReplacementUsedThisTurn: true
+  });
 }
 
 export function advanceWizardBladesingerFeaturesForNewRound(character: Character): Character {
@@ -571,18 +546,12 @@ export function advanceWizardBladesingerFeaturesForNewRound(character: Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...character.classFeatureState?.wizard,
-        extraAttacksRemainingThisTurn: 0,
-        bladesingerCantripReplacementUsedThisTurn: false,
-        spellcastWeaponBonusActionAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...character.classFeatureState?.wizard,
+    extraAttacksRemainingThisTurn: 0,
+    bladesingerCantripReplacementUsedThisTurn: false,
+    spellcastWeaponBonusActionAvailable: false
+  });
 }
 
 export function hasActiveWizardBladesong(
@@ -787,16 +756,10 @@ export function restoreWizardBladesongOnLongRest(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        bladesongUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    bladesongUsesExpended: 0
+  });
 }
 
 export function restoreWizardBladesongUseOnArcaneRecovery(character: Character): Character {
@@ -811,16 +774,10 @@ export function restoreWizardBladesongUseOnArcaneRecovery(character: Character):
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        bladesongUsesExpended: expendedUses - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    bladesongUsesExpended: expendedUses - 1
+  });
 }
 
 function getWizardBladesongArmorClassBonuses(
@@ -1005,7 +962,7 @@ export function collectWizardBladesingerContributions(
 
 export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWizardBladesingerContributions(character)),
+    getCompiledFeatureContributions(character, collectWizardBladesingerContributions),
     {
       character: character as Character
     }

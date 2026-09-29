@@ -1,4 +1,4 @@
-import { hasCharacterClass } from "../../../../../../pages/CharactersPage/multiclass";
+import { hasCharacterClass } from "../../../../../../pages/CharactersPage/multiclassState";
 import type { Character } from "../../../../../../types";
 import {
   createEconomyMultiContextForWeaponAction,

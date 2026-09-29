@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from "../../codex/entries";
+import { type SpellDescriptionEntry } from "../../codex/entries";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../codex/entries/enums";
 import type { Character } from "../../types";
 import { ECONOMY_TYPE } from "./actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "./actionModalDescriptions";
@@ -196,16 +197,24 @@ export function getWeaponActionDrawerDescriptionAdditions(
   injectedSections.push(
     ...getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
-  injectedSections.push(...getArcheryWeaponActionDescriptionAdditionsForCharacter(character, action));
-  injectedSections.push(...getDuelingWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(
+    ...getArcheryWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getDuelingWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
   injectedSections.push(
     ...getThrownWeaponFightingWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
   injectedSections.push(
     ...getTwoWeaponFightingWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
-  injectedSections.push(...getChargerWeaponActionDescriptionAdditionsForCharacter(character, action));
-  injectedSections.push(...getCrusherWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(
+    ...getChargerWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getCrusherWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
   injectedSections.push(
     ...getPiercerWeaponActionDescriptionAdditionsForCharacter(character, action)
   );

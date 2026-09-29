@@ -1,10 +1,11 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   ABILITY_TYPES,
   CLASS_FEATURE,
   DAMAGE_TYPE,
   SPELL_LIST_CLASS
-} from "../../../../../codex/entries";
+} from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterDruidFeatureState,
@@ -20,7 +21,7 @@ import {
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -163,16 +164,10 @@ export function setDruidCircleOfTheLandChoice(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        circleOfTheLandChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    circleOfTheLandChoice
+  });
 }
 
 export function getDruidNaturalRecoveryUsesTotal(
@@ -209,19 +204,13 @@ export function consumeDruidNaturalRecoveryUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        naturalRecoveryUsesExpended: Math.min(
-          getDruidNaturalRecoveryUsesTotal(character),
-          (druidState.naturalRecoveryUsesExpended ?? 0) + 1
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    naturalRecoveryUsesExpended: Math.min(
+      getDruidNaturalRecoveryUsesTotal(character),
+      (druidState.naturalRecoveryUsesExpended ?? 0) + 1
+    )
+  });
 }
 
 export function restoreDruidNaturalRecoveryOnLongRest(
@@ -235,16 +224,10 @@ export function restoreDruidNaturalRecoveryOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        naturalRecoveryUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    naturalRecoveryUsesExpended: 0
+  });
 }
 
 export function activateDruidLandsAid(character: Character): Character {
@@ -565,7 +548,7 @@ export function collectDruidCircleOfTheLandContributions(
 
 export const getDruidCircleOfTheLandDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectDruidCircleOfTheLandContributions(character)),
+    getCompiledFeatureContributions(character, collectDruidCircleOfTheLandContributions),
     {
       character: character as Character
     }

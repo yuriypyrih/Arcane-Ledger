@@ -1,21 +1,18 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   isSpellFromClass,
   hasCharacterClass,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  MAGIC_SCHOOL,
-  SPELL_LIST_CLASS,
-  type SpellEntry
-} from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { Character } from "../../../../../types";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -178,16 +175,10 @@ export function applyWizardEvokerOverchannelUse(character: Character): Character
   const wizardState = character.classFeatureState?.wizard ?? {};
   const nextUsesSinceLongRest = getWizardEvokerOverchannelUsesSinceLongRest(character) + 1;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        overchannelUsesSinceLongRest: nextUsesSinceLongRest
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    overchannelUsesSinceLongRest: nextUsesSinceLongRest
+  });
 }
 
 export function restoreWizardEvokerOverchannelOnLongRest(character: Character): Character {
@@ -201,16 +192,10 @@ export function restoreWizardEvokerOverchannelOnLongRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        overchannelUsesSinceLongRest: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    overchannelUsesSinceLongRest: 0
+  });
 }
 
 function appendWizardEvokerPotentCantripDescription(
@@ -354,7 +339,7 @@ export function collectWizardEvokerContributions(
 
 export const getWizardEvokerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWizardEvokerContributions(character)),
+    getCompiledFeatureContributions(character, collectWizardEvokerContributions),
     {
       character: character as Character
     }

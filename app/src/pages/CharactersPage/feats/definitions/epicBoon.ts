@@ -1,4 +1,4 @@
-import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries";
+import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries/enums";
 import type { FeatDefinition } from "../types";
 
 export const epicBoonFeatDefinitions: FeatDefinition[] = [

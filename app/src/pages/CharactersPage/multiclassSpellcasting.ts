@@ -1,11 +1,11 @@
 import type { Character, CharacterClassEntry } from "../../types";
 import { getCastingProgression } from "../../codex/classes/multiclass";
+import { applyClassEditorChange } from "./multiclass";
 import {
   projectStartingClass,
   getCharacterClasses,
-  getClassEditorCharacter,
-  applyClassEditorChange
-} from "./multiclass";
+  getClassEditorCharacter
+} from "./multiclassState";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellSlots";
 
 export type CharacterSpellSlotPool = {

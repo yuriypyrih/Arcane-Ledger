@@ -13,7 +13,8 @@ import {
   formatCustomTraitBonusFormulaTerm,
   formatCustomTraitBonusRollFormulaTerm
 } from "../../../../../../pages/CharactersPage/customTraitEffects";
-import { DAMAGE_TYPE, type WeaponEntry } from "../../../../../../codex/entries";
+import { type WeaponEntry } from "../../../../../../codex/entries";
+import { DAMAGE_TYPE } from "../../../../../../codex/entries/enums";
 import {
   formatFormulaBreakdown,
   formatSignedFormulaTerm,
@@ -292,9 +293,7 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
   return entry.label;
 }
 
-function formatWeaponDamageBonusBreakdownEntry(
-  entry: WeaponAction["damageBonusEntries"][number]
-) {
+function formatWeaponDamageBonusBreakdownEntry(entry: WeaponAction["damageBonusEntries"][number]) {
   const breakdownLabel = entry.breakdownLabel?.trim();
 
   return breakdownLabel && breakdownLabel.length > 0
@@ -401,9 +400,8 @@ export function getWeaponDamageFormulaPresentation(
     action,
     formatWeaponDamageBonusDisplaySuffix
   );
-  const [primaryBaseDamage, ...additionalBaseDamageGroups] = parseDamageDisplayGroups(
-    baseDamageLabel
-  );
+  const [primaryBaseDamage, ...additionalBaseDamageGroups] =
+    parseDamageDisplayGroups(baseDamageLabel);
   const mainDamageGroup: DamageDisplayGroup = {
     damageType: primaryBaseDamage?.damageType ?? null,
     diceTerms: [],

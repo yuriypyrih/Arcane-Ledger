@@ -1,14 +1,17 @@
+import { type WeaponDamage, type WeaponType } from "../../codex/entries";
 import {
   DAMAGE_TYPE,
   DICE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type WeaponDamage,
-  type WeaponType
-} from "../../codex/entries";
-import type { CharacterItemWeaponMods, ItemDetailWeaponPropertyRecord, ItemRecord } from "../../types";
+  WEAPON_TRAINING
+} from "../../codex/entries/enums";
+import type {
+  CharacterItemWeaponMods,
+  ItemDetailWeaponPropertyRecord,
+  ItemRecord
+} from "../../types";
 import { formatCodexLabel, formatWeaponDamage } from "../codex";
 
 export type AdaptedItemWeaponRecord = {
@@ -184,12 +187,11 @@ export function adaptItemWeapon(item: ItemRecord): AdaptedItemWeaponRecord | nul
     propertyEntries
       .map(formatItemWeaponPropertyLabel)
       .filter((value): value is string => Boolean(value));
-  const masteryLabels =
-    mods?.mastery
-      ? [formatCodexLabel(mods.mastery)]
-      : masteryEntries
-          .map(formatItemWeaponPropertyLabel)
-          .filter((value): value is string => Boolean(value));
+  const masteryLabels = mods?.mastery
+    ? [formatCodexLabel(mods.mastery)]
+    : masteryEntries
+        .map(formatItemWeaponPropertyLabel)
+        .filter((value): value is string => Boolean(value));
 
   return {
     type: {
@@ -205,7 +207,8 @@ export function adaptItemWeapon(item: ItemRecord): AdaptedItemWeaponRecord | nul
         : weapon.damage_dice,
     properties,
     mastery,
-    versatileDamage: mods?.versatileDamage ?? parseVersatileWeaponDamage(propertyEntries, weapon.damage_type?.key),
+    versatileDamage:
+      mods?.versatileDamage ?? parseVersatileWeaponDamage(propertyEntries, weapon.damage_type?.key),
     handSlots: properties.includes(WEAPON_PROPERTY.TWO_HANDED) ? 2 : 1,
     propertyLabels,
     masteryLabels

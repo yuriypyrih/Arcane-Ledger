@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   blessingOfTheTricksterDescription,
   improvedDuplicityDescription,
@@ -17,7 +18,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -400,7 +401,7 @@ export function collectClericTrickeryDomainContributions(
 
 export const getClericTrickeryDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectClericTrickeryDomainContributions(character)),
+    getCompiledFeatureContributions(character, collectClericTrickeryDomainContributions),
     {
       character: character as Character
     }

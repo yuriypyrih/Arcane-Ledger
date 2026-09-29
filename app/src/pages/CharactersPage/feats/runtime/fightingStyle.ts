@@ -1,9 +1,5 @@
-import {
-  FEATS,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS, REACTION } from "../../../../codex/entries/enums";
 import {
   SENSE,
   STATUS_DURATION_KIND,

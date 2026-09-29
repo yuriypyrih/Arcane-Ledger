@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -62,8 +62,7 @@ function createBardJackOfAllTradesContribution(
     skillBonuses: [
       {
         id: "bard-jack-of-all-trades-skill-bonus",
-        getBonuses: (_skill, proficiencyLevel) =>
-          getBardSkillBonuses(character, proficiencyLevel)
+        getBonuses: (_skill, proficiencyLevel) => getBardSkillBonuses(character, proficiencyLevel)
       }
     ]
   };
@@ -117,7 +116,7 @@ export function getBardClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectBardFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectBardFeatureContributions),
     {
       character: character as Character
     }

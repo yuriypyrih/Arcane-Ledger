@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -168,7 +168,7 @@ export function getWizardClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectWizardFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectWizardFeatureContributions),
     {
       character: character as Character
     }

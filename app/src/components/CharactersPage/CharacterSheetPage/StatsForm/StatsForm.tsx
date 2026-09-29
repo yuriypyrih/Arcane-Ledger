@@ -7,7 +7,8 @@ import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { AbilityKey, Character } from "../../../../types";
 import {
   getAbilityScoreBreakdownForCharacter,
@@ -70,10 +71,7 @@ import {
   cloneAbilityScores,
   normalizeCustomAbilityScores
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import {
-  formatD20Formula,
-  formatFormulaTerms
-} from "../../../../pages/CharactersPage/shared";
+import { formatD20Formula, formatFormulaTerms } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetActionButton from "../SheetActionButton";
 import AbilitySavingThrowCards, { type SavingThrowBonusEntry } from "./AbilitySavingThrowCards";
@@ -464,10 +462,7 @@ function CharacterStatsForm({
         ? normalizePointBuyAbilities(cloneAbilityScores(abilitiesDraft.abilities))
         : normalizeCustomAbilityScores(cloneAbilityScores(abilitiesDraft.abilities));
 
-    if (
-      abilitiesDraft.attributeMode === "pointBuy" &&
-      getPointBuyRemaining(nextAbilities) !== 0
-    ) {
+    if (abilitiesDraft.attributeMode === "pointBuy" && getPointBuyRemaining(nextAbilities) !== 0) {
       return;
     }
 
@@ -487,11 +482,7 @@ function CharacterStatsForm({
     }));
   }
 
-  function updateAbilityDraftScore(
-    current: AbilitiesDraft,
-    ability: AbilityKey,
-    value: string
-  ) {
+  function updateAbilityDraftScore(current: AbilitiesDraft, ability: AbilityKey, value: string) {
     const isPointBuy = current.attributeMode === "pointBuy";
     const nextValue = clampNumber(
       value,
@@ -715,7 +706,9 @@ function CharacterStatsForm({
       .map(formatCustomTraitBonusRollFormulaTerm)
       .filter((entry): entry is string => Boolean(entry));
     const savingThrowFormulaDisplayTerms = selectedCard.savingThrowBonusEntries.flatMap((entry) =>
-      formatCustomTraitBonusRollFormulaTerm(entry) ? [entry.formulaLabel ?? entry.formula ?? ""] : []
+      formatCustomTraitBonusRollFormulaTerm(entry)
+        ? [entry.formulaLabel ?? entry.formula ?? ""]
+        : []
     );
     const abilityLabel = abilityDisplayLabels[ability];
     const abilityRollMinimumTotalSource = getAbilityRollMinimumTotalSourceForCharacter(
@@ -849,9 +842,7 @@ function CharacterStatsForm({
         </div>
       </div>
 
-      <div className={styles.fullViewStack}>
-        {renderAbilitySavingThrowsSection()}
-      </div>
+      <div className={styles.fullViewStack}>{renderAbilitySavingThrowsSection()}</div>
 
       {!readOnly ? (
         <AbilityScoresModal

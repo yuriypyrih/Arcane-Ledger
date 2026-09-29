@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import {
@@ -9,7 +10,10 @@ import {
   type CampaignSessionNoteRecord,
   type PlayerVisibilitySettingsRecord
 } from "../models/Campaign.js";
-import { EncounterTemplate, type EncounterTemplateCreatureRecord } from "../models/EncounterTemplate.js";
+import {
+  EncounterTemplate,
+  type EncounterTemplateCreatureRecord
+} from "../models/EncounterTemplate.js";
 import { PartyGroup, type PartyGroupRecord } from "../models/PartyGroup.js";
 import type { UserRole } from "../types/auth.js";
 import {
@@ -265,11 +269,7 @@ function normalizeSelectedPartyId(value: unknown): Types.ObjectId | null {
     return null;
   }
 
-  return createCampaignOwnedObjectId(
-    value,
-    "Party group id is invalid.",
-    "INVALID_PARTY_GROUP_ID"
-  );
+  return createCampaignOwnedObjectId(value, "Party group id is invalid.", "INVALID_PARTY_GROUP_ID");
 }
 
 function cloneEncounterCreature(creature: EncounterTemplateCreatureRecord) {
@@ -502,18 +502,8 @@ export async function createOwnedCampaign(options: {
 
   await assertCreatedDmToolWithinLimit({
     countDocuments: countOwnedCampaigns,
-    isCreatedWithinLimit: async (limit) => {
-      const retainedCampaigns = await Campaign.find({ ownerId: options.ownerId })
-        .sort({ createdAt: 1, _id: 1 })
-        .limit(limit)
-        .select("_id")
-        .lean()
-        .exec();
-
-      return retainedCampaigns.some(
-        (retainedCampaign) => retainedCampaign._id.toString() === campaign._id.toString()
-      );
-    },
+    isCreatedWithinLimit: (limit) =>
+      isCreatedDocumentRetained(Campaign.find({ ownerId: options.ownerId }), campaign._id, limit),
     kind: "campaigns",
     removeCreated: () =>
       Campaign.deleteOne({
@@ -649,9 +639,14 @@ export async function createCampaignSessionNote(options: {
     const existingCampaign = await findOwnedCampaignDocument(options);
 
     if (existingCampaign.sessionNotes.length >= CAMPAIGN_MAX_SESSION_NOTES) {
-      throw new AppError("Campaign session note limit reached.", 409, "CAMPAIGN_SESSION_NOTES_FULL", {
-        maxSessionNotes: CAMPAIGN_MAX_SESSION_NOTES
-      });
+      throw new AppError(
+        "Campaign session note limit reached.",
+        409,
+        "CAMPAIGN_SESSION_NOTES_FULL",
+        {
+          maxSessionNotes: CAMPAIGN_MAX_SESSION_NOTES
+        }
+      );
     }
 
     throw new AppError("Unable to create session note.", 409, "CAMPAIGN_UPDATE_CONFLICT");
@@ -934,7 +929,9 @@ export async function updateCampaignPreparedEncounterCreatureVisibilitySettings(
   const campaign = await findOwnedCampaignDocument(options);
   const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
   const creatureId = normalizeText(options.creatureId, "creatureId", { required: true });
-  const creatureIndex = preparedEncounter.creatures.findIndex((creature) => creature.id === creatureId);
+  const creatureIndex = preparedEncounter.creatures.findIndex(
+    (creature) => creature.id === creatureId
+  );
 
   if (creatureIndex < 0) {
     throw new AppError(
@@ -1004,7 +1001,8 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
     });
   }
 
-  const nextCreatureIndex = existingCreatureIndex >= 0 ? existingCreatureIndex : nextCreatures.length - 1;
+  const nextCreatureIndex =
+    existingCreatureIndex >= 0 ? existingCreatureIndex : nextCreatures.length - 1;
   const nextCreature = nextCreatures[nextCreatureIndex]!;
 
   assertEncounterCreatureRecordSize(nextCreature);
@@ -1035,10 +1033,16 @@ export async function removeCampaignPreparedEncounterCreature(options: {
   const campaign = await findOwnedCampaignDocument(options);
   const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
   const creatureId = normalizeText(options.creatureId, "creatureId", { required: true });
-  const nextCreatures = preparedEncounter.creatures.filter((creature) => creature.id !== creatureId);
+  const nextCreatures = preparedEncounter.creatures.filter(
+    (creature) => creature.id !== creatureId
+  );
 
   if (nextCreatures.length === preparedEncounter.creatures.length) {
-    throw new AppError("Prepared encounter creature was not found.", 404, "ENCOUNTER_CREATURE_NOT_FOUND");
+    throw new AppError(
+      "Prepared encounter creature was not found.",
+      404,
+      "ENCOUNTER_CREATURE_NOT_FOUND"
+    );
   }
 
   campaign.preparedEncounters[index] = {

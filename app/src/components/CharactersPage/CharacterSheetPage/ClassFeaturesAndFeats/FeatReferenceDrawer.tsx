@@ -3,7 +3,8 @@ import {
   type DivinityEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { type FeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { getFeatCategoryLabel } from "../../../../pages/CharactersPage/feats/catalog";
 import type { CharacterFeatEntry } from "../../../../types";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";
 import {

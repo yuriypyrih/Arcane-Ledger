@@ -1,4 +1,5 @@
-import type { DICE, ReactionEntry, SpellDescriptionEntry, SpellEntry } from "../../../codex/entries";
+import type { ReactionEntry, SpellDescriptionEntry, SpellEntry } from "../../../codex/entries";
+import type { DICE } from "../../../codex/entries/enums";
 import type {
   AbilityKey,
   Character,
@@ -154,10 +155,7 @@ export type FeatureWeaponActionTransform<TAction = unknown> = {
 
 export type FeatureItemDescriptionTransform<TItem = unknown> = {
   id: string;
-  getDescriptionAdditions: (
-    character: Character,
-    item: TItem
-  ) => SpellDescriptionEntry[][];
+  getDescriptionAdditions: (character: Character, item: TItem) => SpellDescriptionEntry[][];
 };
 
 export type FeatureSpellTransform = {

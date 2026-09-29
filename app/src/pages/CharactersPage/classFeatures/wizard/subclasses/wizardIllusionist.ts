@@ -1,13 +1,13 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
   MAGIC_SCHOOL,
   REACTION,
-  SPELL_COMPONENT,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+  SPELL_COMPONENT
+} from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   STATUS_DURATION_KIND,
@@ -20,7 +20,7 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -387,22 +387,16 @@ export function consumeWizardIllusionistPhantasmalCreaturesUse(character: Charac
   const wizardState = getWizardIllusionistFeatureState(character);
   const usesTotal = getWizardIllusionistPhantasmalCreaturesUsesTotal(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        phantasmalCreaturesUsesExpended: Math.min(
-          usesTotal,
-          normalizeWizardIllusionistUsesExpended(
-            wizardState.phantasmalCreaturesUsesExpended,
-            usesTotal
-          ) + 1
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    phantasmalCreaturesUsesExpended: Math.min(
+      usesTotal,
+      normalizeWizardIllusionistUsesExpended(
+        wizardState.phantasmalCreaturesUsesExpended,
+        usesTotal
+      ) + 1
+    )
+  });
 }
 
 export function getWizardIllusionistIllusorySelfUsesTotal(
@@ -490,22 +484,13 @@ export function consumeWizardIllusionistIllusorySelfUse(character: Character): C
     const wizardState = getWizardIllusionistFeatureState(character);
     const usesTotal = getWizardIllusionistIllusorySelfUsesTotal(character);
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        wizard: {
-          ...wizardState,
-          illusorySelfUsesExpended: Math.min(
-            usesTotal,
-            normalizeWizardIllusionistUsesExpended(
-              wizardState.illusorySelfUsesExpended,
-              usesTotal
-            ) + 1
-          )
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "wizard", {
+      ...wizardState,
+      illusorySelfUsesExpended: Math.min(
+        usesTotal,
+        normalizeWizardIllusionistUsesExpended(wizardState.illusorySelfUsesExpended, usesTotal) + 1
+      )
+    });
   }
 
   const fallbackSlotLevel = getWizardIllusionistIllusorySelfFallbackSlotLevel(character);
@@ -549,16 +534,10 @@ export function restoreWizardIllusionistPhantasmalCreaturesOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        phantasmalCreaturesUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    phantasmalCreaturesUsesExpended: 0
+  });
 }
 
 function restoreWizardIllusionistIllusorySelfUses(character: Character): Character {
@@ -576,16 +555,10 @@ function restoreWizardIllusionistIllusorySelfUses(character: Character): Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        illusorySelfUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    illusorySelfUsesExpended: 0
+  });
 }
 
 export function restoreWizardIllusionistIllusorySelfOnShortRest(character: Character): Character {
@@ -697,7 +670,7 @@ export function collectWizardIllusionistContributions(
 
 export const getWizardIllusionistDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWizardIllusionistContributions(character)),
+    getCompiledFeatureContributions(character, collectWizardIllusionistContributions),
     {
       character: character as Character
     }

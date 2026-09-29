@@ -1,4 +1,5 @@
-import { ELDRITCH_INVOCATION, getEldritchInvocationEntryById } from "../../../../../codex/entries";
+import { getEldritchInvocationEntryById } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 
 export const invocationSelectionSeparator = "::";
 export const placeholderSelectionSuffix = "placeholder";

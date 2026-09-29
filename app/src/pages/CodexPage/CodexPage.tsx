@@ -9,9 +9,7 @@ import FeatCodexList from "../../components/CodexPage/FeatCodexList";
 import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
 import { sanitizeItemBrowserScopedFilters } from "../../components/ItemBrowser/itemBrowser";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
-import {
-  LazyCodexSpellDrawer as CodexSpellDrawer
-} from "../../components/CodexPage/LazyCodexReferenceDrawers";
+import { LazyCodexSpellDrawer as CodexSpellDrawer } from "../../components/CodexPage/LazyCodexReferenceDrawers";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
@@ -21,12 +19,8 @@ import {
   type CodexFilterCategory,
   type CodexSpellSpecialFilter
 } from "../../utils/codex";
-import {
-  ENTRY_CATEGORIES,
-  SPELL_LIST_CLASS,
-  type MAGIC_SCHOOL,
-  type SpellEntry
-} from "../../codex/entries";
+import { type SpellEntry } from "../../codex/entries";
+import { ENTRY_CATEGORIES, SPELL_LIST_CLASS, type MAGIC_SCHOOL } from "../../codex/entries/enums";
 import { useCodexEntries } from "./useCodexEntries";
 import {
   clearAllCategoryScopedSearchParams,

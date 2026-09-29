@@ -1,4 +1,4 @@
-import { isSpellFromClass, hasCharacterClass, getClassSubclassId } from "../../../multiclass";
+import { isSpellFromClass, hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
 import type { Character } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,

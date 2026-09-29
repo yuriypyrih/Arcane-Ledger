@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "./multiclass";
+import { getCharacterLevel } from "./multiclassState";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type {
   Character,

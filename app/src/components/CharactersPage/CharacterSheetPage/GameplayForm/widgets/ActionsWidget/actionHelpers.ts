@@ -1,32 +1,30 @@
+export {
+  createCommonActionDefinition,
+  getFeatureActionDrawerPrimaryLabel
+} from "../../../../../../pages/CharactersPage/commonActionDefinition";
 import {
   hasCharacterClass,
   getClassSubclassId,
   getClassLevel
-} from "../../../../../../pages/CharactersPage/multiclass";
+} from "../../../../../../pages/CharactersPage/multiclassState";
 import type { Character, AbilityKey } from "../../../../../../types";
-import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  SPELL_COMPONENT,
-  type SpellEntry,
-  type WeaponEntry
-} from "../../../../../../codex/entries";
+import { type SpellEntry, type WeaponEntry } from "../../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, SPELL_COMPONENT } from "../../../../../../codex/entries/enums";
 import { getWeaponEntries } from "../../../../../../codex/selectors";
 import { appendFeatureSourcedDescriptionAddition } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   ECONOMY_TYPE,
   type EconomyType
 } from "../../../../../../pages/CharactersPage/actionEconomy";
-import { resolveActionCardTheme } from "../../../../../../pages/CharactersPage/actionCardTheme";
+
 import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getSavingThrowBonusesForCharacter,
   getSpellEntryForCharacter,
-  type FeatureActionCard,
   type FeatureActionExecuteConfig
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import { getSpellEntryById } from "../../../../../../codex/entries";
-import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
+
 import { warriorOfTheOpenHandSubclassId } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { monkStepOfTheWindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
@@ -41,14 +39,6 @@ import {
 export const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
 );
-
-export function getFeatureActionDrawerPrimaryLabel(
-  action: Pick<FeatureActionCard, "name">
-): string {
-  const normalizedName = action.name.trim();
-
-  return normalizedName ? `Use ${normalizedName}` : "Use";
-}
 
 export function shouldGrantMonkFleetStepFollowUp(
   character: Pick<
@@ -90,43 +80,6 @@ export function shouldConsumeMonkFleetStepFollowUp(
     getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) > 0 &&
     !isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction")
   );
-}
-
-export function createCommonActionDefinition(action: FeatureActionCard): GameplayActionDefinition {
-  const preparedAction: FeatureActionCard = {
-    ...action,
-    cardTheme: resolveActionCardTheme(action)
-  };
-
-  return {
-    kind: "feature",
-    key: preparedAction.key,
-    name: preparedAction.name,
-    cardTheme: preparedAction.cardTheme,
-    economyType: preparedAction.economyType,
-    actionCategory: preparedAction.actionCategory,
-    economyMultiCount: preparedAction.economyMultiCount,
-    disabled: preparedAction.disabled,
-    disabledReason: preparedAction.disabledReason,
-    action: preparedAction,
-    execute: {
-      kind: "activate"
-    },
-    drawer: {
-      kind: "confirm",
-      eyebrow: "Common Action",
-      description: preparedAction.description ?? [],
-      descriptionAdditions: preparedAction.descriptionAdditions ?? [],
-      helperText: preparedAction.drawer?.helperText,
-      helperTextTone: preparedAction.drawer?.helperTextTone,
-      blockedReason: preparedAction.drawer?.blockedReason,
-      facts: preparedAction.drawer?.facts ?? preparedAction.facts ?? [],
-      factsSectionTitle: preparedAction.drawer?.factsSectionTitle,
-      headerTags: preparedAction.drawer?.headerTags ?? preparedAction.headerTags ?? [],
-      confirmLabel:
-        preparedAction.drawer?.confirmLabel ?? getFeatureActionDrawerPrimaryLabel(preparedAction)
-    }
-  };
 }
 
 export function formatD20RollFormula(modifier: number): string {

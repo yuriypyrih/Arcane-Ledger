@@ -1,10 +1,12 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import { CLASS_FEATURE, ENTRY_CATEGORIES, type WeaponDamage } from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { type WeaponDamage } from "../../../../../codex/entries";
+import { CLASS_FEATURE, ENTRY_CATEGORIES } from "../../../../../codex/entries/enums";
 import { psychicBladeSoulBladesSummary } from "../../../../../codex/entries/featureWeapons";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterRogueFeatureState } from "../../../../../types";
@@ -32,7 +34,7 @@ import {
 } from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -302,16 +304,10 @@ function consumeRogueSoulknifeLimitedUse(
   const usesExpended = Math.max(0, Math.min(totalUses, Math.floor(Number(rogueState[key]) || 0)));
 
   if (usesExpended < totalUses) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        rogue: {
-          ...rogueState,
-          [key]: usesExpended + 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "rogue", {
+      ...rogueState,
+      [key]: usesExpended + 1
+    });
   }
 
   if (getRogueSoulknifePsionicDiceRemaining(character) < rogueSoulknifePsionicFallbackCost) {
@@ -336,16 +332,10 @@ function restoreRogueSoulknifeLimitedUseOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        [key]: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    [key]: 0
+  });
 }
 
 export function hasRogueSoulknifePsionicPower(
@@ -448,16 +438,10 @@ export function expendRogueSoulknifePsionicDie(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        soulknifePsionicDiceExpended: diceExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    soulknifePsionicDiceExpended: diceExpended + 1
+  });
 }
 
 export function restoreRogueSoulknifePsionicDie(character: Character): Character {
@@ -477,16 +461,10 @@ export function restoreRogueSoulknifePsionicDie(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        soulknifePsionicDiceExpended: diceExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    soulknifePsionicDiceExpended: diceExpended - 1
+  });
 }
 
 export function restoreAllRogueSoulknifePsionicDice(character: Character): Character {
@@ -500,16 +478,10 @@ export function restoreAllRogueSoulknifePsionicDice(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        soulknifePsionicDiceExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    soulknifePsionicDiceExpended: 0
+  });
 }
 
 export function consumeRogueSoulknifePsychicWhispersUse(character: Character): Character {
@@ -1150,7 +1122,7 @@ function collectRogueSoulknifeFeatureContributions(
 
 export const getRogueSoulknifeDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRogueSoulknifeFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueSoulknifeFeatureContributions),
     {
       character: character as Character
     }

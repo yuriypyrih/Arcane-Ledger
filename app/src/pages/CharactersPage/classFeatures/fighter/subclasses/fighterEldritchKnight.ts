@@ -1,10 +1,12 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -82,16 +84,10 @@ export function advanceFighterEldritchKnightFeaturesForNewRound(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        eldritchKnightWarMagicUsesThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    eldritchKnightWarMagicUsesThisTurn: 0
+  });
 }
 
 function hasFighterEldritchKnightWarMagicFeature(
@@ -233,17 +229,11 @@ export function consumeFighterEldritchKnightActionCantrip(character: Character):
   }
 
   if (extraAttacksRemaining > 0) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
-          eldritchKnightWarMagicUsesThisTurn: warMagicUsesThisTurn + 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "fighter", {
+      ...fighterState,
+      extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
+      eldritchKnightWarMagicUsesThisTurn: warMagicUsesThisTurn + 1
+    });
   }
 
   return character;
@@ -407,7 +397,7 @@ export function collectFighterEldritchKnightContributions(
 
 export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectFighterEldritchKnightContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterEldritchKnightContributions),
     {
       character: character as Character
     }

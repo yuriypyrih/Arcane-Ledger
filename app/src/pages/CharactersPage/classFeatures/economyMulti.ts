@@ -1,12 +1,13 @@
+import { applyClassEditorChange } from "../multiclass";
 import {
   getCharacterClasses,
   getClassEditorCharacter,
-  applyClassEditorChange,
   getClassLevel,
   getClassSubclassId,
   hasCharacterClass
-} from "../multiclass";
-import { ACTION_TYPE, type SpellEntry } from "../../../codex/entries";
+} from "../multiclassState";
+import { type SpellEntry } from "../../../codex/entries";
+import { ACTION_TYPE } from "../../../codex/entries/enums";
 import type { Character } from "../../../types";
 import {
   ACTION_CATEGORY,

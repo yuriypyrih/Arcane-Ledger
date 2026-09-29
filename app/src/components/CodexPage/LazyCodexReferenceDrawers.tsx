@@ -1,8 +1,6 @@
 import { lazy, Suspense, type ComponentProps } from "react";
 
-const CodexDivinityDrawer = lazy(
-  () => import("./CodexDivinityDrawer/CodexDivinityDrawer")
-);
+const CodexDivinityDrawer = lazy(() => import("./CodexDivinityDrawer/CodexDivinityDrawer"));
 const CodexFeatDrawer = lazy(() => import("./CodexFeatDrawer/CodexFeatDrawer"));
 const CodexSpellDrawer = lazy(() => import("./CodexSpellDrawer/CodexSpellDrawer"));
 
@@ -30,6 +28,17 @@ export function LazyCodexSpellDrawer(props: LazyCodexSpellDrawerProps) {
   return (
     <Suspense fallback={null}>
       <CodexSpellDrawer {...props} />
+    </Suspense>
+  );
+}
+
+const KeywordReferenceDrawer = lazy(
+  () => import("../KeywordReferenceDrawer/KeywordReferenceDrawer")
+);
+export function LazyKeywordReferenceDrawer(props: ComponentProps<typeof KeywordReferenceDrawer>) {
+  return (
+    <Suspense fallback={null}>
+      <KeywordReferenceDrawer {...props} />
     </Suspense>
   );
 }

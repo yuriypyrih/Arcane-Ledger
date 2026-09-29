@@ -24,17 +24,14 @@ import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/Keyw
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import SpellSubtitle from "../../components/SpellSubtitle";
 import {
-  CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  FEATS,
   FeatureMap,
   KeywordTooltip,
-  TRACKER,
   getFeatureTrackingState,
   type DivinityEntry,
   type FeatureMapEntry,
   type SpellEntry
 } from "../../codex/entries";
+import { CLASS_FEATURE, ENTRY_CATEGORIES, FEATS, TRACKER } from "../../codex/entries/enums";
 import { getSubclassEntriesForClass } from "../../codex/subclasses";
 import {
   resolveKeywordReference,

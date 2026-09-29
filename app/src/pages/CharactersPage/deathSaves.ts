@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, FEATS, type SpellDescriptionEntry } from "../../codex/entries";
+import { type SpellDescriptionEntry } from "../../codex/entries";
+import { CLASS_FEATURE, FEATS } from "../../codex/entries/enums";
 import type { Character } from "../../types";
 import {
   createFeatureSourcedDescriptionEntries,

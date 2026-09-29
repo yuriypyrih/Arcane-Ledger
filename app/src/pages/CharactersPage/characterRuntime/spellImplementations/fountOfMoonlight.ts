@@ -1,10 +1,5 @@
-import {
-  DAMAGE_TYPE,
-  REACTION,
-  WEAPON_COMBAT_TYPE,
-  getSpellEntryById,
-  type ReactionEntry
-} from "../../../../codex/entries";
+import { getSpellEntryById, type ReactionEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE, REACTION, WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   STATUS_DURATION_KIND,
@@ -93,8 +88,7 @@ export function getFountOfMoonlightSpellDerivedStatusEntriesForCharacter(
       },
       sourceId: fountOfMoonlightRadiantResistanceStatusSourceId,
       sourceSpellId: fountOfMoonlightSpellId,
-      description:
-        "While Fount of Moonlight is active, you have Resistance to Radiant damage."
+      description: "While Fount of Moonlight is active, you have Resistance to Radiant damage."
     }
   ];
 }

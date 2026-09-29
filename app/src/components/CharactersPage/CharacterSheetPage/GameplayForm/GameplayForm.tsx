@@ -33,17 +33,8 @@ import {
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetActionButton from "../SheetActionButton";
 import styles from "./GameplayForm.module.css";
-import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
-import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
+import ClassResourceWidgets from "./widgets/ClassResourceWidgets";
 import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
-import FocusPointsWidget from "./widgets/FocusPointsWidget";
-import FighterSecondWindWidget from "./widgets/FighterSecondWindWidget";
-import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
-import RagePointsWidget from "./widgets/RagePointsWidget";
-import SoulknifePsionicDiceWidget from "./widgets/SoulknifePsionicDiceWidget";
-import SorceryPointsWidget from "./widgets/SorceryPointsWidget";
-import SuperiorityDiceWidget from "./widgets/SuperiorityDiceWidget";
-import WildShapeWidget from "./widgets/WildShapeWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
 import ActionsWidget from "./widgets/ActionsWidget";
@@ -305,9 +296,7 @@ function GameplayForm({
       <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
         <div className={styles.gameplayHeaderIdentity}>
           <div className={shared.eyebrowHelpRow}>
-            <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>
-              Gameplay
-            </span>
+            <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Gameplay</span>
             <button
               type="button"
               className={shared.helpButton}
@@ -347,45 +336,7 @@ function GameplayForm({
               onPersistCharacter={onPersistCharacter}
             />
           </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-rage">
-            <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-focus">
-            <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-fighter-second-wind">
-            <FighterSecondWindWidget
-              character={character}
-              onPersistCharacter={onPersistCharacter}
-            />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-psi-energy">
-            <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-soulknife-psionic-dice">
-            <SoulknifePsionicDiceWidget
-              character={character}
-              onPersistCharacter={onPersistCharacter}
-            />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-superiority-dice">
-            <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-wild-shape">
-            <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-bardic-inspiration">
-            <BardicInspirationWidget
-              character={character}
-              onPersistCharacter={onPersistCharacter}
-            />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-sorcery">
-            <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="gameplay-divinity">
-            <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          </CharacterSheetSectionProfiler>
+          <ClassResourceWidgets character={character} onPersistCharacter={onPersistCharacter} />
           <CharacterSheetSectionProfiler id="gameplay-round-tracker">
             <RoundTrackerWidget
               character={character}
@@ -450,10 +401,7 @@ function GameplayForm({
         </CharacterSheetSectionProfiler>
 
         <CharacterSheetSectionProfiler id="gameplay-actions">
-          <ActionsWidget
-            character={character}
-            onPersistCharacter={onPersistCharacter}
-          />
+          <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
         </CharacterSheetSectionProfiler>
 
         <CharacterSheetSectionProfiler id="gameplay-traits-conditions">

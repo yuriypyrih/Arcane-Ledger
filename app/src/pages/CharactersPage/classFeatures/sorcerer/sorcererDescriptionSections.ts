@@ -1,6 +1,8 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { sorcererFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
@@ -11,15 +13,7 @@ type SorcererDescriptionCharacter = Pick<Character, "className" | "level"> &
 function getUnlockedSorcererFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(sorcererFeatures, normalizedLevel);
 }
 
 function hasSorcererFeature(

@@ -1,5 +1,6 @@
+import { getClassRuntimeCharacter } from "../characterRuntime/classContexts";
 import type { Character } from "../../../types";
-import { getCharacterClasses, getClassEditorCharacter } from "../multiclass";
+import { getCharacterClasses } from "../multiclassState";
 import { mergeClassFeatureDerivedStates } from "./modules";
 import { getSelectedSubclassForCharacter } from "../subclasses";
 import { createDefaultAbilities } from "../constants";
@@ -90,7 +91,7 @@ export function getSubclassDerivedFeatureState(
   const progression = character as Partial<Character>;
   if (progression.multiclass && !progression.classEntryId) {
     const states = getCharacterClasses(character).map((entry) => {
-      const state = getSubclassDerivedFeatureState(getClassEditorCharacter(character, entry));
+      const state = getSubclassDerivedFeatureState(getClassRuntimeCharacter(character, entry));
       return {
         ...state,
         featureActions: state.featureActions?.map((action) => ({

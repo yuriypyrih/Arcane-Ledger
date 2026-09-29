@@ -1,35 +1,39 @@
 import { withReadOnlySheet } from "../withReadOnlySheet";
+import { applyClassEditorChange } from "../../../../pages/CharactersPage/multiclass";
 import {
-  applyClassEditorChange,
   getCharacterClasses,
   getCharacterLevel,
   getClassEditorCharacter
-} from "../../../../pages/CharactersPage/multiclass";
+} from "../../../../pages/CharactersPage/multiclassState";
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CLASS_FEATURE,
-  ELDRITCH_INVOCATION,
-  FEAT_CATEGORY,
-  FEATS,
   FeatureMap,
-  TRACKER,
   type ClassEntry,
   type DivinityEntry,
   type FeatureMapEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  ELDRITCH_INVOCATION,
+  FEAT_CATEGORY,
+  FEATS,
+  TRACKER
+} from "../../../../codex/entries/enums";
 import { getClassEntries, getSpeciesEntryByName } from "../../../../codex/selectors";
 import { getMonkDeflectAttacksDescription } from "../../../../codex/classes/monk";
 import {
   getBlessedWarriorCantripOptions,
   getCharacterFeatSummary,
   coldCasterRayOfFrostSpellId,
-  getDruidicWarriorCantripOptions,
+  getDruidicWarriorCantripOptions
+} from "../../../../pages/CharactersPage/feats";
+import {
   getFeatDefinition,
   getFeatDefinitionsByCategory
-} from "../../../../pages/CharactersPage/feats";
+} from "../../../../pages/CharactersPage/feats/catalog";
 import {
   getFeatAlwaysPreparedCantripEntriesForCharacter,
   getFeatGrantedCantripEntriesForCharacter
@@ -78,7 +82,10 @@ import {
   isCustomClassName,
   normalizeCharacterClassRulesConfig
 } from "../../../../pages/CharactersPage/customClass";
-import { applyClassDefinitions, type ClassDefinitionsDraft } from "../../../../pages/CharactersPage/classDefinitions";
+import {
+  applyClassDefinitions,
+  type ClassDefinitionsDraft
+} from "../../../../pages/CharactersPage/classDefinitions";
 import { preservePreMulticlassCharacter } from "../../../../pages/CharactersPage/multiclassProgression";
 import {
   getCharacterSubclassDisplayName,
@@ -2322,45 +2329,46 @@ function ClassFeaturesAndFeats({
         </div>
 
         <div className={styles.sectionStack}>
-          {!inspectionClassOnly ? <>
-          <section className={styles.subsection} aria-labelledby="character-species-title">
-            <div className={styles.subsectionHeader}>
-              <h3 id="character-species-title" className={styles.subsectionTitle}>
-                Species
-              </h3>
-              <SheetActionButton
-                onClick={() => setIsSpeciesModalOpen(true)}
-                disabled={isSpeciesModalOpen}
-              >
-                <Pencil size={16} />
-                Edit
-              </SheetActionButton>
-            </div>
-            <SpeciesBuildCard
-              character={character}
-              onOpenReference={speciesEntry ? openSpeciesReference : undefined}
-            />
-          </section>
+          {!inspectionClassOnly ? (
+            <>
+              <section className={styles.subsection} aria-labelledby="character-species-title">
+                <div className={styles.subsectionHeader}>
+                  <h3 id="character-species-title" className={styles.subsectionTitle}>
+                    Species
+                  </h3>
+                  <SheetActionButton
+                    onClick={() => setIsSpeciesModalOpen(true)}
+                    disabled={isSpeciesModalOpen}
+                  >
+                    <Pencil size={16} />
+                    Edit
+                  </SheetActionButton>
+                </div>
+                <SpeciesBuildCard
+                  character={character}
+                  onOpenReference={speciesEntry ? openSpeciesReference : undefined}
+                />
+              </section>
 
-          <section className={styles.subsection} aria-labelledby="character-feats-title">
-            <div className={styles.subsectionHeader}>
-              <h3 id="character-feats-title" className={styles.subsectionTitle}>
-                Feats
-              </h3>
-              <SheetActionButton onClick={openFeatEditor} disabled={isFeatModalOpen}>
-                <Pencil size={16} />
-                Edit
-              </SheetActionButton>
-            </div>
-            <FeatList
-              feats={selectedFeats}
-              emptyText="No feats added yet."
-              onOpenFeatReference={openFeatReference}
-              renderTrackingButton={renderTrackingButton}
-            />
-          </section>
-
-          </> : null}
+              <section className={styles.subsection} aria-labelledby="character-feats-title">
+                <div className={styles.subsectionHeader}>
+                  <h3 id="character-feats-title" className={styles.subsectionTitle}>
+                    Feats
+                  </h3>
+                  <SheetActionButton onClick={openFeatEditor} disabled={isFeatModalOpen}>
+                    <Pencil size={16} />
+                    Edit
+                  </SheetActionButton>
+                </div>
+                <FeatList
+                  feats={selectedFeats}
+                  emptyText="No feats added yet."
+                  onOpenFeatReference={openFeatReference}
+                  renderTrackingButton={renderTrackingButton}
+                />
+              </section>
+            </>
+          ) : null}
           <section className={styles.subsection} aria-labelledby="character-class-features-title">
             <div className={clsx(styles.subsectionHeader, styles.classFeaturesHeader)}>
               <div className={styles.subsectionHeaderText}>

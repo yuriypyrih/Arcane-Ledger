@@ -1,5 +1,5 @@
 import type { ActionShapeType } from "../../../ActionShape";
-import { ACTION_TYPE } from "../../../../codex/entries";
+import { ACTION_TYPE } from "../../../../codex/entries/enums";
 import {
   getRoundTrackerResourceForEconomyType,
   type EconomyType

@@ -1,4 +1,4 @@
-import type { DICE } from "../../../../codex/entries";
+import type { DICE } from "../../../../codex/entries/enums";
 import type { RollMode } from "../../../../types";
 import type { InitiativeBreakdown } from "../../../../pages/CharactersPage/gameplay";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
@@ -77,10 +77,7 @@ function formatDualRollToast(resolvedResult: DiceRollerResolvedResult): string {
   return `Action Used: ${parts.join(" | ")}`;
 }
 
-function appendInitiativeDescription(
-  description: string,
-  addition: string | null
-): string {
+function appendInitiativeDescription(description: string, addition: string | null): string {
   if (!addition) {
     return description;
   }
@@ -145,9 +142,7 @@ export function createInitiativeRollRequest(
   const useFamilyFirst =
     options.useZhentarimRuffianFamilyFirstOnInitiative &&
     options.zhentarimRuffianFamilyFirstAvailable;
-  const rollMode = useFamilyFirst
-    ? applyAdvantageToRollMode(options.rollMode)
-    : options.rollMode;
+  const rollMode = useFamilyFirst ? applyAdvantageToRollMode(options.rollMode) : options.rollMode;
   const initiativeBonusFormulaTerms = options.initiativeBreakdown.entries
     .map(formatCustomTraitBonusRollFormulaTerm)
     .filter((entry): entry is string => Boolean(entry));

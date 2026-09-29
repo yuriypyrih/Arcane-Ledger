@@ -1,9 +1,5 @@
-import {
-  FEATS,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS, REACTION } from "../../../../codex/entries/enums";
 import type { CharacterFeatEntry } from "../../../../types";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../classFeatures/types";
 import { getProficiencyBonus } from "../../gameplay";
@@ -122,14 +118,12 @@ export function getGeneralFeatResourceState(
   const lordlyResolveStandardBearerTotal = featSet.has(FEATS.LORDLY_RESOLVE) ? 1 : 0;
   const lordlyResolveStandardBearerExpended = normalizedFeats.some(
     (entry) =>
-      entry.feat === FEATS.LORDLY_RESOLVE &&
-      entry.lordlyResolve?.standardBearerExpended === true
+      entry.feat === FEATS.LORDLY_RESOLVE && entry.lordlyResolve?.standardBearerExpended === true
   );
   const enclaveMagicTwoHeartsOneMindTotal = featSet.has(FEATS.ENCLAVE_MAGIC) ? 1 : 0;
   const enclaveMagicTwoHeartsOneMindExpended = normalizedFeats.some(
     (entry) =>
-      entry.feat === FEATS.ENCLAVE_MAGIC &&
-      entry.enclaveMagic?.twoHeartsOneMindExpended === true
+      entry.feat === FEATS.ENCLAVE_MAGIC && entry.enclaveMagic?.twoHeartsOneMindExpended === true
   );
   const purpleDragonCommandantEncourageAllyTotal = featSet.has(FEATS.PURPLE_DRAGON_COMMANDANT)
     ? getProficiencyBonus(level)
@@ -213,9 +207,7 @@ export function getGeneralFeatResourceState(
   };
 }
 
-export function getGeneralFeatSpeedBonuses(
-  featSet: ReadonlySet<FEATS>
-): FeatureSpeedBonus[] {
+export function getGeneralFeatSpeedBonuses(featSet: ReadonlySet<FEATS>): FeatureSpeedBonus[] {
   const speedBonuses: FeatureSpeedBonus[] = [];
 
   if (featSet.has(FEATS.ATHLETE)) {

@@ -1,12 +1,12 @@
-import { getCharacterLevel } from "./multiclass";
+import { extractDescriptionSection } from "./shared/descriptionSections";
+import { getCharacterLevel } from "./multiclassState";
 import {
-  BODY_SIZE,
-  DAMAGE_TYPE,
   getSpeciesEntryByName,
   getSpellEntryById,
   type SpellEntry,
   type SpeciesEntry
 } from "../../codex/entries";
+import { BODY_SIZE, DAMAGE_TYPE } from "../../codex/entries/enums";
 import {
   type AbilityKey,
   SENSE,
@@ -466,27 +466,7 @@ function getSpeciesDescriptionSection(entry: SpeciesEntry, heading: string): str
   const description = entry.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
-  const startIndex = description.findIndex((descriptionEntry) =>
-    descriptionEntry.includes(`<strong>${heading}.`)
-  );
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const descriptionEntry = description[index]!;
-
-    if (index > startIndex && descriptionEntry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(descriptionEntry);
-  }
-
-  return section;
+  return extractDescriptionSection(description ?? [], `<strong>${heading}.`);
 }
 
 function getSpeciesDescriptionText(entry: SpeciesEntry, heading: string, fallback: string): string {

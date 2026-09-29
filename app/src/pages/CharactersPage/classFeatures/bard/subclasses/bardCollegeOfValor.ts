@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type {
   ArmorProficiencyEntry,
   Character,
@@ -17,7 +19,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -203,16 +205,10 @@ export function applyBardCollegeOfValorBattleMagicAfterSpellCast(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        battleMagicBonusAttackAvailable: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    battleMagicBonusAttackAvailable: true
+  });
 }
 
 export function canUseBardCollegeOfValorActionCantripReplacement(
@@ -286,16 +282,10 @@ export function consumeBardCollegeOfValorWeaponAttack(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function consumeBardCollegeOfValorActionCantrip(
@@ -332,17 +322,11 @@ export function consumeBardCollegeOfValorActionCantrip(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
-        valorCantripReplacementUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
+    valorCantripReplacementUsedThisTurn: true
+  });
 }
 
 export function clearBardCollegeOfValorTurnState(
@@ -357,18 +341,12 @@ export function clearBardCollegeOfValorTurnState(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        extraAttacksRemainingThisTurn: 0,
-        valorCantripReplacementUsedThisTurn: false,
-        battleMagicBonusAttackAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    extraAttacksRemainingThisTurn: 0,
+    valorCantripReplacementUsedThisTurn: false,
+    battleMagicBonusAttackAvailable: false
+  });
 }
 
 export function shouldAdvanceBardCollegeOfValorFeaturesForNewRound(
@@ -472,7 +450,7 @@ export function collectBardCollegeOfValorContributions(
 
 export const getBardCollegeOfValorDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBardCollegeOfValorContributions(character)),
+    getCompiledFeatureContributions(character, collectBardCollegeOfValorContributions),
     {
       character: character as Character
     }

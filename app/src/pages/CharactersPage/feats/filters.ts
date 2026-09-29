@@ -1,4 +1,4 @@
-import { FEAT_CATEGORY } from "../../../codex/entries";
+import { FEAT_CATEGORY } from "../../../codex/entries/enums";
 import type { FeatDefinition } from "./types";
 
 export const FEAT_CATEGORY_FILTER_VALUES = [

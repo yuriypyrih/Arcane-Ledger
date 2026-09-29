@@ -1,0 +1,1134 @@
+{
+  "date": "2026-09-29",
+  "baseline": "Starting working tree including preceding quality pass, not Git HEAD",
+  "baselineArchiveSha256": "54e25ac0bceaf9318263217f78a8cc31c8d51c7071dbe65c6965e2ada61e0feb",
+  "runtimeMethod": {
+    "runner": "Vitest 3.2.7 benchmark",
+    "minimumTimeMs": 1000,
+    "minimumIterations": 50,
+    "warmupTimeMs": 200,
+    "warmupIterations": 5,
+    "units": "milliseconds"
+  },
+  "runtime": [
+    {
+      "group": "single",
+      "name": "warm sheet derivation",
+      "before": {
+        "mean": 0.041835085375031465,
+        "median": 0.03562500000043656,
+        "rme": 2.198762988181833,
+        "sampleCount": 23918
+      },
+      "after": {
+        "mean": 0.006730800410891785,
+        "median": 0.006416797637939453,
+        "rme": 0.5150335236567758,
+        "sampleCount": 148571
+      }
+    },
+    {
+      "group": "single",
+      "name": "new snapshot derivation",
+      "before": {
+        "mean": 13.478787773333266,
+        "median": 13.23266699999931,
+        "rme": 2.509186725401533,
+        "sampleCount": 75
+      },
+      "after": {
+        "mean": 13.496145528157552,
+        "median": 13.139249801635742,
+        "rme": 2.808075486580303,
+        "sampleCount": 75
+      }
+    },
+    {
+      "group": "single",
+      "name": "ability edit and dependent derivation",
+      "before": {
+        "mean": 15.600092246153928,
+        "median": 15.554417000000285,
+        "rme": 1.1349261986382813,
+        "sampleCount": 65
+      },
+      "after": {
+        "mean": 16.462517167701098,
+        "median": 16.315791130065918,
+        "rme": 3.28342198616154,
+        "sampleCount": 61
+      }
+    },
+    {
+      "group": "single",
+      "name": "HP-only edit and dependent derivation",
+      "before": {
+        "mean": 12.486737691358131,
+        "median": 12.153583000000253,
+        "rme": 2.9429099510151344,
+        "sampleCount": 81
+      },
+      "after": {
+        "mean": 12.421839566878331,
+        "median": 12.244166851043701,
+        "rme": 1.1861292399849064,
+        "sampleCount": 81
+      }
+    },
+    {
+      "group": "single",
+      "name": "equip armor and dependent derivation",
+      "before": {
+        "mean": 12.930674666666746,
+        "median": 12.785499499999787,
+        "rme": 2.0013711437384445,
+        "sampleCount": 78
+      },
+      "after": {
+        "mean": 12.44754323841613,
+        "median": 12.411709070205688,
+        "rme": 0.855457936136513,
+        "sampleCount": 81
+      }
+    },
+    {
+      "group": "single",
+      "name": "cast update and dependent derivation",
+      "before": {
+        "mean": 13.935491319444585,
+        "median": 14.046291500000734,
+        "rme": 1.0277018267636269,
+        "sampleCount": 72
+      },
+      "after": {
+        "mean": 14.400711859975543,
+        "median": 14.104166507720947,
+        "rme": 3.2355789048455237,
+        "sampleCount": 70
+      }
+    },
+    {
+      "group": "single",
+      "name": "rest and dependent derivation",
+      "before": {
+        "mean": 12.495618345678928,
+        "median": 12.243334000000687,
+        "rme": 2.0931843894524156,
+        "sampleCount": 81
+      },
+      "after": {
+        "mean": 12.568829160928725,
+        "median": 12.308146119117737,
+        "rme": 2.3930119349753487,
+        "sampleCount": 80
+      }
+    },
+    {
+      "group": "single",
+      "name": "repeated spell drawer projection",
+      "before": {
+        "mean": 0.6781924061016728,
+        "median": 0.5806250000005093,
+        "rme": 3.0063492206745908,
+        "sampleCount": 1475
+      },
+      "after": {
+        "mean": 0.00017641420144954062,
+        "median": 0.00016689300537109375,
+        "rme": 0.036599501194152936,
+        "sampleCount": 5668479
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "warm sheet derivation",
+      "before": {
+        "mean": 0.039352388753339185,
+        "median": 0.03316699999959383,
+        "rme": 2.5164429575646063,
+        "sampleCount": 25412
+      },
+      "after": {
+        "mean": 0.007169133445825455,
+        "median": 0.006707906723022461,
+        "rme": 0.8004361881348048,
+        "sampleCount": 139487
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "new snapshot derivation",
+      "before": {
+        "mean": 87.07010423999996,
+        "median": 86.30902099999912,
+        "rme": 1.0259838795419602,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 13.159564702134384,
+        "median": 12.90693747997284,
+        "rme": 1.650640930721449,
+        "sampleCount": 76
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "ability edit and dependent derivation",
+      "before": {
+        "mean": 95.73756243999975,
+        "median": 94.20474999999897,
+        "rme": 1.394239043932052,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 20.571125040054323,
+        "median": 20.28556251525879,
+        "rme": 1.2248535723582687,
+        "sampleCount": 50
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "HP-only edit and dependent derivation",
+      "before": {
+        "mean": 86.85751997999992,
+        "median": 85.78945849999945,
+        "rme": 1.1482890466892794,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 13.428644409179688,
+        "median": 12.983834028244019,
+        "rme": 3.220233150067895,
+        "sampleCount": 75
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "equip armor and dependent derivation",
+      "before": {
+        "mean": 95.17049663999933,
+        "median": 93.23279150000053,
+        "rme": 1.7162210292580593,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 22.114012556076048,
+        "median": 21.01887547969818,
+        "rme": 5.2793022099081925,
+        "sampleCount": 50
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "cast update and dependent derivation",
+      "before": {
+        "mean": 93.42287096000014,
+        "median": 92.42037499999788,
+        "rme": 1.0404635714392747,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 19.363153049579033,
+        "median": 19.21177041530609,
+        "rme": 1.0238215944583162,
+        "sampleCount": 52
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "rest and dependent derivation",
+      "before": {
+        "mean": 87.4968442999998,
+        "median": 86.38785400000052,
+        "rme": 1.3819624867418783,
+        "sampleCount": 50
+      },
+      "after": {
+        "mean": 12.883675780051794,
+        "median": 12.522603869438171,
+        "rme": 3.698644468154126,
+        "sampleCount": 78
+      }
+    },
+    {
+      "group": "multiclass",
+      "name": "repeated spell drawer projection",
+      "before": {
+        "mean": 0.6478801198185927,
+        "median": 0.5583749999968859,
+        "rme": 2.5887635881921782,
+        "sampleCount": 1544
+      },
+      "after": {
+        "mean": 0.0001989145813185751,
+        "median": 0.0002079010009765625,
+        "rme": 0.04120729691222445,
+        "sampleCount": 5027284
+      }
+    },
+    {
+      "group": "25 synthetic contributions",
+      "name": "compile",
+      "before": {
+        "mean": 0.019538165605103828,
+        "median": 0.017832999998063315,
+        "rme": 1.0433012104612387,
+        "sampleCount": 51182
+      },
+      "after": {
+        "mean": 0.02008205437738739,
+        "median": 0.017625093460083008,
+        "rme": 1.4571809085969916,
+        "sampleCount": 49796
+      }
+    },
+    {
+      "group": "25 synthetic contributions",
+      "name": "20 targeted description lookups",
+      "before": {
+        "mean": 0.01057390198048623,
+        "median": 0.009874999996100087,
+        "rme": 0.900127026129679,
+        "sampleCount": 94573
+      },
+      "after": {
+        "mean": 0.005563216917081861,
+        "median": 0.005208015441894531,
+        "rme": 0.9338803187974296,
+        "sampleCount": 179753
+      }
+    },
+    {
+      "group": "100 synthetic contributions",
+      "name": "compile",
+      "before": {
+        "mean": 0.07555415525837089,
+        "median": 0.06999999999970896,
+        "rme": 0.9361424744862396,
+        "sampleCount": 13236
+      },
+      "after": {
+        "mean": 0.07731860233676734,
+        "median": 0.06879210472106934,
+        "rme": 1.4050002229865053,
+        "sampleCount": 12934
+      }
+    },
+    {
+      "group": "100 synthetic contributions",
+      "name": "20 targeted description lookups",
+      "before": {
+        "mean": 0.028963811794005978,
+        "median": 0.02708399999391986,
+        "rme": 0.8688479342411733,
+        "sampleCount": 34526
+      },
+      "after": {
+        "mean": 0.005585397554700061,
+        "median": 0.00520777702331543,
+        "rme": 1.0315357433497072,
+        "sampleCount": 179039
+      }
+    }
+  ],
+  "bundle": {
+    "before": {
+      "bytes": {
+        "javascript": 5846991,
+        "javascriptGzip": 1568445,
+        "css": 579057,
+        "cssGzip": 127214,
+        "otherAssets": 3627720,
+        "otherAssetsGzip": 3621540,
+        "total": 10053768,
+        "totalGzip": 5317199
+      },
+      "initialAssets": [
+        {
+          "file": "/assets/index-Buh_ePVX.js",
+          "bytes": 457127,
+          "gzipBytes": 144069
+        },
+        {
+          "file": "/assets/index-b3uDCz6t.css",
+          "bytes": 53597,
+          "gzipBytes": 10886
+        }
+      ],
+      "initialLoading": {
+        "bytes": 510724,
+        "gzipBytes": 154955
+      },
+      "mainEntry": {
+        "file": "/assets/index-Buh_ePVX.js",
+        "bytes": 457127,
+        "gzipBytes": 144069
+      }
+    },
+    "after": {
+      "bytes": {
+        "javascript": 5794807,
+        "javascriptGzip": 1562665,
+        "css": 579057,
+        "cssGzip": 127118,
+        "otherAssets": 3627720,
+        "otherAssetsGzip": 3621539,
+        "total": 10001584,
+        "totalGzip": 5311322
+      },
+      "initialAssets": [
+        {
+          "file": "/assets/index-D8NDHv5T.js",
+          "bytes": 457036,
+          "gzipBytes": 144018
+        },
+        {
+          "file": "/assets/index-b3uDCz6t.css",
+          "bytes": 53597,
+          "gzipBytes": 10886
+        }
+      ],
+      "initialLoading": {
+        "bytes": 510633,
+        "gzipBytes": 154904
+      },
+      "mainEntry": {
+        "file": "/assets/index-D8NDHv5T.js",
+        "bytes": 457036,
+        "gzipBytes": 144018
+      }
+    }
+  },
+  "initialSheetRouteAssets": {
+    "before": {
+      "single": {
+        "count": 128,
+        "bytes": 5730630,
+        "gzipBytes": 1472233,
+        "offlineVerified": true,
+        "errors": []
+      },
+      "multiclass": {
+        "count": 128,
+        "bytes": 5729863,
+        "gzipBytes": 1471885,
+        "offlineVerified": true,
+        "errors": []
+      }
+    },
+    "after": {
+      "single": {
+        "count": 127,
+        "bytes": 5687006,
+        "gzipBytes": 1468996,
+        "offlineVerified": true,
+        "errors": []
+      },
+      "multiclass": {
+        "count": 127,
+        "bytes": 5686239,
+        "gzipBytes": 1468651,
+        "offlineVerified": true,
+        "errors": []
+      }
+    }
+  },
+  "coverage": {
+    "before": {
+      "lines": {
+        "total": 195378,
+        "covered": 92294,
+        "skipped": 0,
+        "pct": 47.23
+      },
+      "statements": {
+        "total": 195378,
+        "covered": 92294,
+        "skipped": 0,
+        "pct": 47.23
+      },
+      "functions": {
+        "total": 9574,
+        "covered": 4526,
+        "skipped": 0,
+        "pct": 47.27
+      },
+      "branches": {
+        "total": 20668,
+        "covered": 13149,
+        "skipped": 0,
+        "pct": 63.62
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "after": {
+      "lines": {
+        "total": 191342,
+        "covered": 94309,
+        "skipped": 0,
+        "pct": 49.28
+      },
+      "statements": {
+        "total": 191342,
+        "covered": 94309,
+        "skipped": 0,
+        "pct": 49.28
+      },
+      "functions": {
+        "total": 9731,
+        "covered": 4670,
+        "skipped": 0,
+        "pct": 47.99
+      },
+      "branches": {
+        "total": 20929,
+        "covered": 13534,
+        "skipped": 0,
+        "pct": 64.66
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    }
+  },
+  "browser": {
+    "single": {
+      "before": [
+        {
+          "name": "ability save",
+          "elapsedMs": {
+            "median": 126.89999997615814,
+            "min": 120.80000001192093,
+            "max": 130.89999997615814
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [21.999999821186066, 24.899999797344208, 26.69999998807907],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [2, 2, 2],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [1, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "HP damage",
+          "elapsedMs": {
+            "median": 16.19999998807907,
+            "min": 14.600000023841858,
+            "max": 19.900000035762787
+          },
+          "runtimeMeasureCounts": [16, 16, 15],
+          "runtimeMeasureDurationMs": [18.600000083446503, 18.799999952316284, 17.100000023841858],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [4, 3, 3],
+            "gameplay-actions": [2, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [4, 3, 3],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "equip armor",
+          "elapsedMs": {
+            "median": 118.10000002384186,
+            "min": 112.30000001192093,
+            "max": 118.5
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [17.100000023841858, 17.5, 16.999999940395355],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "open spell drawer",
+          "elapsedMs": {
+            "median": 29.900000035762787,
+            "min": 24,
+            "max": 44.60000002384186
+          },
+          "runtimeMeasureCounts": [0, 0, 0],
+          "runtimeMeasureDurationMs": [0, 0, 0],
+          "sectionCommitCounts": {
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "cast spell",
+          "elapsedMs": {
+            "median": 127.80000001192093,
+            "min": 123.40000003576279,
+            "max": 130.4000000357628
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [20.19999998807907, 20.099999845027924, 22.599999964237213],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "long rest",
+          "elapsedMs": {
+            "median": 83.69999998807907,
+            "min": 78.69999998807907,
+            "max": 110.19999998807907
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [14.600000023841858, 16.99999988079071, 14.399999916553497],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        }
+      ],
+      "after": [
+        {
+          "name": "ability save",
+          "elapsedMs": {
+            "median": 99.59999996423721,
+            "min": 94.5,
+            "max": 110.5
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [21.69999998807907, 24.400000035762787, 24.600000023841858],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [2, 2, 2],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [1, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "HP damage",
+          "elapsedMs": {
+            "median": 25.30000001192093,
+            "min": 20.099999964237213,
+            "max": 33.09999996423721
+          },
+          "runtimeMeasureCounts": [15, 15, 16],
+          "runtimeMeasureDurationMs": [19.0, 12.299999952316284, 18.600000083446503],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [3, 3, 3],
+            "gameplay-actions": [1, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [3, 3, 3],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "equip armor",
+          "elapsedMs": {
+            "median": 80.89999997615814,
+            "min": 76.30000001192093,
+            "max": 86.80000001192093
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [18.79999989271164, 18.599999964237213, 18.99999988079071],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "open spell drawer",
+          "elapsedMs": {
+            "median": 31.5,
+            "min": 29.5,
+            "max": 44.299999952316284
+          },
+          "runtimeMeasureCounts": [0, 0, 0],
+          "runtimeMeasureDurationMs": [0, 0, 0],
+          "sectionCommitCounts": {
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "cast spell",
+          "elapsedMs": {
+            "median": 96.19999998807907,
+            "min": 79.89999997615814,
+            "max": 102
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [20.899999976158142, 19.80000013113022, 21.399999976158142],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "long rest",
+          "elapsedMs": {
+            "median": 71.60000002384186,
+            "min": 69.89999997615814,
+            "max": 73.80000001192093
+          },
+          "runtimeMeasureCounts": [14, 14, 14],
+          "runtimeMeasureDurationMs": [16.400000035762787, 16.999999940395355, 16.800000071525574],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        }
+      ]
+    },
+    "multiclass": {
+      "before": [
+        {
+          "name": "ability save",
+          "elapsedMs": {
+            "median": 215.9000000357628,
+            "min": 202.5,
+            "max": 216.69999998807907
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [117.10000002384186, 122.09999990463257, 120.40000003576279],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [2, 2, 2],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [1, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "HP damage",
+          "elapsedMs": {
+            "median": 24.599999964237213,
+            "min": 22.100000023841858,
+            "max": 32
+          },
+          "runtimeMeasureCounts": [23, 22, 22],
+          "runtimeMeasureDurationMs": [100.40000003576279, 101.19999986886978, 101.19999986886978],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [4, 3, 3],
+            "gameplay-actions": [2, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [4, 3, 3],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "equip armor",
+          "elapsedMs": {
+            "median": 196.39999997615814,
+            "min": 180.9000000357628,
+            "max": 198.9000000357628
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [106.40000003576279, 109.50000023841858, 105.50000005960464],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "open spell drawer",
+          "elapsedMs": {
+            "median": 38.700000047683716,
+            "min": 27.19999998807907,
+            "max": 50.19999998807907
+          },
+          "runtimeMeasureCounts": [0, 0, 0],
+          "runtimeMeasureDurationMs": [0, 0, 0],
+          "sectionCommitCounts": {
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "cast spell",
+          "elapsedMs": {
+            "median": 211.80000001192093,
+            "min": 189.5,
+            "max": 219.9000000357628
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [109.80000025033951, 117.19999986886978, 115.0],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "long rest",
+          "elapsedMs": {
+            "median": 158.0999999642372,
+            "min": 154.69999998807907,
+            "max": 163.80000001192093
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [96.50000005960464, 101.39999997615814, 98.40000009536743],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        }
+      ],
+      "after": [
+        {
+          "name": "ability save",
+          "elapsedMs": {
+            "median": 126.79999995231628,
+            "min": 108.80000001192093,
+            "max": 132.5
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [35.499999821186066, 37.10000002384186, 32.1000000834465],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [2, 2, 2],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [1, 1, 1],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 1],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "HP damage",
+          "elapsedMs": {
+            "median": 20.5,
+            "min": 19.5,
+            "max": 27.30000001192093
+          },
+          "runtimeMeasureCounts": [22, 22, 23],
+          "runtimeMeasureDurationMs": [19.50000011920929, 19.600000023841858, 22.09999990463257],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [3, 3, 4],
+            "gameplay-actions": [1, 1, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [3, 3, 4],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [1, 1, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "equip armor",
+          "elapsedMs": {
+            "median": 101.39999997615814,
+            "min": 101.09999996423721,
+            "max": 105
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [31.09999990463257, 32.40000003576279, 31.600000202655792],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        },
+        {
+          "name": "open spell drawer",
+          "elapsedMs": {
+            "median": 25.200000047683716,
+            "min": 21.900000035762787,
+            "max": 28.69999998807907
+          },
+          "runtimeMeasureCounts": [0, 0, 0],
+          "runtimeMeasureDurationMs": [0, 0, 0],
+          "sectionCommitCounts": {
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "cast spell",
+          "elapsedMs": {
+            "median": 104,
+            "min": 101.59999996423721,
+            "max": 104.10000002384186
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [28.100000143051147, 28.699999749660492, 29.00000011920929],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [2, 2, 2]
+          }
+        },
+        {
+          "name": "long rest",
+          "elapsedMs": {
+            "median": 80.39999997615814,
+            "min": 69,
+            "max": 81.19999998807907
+          },
+          "runtimeMeasureCounts": [21, 21, 21],
+          "runtimeMeasureDurationMs": [20.59999990463257, 22.50000011920929, 23.100000202655792],
+          "sectionCommitCounts": {
+            "character-profile": [1, 1, 1],
+            "character-stats": [1, 1, 1],
+            "class-features-feats": [1, 1, 1],
+            "companions": [1, 1, 1],
+            "equipment": [1, 1, 1],
+            "gameplay": [2, 2, 2],
+            "gameplay-actions": [2, 2, 2],
+            "gameplay-camp": [1, 1, 1],
+            "gameplay-fighter-second-wind": [1, 1, 1],
+            "gameplay-header-heroic-inspiration": [1, 1, 1],
+            "gameplay-hit-points": [2, 2, 2],
+            "gameplay-round-tracker": [1, 1, 1],
+            "gameplay-traits-conditions": [2, 2, 2],
+            "skills-proficiencies": [1, 1, 1],
+            "spellcasting": [1, 1, 1]
+          }
+        }
+      ]
+    }
+  },
+  "hpDirectVisibleUpdate": {
+    "before": {
+      "valuesMs": [1.9000000357627869, 2, 2],
+      "medianMs": 2
+    },
+    "after": {
+      "valuesMs": [2.199999988079071, 2.200000047683716, 2.199999988079071],
+      "medianMs": 2.199999988079071
+    }
+  },
+  "verification": {
+    "frontend": {
+      "files": 37,
+      "passed": 464
+    },
+    "backend": {
+      "files": 5,
+      "passed": 50
+    },
+    "lint": "passed",
+    "testTypes": "passed",
+    "frontendBuild": "passed",
+    "backendBuild": "passed",
+    "browserJourneys": {
+      "passed": 158,
+      "skipped": 1,
+      "failed": 0,
+      "durationMinutes": 15.0,
+      "skipReason": "Desktop covers the broad-layout toggle and breakpoint transitions."
+    },
+    "productionOffline": {
+      "single": true,
+      "multiclass": true
+    }
+  }
+}

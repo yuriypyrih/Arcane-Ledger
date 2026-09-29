@@ -1,10 +1,13 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { expendMonkFocusPoint, getMonkFocusPointsRemaining, hasMonkFeature } from "./monk";
 
 const disciplinedSurvivorFocusCost = 1;
 
-type MonkDisciplinedSurvivorCharacter = Pick<Character, "className" | "level" | "classFeatureState">;
+type MonkDisciplinedSurvivorCharacter = Pick<
+  Character,
+  "className" | "level" | "classFeatureState"
+>;
 
 export type MonkDisciplinedSurvivorOptionState = {
   focusPointCost: number;

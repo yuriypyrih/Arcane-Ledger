@@ -1,4 +1,4 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import type { Character } from "../../../../../types";
 
 type DruidCircleOfTheMoonCharacter = Partial<Pick<Character, "className" | "level" | "subclassId">>;

@@ -1,6 +1,7 @@
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { getClassLevel } from "../../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { getClassLevel } from "../../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   type Character,

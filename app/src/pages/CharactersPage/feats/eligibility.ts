@@ -1,4 +1,4 @@
-import { getCharacterClasses, getCharacterLevel } from "../multiclass";
+import { getCharacterClasses, getCharacterLevel } from "../multiclassState";
 import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../../types";
 import { getAbilityScoresForCharacter } from "../abilities";
 import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";

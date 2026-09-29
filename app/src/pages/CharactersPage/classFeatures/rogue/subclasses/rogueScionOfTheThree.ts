@@ -1,12 +1,13 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
+import { type ReactionEntry } from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   REACTION,
-  WEAPON_COMBAT_TYPE,
-  type ReactionEntry
-} from "../../../../../codex/entries";
+  WEAPON_COMBAT_TYPE
+} from "../../../../../codex/entries/enums";
 import type { Character, RogueScionOfTheThreeDreadAllegianceChoice } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -19,7 +20,7 @@ import {
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -354,16 +355,10 @@ export function setRogueScionOfTheThreeDreadAllegianceChoice(
   const normalizedChoice =
     choice === null ? undefined : normalizeRogueScionOfTheThreeDreadAllegianceChoice(choice);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...character.classFeatureState?.rogue,
-        dreadAllegianceChoice: normalizedChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...character.classFeatureState?.rogue,
+    dreadAllegianceChoice: normalizedChoice
+  });
 }
 
 function getRogueScionOfTheThreeDreadAllegianceConfig(
@@ -565,18 +560,12 @@ export function consumeRogueScionOfTheThreeBloodthirstUse(character: Character):
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        bloodthirstMeleeAttacksRemainingThisTurn:
-          (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) + 1,
-        bloodthirstUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    bloodthirstMeleeAttacksRemainingThisTurn:
+      (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) + 1,
+    bloodthirstUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRogueScionOfTheThreeBloodthirstMeleeAttack(character: Character): Character {
@@ -588,16 +577,10 @@ export function consumeRogueScionOfTheThreeBloodthirstMeleeAttack(character: Cha
 
   const rogueState = character.classFeatureState?.rogue ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        bloodthirstMeleeAttacksRemainingThisTurn: remaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    bloodthirstMeleeAttacksRemainingThisTurn: remaining - 1
+  });
 }
 
 export function restoreRogueScionOfTheThreeBloodthirstOnLongRest(character: Character): Character {
@@ -614,17 +597,11 @@ export function restoreRogueScionOfTheThreeBloodthirstOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        bloodthirstMeleeAttacksRemainingThisTurn: 0,
-        bloodthirstUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    bloodthirstMeleeAttacksRemainingThisTurn: 0,
+    bloodthirstUsesExpended: 0
+  });
 }
 
 export function restoreRogueScionOfTheThreeBloodthirstOnShortRest(character: Character): Character {
@@ -642,22 +619,16 @@ export function restoreRogueScionOfTheThreeBloodthirstOnShortRest(character: Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        bloodthirstMeleeAttacksRemainingThisTurn: 0,
-        bloodthirstUsesExpended: Math.max(0, usesExpended - 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    bloodthirstMeleeAttacksRemainingThisTurn: 0,
+    bloodthirstUsesExpended: Math.max(0, usesExpended - 1)
+  });
 }
 
 export const getRogueScionOfTheThreeDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRogueScionOfTheThreeFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueScionOfTheThreeFeatureContributions),
     {
       character: character as Character
     }

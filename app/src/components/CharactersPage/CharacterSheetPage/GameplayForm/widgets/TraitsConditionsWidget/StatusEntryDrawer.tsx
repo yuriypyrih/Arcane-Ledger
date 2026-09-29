@@ -1,20 +1,10 @@
 import clsx from "clsx";
-import {
-  Check,
-  Clock3,
-  Minus,
-  Plus,
-  Save,
-  Trash2,
-  Undo2,
-  X,
-  type LucideIcon
-} from "lucide-react";
+import { Check, Clock3, Minus, Plus, Save, Trash2, Undo2, X, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import ActionButton from "../../../../../ActionButton";
 import { FeatureTrackingBadgeButton } from "../../../../../FeatureDisclosure";
 import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
-import { TRACKER } from "../../../../../../codex/entries";
+import { TRACKER } from "../../../../../../codex/entries/enums";
 import CellContainer from "../../../../../../components/CellContainer/CellContainer";
 import ConcentrationLabel from "../../../../../../components/ConcentrationLabel";
 import DescriptionContent from "../../../../../../components/DescriptionContent/DescriptionContent";
@@ -142,8 +132,7 @@ function StatusEntryDrawer({
     getStatusEntryDescriptionContent(entry, character);
   const isSpellStatusEntry =
     typeof entry.sourceSpellId === "string" && entry.sourceSpellId.trim().length > 0;
-  const shouldShowSpellSlotFact =
-    isSpellStatusEntry && entry.group === STATUS_ENTRY_GROUP.EFFECTS;
+  const shouldShowSpellSlotFact = isSpellStatusEntry && entry.group === STATUS_ENTRY_GROUP.EFFECTS;
   const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
   const optionLabel = isSpellStatusEntry ? getStatusEntryOptionLabel(entry) : null;
   const spellFormulas = entry.spellFormulas ?? [];

@@ -1,4 +1,4 @@
-import { getCharacterClasses } from "./multiclass";
+import { getCharacterClasses } from "./multiclassState";
 import { getCastingProgression } from "../../codex/classes/multiclass";
 import type { Character } from "../../types";
 import { getCharacterRuntime } from "./characterRuntime/characterRuntime";

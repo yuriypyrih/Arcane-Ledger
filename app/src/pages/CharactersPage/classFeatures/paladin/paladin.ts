@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
-import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, getDivinityEntryById } from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
+import { getDivinityEntryById } from "../../../../codex/entries";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import { paladinFeatureMap } from "../../../../codex/classes";
 import type {
   Character,
@@ -796,16 +798,10 @@ export function applyLayOnHands(character: Character, options: LayOnHandsOptions
     return character;
   }
 
-  const nextBaseCharacter: Character = {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        layOnHandsExpended: (paladinState.layOnHandsExpended ?? 0) + totalCost
-      }
-    }
-  };
+  const nextBaseCharacter: Character = replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    layOnHandsExpended: (paladinState.layOnHandsExpended ?? 0) + totalCost
+  });
 
   if (options.target === "other") {
     return nextBaseCharacter;
@@ -853,16 +849,10 @@ export function restorePaladinLayOnHandsOnLongRest(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        layOnHandsExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    layOnHandsExpended: 0
+  });
 }
 
 export function consumePaladinsSmiteUse(character: Character): Character {
@@ -876,16 +866,10 @@ export function consumePaladinsSmiteUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        paladinsSmiteUsesExpended: (paladinState.paladinsSmiteUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    paladinsSmiteUsesExpended: (paladinState.paladinsSmiteUsesExpended ?? 0) + 1
+  });
 }
 
 export function consumeFaithfulSteedUse(character: Character): Character {
@@ -899,16 +883,10 @@ export function consumeFaithfulSteedUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        faithfulSteedUsesExpended: (paladinState.faithfulSteedUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    faithfulSteedUsesExpended: (paladinState.faithfulSteedUsesExpended ?? 0) + 1
+  });
 }
 
 export function restorePaladinsSmiteOnLongRest(character: Character): Character {
@@ -922,16 +900,10 @@ export function restorePaladinsSmiteOnLongRest(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        paladinsSmiteUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    paladinsSmiteUsesExpended: 0
+  });
 }
 
 export function restoreFaithfulSteedOnLongRest(character: Character): Character {
@@ -945,16 +917,10 @@ export function restoreFaithfulSteedOnLongRest(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        faithfulSteedUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    faithfulSteedUsesExpended: 0
+  });
 }
 
 export function getUndyingSentinelUsesTotal(
@@ -1065,16 +1031,10 @@ export function restorePaladinChannelDivinityOnShortRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        channelDivinityUsesExpended: Math.max(0, usesExpended - 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    channelDivinityUsesExpended: Math.max(0, usesExpended - 1)
+  });
 }
 
 export function restorePaladinChannelDivinityOnLongRest(character: Character): Character {
@@ -1088,16 +1048,10 @@ export function restorePaladinChannelDivinityOnLongRest(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        channelDivinityUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    channelDivinityUsesExpended: 0
+  });
 }
 
 export function applyShortRestToPaladinFeatures(character: Character): Character {
@@ -1176,16 +1130,10 @@ export function advancePaladinFeaturesForNewRound(character: Character): Charact
     const paladinState = getPaladinFeatureState(character);
 
     if ((paladinState.extraAttacksRemainingThisTurn ?? 0) > 0) {
-      nextCharacter = {
-        ...character,
-        classFeatureState: {
-          ...character.classFeatureState,
-          paladin: {
-            ...paladinState,
-            extraAttacksRemainingThisTurn: 0
-          }
-        }
-      };
+      nextCharacter = replaceClassFeatureState(character, "paladin", {
+        ...paladinState,
+        extraAttacksRemainingThisTurn: 0
+      });
     }
   }
 
@@ -1224,16 +1172,10 @@ export function consumePaladinWeaponAttack(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function getPaladinWeaponMasterySelectionCount(
@@ -1306,20 +1248,14 @@ export function setPaladinWeaponMasterySelections(
   }
 
   const paladinState = getPaladinFeatureState(character);
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        weaponMasteries: normalizeWeaponMasterySelections(
-          selections,
-          paladinWeaponMasteryOptions,
-          paladinWeaponMasterySelectionCount
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    weaponMasteries: normalizeWeaponMasterySelections(
+      selections,
+      paladinWeaponMasteryOptions,
+      paladinWeaponMasterySelectionCount
+    )
+  });
 }
 
 export function getPaladinWeaponProficiencyEntries(

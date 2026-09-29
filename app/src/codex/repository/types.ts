@@ -1,4 +1,4 @@
-import type { SPELL_LIST_CLASS } from "../entries";
+import type { SPELL_LIST_CLASS } from "../entries/enums";
 import type { CodexCategory, CodexEntry, SpellEntry } from "../entries";
 
 export type CodexRepository = {

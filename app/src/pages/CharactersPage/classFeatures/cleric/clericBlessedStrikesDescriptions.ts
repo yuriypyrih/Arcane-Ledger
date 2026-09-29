@@ -1,9 +1,6 @@
 import { getSpellEntriesForClassName } from "../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, ClericBlessedStrikesChoice } from "../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import type { WeaponAction } from "../../gameplay";

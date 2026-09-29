@@ -4,7 +4,7 @@ import {
   WEAPON_BASE,
   WEAPON_PROPERTY,
   WEAPON_TRAINING
-} from "../../codex/entries";
+} from "../../codex/entries/enums";
 import type { Character } from "../../types";
 import { resolveWeaponBaseReference } from "../../utils/items/resolveWeaponBaseReference";
 import { getResolvedCustomLoadoutEntries } from "./customEquipment";
@@ -41,11 +41,13 @@ export function characterHasHeldWeaponProperty(
 
   const hasInventoryWeaponProperty = (character.inventoryItems ?? [])
     .flatMap(createHeldInventoryItemCopyReferences)
-    .some((copy) =>
-      copy.onHand &&
-      createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item)?.properties.includes(
-        property
-      )
+    .some(
+      (copy) =>
+        copy.onHand &&
+        createHeldDescriptorForInventoryItem(
+          `inventory-${copy.id}`,
+          copy.item
+        )?.properties.includes(property)
     );
 
   if (hasInventoryWeaponProperty) {
@@ -54,7 +56,9 @@ export function characterHasHeldWeaponProperty(
 
   return getResolvedCustomLoadoutEntries(character.customEquipment ?? []).some(
     (entry) =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand && entry.properties.includes(property)
+      entry.category === ENTRY_CATEGORIES.WEAPONS &&
+      entry.onHand &&
+      entry.properties.includes(property)
   );
 }
 
@@ -138,7 +142,8 @@ export function characterHasHeldInterceptionEquipment(
   }
 
   return getResolvedCustomLoadoutEntries(character.customEquipment ?? []).some(
-    (entry) => entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand && isInterceptionWeapon(entry)
+    (entry) =>
+      entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand && isInterceptionWeapon(entry)
   );
 }
 
@@ -158,9 +163,7 @@ function isPolearmMasterWeapon(
 
   const properties = weapon.properties ?? [];
 
-  return (
-    properties.includes(WEAPON_PROPERTY.HEAVY) && properties.includes(WEAPON_PROPERTY.REACH)
-  );
+  return properties.includes(WEAPON_PROPERTY.HEAVY) && properties.includes(WEAPON_PROPERTY.REACH);
 }
 
 export function characterHasHeldPolearmMasterWeapon(
@@ -204,8 +207,6 @@ export function characterHasHeldPolearmMasterWeapon(
 
   return getResolvedCustomLoadoutEntries(character.customEquipment ?? []).some(
     (entry) =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.onHand &&
-      isPolearmMasterWeapon(entry)
+      entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand && isPolearmMasterWeapon(entry)
   );
 }

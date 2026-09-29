@@ -1,13 +1,11 @@
+import type { SpellDescriptionEntry, WeaponDamage, WeaponRange } from "../../../codex/entries";
 import type {
-  SpellDescriptionEntry,
-  WeaponDamage,
-  WeaponRange,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
   WEAPON_TRAINING
-} from "../../../codex/entries";
+} from "../../../codex/entries/enums";
 import type { AbilityKey, Character, CharacterStatusEntry } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
 import type { FeatureActionFact, FeatureDamageBonus } from "../classFeatures";

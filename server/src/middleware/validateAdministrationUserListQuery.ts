@@ -1,3 +1,4 @@
+import { readSingleQueryValue } from "../utils/queryValues.js";
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import {
@@ -9,25 +10,6 @@ import {
 } from "../types/administration.js";
 
 const allowedOrderings = new Set<AdministrationUserOrdering>(ADMINISTRATION_USER_ORDERINGS);
-
-function readSingleQueryValue(value: unknown, name: string): string | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
-    throw new AppError(
-      `Query parameter "${name}" must be a single string value.`,
-      400,
-      "INVALID_QUERY",
-      {
-        parameter: name
-      }
-    );
-  }
-
-  return String(value);
-}
 
 function parsePage(value: string | undefined): number {
   if (!value) {

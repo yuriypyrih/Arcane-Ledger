@@ -1,9 +1,10 @@
+import { extractDescriptionSection as extractSubclassFeatureDescriptionSection } from "./shared/descriptionSections";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "./multiclass";
+} from "./multiclassState";
 import {
   barbarianFeatureMap,
   monkFeatureMap,
@@ -36,7 +37,7 @@ import {
 } from "../../codex/subclasses/bard";
 import { getSubclassEntryById } from "../../codex/subclasses";
 import type { SpellDescriptionEntry } from "../../codex/entries";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../codex/entries/enums";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -222,30 +223,6 @@ const sorcererSpellfireSorcerySubclassEntry = getSubclassEntryById("sorcerer-spe
 const warlockGreatOldOnePatronSubclassEntry = getSubclassEntryById("warlock-great-old-one-patron");
 const wizardAbjurerSubclassEntry = getSubclassEntryById("wizard-abjurer");
 
-function extractSubclassFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string
-): string[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
-}
 const monkCloakOfShadowsDescription =
   monkWarriorOfShadowSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
@@ -658,7 +635,13 @@ export function getEffectiveHitPointMaximumForCharacter(
     Partial<
       Pick<
         Character,
-        "customSpecies" | "feats" | "inventoryItems" | "level" | "multiclass" | "species" | "subclassId"
+        | "customSpecies"
+        | "feats"
+        | "inventoryItems"
+        | "level"
+        | "multiclass"
+        | "species"
+        | "subclassId"
       >
     >
 ): number {

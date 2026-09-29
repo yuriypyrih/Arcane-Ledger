@@ -1,4 +1,4 @@
-import { TRACKER } from "../../../../codex/entries";
+import { TRACKER } from "../../../../codex/entries/enums";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import {
   OverlayBody,

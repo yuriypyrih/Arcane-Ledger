@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ChangeEvent } from "react";
-import { CLASS_FEATURE, FEATS, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, FEATS } from "../../../../../codex/entries/enums";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import NumberInput from "../../../FormInputs/NumberInput";
@@ -13,9 +14,9 @@ import {
 import { getCharacterCustomTraitEffectInput } from "../../../../../pages/CharactersPage/characterRuntime/customEffectRuntime";
 import { getFeatureDescriptionForCharacter } from "../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import { getCustomTraitActualMaxHitPointBonuses } from "../../../../../pages/CharactersPage/customTraitEffects";
-import { getFeatDefinition, getFeatLabel } from "../../../../../pages/CharactersPage/feats";
+import { getFeatDefinition, getFeatLabel } from "../../../../../pages/CharactersPage/feats/catalog";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
-import { getCharacterClasses } from "../../../../../pages/CharactersPage/multiclass";
+import { getCharacterClasses } from "../../../../../pages/CharactersPage/multiclassState";
 import {
   getHitDieFormulaForClass,
   getHitDieLabelForCharacter,

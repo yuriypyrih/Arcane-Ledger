@@ -2,7 +2,7 @@ import type {
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
   WEAPON_TRAINING
-} from "../../codex/entries";
+} from "../../codex/entries/enums";
 import type { WeaponProficiencyEntry } from "../../types";
 import {
   resolveWeaponBaseReference,

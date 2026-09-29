@@ -1,4 +1,5 @@
-import { ACTION_TYPE, type SpellEntry } from "../../../codex/entries";
+import { type SpellEntry } from "../../../codex/entries";
+import { ACTION_TYPE } from "../../../codex/entries/enums";
 import type { RoundTrackerResource } from "../combat";
 
 export function getRoundTrackerResourceForSpell(spell: SpellEntry): RoundTrackerResource | null {

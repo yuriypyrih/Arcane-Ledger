@@ -1,5 +1,5 @@
 import type { Character } from "../../../../types";
-import { getClassEntry, getClassLevel } from "../../multiclass";
+import { getClassEntry, getClassLevel } from "../../multiclassState";
 import { getCharacterSpellSlotPools, setSlotPoolExpended } from "../../multiclassSpellcasting";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 

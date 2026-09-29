@@ -1,4 +1,4 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   ARMOR_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,

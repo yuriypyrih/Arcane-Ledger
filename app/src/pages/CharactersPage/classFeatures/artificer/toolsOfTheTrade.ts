@@ -1,4 +1,5 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
 import type {
   Character,
   CharacterArtificerFeatureState,
@@ -270,16 +271,10 @@ export function setArtificerToolsOfTheTradeToolSelectionsForCharacter(
     }
   });
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...character.classFeatureState?.artificer,
-        toolsOfTheTradeToolProficiencies: nextSelections.length > 0 ? nextSelections : undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...character.classFeatureState?.artificer,
+    toolsOfTheTradeToolProficiencies: nextSelections.length > 0 ? nextSelections : undefined
+  });
 }
 
 export function getArtificerToolsOfTheTradeToolProficiencyEntries(

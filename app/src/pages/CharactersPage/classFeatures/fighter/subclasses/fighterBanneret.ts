@@ -1,4 +1,5 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   banneretBolsteredGroupRecoveryDescription,
   banneretBolsteredRallyingSurgeDescription,
@@ -7,7 +8,8 @@ import {
   banneretSharedResilienceDescription,
   banneretTeamTacticsDescription
 } from "../../../../../codex/subclasses/fighterBanneret";
-import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
+import { getReactionEntryById } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -35,7 +37,7 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -318,17 +320,11 @@ export function setFighterBanneretKnightlyEnvoyLanguageSelection(
     ? normalizeFighterBanneretLanguageSelection(selection)
     : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizeFighterBanneretFeatureState(fighterState, character),
-        banneretKnightlyEnvoyLanguage: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizeFighterBanneretFeatureState(fighterState, character),
+    banneretKnightlyEnvoyLanguage: nextSelection
+  });
 }
 
 export function getFighterBanneretKnightlyEnvoySkillSelection(
@@ -356,17 +352,11 @@ export function setFighterBanneretKnightlyEnvoySkillSelection(
   const fighterState = getFighterStateRecord(character.classFeatureState?.fighter);
   const nextSelection = selection ? normalizeFighterBanneretSkillSelection(selection) : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizeFighterBanneretFeatureState(fighterState, character),
-        banneretKnightlyEnvoySkill: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizeFighterBanneretFeatureState(fighterState, character),
+    banneretKnightlyEnvoySkill: nextSelection
+  });
 }
 
 export function getFighterBanneretLanguageProficiencyEntries(
@@ -469,18 +459,11 @@ export function consumeFighterBanneretGroupRecoveryUse(character: Character): Ch
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        banneretGroupRecoveryUsesExpended:
-          (normalizedState.banneretGroupRecoveryUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    banneretGroupRecoveryUsesExpended: (normalizedState.banneretGroupRecoveryUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreFighterBanneretGroupRecoveryOnShortRest(character: Character): Character {
@@ -495,17 +478,11 @@ export function restoreFighterBanneretGroupRecoveryOnShortRest(character: Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        banneretGroupRecoveryUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    banneretGroupRecoveryUsesExpended: 0
+  });
 }
 
 export function restoreFighterBanneretGroupRecoveryOnLongRest(character: Character): Character {
@@ -625,7 +602,7 @@ export function collectFighterBanneretContributions(
 
 export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectFighterBanneretContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterBanneretContributions),
     {
       character: character as Character
     }

@@ -1,4 +1,4 @@
-import { WEAPON_COMBAT_TYPE } from "../../../../codex/entries";
+import { WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   SENSE,
@@ -26,13 +26,11 @@ import type {
 export const guardianOfNatureSpellId = "spell-guardian-of-nature";
 export const guardianOfNatureStatusValue = "Guardian of Nature";
 export const guardianOfNatureFormOptionId = "guardianOfNatureForm";
-export const guardianOfNaturePrimalBeastStatusSourceId =
-  "spell-guardian-of-nature-primal-beast";
+export const guardianOfNaturePrimalBeastStatusSourceId = "spell-guardian-of-nature-primal-beast";
 export const guardianOfNatureGreatTreeStatusSourceId = "spell-guardian-of-nature-great-tree";
 export const guardianOfNaturePrimalBeastDarkvisionSourceId =
   "spell-guardian-of-nature-primal-beast-darkvision";
-export const guardianOfNatureGreatTreeTemporaryHitPointsSource =
-  "Guardian of Nature: Great Tree";
+export const guardianOfNatureGreatTreeTemporaryHitPointsSource = "Guardian of Nature: Great Tree";
 
 type GuardianOfNatureForm = "primal-beast" | "great-tree";
 
@@ -90,9 +88,7 @@ function getGuardianOfNatureFormFromSourceId(sourceId: string | null | undefined
 }
 
 function getGuardianOfNatureFormLabel(form: GuardianOfNatureForm): string {
-  return form === "great-tree"
-    ? guardianOfNatureGreatTreeLabel
-    : guardianOfNaturePrimalBeastLabel;
+  return form === "great-tree" ? guardianOfNatureGreatTreeLabel : guardianOfNaturePrimalBeastLabel;
 }
 
 export function getGuardianOfNatureStatusOptionLabel(
@@ -210,8 +206,7 @@ export function getGuardianOfNatureSpellDerivedStatusEntriesForCharacter(
       },
       sourceId: guardianOfNaturePrimalBeastDarkvisionSourceId,
       rangeFeet: guardianOfNaturePrimalBeastDarkvisionRangeFeet,
-      description:
-        "While Primal Beast is active, you have Darkvision with a range of 120 feet."
+      description: "While Primal Beast is active, you have Darkvision with a range of 120 feet."
     }
   ];
 }
@@ -245,10 +240,7 @@ export function getGuardianOfNatureWeaponAttackIndicatorsForCharacter(
     return [guardianOfNatureAdvantageIndicator];
   }
 
-  if (
-    activeForm === "great-tree" &&
-    (context.ability === "DEX" || context.ability === "WIS")
-  ) {
+  if (activeForm === "great-tree" && (context.ability === "DEX" || context.ability === "WIS")) {
     return [guardianOfNatureAdvantageIndicator];
   }
 

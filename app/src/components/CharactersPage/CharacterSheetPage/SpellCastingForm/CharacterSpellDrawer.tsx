@@ -19,13 +19,12 @@ import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import SummonDefinitionPanel from "./SummonDefinitionPanel";
 import {
-  ENTRY_CATEGORIES,
   KeywordTooltip,
-  TRACKER,
   getSpellTrackingState,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES, TRACKER } from "../../../../codex/entries/enums";
 import type {
   AbilityKey,
   Character,

@@ -3,14 +3,14 @@ import {
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
+} from "../../../multiclassState";
+import { getReactionEntryById } from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
-  WEAPON_PROPERTY,
-  getReactionEntryById
-} from "../../../../../codex/entries";
+  WEAPON_PROPERTY
+} from "../../../../../codex/entries/enums";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
@@ -23,7 +23,7 @@ import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -331,7 +331,7 @@ export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeR
   character
 ) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBarbarianPathOfTheWorldTreeContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianPathOfTheWorldTreeContributions),
     {
       character: character as Character
     }

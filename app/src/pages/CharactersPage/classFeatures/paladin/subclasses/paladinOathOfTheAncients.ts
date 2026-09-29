@@ -1,11 +1,9 @@
+import { activatePaladinTimedFeature } from "../timedActivation";
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -16,7 +14,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -519,52 +517,14 @@ export function activatePaladinOathOfTheAncientsUndyingSentinel(character: Chara
 }
 
 export function activatePaladinOathOfTheAncientsElderChampion(character: Character): Character {
-  if (
-    !hasPaladinOathOfTheAncientsElderChampionFeature(character) ||
-    hasActivePaladinOathOfTheAncientsElderChampion(character)
-  ) {
-    return character;
-  }
-
-  const usesRemaining = getPaladinOathOfTheAncientsElderChampionUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const paladinState = character.classFeatureState?.paladin ?? {};
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        paladin: {
-          ...paladinState,
-          elderChampionUsesExpended: (paladinState.elderChampionUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getPaladinOathOfTheAncientsElderChampionFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSheetSpellSlotTotals(character);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyPaladinOathOfTheAncientsElderChampionStatus(nextCharacter);
+  return activatePaladinTimedFeature(character, {
+    hasFeature: hasPaladinOathOfTheAncientsElderChampionFeature,
+    isActive: hasActivePaladinOathOfTheAncientsElderChampion,
+    getRemaining: getPaladinOathOfTheAncientsElderChampionUsesRemaining,
+    counter: "elderChampionUsesExpended",
+    getFallbackSlotLevel: getPaladinOathOfTheAncientsElderChampionFallbackSlotLevel,
+    applyStatus: applyPaladinOathOfTheAncientsElderChampionStatus
+  });
 }
 
 export function restorePaladinOathOfTheAncientsUndyingSentinelOnLongRest(
@@ -580,16 +540,10 @@ export function restorePaladinOathOfTheAncientsUndyingSentinelOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        undyingSentinelUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    undyingSentinelUsesExpended: 0
+  });
 }
 
 export function restorePaladinOathOfTheAncientsElderChampionOnLongRest(
@@ -605,16 +559,10 @@ export function restorePaladinOathOfTheAncientsElderChampionOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        elderChampionUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    elderChampionUsesExpended: 0
+  });
 }
 
 export function advancePaladinOathOfTheAncientsFeaturesForNewRound(
@@ -727,7 +675,7 @@ export const getPaladinOathOfTheAncientsDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectPaladinOathOfTheAncientsContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinOathOfTheAncientsContributions),
     {
       character: character as Character
     }

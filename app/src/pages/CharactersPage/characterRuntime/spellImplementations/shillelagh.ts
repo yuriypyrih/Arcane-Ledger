@@ -1,12 +1,10 @@
-import { getCharacterLevel } from "../../multiclass";
+import { getCharacterLevel } from "../../multiclassState";
 import {
-  DICE,
-  WEAPON_BASE,
-  WEAPON_COMBAT_TYPE,
   type SpellDescriptionEntry,
   type SpellEntry,
   type WeaponDamage
 } from "../../../../codex/entries";
+import { DICE, WEAPON_BASE, WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,

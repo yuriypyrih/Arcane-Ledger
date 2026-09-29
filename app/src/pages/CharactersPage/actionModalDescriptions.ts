@@ -1,4 +1,5 @@
-import type { CLASS_FEATURE, SpellDescriptionEntry } from "../../codex/entries";
+import type { SpellDescriptionEntry } from "../../codex/entries";
+import type { CLASS_FEATURE } from "../../codex/entries/enums";
 import {
   getFeatureDescriptionMetadataForCharacter,
   type FeatureDescriptionMetadata
@@ -31,6 +32,7 @@ function descriptionEntryEquals(
   left: SpellDescriptionEntry,
   right: SpellDescriptionEntry
 ): boolean {
+  if (typeof left === "string" || typeof right === "string") return left === right;
   return JSON.stringify(left) === JSON.stringify(right);
 }
 

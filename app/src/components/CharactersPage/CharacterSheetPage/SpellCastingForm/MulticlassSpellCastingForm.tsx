@@ -2,7 +2,7 @@ import { ignoreCharacterMutation } from "../readOnlySheetContext";
 import { useCallback, useMemo, useState } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getCharacterClasses } from "../../../../pages/CharactersPage/multiclass";
+import { getCharacterClasses } from "../../../../pages/CharactersPage/multiclassState";
 import { getCastingProgression } from "../../../../codex/classes/multiclass";
 import {
   getCharacterSpellSlotPools,

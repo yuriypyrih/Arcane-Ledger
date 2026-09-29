@@ -1,8 +1,8 @@
 import {
-  ELDRITCH_INVOCATION,
   getEldritchInvocationEntryById,
   type SpellDescriptionEntry
 } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 
 type DescriptionAdditionCarrier = {

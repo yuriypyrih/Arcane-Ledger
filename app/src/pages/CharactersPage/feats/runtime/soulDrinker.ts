@@ -1,8 +1,5 @@
-import {
-  DAMAGE_TYPE,
-  FEATS,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE, FEATS } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -13,8 +10,7 @@ import {
 import { filterDescriptionEntries } from "./descriptionMatchers";
 
 const boonOfSoulDrinkerSource = "Boon of the Soul Drinker";
-const boonOfSoulDrinkerGraveResistanceSourceId =
-  "feat-boon-of-soul-drinker-grave-resistance";
+const boonOfSoulDrinkerGraveResistanceSourceId = "feat-boon-of-soul-drinker-grave-resistance";
 const boonOfSoulDrinkerDamageTypes = [DAMAGE_TYPE.COLD, DAMAGE_TYPE.NECROTIC] as const;
 
 type FeatDescriptionGetter = (feat: FEATS) => SpellDescriptionEntry[];

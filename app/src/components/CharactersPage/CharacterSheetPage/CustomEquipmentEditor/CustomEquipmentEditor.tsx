@@ -18,6 +18,11 @@ import {
   type CustomEquipmentItemSettingsDraft
 } from "./customEquipmentItemSettingsModel";
 import {
+  type EquipmentCost,
+  type WeaponDamage,
+  type WeaponDamageAmount
+} from "../../../../codex/entries";
+import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
   DICE,
@@ -25,11 +30,8 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type EquipmentCost,
-  type WeaponDamage,
-  type WeaponDamageAmount
-} from "../../../../codex/entries";
+  WEAPON_TRAINING
+} from "../../../../codex/entries/enums";
 import type {
   AbilityKey,
   CharacterInventoryItem,

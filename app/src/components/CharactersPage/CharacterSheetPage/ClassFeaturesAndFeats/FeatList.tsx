@@ -1,11 +1,14 @@
 import { Fragment } from "react";
-import { getFeatureTrackingState, type FEATS } from "../../../../codex/entries";
+import { getFeatureTrackingState } from "../../../../codex/entries";
+import { type FEATS } from "../../../../codex/entries/enums";
 import {
   getCharacterFeatSourceLabel,
-  getCharacterFeatSummary,
+  getCharacterFeatSummary
+} from "../../../../pages/CharactersPage/feats";
+import {
   getFeatCategoryLabel,
   getFeatDefinition
-} from "../../../../pages/CharactersPage/feats";
+} from "../../../../pages/CharactersPage/feats/catalog";
 import type { CharacterFeatEntry } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
@@ -67,7 +70,6 @@ function FeatList({
                 featDefinition.trackingMessage
               )}
             />
-
           </Fragment>
         );
       })}

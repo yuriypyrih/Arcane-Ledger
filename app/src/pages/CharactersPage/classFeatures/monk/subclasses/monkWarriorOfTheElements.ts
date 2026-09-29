@@ -1,6 +1,8 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
@@ -27,7 +29,7 @@ import type {
 import { createHeaderTagsFromResources } from "../../cardUsage";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -123,11 +125,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
   }
 
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(monkFeatures, normalizedLevel);
 }
 
 function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): number {
@@ -267,16 +265,10 @@ export function setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelectio
   const normalizedSelection =
     normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfTheElementsElementalResistanceDamageType: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfTheElementsElementalResistanceDamageType: normalizedSelection
+  });
 }
 
 export function normalizeMonkWarriorOfTheElementsFeatureState(
@@ -341,16 +333,10 @@ function spendMonkFocusPoints(character: Character, focusPointCost: number): Cha
     ? Math.max(0, Math.floor(rawFocusPointsExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost)
+  });
 }
 
 export function activateMonkWarriorOfTheElementsElementalAttunement(
@@ -693,16 +679,10 @@ export function consumeMonkWarriorOfTheElementsEmpoweredStrikes(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...character.classFeatureState?.monk,
-        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...character.classFeatureState?.monk,
+    warriorOfTheElementsEmpoweredStrikesUsedThisTurn: true
+  });
 }
 
 function getMonkWarriorOfTheElementsDerivedStatusEntries(
@@ -836,7 +816,7 @@ export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectMonkWarriorOfTheElementsContributions(character)),
+    getCompiledFeatureContributions(character, collectMonkWarriorOfTheElementsContributions),
     {
       character: character as Character
     }

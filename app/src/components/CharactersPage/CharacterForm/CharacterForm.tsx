@@ -28,7 +28,7 @@ import {
   rareLanguageEntries,
   standardLanguageEntries
 } from "../../../types";
-import { FEATS } from "../../../codex/entries";
+import { FEATS } from "../../../codex/entries/enums";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
   getBackgroundEntryByName,
@@ -74,7 +74,7 @@ import {
   getBackgroundToolChoiceOptions,
   normalizeBackgroundChoices
 } from "../../../pages/CharactersPage/backgrounds";
-import { getFeatLabel } from "../../../pages/CharactersPage/feats";
+import { getFeatLabel } from "../../../pages/CharactersPage/feats/catalog";
 import {
   getMinimumXpForLevel,
   normalizeLevelAndXp

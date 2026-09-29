@@ -1,10 +1,10 @@
-import { getClassEntry, getClassEditorCharacter } from "../multiclass";
+import { getClassEntry, getClassEditorCharacter } from "../multiclassState";
 import {
-  CLASS_FEATURE,
   getClassEntryByName,
   type FeatureMapEntry,
   type SpellDescriptionEntry
 } from "../../../codex/entries";
+import { CLASS_FEATURE } from "../../../codex/entries/enums";
 import {
   artificerFeatureMap,
   barbarianFeatureMap,

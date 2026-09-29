@@ -1,8 +1,8 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import type { WeaponAction } from "../../gameplay";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -161,7 +161,7 @@ export function getClericClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectClericFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectClericFeatureContributions),
     {
       character: character as Character
     }

@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE, FEATS } from "../../../codex/entries";
+import { DAMAGE_TYPE, FEATS } from "../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -7,7 +7,7 @@ import {
   type CharacterStatusEntry
 } from "../../../types";
 import { getAllDamageButStatusValue } from "../damageCoverageStatuses";
-import { getFeatDefinition } from "../feats";
+import { getFeatDefinition } from "../feats/catalog";
 import { hasFeatForCharacter } from "../feats/runtime";
 import { getBoonOfFuriousStormBloodiedImmunityStatusEntries } from "../feats/runtime/furiousStorm";
 import { isCharacterBloodied } from "../bloodied";
@@ -22,8 +22,7 @@ function getBoonOfDesperateResilienceDescription(): string {
   return description
     .filter(
       (entry): entry is string =>
-        typeof entry === "string" &&
-        entry.startsWith("<strong>Defense of Body and Mind.</strong>")
+        typeof entry === "string" && entry.startsWith("<strong>Defense of Body and Mind.</strong>")
     )
     .join("\n");
 }

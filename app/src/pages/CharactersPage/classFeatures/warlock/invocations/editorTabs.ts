@@ -1,4 +1,4 @@
-import { ELDRITCH_INVOCATION } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 
 export type WarlockEldritchInvocationEditorTabKey = "general" | "pacts";
 

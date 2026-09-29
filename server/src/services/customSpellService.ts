@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import { CustomSpell, type CustomSpellRecord } from "../models/CustomSpell.js";
@@ -413,7 +414,10 @@ async function listPublicCustomSpells() {
     .lean()
     .exec();
   const ownerIds = [...new Set(customSpells.map((customSpell) => customSpell.ownerId.toString()))];
-  const owners = await User.find({ _id: { $in: ownerIds } }).select("_id nickname").lean().exec();
+  const owners = await User.find({ _id: { $in: ownerIds } })
+    .select("_id nickname")
+    .lean()
+    .exec();
   const ownerNicknameById = new Map(
     owners.map((owner) => [owner._id.toString(), owner.nickname] as const)
   );
@@ -462,19 +466,12 @@ export async function createOwnedCustomSpell(options: {
 
   await assertCreatedDmToolWithinLimit({
     countDocuments: countOwnedCustomSpells,
-    isCreatedWithinLimit: async (limit) => {
-      const retainedCustomSpells = await CustomSpell.find({ ownerId: options.ownerId })
-        .sort({ createdAt: 1, _id: 1 })
-        .limit(limit)
-        .select("_id")
-        .lean()
-        .exec();
-
-      return retainedCustomSpells.some(
-        (retainedCustomSpell) =>
-          retainedCustomSpell._id.toString() === customSpell._id.toString()
-      );
-    },
+    isCreatedWithinLimit: (limit) =>
+      isCreatedDocumentRetained(
+        CustomSpell.find({ ownerId: options.ownerId }),
+        customSpell._id,
+        limit
+      ),
     kind: "customSpells",
     removeCreated: () =>
       CustomSpell.deleteOne({

@@ -1,5 +1,5 @@
-import { getClassLevel } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { getClassLevel } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
@@ -11,7 +11,7 @@ import {
 } from "../../../beastMasterCompanions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -251,7 +251,7 @@ function collectRangerBeastMasterContributions(
 
 export const getRangerBeastMasterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRangerBeastMasterContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerBeastMasterContributions),
     {
       character: character as Character
     }

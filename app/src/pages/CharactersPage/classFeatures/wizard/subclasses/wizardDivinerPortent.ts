@@ -1,4 +1,6 @@
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterWizardPortentRoll } from "../../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
@@ -193,16 +195,10 @@ export function setWizardDivinerPortentRolls(
 
   const wizardState = character.classFeatureState?.wizard ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        portentRolls: nextPortentRolls
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    portentRolls: nextPortentRolls
+  });
 }
 
 export function restoreWizardDivinerPortentOnLongRest(character: Character): Character {

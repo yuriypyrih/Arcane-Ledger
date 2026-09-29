@@ -1,10 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
-import {
-  CLASS_FEATURE,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../codex/entries/enums";
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { getInventoryAttunementCount } from "../../inventoryItems";
@@ -154,17 +151,11 @@ export function consumeArtificerFlashOfGeniusUse(character: Character): Characte
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
   const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(currentArtificerState, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...flashOfGeniusState,
-        flashOfGeniusUsesExpended: (flashOfGeniusState.flashOfGeniusUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...flashOfGeniusState,
+    flashOfGeniusUsesExpended: (flashOfGeniusState.flashOfGeniusUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreArtificerFlashOfGeniusOnLongRest(character: Character): Character {
@@ -179,17 +170,11 @@ export function restoreArtificerFlashOfGeniusOnLongRest(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...flashOfGeniusState,
-        flashOfGeniusUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...flashOfGeniusState,
+    flashOfGeniusUsesExpended: 0
+  });
 }
 
 export function restoreArtificerFlashOfGeniusOnShortRest(character: Character): Character {
@@ -205,17 +190,11 @@ export function restoreArtificerFlashOfGeniusOnShortRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...flashOfGeniusState,
-        flashOfGeniusUsesExpended: hasArtificerFlashOfGeniusFullShortRestRecovery(character)
-          ? 0
-          : Math.max(0, usesExpended - 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...flashOfGeniusState,
+    flashOfGeniusUsesExpended: hasArtificerFlashOfGeniusFullShortRestRecovery(character)
+      ? 0
+      : Math.max(0, usesExpended - 1)
+  });
 }

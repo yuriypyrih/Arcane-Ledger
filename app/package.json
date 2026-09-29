@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "bundle:report": "node scripts/bundle-size.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:benchmark": "vitest bench --run tests/performance/runtime.bench.ts",
     "test:coverage": "vitest run --coverage",
     "test:types": "tsc -p tsconfig.test.json",
     "test:e2e": "playwright test"

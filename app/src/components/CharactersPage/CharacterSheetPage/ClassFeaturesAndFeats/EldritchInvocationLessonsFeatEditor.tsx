@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { SetStateAction } from "react";
-import { FEATS } from "../../../../codex/entries";
-import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { FEATS } from "../../../../codex/entries/enums";
+import { getFeatDefinition } from "../../../../pages/CharactersPage/feats/catalog";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import type {
   CharacterFeatEntry,
@@ -60,9 +60,7 @@ function EldritchInvocationLessonsFeatEditor({
   renderTrackingButton,
   onConfiguredFeatEntryChange
 }: EldritchInvocationLessonsFeatEditorProps) {
-  const selectedOriginFeat = getLessonsOriginFeatForSelection(
-    selectedChoiceOption.selectionId
-  );
+  const selectedOriginFeat = getLessonsOriginFeatForSelection(selectedChoiceOption.selectionId);
   const selectedOriginFeatDefinition = selectedOriginFeat
     ? getFeatDefinition(selectedOriginFeat)
     : null;
@@ -73,9 +71,7 @@ function EldritchInvocationLessonsFeatEditor({
         }) ?? createEmptyPendingFeatState())
       : createEmptyPendingFeatState()
   );
-  const [configuredFeatEntry, setConfiguredFeatEntry] = useState<CharacterFeatEntry | null>(
-    null
-  );
+  const [configuredFeatEntry, setConfiguredFeatEntry] = useState<CharacterFeatEntry | null>(null);
   const noopSavePendingChoice = () => undefined;
 
   if (
@@ -201,9 +197,7 @@ function EldritchInvocationLessonsFeatEditor({
       return;
     }
 
-    saveConfiguredFeatEntry(
-      createSelectedFeatEntry(FEATS.MAGIC_INITIATE, { magicInitiate })
-    );
+    saveConfiguredFeatEntry(createSelectedFeatEntry(FEATS.MAGIC_INITIATE, { magicInitiate }));
   }
 
   function savePendingMusicianChoice() {
@@ -298,12 +292,8 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingBlessedWarriorChoice={noopSavePendingChoice}
         onSavePendingColdCasterChoice={noopSavePendingChoice}
         onSavePendingDragonscarredChoice={noopSavePendingChoice}
-        onSavePendingCultOfDragonInitiateChoice={
-          savePendingCultOfDragonInitiateChoice
-        }
-        onSavePendingEmeraldEnclaveFledglingChoice={
-          savePendingEmeraldEnclaveFledglingChoice
-        }
+        onSavePendingCultOfDragonInitiateChoice={savePendingCultOfDragonInitiateChoice}
+        onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
         onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
         onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
         onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
@@ -315,9 +305,7 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingSkilledChoice={savePendingSkilledChoice}
       />
       {configuredFeatEntry ? (
-        <p className={modalStyles.summary}>
-          Feat configured. Add the invocation to apply it.
-        </p>
+        <p className={modalStyles.summary}>Feat configured. Add the invocation to apply it.</p>
       ) : null}
     </div>
   );

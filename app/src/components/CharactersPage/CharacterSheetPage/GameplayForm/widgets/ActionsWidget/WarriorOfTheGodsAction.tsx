@@ -1,28 +1,13 @@
-import ActionButton from "../../../../../ActionButton";
-import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
+export { default as WarriorOfTheGodsActionFooter } from "./ActionDiceConfirmFooter";
+
 import CellContainer from "../../../../../CellContainer/CellContainer";
-import d20Icon from "../../../../../../assets/svg/d20.svg";
-import styles from "./ActionsWidget.module.css";
+
 import sharedModalStyles from "./FeatureActionModal.module.css";
-import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
-import ActionFooterButtonRow from "./ActionFooterButtonRow";
 
 type WarriorOfTheGodsActionBodyProps = {
   remainingCharges: number;
   selectedChargeCount: number;
   onSelectedChargeCountChange: (count: number) => void;
-};
-
-type WarriorOfTheGodsActionFooterProps = {
-  actionName: string;
-  confirmLabel: string;
-  actionShape: ActionShapeType | null;
-  actionShapeAvailable: boolean;
-  actionShapeMultiCount: number;
-  disabled: boolean;
-  isDiceRollerSettingsOpen: boolean;
-  onConfirm: () => void;
-  onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
 };
 
 function normalizeChargeCount(value: string, maxValue: number): number {
@@ -67,50 +52,5 @@ export function WarriorOfTheGodsActionBody({
 
       <CellContainer label="Healing Roll" content={selectedFormula} />
     </>
-  );
-}
-
-export function WarriorOfTheGodsActionFooter({
-  actionName,
-  confirmLabel,
-  actionShape,
-  actionShapeAvailable,
-  actionShapeMultiCount,
-  disabled,
-  isDiceRollerSettingsOpen,
-  onConfirm,
-  onDiceRollerSettingsOpenChange
-}: WarriorOfTheGodsActionFooterProps) {
-  return (
-    <ActionFooterButtonRow
-      settings={
-        <DiceRollerSettingsButton
-          actionName={actionName}
-          className={styles.weaponFooterIconButton}
-          isOpen={isDiceRollerSettingsOpen}
-          ariaLabel="Open dice roller settings"
-          onOpenChange={onDiceRollerSettingsOpenChange}
-        />
-      }
-    >
-      <ActionButton
-        className={styles.weaponFooterButton}
-        onClick={onConfirm}
-        disabled={disabled}
-        icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={actionShapeAvailable}
-              multiCount={actionShapeMultiCount}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {confirmLabel}
-      </ActionButton>
-    </ActionFooterButtonRow>
   );
 }

@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { DAMAGE_TYPE, TRACKER, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { DAMAGE_TYPE, TRACKER } from "../../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   SENSE,
@@ -24,7 +26,7 @@ import type {
 } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -276,16 +278,10 @@ export function setBarbarianPathOfTheWildHeartAspectChoice(
   const normalizedSelection =
     wildHeartAspectDefinitions.find((option) => option.key === selection)?.key ?? undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        wildHeartAspect: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    wildHeartAspect: normalizedSelection
+  });
 }
 
 export function getBarbarianPathOfTheWildHeartRageActionOverride(
@@ -779,7 +775,7 @@ export const getBarbarianPathOfTheWildHeartDerivedFeatureState: SubclassRuntimeR
   character
 ) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBarbarianPathOfTheWildHeartContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianPathOfTheWildHeartContributions),
     {
       character: character as Character
     }

@@ -1,11 +1,9 @@
+import { useCustomBestiaryRecords, useMonsterPickerRecords } from "./useMonsterPickerRecords";
+import { MONSTERS_PER_PAGE, useMonsterPickerPage } from "./useMonsterPickerPage";
 import { Check, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
-import {
-  listCustomBestiary,
-  type CustomBestiaryListScope,
-  type CustomBestiaryRecord
-} from "../../../../api/customBestiary";
+import { useEffect, useMemo, useState } from "react";
+import { isApiOfflineError } from "../../../../api";
+import { type CustomBestiaryListScope } from "../../../../api/customBestiary";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
@@ -30,23 +28,15 @@ import { useAppSelector } from "../../../../store";
 import {
   customBestiaryRecordToListItem,
   filterCustomBestiaryRecords,
-  getCustomBestiaryMonsterByKey,
   sortCustomBestiaryRecords
 } from "../CompanionsSection/customBestiaryBrowser";
 import {
-  getCachedMonsterEntry,
   getMonsterChallengeRatingNumber,
   getMonsterKey,
   getMonsterListItemKey,
-  getMonsterTypeName,
-  primeMonsterEntryCache
+  getMonsterTypeName
 } from "../../../../utils/monsters";
-import type {
-  CodexStatus,
-  MonsterListItem,
-  MonsterOrdering,
-  MonsterRecord
-} from "../../../../types";
+import type { MonsterListItem, MonsterOrdering, MonsterRecord } from "../../../../types";
 import SheetActionButton from "../SheetActionButton";
 import styles from "./DruidWildShapeMonsterModal.module.css";
 
@@ -62,8 +52,6 @@ type MonsterStatBlockPickerModalProps = {
   onSelectMonster: (monster: MonsterRecord) => void;
   onClose: () => void;
 };
-
-const MONSTERS_PER_PAGE = 20;
 
 function isEligibleMonsterType(typeLabel: string | null | undefined, eligibleTypes: string[]) {
   const normalizedTypeLabel = typeLabel?.trim().toLowerCase();
@@ -95,9 +83,10 @@ function isEligibleMonsterRecord(
   eligibleMaxCr: number
 ) {
   return (
-    isEligibleMonsterType(monster.type?.key, eligibleTypes) ||
-    isEligibleMonsterType(getMonsterTypeName(monster), eligibleTypes)
-  ) && (getMonsterChallengeRatingNumber(monster) ?? Infinity) <= eligibleMaxCr;
+    (isEligibleMonsterType(monster.type?.key, eligibleTypes) ||
+      isEligibleMonsterType(getMonsterTypeName(monster), eligibleTypes)) &&
+    (getMonsterChallengeRatingNumber(monster) ?? Infinity) <= eligibleMaxCr
+  );
 }
 
 function MonsterStatBlockPickerModal({
@@ -123,20 +112,28 @@ function MonsterStatBlockPickerModal({
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("cr");
   const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
   const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
-  const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
-  const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [eligibleOnly, setEligibleOnly] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewKey, setPreviewKey] = useState<string | null>(null);
-  const [previewMonster, setPreviewMonster] = useState<MonsterRecord | null>(null);
-  const [previewStatus, setPreviewStatus] = useState<CodexStatus>("ready");
   const [pendingSelectKey, setPendingSelectKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [monsterCache, setMonsterCache] = useState<Record<string, MonsterRecord>>(() =>
-    selectedMonster ? { [getMonsterKey(selectedMonster)]: selectedMonster } : {}
-  );
-  const loadedCustomBestiaryForAuthRef = useRef<string | null>(null);
   const isCustomBestiaryMode = canUseCustomBestiary && monsterSourceMode === "custom";
+  const { customBestiaryRecords, customBestiaryStatus } = useCustomBestiaryRecords(
+    authUserId,
+    customBestiaryScope,
+    isCustomBestiaryMode
+  );
+  const selectedMonsters = useMemo(
+    () => (selectedMonster ? [selectedMonster] : []),
+    [selectedMonster]
+  );
+  const { previewKey, setPreviewKey, previewMonster, previewStatus, resolveMonster } =
+    useMonsterPickerRecords(
+      selectedMonsters,
+      customBestiaryRecords,
+      isOnline,
+      `${authUserId}:${customBestiaryScope}:${monsterSourceMode}`
+    );
+
   const selectedMonsterKey = selectedMonster ? getMonsterKey(selectedMonster) : null;
   const { payload, status } = useMonsterEntries({
     enabled: !isCustomBestiaryMode,
@@ -173,17 +170,15 @@ function MonsterStatBlockPickerModal({
     monsterTypeFilter,
     query
   ]);
-  const customBestiaryPageItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * MONSTERS_PER_PAGE;
-
-    return customBestiaryItems.slice(startIndex, startIndex + MONSTERS_PER_PAGE);
-  }, [currentPage, customBestiaryItems]);
-  const browserMonsters = isCustomBestiaryMode ? customBestiaryPageItems : (payload?.results ?? []);
-  const browserTotalEntries = isCustomBestiaryMode
-    ? customBestiaryItems.length
-    : (payload?.count ?? 0);
-  const browserStatus = isCustomBestiaryMode ? customBestiaryStatus : status;
-  const totalPages = Math.max(1, Math.ceil(browserTotalEntries / MONSTERS_PER_PAGE));
+  const { browserMonsters, browserTotalEntries, browserStatus, totalPages } = useMonsterPickerPage(
+    currentPage,
+    setCurrentPage,
+    isCustomBestiaryMode,
+    customBestiaryItems,
+    customBestiaryStatus,
+    payload,
+    status
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -205,138 +200,6 @@ function MonsterStatBlockPickerModal({
     setMonsterSourceMode("standard");
   }, [canUseCustomBestiary, monsterSourceMode]);
 
-  useEffect(() => {
-    if (currentPage <= totalPages) {
-      return;
-    }
-
-    setCurrentPage(totalPages);
-  }, [currentPage, totalPages]);
-
-  useEffect(() => {
-    if (!selectedMonster) {
-      return;
-    }
-
-    setMonsterCache((currentCache) => ({
-      ...currentCache,
-      [getMonsterKey(selectedMonster)]: selectedMonster
-    }));
-  }, [selectedMonster]);
-
-  useEffect(() => {
-    let active = true;
-    const loadKey =
-      isCustomBestiaryMode && authUserId ? `${authUserId}:${customBestiaryScope}` : null;
-
-    if (!loadKey) {
-      return () => {
-        active = false;
-      };
-    }
-
-    if (loadedCustomBestiaryForAuthRef.current === loadKey) {
-      return () => {
-        active = false;
-      };
-    }
-
-    loadedCustomBestiaryForAuthRef.current = loadKey;
-    setCustomBestiaryStatus("loading");
-
-    void listCustomBestiary({
-      scope: customBestiaryScope,
-      suppressFailureToast: true
-    })
-      .then(({ customBestiary }) => {
-        if (!active) {
-          return;
-        }
-
-        setCustomBestiaryRecords(customBestiary);
-        setCustomBestiaryStatus("ready");
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
-        setCustomBestiaryStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
-        loadedCustomBestiaryForAuthRef.current = null;
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [authUserId, customBestiaryScope, isCustomBestiaryMode]);
-
-  useEffect(() => {
-    let active = true;
-    const abortController = new AbortController();
-
-    async function loadPreview() {
-      if (!previewKey) {
-        setPreviewMonster(null);
-        setPreviewStatus("ready");
-        return;
-      }
-
-      const customBestiaryMonster = getCustomBestiaryMonsterByKey(
-        customBestiaryRecords,
-        previewKey
-      );
-      const cachedMonster =
-        customBestiaryMonster ?? monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
-
-      if (cachedMonster) {
-        primeMonsterEntryCache(cachedMonster);
-        setPreviewMonster(cachedMonster);
-        setPreviewStatus("ready");
-        return;
-      }
-
-      if (!isOnline) {
-        setPreviewMonster(null);
-        setPreviewStatus("server-unavailable");
-        return;
-      }
-
-      setPreviewStatus("loading");
-
-      try {
-        const payload = await fetchMonsterByKey(previewKey, {
-          signal: abortController.signal
-        });
-
-        if (!active) {
-          return;
-        }
-
-        primeMonsterEntryCache(payload);
-        setMonsterCache((currentCache) => ({
-          ...currentCache,
-          [getMonsterKey(payload)]: payload
-        }));
-        setPreviewMonster(payload);
-        setPreviewStatus("ready");
-      } catch (error) {
-        if (!active || abortController.signal.aborted) {
-          return;
-        }
-
-        setPreviewMonster(null);
-        setPreviewStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
-      }
-    }
-
-    void loadPreview();
-
-    return () => {
-      active = false;
-      abortController.abort();
-    };
-  }, [customBestiaryRecords, isOnline, monsterCache, previewKey]);
-
   async function selectMonster(monster: MonsterListItem) {
     const monsterKey = getMonsterListItemKey(monster);
 
@@ -348,15 +211,8 @@ function MonsterStatBlockPickerModal({
     setNotice(null);
 
     try {
-      const fullMonster =
-        getCustomBestiaryMonsterByKey(customBestiaryRecords, monsterKey) ??
-        monsterCache[monsterKey] ??
-        (await fetchMonsterByKey(monsterKey));
-
-      setMonsterCache((currentCache) => ({
-        ...currentCache,
-        [getMonsterKey(fullMonster)]: fullMonster
-      }));
+      const fullMonster = await resolveMonster(monsterKey);
+      if (!fullMonster) return;
       onSelectMonster(fullMonster);
       onClose();
     } catch (error) {
@@ -499,7 +355,6 @@ function MonsterStatBlockPickerModal({
                       { label: "Public", value: "public" }
                     ]}
                     onValueChange={(nextScope) => {
-                      loadedCustomBestiaryForAuthRef.current = null;
                       setCustomBestiaryScope(nextScope);
                     }}
                   />

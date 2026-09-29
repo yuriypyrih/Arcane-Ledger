@@ -1,4 +1,4 @@
-import { RARITY_TYPES, WEAPON_COMBAT_TYPE } from "../../../codex/entries";
+import { RARITY_TYPES, WEAPON_COMBAT_TYPE } from "../../../codex/entries/enums";
 import { getWeaponEntries } from "../../../codex/selectors";
 import { WEAPON_PROFICIENCY } from "../../../types";
 
@@ -41,10 +41,12 @@ export function normalizeWeaponMasterySelections(
 
   const optionSet = new Set<WEAPON_PROFICIENCY>(options);
 
-  return [...new Set(
-    selections.filter(
-      (selection): selection is WEAPON_PROFICIENCY =>
-        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
+  return [
+    ...new Set(
+      selections.filter(
+        (selection): selection is WEAPON_PROFICIENCY =>
+          typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
+      )
     )
-  )].slice(0, limit);
+  ].slice(0, limit);
 }

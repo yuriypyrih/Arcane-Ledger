@@ -1,12 +1,12 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
 import {
-  CLASS_FEATURE,
   getReactionEntryById,
-  SPELL_LIST_CLASS,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterBardFeatureState,
@@ -18,7 +18,7 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -190,16 +190,10 @@ export function setBardCollegeOfLoreBonusProficiencySelections(
   bardState: CharacterBardFeatureState,
   selections: SkillName[]
 ): Character {
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        loreBonusProficiencies: normalizeBardCollegeOfLoreBonusProficiencySelections(selections)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    loreBonusProficiencies: normalizeBardCollegeOfLoreBonusProficiencySelections(selections)
+  });
 }
 
 export function getBardCollegeOfLoreMagicalDiscoveriesSpellOptions(
@@ -257,23 +251,17 @@ export function setBardCollegeOfLoreMagicalDiscoveriesSpellIds(
     getBardCollegeOfLoreMagicalDiscoveriesSpellOptions(character).map((spell) => spell.id)
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        magicalDiscoveriesSpellIds: normalizeBardCollegeOfLoreMagicalDiscoveriesSpellIds(
-          spellIds
-        ).filter((spellId) => availableSpellIds.has(spellId))
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    magicalDiscoveriesSpellIds: normalizeBardCollegeOfLoreMagicalDiscoveriesSpellIds(
+      spellIds
+    ).filter((spellId) => availableSpellIds.has(spellId))
+  });
 }
 
 export const getBardCollegeOfLoreDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBardCollegeOfLoreContributions(character)),
+    getCompiledFeatureContributions(character, collectBardCollegeOfLoreContributions),
     {
       character: character as Character
     }

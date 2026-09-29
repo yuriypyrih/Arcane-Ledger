@@ -1,14 +1,10 @@
+import { createSubclassFeatureRow } from "./featureRow";
 import {
   vestigeCompanionStatisticsDescription,
   getVestigeDomainSpellDescriptions
 } from "./warlockVestige";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
-import type {
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj,
-  SubclassFeatureLevel
-} from "../entries/types";
+import type { SubclassEntry } from "../entries/types";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -16,20 +12,6 @@ const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_10: 10,
   LEVEL_14: 14
 } as const;
-
-function createSubclassFeatureRow(
-  level: SubclassFeatureLevel,
-  feature: CLASS_FEATURE,
-  details: FeatureMapEntry
-): SubclassFeatureClassObj {
-  return {
-    level,
-    classFeatures: [feature],
-    featureOverrides: {
-      [feature]: details
-    }
-  };
-}
 
 export const warlockSubclassEntries: SubclassEntry[] = [
   {

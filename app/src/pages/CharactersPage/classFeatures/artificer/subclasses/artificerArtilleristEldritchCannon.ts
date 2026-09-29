@@ -1,11 +1,8 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { getClassLevel } from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../../codex/entries";
+import { getClassLevel } from "../../../multiclassState";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   type Character,
@@ -439,22 +436,16 @@ function consumeEldritchCannonResource(
   if (usesTotal > 0 && usesRemaining > 0) {
     const currentArtificerState = character.classFeatureState?.artificer ?? {};
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        artificer: {
-          ...currentArtificerState,
-          artilleristEldritchCannonUsesExpended: Math.min(
-            usesTotal,
-            normalizeUsesExpended(
-              currentArtificerState.artilleristEldritchCannonUsesExpended,
-              usesTotal
-            ) + 1
-          )
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "artificer", {
+      ...currentArtificerState,
+      artilleristEldritchCannonUsesExpended: Math.min(
+        usesTotal,
+        normalizeUsesExpended(
+          currentArtificerState.artilleristEldritchCannonUsesExpended,
+          usesTotal
+        ) + 1
+      )
+    });
   }
 
   if (spellSlotLevel === null) {
@@ -795,14 +786,8 @@ export function restoreArtificerEldritchCannonOnLongRest(character: Character): 
 
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        artilleristEldritchCannonUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    artilleristEldritchCannonUsesExpended: 0
+  });
 }

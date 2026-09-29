@@ -1,4 +1,4 @@
-import { RARITY_TYPES } from "../../../codex/entries";
+import { RARITY_TYPES } from "../../../codex/entries/enums";
 import type { ItemDetailReference } from "../../../types";
 import { formatCodexLabel } from "../../../utils/codex";
 
@@ -54,10 +54,15 @@ const appearanceByRarity: Record<RARITY_TYPES, RarityAppearance> = {
 };
 
 function normalizeRarityKey(value: string): string {
-  return value.trim().replace(/[\s-]+/g, "_").toUpperCase();
+  return value
+    .trim()
+    .replace(/[\s-]+/g, "_")
+    .toUpperCase();
 }
 
-export function getRarityDisplayLabel(rarity: Exclude<RarityPillValue, null | undefined>): string | null {
+export function getRarityDisplayLabel(
+  rarity: Exclude<RarityPillValue, null | undefined>
+): string | null {
   if (typeof rarity === "string") {
     return formatCodexLabel(normalizeRarityKey(rarity));
   }
@@ -108,10 +113,8 @@ export function hasDisplayableRarity(rarity: RarityPillValue): boolean {
     return normalizedKey.length > 0 && normalizedKey !== RARITY_TYPES.NO_RARITY;
   }
 
-  const normalizedName =
-    typeof rarity.name === "string" ? normalizeRarityKey(rarity.name) : "";
-  const normalizedKey =
-    typeof rarity.key === "string" ? normalizeRarityKey(rarity.key) : "";
+  const normalizedName = typeof rarity.name === "string" ? normalizeRarityKey(rarity.name) : "";
+  const normalizedKey = typeof rarity.key === "string" ? normalizeRarityKey(rarity.key) : "";
 
   if (!normalizedName && !normalizedKey) {
     return false;

@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import { CustomBestiary, type CustomBestiaryRecord } from "../models/CustomBestiary.js";
@@ -206,15 +207,17 @@ async function listPublicCustomBestiary() {
   const ownerIds = [
     ...new Set(customBestiary.map((customCreature) => customCreature.ownerId.toString()))
   ];
-  const owners = await User.find({ _id: { $in: ownerIds } }).select("_id nickname").lean().exec();
+  const owners = await User.find({ _id: { $in: ownerIds } })
+    .select("_id nickname")
+    .lean()
+    .exec();
   const ownerNicknameById = new Map(
     owners.map((owner) => [owner._id.toString(), owner.nickname] as const)
   );
 
   return customBestiary.map((customCreature) =>
     toCustomBestiaryRecord(customCreature, {
-      ownerNickname:
-        ownerNicknameById.get(customCreature.ownerId.toString()) ?? "Unknown Player"
+      ownerNickname: ownerNicknameById.get(customCreature.ownerId.toString()) ?? "Unknown Player"
     })
   );
 }
@@ -264,19 +267,12 @@ export async function createOwnedCustomBestiary(options: {
 
   await assertCreatedDmToolWithinLimit({
     countDocuments: countOwnedCustomBestiary,
-    isCreatedWithinLimit: async (limit) => {
-      const retainedCustomBestiary = await CustomBestiary.find({ ownerId: options.ownerId })
-        .sort({ createdAt: 1, _id: 1 })
-        .limit(limit)
-        .select("_id")
-        .lean()
-        .exec();
-
-      return retainedCustomBestiary.some(
-        (retainedCustomCreature) =>
-          retainedCustomCreature._id.toString() === customBestiary._id.toString()
-      );
-    },
+    isCreatedWithinLimit: (limit) =>
+      isCreatedDocumentRetained(
+        CustomBestiary.find({ ownerId: options.ownerId }),
+        customBestiary._id,
+        limit
+      ),
     kind: "customBestiary",
     removeCreated: () =>
       CustomBestiary.deleteOne({

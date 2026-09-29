@@ -1,6 +1,10 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { spendClassResource } from "../../shared/resourceState";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { sorcererFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -11,7 +15,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -97,11 +101,7 @@ const restoreBalanceReactionEntry: ReactionEntry = {
 
 function getSorcererFeatureRow(level: number | undefined) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(sorcererFeatures, normalizedLevel);
 }
 
 function getSorcererClockworkSorceryPointsTotal(
@@ -128,38 +128,16 @@ function getSorcererClockworkSorceryPointsRemaining(
 }
 
 function spendSorcererClockworkSorceryPoints(character: Character, cost: number): Character {
-  const normalizedCost = Math.max(0, Math.floor(cost));
-
-  if (normalizedCost <= 0) {
-    return character;
-  }
-
-  const totalPoints = getSorcererClockworkSorceryPointsTotal(character);
-  const remainingPoints = getSorcererClockworkSorceryPointsRemaining(character);
-
-  if (totalPoints <= 0 || remainingPoints < normalizedCost) {
-    return character;
-  }
-
-  const currentExpended = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
-  const nextExpended = Math.max(
-    0,
-    Math.min(
-      totalPoints,
-      (Number.isFinite(currentExpended) ? Math.floor(currentExpended) : 0) + normalizedCost
-    )
+  return spendClassResource(
+    character,
+    {
+      stateKey: "sorcerer",
+      counter: "sorceryPointsExpended",
+      total: getSorcererClockworkSorceryPointsTotal(character),
+      remaining: getSorcererClockworkSorceryPointsRemaining(character)
+    },
+    cost
   );
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        sorceryPointsExpended: nextExpended
-      }
-    }
-  };
 }
 
 function hasSorcererClockworkRestoreBalanceFeature(character: ClockworkSorceryCharacter): boolean {
@@ -515,16 +493,10 @@ export function consumeSorcererClockworkRestoreBalanceUse(character: Character):
 
   const sorcererState = character.classFeatureState?.sorcerer ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        restoreBalanceUsesExpended: (sorcererState.restoreBalanceUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    restoreBalanceUsesExpended: (sorcererState.restoreBalanceUsesExpended ?? 0) + 1
+  });
 }
 
 export function activateSorcererClockworkBastionOfLaw(
@@ -582,19 +554,13 @@ export function activateSorcererClockworkTranceOfOrder(character: Character): Ch
   if (usesRemaining > 0) {
     const sorcererState = character.classFeatureState?.sorcerer ?? {};
 
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...sorcererState,
-          tranceOfOrderUsesExpended: Math.max(
-            0,
-            Math.min(tranceOfOrderUsesTotal, (sorcererState.tranceOfOrderUsesExpended ?? 0) + 1)
-          )
-        }
-      }
-    };
+    nextCharacter = replaceClassFeatureState(character, "sorcerer", {
+      ...sorcererState,
+      tranceOfOrderUsesExpended: Math.max(
+        0,
+        Math.min(tranceOfOrderUsesTotal, (sorcererState.tranceOfOrderUsesExpended ?? 0) + 1)
+      )
+    });
   } else {
     nextCharacter = spendSorcererClockworkSorceryPoints(
       character,
@@ -635,22 +601,16 @@ export function activateSorcererClockworkCavalcade(character: Character): Charac
   if (usesRemaining > 0) {
     const sorcererState = character.classFeatureState?.sorcerer ?? {};
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...sorcererState,
-          clockworkCavalcadeUsesExpended: Math.max(
-            0,
-            Math.min(
-              clockworkCavalcadeUsesTotal,
-              (sorcererState.clockworkCavalcadeUsesExpended ?? 0) + 1
-            )
-          )
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "sorcerer", {
+      ...sorcererState,
+      clockworkCavalcadeUsesExpended: Math.max(
+        0,
+        Math.min(
+          clockworkCavalcadeUsesTotal,
+          (sorcererState.clockworkCavalcadeUsesExpended ?? 0) + 1
+        )
+      )
+    });
   }
 
   return spendSorcererClockworkSorceryPoints(character, clockworkCavalcadeFallbackSorceryPointCost);
@@ -667,16 +627,10 @@ export function restoreSorcererClockworkRestoreBalanceOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        restoreBalanceUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    restoreBalanceUsesExpended: 0
+  });
 }
 
 function restoreSorcererClockworkTranceOfOrderOnLongRest(character: Character): Character {
@@ -690,16 +644,10 @@ function restoreSorcererClockworkTranceOfOrderOnLongRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        tranceOfOrderUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    tranceOfOrderUsesExpended: 0
+  });
 }
 
 function restoreSorcererClockworkCavalcadeOnLongRest(character: Character): Character {
@@ -713,16 +661,10 @@ function restoreSorcererClockworkCavalcadeOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        clockworkCavalcadeUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    clockworkCavalcadeUsesExpended: 0
+  });
 }
 
 export function restoreSorcererClockworkFeaturesOnLongRest(character: Character): Character {
@@ -867,7 +809,7 @@ export const getSorcererClockworkSorceryDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectSorcererClockworkSorceryContributions(character)),
+    getCompiledFeatureContributions(character, collectSorcererClockworkSorceryContributions),
     {
       character: character as Character
     }

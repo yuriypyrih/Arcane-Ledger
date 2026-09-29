@@ -1,6 +1,9 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterMonkFeatureState, SkillName } from "../../../../../types";
 import {
@@ -27,7 +30,7 @@ import type {
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { WeaponAction } from "../../../gameplay";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -98,11 +101,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
   }
 
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(monkFeatures, normalizedLevel);
 }
 
 function appendWeaponDescriptionSection<T extends { description?: SpellDescriptionEntry[] }>(
@@ -550,17 +549,11 @@ export function consumeMonkWarriorOfMercyHandOfHarm(character: Character): Chara
     : 0;
   const focusPointCost = optionState.focusPointCost;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost),
-        warriorOfMercyHandOfHarmUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost),
+    warriorOfMercyHandOfHarmUsedThisTurn: true
+  });
 }
 
 export function getMonkWarriorOfMercyFeatureActions(
@@ -685,17 +678,11 @@ export function activateMonkWarriorOfMercyHandOfHealing(
       return character;
     }
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        monk: {
-          ...monkState,
-          flurryOfBlowsAttacksRemainingThisTurn: sharedFlurryUsesRemaining - 1,
-          warriorOfMercyHandOfHealingFlurryUsesThisTurn: flurryHealingUsesThisTurn + 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "monk", {
+      ...monkState,
+      flurryOfBlowsAttacksRemainingThisTurn: sharedFlurryUsesRemaining - 1,
+      warriorOfMercyHandOfHealingFlurryUsesThisTurn: flurryHealingUsesThisTurn + 1
+    });
   }
 
   const focusPointsRemaining = getMonkFocusPointsRemaining(character);
@@ -710,16 +697,10 @@ export function activateMonkWarriorOfMercyHandOfHealing(
     ? Math.max(0, Math.floor(rawFocusPointsExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + 1)
+  });
 }
 
 export function activateMonkWarriorOfMercyHandOfUltimateJustice(character: Character): Character {
@@ -745,23 +726,17 @@ export function activateMonkWarriorOfMercyHandOfUltimateJustice(character: Chara
     ? Math.max(0, Math.floor(rawUsesExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(
-          totalFocusPoints,
-          focusPointsExpended + handOfUltimateMercyFocusCost
-        ),
-        warriorOfMercyHandOfUltimateMercyUsesExpended: Math.min(
-          handOfUltimateMercyUsesTotal,
-          usesExpended + 1
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(
+      totalFocusPoints,
+      focusPointsExpended + handOfUltimateMercyFocusCost
+    ),
+    warriorOfMercyHandOfUltimateMercyUsesExpended: Math.min(
+      handOfUltimateMercyUsesTotal,
+      usesExpended + 1
+    )
+  });
 }
 
 export function restoreMonkWarriorOfMercyHandOfUltimateMercyOnLongRest(
@@ -777,16 +752,10 @@ export function restoreMonkWarriorOfMercyHandOfUltimateMercyOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfMercyHandOfUltimateMercyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfMercyHandOfUltimateMercyUsesExpended: 0
+  });
 }
 
 export function restoreMonkWarriorOfMercyFlurryOfHealingAndHarmOnLongRest(
@@ -803,17 +772,11 @@ export function restoreMonkWarriorOfMercyFlurryOfHealingAndHarmOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        warriorOfMercyFlurryOfHealingAndHarmUsesExpended: 0,
-        warriorOfMercyFlurryOfHealingAndHarmActive: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    warriorOfMercyFlurryOfHealingAndHarmUsesExpended: 0,
+    warriorOfMercyFlurryOfHealingAndHarmActive: false
+  });
 }
 
 function createImplementsOfMercySkillProficiencyEntry(
@@ -990,7 +953,7 @@ export function collectMonkWarriorOfMercyContributions(
 
 export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectMonkWarriorOfMercyContributions(character)),
+    getCompiledFeatureContributions(character, collectMonkWarriorOfMercyContributions),
     {
       character: character as Character
     }

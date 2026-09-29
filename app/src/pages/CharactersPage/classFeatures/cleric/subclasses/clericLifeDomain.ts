@@ -1,5 +1,5 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { preserveLifeDescription } from "../../../../../codex/subclasses/cleric";
 import type { Character } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
@@ -8,7 +8,7 @@ import {
   clericChannelDivinityOptionKeys
 } from "../../channelDivinity";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -162,7 +162,7 @@ export function collectClericLifeDomainContributions(
 
 export const getClericLifeDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectClericLifeDomainContributions(character)),
+    getCompiledFeatureContributions(character, collectClericLifeDomainContributions),
     {
       character: character as Character
     }

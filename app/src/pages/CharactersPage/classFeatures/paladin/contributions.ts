@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterStatusEntry } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -150,7 +150,10 @@ function createPaladinAuraOfProtectionContribution(
       label: "Aura of Protection",
       entryId: CLASS_FEATURE.AURA_OF_PROTECTION
     }),
-    statuses: getStatusEntriesBySource(getPaladinDerivedStatusEntries(character), "Aura of Protection")
+    statuses: getStatusEntriesBySource(
+      getPaladinDerivedStatusEntries(character),
+      "Aura of Protection"
+    )
   };
 }
 
@@ -267,7 +270,7 @@ export function getPaladinClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectPaladinFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinFeatureContributions),
     {
       character: character as Character
     }

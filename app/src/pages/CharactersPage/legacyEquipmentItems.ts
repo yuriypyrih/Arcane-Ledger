@@ -1,16 +1,18 @@
 import {
+  type ArmorEntry,
+  type ItemEntry,
+  type WeaponDamage,
+  type WeaponEntry
+} from "../../codex/entries";
+import {
   ARMOR_TYPES,
   DAMAGE_TYPE,
   ENTRY_CATEGORIES,
   ITEM_TYPES,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  CURRENCY_TYPE,
-  type ArmorEntry,
-  type ItemEntry,
-  type WeaponDamage,
-  type WeaponEntry
-} from "../../codex/entries";
+  CURRENCY_TYPE
+} from "../../codex/entries/enums";
 import type {
   CharacterCustomEquipment,
   CharacterEquipmentItem,

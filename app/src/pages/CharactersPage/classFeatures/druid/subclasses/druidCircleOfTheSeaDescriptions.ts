@@ -1,9 +1,10 @@
-import { getClassLevel } from "../../../multiclass";
+import { getClassLevel } from "../../../multiclassState";
 import {
   aquaticAffinityWrathOfTheSeaDescription,
   wrathOfTheSeaDescription
 } from "../../../../../codex/subclasses/druid";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character } from "../../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";

@@ -1,11 +1,11 @@
-import { hasCharacterClass, getClassLevel } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel } from "../../../multiclassState";
 import {
-  ELDRITCH_INVOCATION,
   getEldritchInvocationEntryById,
   getSpellEntryById,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import {
   getCharacterClassRulesEldritchInvocationSelectionIds,
@@ -17,7 +17,7 @@ import {
   createSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   getFeatureDescriptionAdditions,
   getFeatureSpellDamageBonuses,
   type FeatureContributionSpec
@@ -447,7 +447,7 @@ export function collectWarlockInvocationContributions(
 export function collectWarlockInvocationContributionState(
   character: WarlockInvocationContributionCharacter
 ) {
-  return compileFeatureContributions(collectWarlockInvocationContributions(character));
+  return getCompiledFeatureContributions(character, collectWarlockInvocationContributions);
 }
 
 export function getWarlockInvocationStatDescriptionAdditions(

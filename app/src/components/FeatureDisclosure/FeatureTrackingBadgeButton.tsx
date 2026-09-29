@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { BadgeAlert, BadgeCheck, BadgeX } from "lucide-react";
-import { TRACKER } from "../../codex/entries";
+import { TRACKER } from "../../codex/entries/enums";
 import styles from "./FeatureDisclosure.module.css";
 
 const trackingBadgeConfig: Record<

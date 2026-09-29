@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterArtificerFeatureState, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
@@ -153,17 +154,11 @@ export function consumeArtificerTinkersMagicUse(character: Character): Character
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
   const artificerState = normalizeArtificerTinkersMagicState(currentArtificerState, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...artificerState,
-        tinkersMagicUsesExpended: (artificerState.tinkersMagicUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...artificerState,
+    tinkersMagicUsesExpended: (artificerState.tinkersMagicUsesExpended ?? 0) + 1
+  });
 }
 
 export function addArtificerTinkersMagicItemToInventory(
@@ -191,15 +186,9 @@ export function restoreArtificerTinkersMagicOnLongRest(character: Character): Ch
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...artificerState,
-        tinkersMagicUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...artificerState,
+    tinkersMagicUsesExpended: 0
+  });
 }

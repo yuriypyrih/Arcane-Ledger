@@ -1,10 +1,10 @@
+import { type SpellEntry } from "../../../../codex/entries";
 import {
   ACTION_TYPE,
   DURATION,
   type MAGIC_SCHOOL,
-  type SPELL_LIST_CLASS,
-  type SpellEntry
-} from "../../../../codex/entries";
+  type SPELL_LIST_CLASS
+} from "../../../../codex/entries/enums";
 
 export type SpellManagementSpecialFilter =
   | "ritual"
@@ -45,9 +45,7 @@ export const emptySpellManagementFilters: SpellManagementFilters = {
   special: null
 };
 
-export function getSpellManagementSpecialFilterLabel(
-  filter: SpellManagementSpecialFilter
-): string {
+export function getSpellManagementSpecialFilterLabel(filter: SpellManagementSpecialFilter): string {
   switch (filter) {
     case "ritual":
       return "Ritual";

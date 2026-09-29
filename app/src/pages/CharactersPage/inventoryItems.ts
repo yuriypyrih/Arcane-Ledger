@@ -1,9 +1,5 @@
-import {
-  CURRENCY_TYPE,
-  type EquipmentCost,
-  type WeaponDamage,
-  type WeaponType
-} from "../../codex/entries";
+import { type EquipmentCost, type WeaponDamage, type WeaponType } from "../../codex/entries";
+import { CURRENCY_TYPE } from "../../codex/entries/enums";
 import type {
   Character,
   CharacterContainerContentItem,
@@ -338,12 +334,7 @@ function normalizeBoolean(value: unknown): boolean {
   return value === true;
 }
 
-function normalizeStackNumber(
-  value: unknown,
-  fallback: number,
-  min = 0,
-  max?: number
-): number {
+function normalizeStackNumber(value: unknown, fallback: number, min = 0, max?: number): number {
   const parsedValue = Number(value);
   const safeValue = Number.isFinite(parsedValue) ? parsedValue : fallback;
   const normalizedValue = Math.max(min, Math.floor(safeValue));
@@ -779,7 +770,8 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
     );
     const contentItem = normalizeContainerContentItem({
       item,
-      quantity: record.quantity !== undefined ? normalizeInventoryStackQuantity(record.quantity, 1, 1) : 1,
+      quantity:
+        record.quantity !== undefined ? normalizeInventoryStackQuantity(record.quantity, 1, 1) : 1,
       attuned: normalizeBoolean(record.attuned),
       usesRemaining:
         record.usesRemaining !== undefined
@@ -1404,15 +1396,17 @@ function getInventoryItemUseTotalForValues(
 
   const usesPerCopy = getInventoryItemUsesPerCopy(item);
 
-  return usesPerCopy === null
-    ? null
-    : Math.min(INVENTORY_REFILLABLE_LIMIT, quantity * usesPerCopy);
+  return usesPerCopy === null ? null : Math.min(INVENTORY_REFILLABLE_LIMIT, quantity * usesPerCopy);
 }
 
 function getInventoryItemUseTotal(entry: CharacterInventoryItem): number | null {
   const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
 
-  return getInventoryItemUseTotalForValues(entry.item, getInventoryItemQuantity(entry), chargesTotal);
+  return getInventoryItemUseTotalForValues(
+    entry.item,
+    getInventoryItemQuantity(entry),
+    chargesTotal
+  );
 }
 
 export function getInventoryItemUseState(
@@ -1704,10 +1698,7 @@ export function hasInventoryItemFeatureTag(
 }
 
 export function getInventoryItemSpellcastingFocusSources(
-  entry:
-    | Pick<CharacterInventoryItem, "featureTags" | "spellcastingFocusSources">
-    | null
-    | undefined
+  entry: Pick<CharacterInventoryItem, "featureTags" | "spellcastingFocusSources"> | null | undefined
 ): CharacterInventorySpellcastingFocusSource[] {
   return (
     normalizeInventorySpellcastingFocusSourcesForFeatureTags(
@@ -2124,8 +2115,7 @@ function getSourceFeatureTagsAfterModdedTransform(
   const nextTags = (normalizeInventoryFeatureTags(entry.featureTags) ?? []).filter(
     (tag) =>
       tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE &&
-      (tag !== INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS ||
-        Boolean(sourceSpellcastingFocusSources))
+      (tag !== INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS || Boolean(sourceSpellcastingFocusSources))
   );
 
   return nextTags.length > 0 ? nextTags : undefined;
@@ -2178,10 +2168,12 @@ function getInventoryItemModsForSave(
     return mods;
   }
 
-  return normalizeCharacterItemMods({
-    ...mods,
-    baseCategory: currentCategory
-  }) ?? mods;
+  return (
+    normalizeCharacterItemMods({
+      ...mods,
+      baseCategory: currentCategory
+    }) ?? mods
+  );
 }
 
 function didInventoryItemBaseArchetypeChange(
@@ -2254,9 +2246,15 @@ function getInventoryItemSettingsForSave(
     featureTags,
     customTag: normalizeInventoryCustomTag(settings ? settings.customTag : entry.customTag),
     spellcastingFocusSources,
-    conjuredSource: isConjured ? (settings ? settings.conjuredSource : entry.conjuredSource) : undefined,
+    conjuredSource: isConjured
+      ? settings
+        ? settings.conjuredSource
+        : entry.conjuredSource
+      : undefined,
     conjuredDuration: isConjured
-      ? (settings ? settings.conjuredDuration : entry.conjuredDuration)
+      ? settings
+        ? settings.conjuredDuration
+        : entry.conjuredDuration
       : undefined,
     replicateMagicItemPlanKey:
       isConjured && entry.conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
@@ -2756,7 +2754,11 @@ function addInventoryItemQuantityToStack(
 
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
   const currentQuantity = getInventoryItemQuantity(entry);
-  const nextQuantity = normalizeInventoryStackQuantity(currentQuantity + quantity, currentQuantity, 1);
+  const nextQuantity = normalizeInventoryStackQuantity(
+    currentQuantity + quantity,
+    currentQuantity,
+    1
+  );
   const useState = getInventoryItemUseState(entry);
   const addedQuantity = Math.max(0, nextQuantity - currentQuantity);
 
@@ -3789,7 +3791,10 @@ export function moveOneInventoryItemCopyBetweenRootInventories(
   }
 
   const movedStack = createRootTransferInventoryStack(sourceStack);
-  const addedResult = addRootTransferInventoryStackWithResult(destinationInventoryItems, movedStack);
+  const addedResult = addRootTransferInventoryStackWithResult(
+    destinationInventoryItems,
+    movedStack
+  );
 
   return {
     blockReason: null,

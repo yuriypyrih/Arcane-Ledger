@@ -1,4 +1,4 @@
-import { FEATS } from "../../../codex/entries";
+import { FEATS } from "../../../codex/entries/enums";
 import {
   ALL_SKILLS,
   ARMOR_PROFICIENCY,
@@ -158,10 +158,7 @@ function getFeatProficiencyGrantDescriptors(
     ];
   }
 
-  if (
-    featEntry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE &&
-    featEntry.cultOfDragonInitiate
-  ) {
+  if (featEntry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE && featEntry.cultOfDragonInitiate) {
     return [
       {
         label: "Cult of the Dragon Initiate",
@@ -363,7 +360,7 @@ export function removeFeatGrantedProficienciesFromCollections<
             grant.tools,
             grant.label,
             entryToRemove.id
-        )
+          )
         : currentCollections.toolProficiencies,
       weaponProficiencies: grant.weapons?.length
         ? removeFeatGrantedWeaponEntries(
@@ -371,7 +368,7 @@ export function removeFeatGrantedProficienciesFromCollections<
             grant.weapons,
             grant.label,
             entryToRemove.id
-        )
+          )
         : currentCollections.weaponProficiencies,
       languageProficiencies: grant.languages?.length
         ? removeFeatGrantedLanguageEntries(

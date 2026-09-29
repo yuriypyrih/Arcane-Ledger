@@ -1,3 +1,4 @@
+import { readStringListQueryValue, readSingleQueryValue } from "../utils/queryValues.js";
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
@@ -15,51 +16,6 @@ import {
   isArtificerReplicateMagicItemPlanKey,
   isArtificerReplicateMagicItemSpecificPlanKey
 } from "../services/artificerReplicateMagicItemPlans.js";
-
-function readSingleQueryValue(value: unknown, name: string): string | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
-    throw new AppError(
-      `Query parameter "${name}" must be a single string value.`,
-      400,
-      "INVALID_QUERY",
-      {
-        parameter: name
-      }
-    );
-  }
-
-  return String(value);
-}
-
-function readStringListQueryValue(value: unknown, name: string): string[] | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  const rawValues = Array.isArray(value) ? value : [value];
-
-  return rawValues.flatMap((entry) => {
-    if (typeof entry === "object" && entry !== null) {
-      throw new AppError(
-        `Query parameter "${name}" must be a string value or repeated string values.`,
-        400,
-        "INVALID_QUERY",
-        {
-          parameter: name
-        }
-      );
-    }
-
-    return String(entry)
-      .split(",")
-      .map((part) => part.trim())
-      .filter(Boolean);
-  });
-}
 
 function parseItemSpecialFilter(request: Request): ItemSpecialFilter | undefined {
   const value = readSingleQueryValue(request.query.specialFilter, "specialFilter")?.trim();

@@ -1,4 +1,5 @@
-import { ACTION_TYPE, type SpellCastingTimePart } from "../../codex/entries";
+import { type SpellCastingTimePart } from "../../codex/entries";
+import { ACTION_TYPE } from "../../codex/entries/enums";
 
 export type ActionShapeType = "action" | "bonusAction" | "reaction" | "nonCombat";
 

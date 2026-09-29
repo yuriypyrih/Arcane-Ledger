@@ -3,8 +3,8 @@ import {
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, ToolProficiencyEntry } from "../../../../../types";
 import {
@@ -19,7 +19,7 @@ import {
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierBreakdownForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -415,7 +415,7 @@ function collectRogueAssassinFeatureContributions(
 
 export const getRogueAssassinDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRogueAssassinFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueAssassinFeatureContributions),
     {
       character: character as Character
     }

@@ -1,11 +1,8 @@
-import { getCharacterClasses, getClassEditorCharacter, getClassLevel } from "../multiclass";
+import { getClassRuntimeCharacter } from "./classContexts";
+import { getCharacterClasses, getClassLevel } from "../multiclassState";
 import { getCharacterSpellSlotPools } from "../multiclassSpellcasting";
-import {
-  ACTION_TYPE,
-  getSpellEntryById,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../codex/entries";
+import { getSpellEntryById, type ReactionEntry, type SpellEntry } from "../../../codex/entries";
+import { ACTION_TYPE } from "../../../codex/entries/enums";
 import type { Character, CharacterStatusDuration, CharacterStatusEntry } from "../../../types";
 import { STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../types";
 import {
@@ -160,7 +157,7 @@ function createStatusSections(statusEntries: CharacterStatusEntry[]): StatusRunt
 function createStatusRuntime(character: Character): CharacterStatusRuntime {
   if (character.multiclass && !character.classEntryId) {
     const states = getCharacterClasses(character).map((entry) => {
-      const state = createStatusRuntime(getClassEditorCharacter(character, entry));
+      const state = createStatusRuntime(getClassRuntimeCharacter(character, entry));
       const reactionStatuses = state.reactionStatusEntries.map((status) => ({
         ...status,
         sourceClassEntryId: entry.id

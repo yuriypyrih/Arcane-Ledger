@@ -1,8 +1,5 @@
-import {
-  ELDRITCH_INVOCATION,
-  getSpellEntryById,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { getSpellEntryById, type SpellEntry } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 import { getSpellEntries } from "../../../../../codex/selectors";
 import {
   createWarlockInvocationSelectionId,

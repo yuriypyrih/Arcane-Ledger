@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterInventoryItem, ItemRecord } from "../../../../types";
 import {
   getInventoryContainerContents,

@@ -1,7 +1,7 @@
 import { getClassEntryByName } from "../../codex/entries";
 import type { Character } from "../../types";
 import { STATUS_ENTRY_SOURCE_TYPE } from "../../types";
-import { getCharacterClasses, getClassEditorCharacter } from "./multiclass";
+import { getCharacterClasses, getClassEditorCharacter } from "./multiclassState";
 import { getSelectedSubclassForCharacter } from "./subclasses";
 
 type Owned = { sourceClassEntryId?: string; sourceClassLevel?: number; sourceSubclassId?: string };

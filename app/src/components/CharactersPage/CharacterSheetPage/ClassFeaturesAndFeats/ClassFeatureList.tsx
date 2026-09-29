@@ -11,12 +11,11 @@ import {
   type ReactNode
 } from "react";
 import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
   getFeatureTrackingState,
   type DivinityEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../codex/entries/enums";
 import SelectInput from "../../FormInputs/SelectInput";
 import InputRequiredBadge from "../../../InputRequiredBadge";
 import {

@@ -1,10 +1,10 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
-  CLASS_FEATURE,
   getSpellEntryByName,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, DruidCosmicOmenSelection } from "../../../../../types";
 import {
   appendFeatureSourcedDescriptionAddition,

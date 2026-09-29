@@ -1,10 +1,6 @@
+import { createSubclassFeatureRow } from "./featureRow";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
-import type {
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj,
-  SubclassFeatureLevel
-} from "../entries/types";
+import type { SubclassEntry } from "../entries/types";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -73,20 +69,6 @@ export const coronaOfLightDescription = [
   "Your enemies in the Bright Light have <link:Disadvantage>Disadvantage</link> on saving throws against your Radiance of the Dawn and any spell that deals <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage.",
   "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
 ] as const;
-
-function createSubclassFeatureRow(
-  level: SubclassFeatureLevel,
-  feature: CLASS_FEATURE,
-  details: FeatureMapEntry
-): SubclassFeatureClassObj {
-  return {
-    level,
-    classFeatures: [feature],
-    featureOverrides: {
-      [feature]: details
-    }
-  };
-}
 
 export const clericSubclassEntries: SubclassEntry[] = [
   {

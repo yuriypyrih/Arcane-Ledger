@@ -1,5 +1,5 @@
-import { getClassSummary } from "./multiclass";
-import { BODY_SIZE } from "../../codex/entries";
+import { getClassSummary } from "./multiclassState";
+import { BODY_SIZE } from "../../codex/entries/enums";
 import type {
   Character,
   CharacterCustomBackgroundConfig,

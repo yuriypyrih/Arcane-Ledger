@@ -1,9 +1,10 @@
-import { getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { getClassLevel } from "../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   getFeatureDescriptionAdditions,
   projectCompiledContributionsToClassFeatureDerivedState,
@@ -197,7 +198,7 @@ export function getArtificerClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectArtificerFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerFeatureContributions),
     {
       character: character as Character
     }
@@ -210,7 +211,7 @@ export function getArtificerFeatureDescriptionAdditions(
   targetKey?: string
 ): SpellDescriptionEntry[][] {
   return getFeatureDescriptionAdditions(
-    compileFeatureContributions(collectArtificerFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerFeatureContributions),
     target,
     {
       character: character as Character,

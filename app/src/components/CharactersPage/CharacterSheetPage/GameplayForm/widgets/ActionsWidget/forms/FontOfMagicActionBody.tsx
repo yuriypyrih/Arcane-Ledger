@@ -1,4 +1,4 @@
-import { getClassLevel } from "../../../../../../../pages/CharactersPage/multiclass";
+import { getClassLevel } from "../../../../../../../pages/CharactersPage/multiclassState";
 import { getSheetSpellSlotTotals } from "../../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { Sparkles } from "lucide-react";
 import type { Character } from "../../../../../../../types";

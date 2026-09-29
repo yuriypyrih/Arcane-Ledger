@@ -1,7 +1,10 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { barbarianFeatures } from "../../../../codex/classes";
 import { barbarianStarterPack } from "../../../../codex/classes/starterPack";
-import { CLASS_FEATURE, DAMAGE_TYPE, WEAPON_MASTERY } from "../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, WEAPON_MASTERY } from "../../../../codex/entries/enums";
 import type { BarbarianFeatureClassObj } from "../../../../types";
 import {
   CONDITION_NAME,
@@ -164,26 +167,13 @@ const barbarianWeaponMasteryOptions = getWeaponMasteryOptions({ meleeOnly: true 
 
 function getBarbarianFeatureRow(level: number): BarbarianFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = barbarianFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-  const featureRow = matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
-
-  return featureRow;
+  return getProgressionRow(barbarianFeatures, normalizedLevel);
 }
 
 function getUnlockedBarbarianFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return barbarianFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(barbarianFeatures, normalizedLevel);
 }
 
 function hasBarbarianFeature(
@@ -654,16 +644,10 @@ export function setBarbarianPrimalKnowledgeSkillSelection(
   const normalizedSelection =
     selection && barbarianPrimalKnowledgeSkillOptions.includes(selection) ? selection : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        primalKnowledgeSkill: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    primalKnowledgeSkill: normalizedSelection
+  });
 }
 
 export function getBarbarianWildHeartAspectChoice(
@@ -1502,17 +1486,11 @@ export function activateBarbarianBrutalStrike(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        brutalStrikePending: true,
-        brutalStrikeUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    brutalStrikePending: true,
+    brutalStrikeUsedThisTurn: true
+  });
 }
 
 export function activateBarbarianRelentlessRage(character: Character): Character {
@@ -1526,16 +1504,10 @@ export function activateBarbarianRelentlessRage(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        relentlessRageDcBonus: (rageState.relentlessRageDcBonus ?? 0) + relentlessRageDcIncrement
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    relentlessRageDcBonus: (rageState.relentlessRageDcBonus ?? 0) + relentlessRageDcIncrement
+  });
 }
 
 export function consumeBarbarianWarriorOfTheGodsCharges(
@@ -1561,17 +1533,11 @@ export function applyPersistentRageOnInitiative(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: 0,
-        persistentRageUsesExpended: (rageState.persistentRageUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    usesExpended: 0,
+    persistentRageUsesExpended: (rageState.persistentRageUsesExpended ?? 0) + 1
+  });
 }
 
 export function activateBarbarianIntimidatingPresence(character: Character): Character {
@@ -1610,16 +1576,10 @@ export function expendBarbarianRageUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: rageState.usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    usesExpended: rageState.usesExpended + 1
+  });
 }
 
 export function restoreBarbarianRageUse(character: Character): Character {
@@ -1633,16 +1593,10 @@ export function restoreBarbarianRageUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: rageState.usesExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    usesExpended: rageState.usesExpended - 1
+  });
 }
 
 export function restoreAllBarbarianRageUses(character: Character): Character {
@@ -1656,16 +1610,10 @@ export function restoreAllBarbarianRageUses(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    usesExpended: 0
+  });
 }
 
 export function deactivateBarbarianRage(character: Character): Character {
@@ -1747,16 +1695,10 @@ export function consumeBarbarianBrutalStrikeBonus(character: Character): Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        brutalStrikePending: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    brutalStrikePending: false
+  });
 }
 
 export function consumeBarbarianDivineFuryBonus(character: Character): Character {
@@ -1838,16 +1780,10 @@ export function consumeBarbarianWeaponAttack(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function restoreBarbarianRageOnShortRest(character: Character): Character {
@@ -1915,16 +1851,10 @@ export function restoreBarbarianRelentlessRageOnShortRest(character: Character):
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        relentlessRageDcBonus: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    relentlessRageDcBonus: 0
+  });
 }
 
 export function restoreBarbarianRelentlessRageOnLongRest(character: Character): Character {
@@ -1963,16 +1893,10 @@ export function restoreBarbarianPersistentRageOnLongRest(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        persistentRageUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    persistentRageUsesExpended: 0
+  });
 }
 
 export function restoreBarbarianRageOfTheGodsOnLongRest(character: Character): Character {
@@ -2037,23 +1961,17 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        extraAttacksRemainingThisTurn: 0,
-        retaliationAttacksRemaining: 0,
-        recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
-        divineFuryUsedThisTurn: false,
-        recklessAttackUsedThisTurn: false,
-        brutalStrikePending: false,
-        brutalStrikeUsedThisTurn: false,
-        frenzyPending: nextFrenzyPending
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    extraAttacksRemainingThisTurn: 0,
+    retaliationAttacksRemaining: 0,
+    recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
+    divineFuryUsedThisTurn: false,
+    recklessAttackUsedThisTurn: false,
+    brutalStrikePending: false,
+    brutalStrikeUsedThisTurn: false,
+    frenzyPending: nextFrenzyPending
+  });
 }
 
 export function isBarbarianFeatureCondition(conditionName: string): boolean {

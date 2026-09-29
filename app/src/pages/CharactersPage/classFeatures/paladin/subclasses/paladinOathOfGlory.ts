@@ -1,6 +1,9 @@
+import { activatePaladinTimedFeature } from "../timedActivation";
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -13,7 +16,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -499,52 +502,14 @@ function getPaladinOathOfGloryAbilityCheckIndicators(
 }
 
 export function activatePaladinOathOfGloryLivingLegend(character: Character): Character {
-  if (
-    !hasPaladinOathOfGloryLivingLegendFeature(character) ||
-    hasActivePaladinOathOfGloryLivingLegend(character)
-  ) {
-    return character;
-  }
-
-  const usesRemaining = getPaladinOathOfGloryLivingLegendUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const paladinState = character.classFeatureState?.paladin ?? {};
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        paladin: {
-          ...paladinState,
-          livingLegendUsesExpended: (paladinState.livingLegendUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getPaladinOathOfGloryLivingLegendFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSheetSpellSlotTotals(character);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyPaladinOathOfGloryLivingLegendStatus(nextCharacter);
+  return activatePaladinTimedFeature(character, {
+    hasFeature: hasPaladinOathOfGloryLivingLegendFeature,
+    isActive: hasActivePaladinOathOfGloryLivingLegend,
+    getRemaining: getPaladinOathOfGloryLivingLegendUsesRemaining,
+    counter: "livingLegendUsesExpended",
+    getFallbackSlotLevel: getPaladinOathOfGloryLivingLegendFallbackSlotLevel,
+    applyStatus: applyPaladinOathOfGloryLivingLegendStatus
+  });
 }
 
 export function restorePaladinOathOfGloryLivingLegendOnLongRest(character: Character): Character {
@@ -558,16 +523,10 @@ export function restorePaladinOathOfGloryLivingLegendOnLongRest(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        livingLegendUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    livingLegendUsesExpended: 0
+  });
 }
 
 function getPaladinOathOfGloryReactionEntries(
@@ -618,16 +577,10 @@ export function consumePaladinOathOfGloryGloriousDefenseUse(character: Character
 
   const paladinState = character.classFeatureState?.paladin ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        gloriousDefenseUsesExpended: (paladinState.gloriousDefenseUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    gloriousDefenseUsesExpended: (paladinState.gloriousDefenseUsesExpended ?? 0) + 1
+  });
 }
 
 export function restorePaladinOathOfGloryGloriousDefenseOnLongRest(
@@ -643,16 +596,10 @@ export function restorePaladinOathOfGloryGloriousDefenseOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        gloriousDefenseUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    gloriousDefenseUsesExpended: 0
+  });
 }
 
 function collectPaladinOathOfGloryContributions(
@@ -771,7 +718,7 @@ function collectPaladinOathOfGloryContributions(
 
 export const getPaladinOathOfGloryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectPaladinOathOfGloryContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinOathOfGloryContributions),
     {
       character: character as Character
     }

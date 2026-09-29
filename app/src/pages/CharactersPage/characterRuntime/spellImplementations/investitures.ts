@@ -1,4 +1,5 @@
-import { DAMAGE_TYPE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE } from "../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   STATUS_DURATION_KIND,
@@ -152,8 +153,7 @@ function hasActiveInvestitureStatus(
 function createInvestitureDamageDefenseStatusEntry(
   defense: InvestitureDamageDefense
 ): CharacterStatusEntry {
-  const groupLabel =
-    defense.group === STATUS_ENTRY_GROUP.IMMUNITIES ? "immunity" : "resistance";
+  const groupLabel = defense.group === STATUS_ENTRY_GROUP.IMMUNITIES ? "immunity" : "resistance";
   const sourceId = `${defense.config.spellId}-${groupLabel}-${defense.damageType.toLowerCase()}`;
 
   return {

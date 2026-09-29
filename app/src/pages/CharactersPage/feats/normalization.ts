@@ -1,9 +1,5 @@
-import {
-  CLASS_FEATURE,
-  ELDRITCH_INVOCATION,
-  FEATS,
-  getEldritchInvocationEntryById
-} from "../../../codex/entries";
+import { getEldritchInvocationEntryById } from "../../../codex/entries";
+import { CLASS_FEATURE, ELDRITCH_INVOCATION, FEATS } from "../../../codex/entries/enums";
 import type {
   AthleteChoice,
   BlessedWarriorChoice,

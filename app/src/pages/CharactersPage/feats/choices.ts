@@ -1,12 +1,8 @@
+import { cantripChoices } from "./cantripChoices";
+import { singleAbilityChoices, getSingleAbilityChoiceSummary } from "./singleAbilityChoices";
 import { getSpellEntriesForSpellListClass } from "../../../codex/classes/spellAccess";
-import {
-  DAMAGE_TYPE,
-  FEATS,
-  MAGIC_SCHOOL,
-  SPELL_LIST_CLASS,
-  getSpellEntries,
-  type SpellEntry
-} from "../../../codex/entries";
+import { getSpellEntries, type SpellEntry } from "../../../codex/entries";
+import { DAMAGE_TYPE, FEATS, MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../../codex/entries/enums";
 import {
   ALL_SKILLS,
   LANGUAGE_PROFICIENCY,
@@ -91,34 +87,15 @@ import {
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
-  heavilyArmoredAbilityOptions,
-  heavyArmorMasterAbilityOptions,
-  inspiringLeaderAbilityOptions,
   keenMindSkillOptions,
-  lightlyArmoredAbilityOptions,
-  mageSlayerAbilityOptions,
   magicInitiateSpellcastingAbilityOptions,
   magicInitiateSpellListOptions,
-  martialWeaponTrainingAbilityOptions,
-  mediumArmorMasterAbilityOptions,
-  moderatelyArmoredAbilityOptions,
-  mountedCombatantAbilityOptions,
   observantAbilityOptions,
   observantSkillOptions,
-  piercerAbilityOptions,
-  poisonerAbilityOptions,
-  polearmMasterAbilityOptions,
   resilientAbilityOptions,
   ritualCasterAbilityOptions,
-  sentinelAbilityOptions,
   shadowTouchedAbilityOptions,
   skillExpertAbilityOptions,
-  slasherAbilityOptions,
-  speedyAbilityOptions,
-  spellSniperAbilityOptions,
-  telekineticAbilityOptions,
-  telepathicAbilityOptions,
-  warCasterAbilityOptions,
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions
 } from "./choiceOptions";
@@ -131,18 +108,7 @@ function normalizeFeatSpellId(value: string): string {
   return value.trim();
 }
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];
-const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(
-  SPELL_LIST_CLASS.CLERIC
-).filter((spell) => spell.spellLevel === 0);
-const blessedWarriorCantripOptionsById = new Map(
-  blessedWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
-);
-const druidicWarriorCantripOptions = getSpellEntriesForSpellListClass(
-  SPELL_LIST_CLASS.DRUID
-).filter((spell) => spell.spellLevel === 0);
-const druidicWarriorCantripOptionsById = new Map(
-  druidicWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
-);
+
 const coldCasterWizardCantripOptions = getSpellEntriesForSpellListClass(
   SPELL_LIST_CLASS.WIZARD
 ).filter((spell) => spell.spellLevel === 0);
@@ -165,34 +131,13 @@ const boonOfEnergyResistanceDamageTypeOptionSet = new Set<DAMAGE_TYPE>(
   boonOfEnergyResistanceDamageTypeOptions
 );
 const feyTouchedAbilityOptionSet = new Set<AbilityKey>(feyTouchedAbilityOptions);
-const heavilyArmoredAbilityOptionSet = new Set<AbilityKey>(heavilyArmoredAbilityOptions);
-const heavyArmorMasterAbilityOptionSet = new Set<AbilityKey>(heavyArmorMasterAbilityOptions);
-const inspiringLeaderAbilityOptionSet = new Set<AbilityKey>(inspiringLeaderAbilityOptions);
 const keenMindSkillOptionSet = new Set<SkillName>(keenMindSkillOptions);
-const lightlyArmoredAbilityOptionSet = new Set<AbilityKey>(lightlyArmoredAbilityOptions);
-const mageSlayerAbilityOptionSet = new Set<AbilityKey>(mageSlayerAbilityOptions);
-const martialWeaponTrainingAbilityOptionSet = new Set<AbilityKey>(
-  martialWeaponTrainingAbilityOptions
-);
-const mediumArmorMasterAbilityOptionSet = new Set<AbilityKey>(mediumArmorMasterAbilityOptions);
-const moderatelyArmoredAbilityOptionSet = new Set<AbilityKey>(moderatelyArmoredAbilityOptions);
-const mountedCombatantAbilityOptionSet = new Set<AbilityKey>(mountedCombatantAbilityOptions);
 const observantAbilityOptionSet = new Set<AbilityKey>(observantAbilityOptions);
 const observantSkillOptionSet = new Set<SkillName>(observantSkillOptions);
-const piercerAbilityOptionSet = new Set<AbilityKey>(piercerAbilityOptions);
-const poisonerAbilityOptionSet = new Set<AbilityKey>(poisonerAbilityOptions);
-const polearmMasterAbilityOptionSet = new Set<AbilityKey>(polearmMasterAbilityOptions);
 const ritualCasterAbilityOptionSet = new Set<AbilityKey>(ritualCasterAbilityOptions);
 const resilientAbilityOptionSet = new Set<AbilityKey>(resilientAbilityOptions);
-const sentinelAbilityOptionSet = new Set<AbilityKey>(sentinelAbilityOptions);
 const shadowTouchedAbilityOptionSet = new Set<AbilityKey>(shadowTouchedAbilityOptions);
-const slasherAbilityOptionSet = new Set<AbilityKey>(slasherAbilityOptions);
-const spellSniperAbilityOptionSet = new Set<AbilityKey>(spellSniperAbilityOptions);
-const telekineticAbilityOptionSet = new Set<AbilityKey>(telekineticAbilityOptions);
-const telepathicAbilityOptionSet = new Set<AbilityKey>(telepathicAbilityOptions);
-const warCasterAbilityOptionSet = new Set<AbilityKey>(warCasterAbilityOptions);
 const skillExpertAbilityOptionSet = new Set<AbilityKey>(skillExpertAbilityOptions);
-const speedyAbilityOptionSet = new Set<AbilityKey>(speedyAbilityOptions);
 const weaponMasterAbilityOptionSet = new Set<AbilityKey>(weaponMasterAbilityOptions);
 const weaponMasterMasteryOptionSet = new Set<WEAPON_PROFICIENCY>(weaponMasterMasteryOptions);
 const feyTouchedSpellSchoolOptions = new Set<MAGIC_SCHOOL>([
@@ -248,9 +193,7 @@ const musicalInstrumentToolProficiencySet = new Set<TOOL_PROFICIENCY>(
   musicalInstrumentToolProficiencies
 );
 const feyTouchedSpellOptions = getSpellEntries()
-  .filter(
-    (spell) => spell.spellLevel === 1 && feyTouchedSpellSchoolOptions.has(spell.magicSchool)
-  )
+  .filter((spell) => spell.spellLevel === 1 && feyTouchedSpellSchoolOptions.has(spell.magicSchool))
   .sort((left, right) => left.name.localeCompare(right.name));
 const feyTouchedSpellOptionsById = new Map(
   feyTouchedSpellOptions.map((spell) => [spell.id, spell] as const)
@@ -284,7 +227,10 @@ const spellcastingAbilityOptions: AbilityKey[] = ["INT", "WIS", "CHA"];
 export const featAbilityIncreaseConfigs = new Map<FEATS, FeatAbilityIncreaseConfig>([
   [FEATS.ABJURATION_ADEPT, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
   [FEATS.BOON_OF_ERUPTING_SPELLPOWER, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
-  [FEATS.BOON_OF_MAGIC_SCHOOL_MASTERY, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [
+    FEATS.BOON_OF_MAGIC_SCHOOL_MASTERY,
+    { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }
+  ],
   [FEATS.BOON_OF_THE_IRON_MIND, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.CONJURATION_ADEPT, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
   [FEATS.DIVINATION_ADEPT, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
@@ -327,7 +273,13 @@ export const featAbilityIncreaseConfigs = new Map<FEATS, FeatAbilityIncreaseConf
   [FEATS.BOON_OF_FORTITUDE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_FORTUNES_FAVOR, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_FURIOUS_STORM, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
-  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, { abilityOptions: ["STR", "DEX"], maxScore: 30 }],
+  [
+    FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
+    {
+      abilityOptions: [...singleAbilityChoices[FEATS.BOON_OF_IRRESISTIBLE_OFFENSE].abilities],
+      maxScore: singleAbilityChoices[FEATS.BOON_OF_IRRESISTIBLE_OFFENSE].maxScore
+    }
+  ],
   [FEATS.BOON_OF_POISON_MASTERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_RECOVERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
   [FEATS.BOON_OF_REVELRY, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
@@ -340,9 +292,9 @@ export const featAbilityIncreaseConfigs = new Map<FEATS, FeatAbilityIncreaseConf
   [FEATS.BOON_OF_TRUESIGHT, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }]
 ]);
 
-export const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
-  ...featAbilityIncreaseConfigs.entries()
-].map(([feat, config]) => [feat, config.abilityOptions]));
+export const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>(
+  [...featAbilityIncreaseConfigs.entries()].map(([feat, config]) => [feat, config.abilityOptions])
+);
 
 function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeySet.has(value as AbilityKey);
@@ -383,67 +335,19 @@ export function normalizeAbilityScoreImprovementChoice(
 export function normalizeBoonOfIrresistibleOffenseChoice(
   value: unknown
 ): BoonOfIrresistibleOffenseChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<BoonOfIrresistibleOffenseChoice>;
-
-  if (record.ability === "STR" || record.ability === "DEX") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.BOON_OF_IRRESISTIBLE_OFFENSE].normalize(value);
 }
 
 export function normalizeAthleteChoice(value: unknown): AthleteChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<AthleteChoice>;
-
-  if (record.ability === "STR" || record.ability === "DEX") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.ATHLETE].normalize(value);
 }
 
 export function normalizeChargerChoice(value: unknown): ChargerChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<ChargerChoice>;
-
-  if (record.ability === "STR" || record.ability === "DEX") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.CHARGER].normalize(value);
 }
 
 export function normalizeGrapplerChoice(value: unknown): GrapplerChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<GrapplerChoice>;
-
-  if (record.ability === "STR" || record.ability === "DEX") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.GRAPPLER].normalize(value);
 }
 
 export function normalizeColdCasterChoice(value: unknown): ColdCasterChoice | undefined {
@@ -492,51 +396,15 @@ export function normalizeDragonscarredChoice(value: unknown): DragonscarredChoic
 }
 
 export function normalizeChefChoice(value: unknown): ChefChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<ChefChoice>;
-
-  if (record.ability === "CON" || record.ability === "WIS") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.CHEF].normalize(value);
 }
 
 export function normalizeCrusherChoice(value: unknown): CrusherChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<CrusherChoice>;
-
-  if (record.ability === "STR" || record.ability === "CON") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.CRUSHER].normalize(value);
 }
 
 export function normalizeDualWielderChoice(value: unknown): DualWielderChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<DualWielderChoice>;
-
-  if (record.ability === "STR" || record.ability === "DEX") {
-    return {
-      ability: record.ability
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.DUAL_WIELDER].normalize(value);
 }
 
 export function normalizeElementalAdeptChoice(value: unknown): ElementalAdeptChoice | undefined {
@@ -567,8 +435,7 @@ export function normalizeFeyTouchedChoice(value: unknown): FeyTouchedChoice | un
   }
 
   const record = value as Partial<FeyTouchedChoice>;
-  const spellId =
-    typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
+  const spellId = typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
 
   if (
     typeof record.ability !== "string" ||
@@ -582,7 +449,9 @@ export function normalizeFeyTouchedChoice(value: unknown): FeyTouchedChoice | un
     ? [
         ...new Set(
           record.freeCastExpendedSpellIds
-            .filter((freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string")
+            .filter(
+              (freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string"
+            )
             .map(normalizeFeatSpellId)
             .filter(
               (freeCastSpellId) =>
@@ -601,64 +470,17 @@ export function normalizeFeyTouchedChoice(value: unknown): FeyTouchedChoice | un
 }
 
 export function normalizeHeavilyArmoredChoice(value: unknown): HeavilyArmoredChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<HeavilyArmoredChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    heavilyArmoredAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as HeavilyArmoredChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.HEAVILY_ARMORED].normalize(value);
 }
 
 export function normalizeHeavyArmorMasterChoice(
   value: unknown
 ): HeavyArmorMasterChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<HeavyArmorMasterChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    heavyArmorMasterAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as HeavyArmorMasterChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.HEAVY_ARMOR_MASTER].normalize(value);
 }
 
-export function normalizeInspiringLeaderChoice(
-  value: unknown
-): InspiringLeaderChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<InspiringLeaderChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    inspiringLeaderAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as InspiringLeaderChoice["ability"]
-    };
-  }
-
-  return undefined;
+export function normalizeInspiringLeaderChoice(value: unknown): InspiringLeaderChoice | undefined {
+  return singleAbilityChoices[FEATS.INSPIRING_LEADER].normalize(value);
 }
 
 export function normalizeKeenMindChoice(value: unknown): KeenMindChoice | undefined {
@@ -678,126 +500,42 @@ export function normalizeKeenMindChoice(value: unknown): KeenMindChoice | undefi
 }
 
 export function normalizeLightlyArmoredChoice(value: unknown): LightlyArmoredChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<LightlyArmoredChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    lightlyArmoredAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as LightlyArmoredChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.LIGHTLY_ARMORED].normalize(value);
 }
 
 export function normalizeMageSlayerChoice(value: unknown): MageSlayerChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<MageSlayerChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    mageSlayerAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as MageSlayerChoice["ability"],
-      guardedMindExpended: record.guardedMindExpended === true ? true : undefined
-    };
-  }
-
-  return undefined;
+  const choice = singleAbilityChoices[FEATS.MAGE_SLAYER].normalize(value);
+  return choice
+    ? {
+        ...choice,
+        guardedMindExpended:
+          (value as Partial<MageSlayerChoice>).guardedMindExpended === true ? true : undefined
+      }
+    : undefined;
 }
 
 export function normalizeMartialWeaponTrainingChoice(
   value: unknown
 ): MartialWeaponTrainingChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<MartialWeaponTrainingChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    martialWeaponTrainingAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as MartialWeaponTrainingChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.MARTIAL_WEAPON_TRAINING].normalize(value);
 }
 
 export function normalizeMediumArmorMasterChoice(
   value: unknown
 ): MediumArmorMasterChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<MediumArmorMasterChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    mediumArmorMasterAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as MediumArmorMasterChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.MEDIUM_ARMOR_MASTER].normalize(value);
 }
 
 export function normalizeModeratelyArmoredChoice(
   value: unknown
 ): ModeratelyArmoredChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<ModeratelyArmoredChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    moderatelyArmoredAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as ModeratelyArmoredChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.MODERATELY_ARMORED].normalize(value);
 }
 
 export function normalizeMountedCombatantChoice(
   value: unknown
 ): MountedCombatantChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<MountedCombatantChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    mountedCombatantAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as MountedCombatantChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.MOUNTED_COMBATANT].normalize(value);
 }
 
 export function normalizeObservantChoice(value: unknown): ObservantChoice | undefined {
@@ -823,60 +561,15 @@ export function normalizeObservantChoice(value: unknown): ObservantChoice | unde
 }
 
 export function normalizePiercerChoice(value: unknown): PiercerChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<PiercerChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    piercerAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as PiercerChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.PIERCER].normalize(value);
 }
 
 export function normalizePoisonerChoice(value: unknown): PoisonerChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<PoisonerChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    poisonerAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as PoisonerChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.POISONER].normalize(value);
 }
 
 export function normalizePolearmMasterChoice(value: unknown): PolearmMasterChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<PolearmMasterChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    polearmMasterAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as PolearmMasterChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.POLEARM_MASTER].normalize(value);
 }
 
 export function normalizeRitualCasterChoice(value: unknown): RitualCasterChoice | undefined {
@@ -896,9 +589,7 @@ export function normalizeRitualCasterChoice(value: unknown): RitualCasterChoice 
 
   const spellIds = [
     ...new Set(
-      record.spellIds
-        .filter((id): id is string => typeof id === "string")
-        .map(normalizeFeatSpellId)
+      record.spellIds.filter((id): id is string => typeof id === "string").map(normalizeFeatSpellId)
     )
   ].filter((spellId) => ritualCasterSpellOptionsById.has(spellId));
 
@@ -933,22 +624,7 @@ export function normalizeResilientChoice(value: unknown): ResilientChoice | unde
 }
 
 export function normalizeSentinelChoice(value: unknown): SentinelChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<SentinelChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    sentinelAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as SentinelChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.SENTINEL].normalize(value);
 }
 
 export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoice | undefined {
@@ -957,8 +633,7 @@ export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoic
   }
 
   const record = value as Partial<ShadowTouchedChoice>;
-  const spellId =
-    typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
+  const spellId = typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
 
   if (
     typeof record.ability !== "string" ||
@@ -972,7 +647,9 @@ export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoic
     ? [
         ...new Set(
           record.freeCastExpendedSpellIds
-            .filter((freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string")
+            .filter(
+              (freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string"
+            )
             .map(normalizeFeatSpellId)
             .filter(
               (freeCastSpellId) =>
@@ -991,99 +668,30 @@ export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoic
 }
 
 export function normalizeSlasherChoice(value: unknown): SlasherChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<SlasherChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    slasherAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as SlasherChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.SLASHER].normalize(value);
 }
 
 export function normalizeSpellSniperChoice(value: unknown): SpellSniperChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<SpellSniperChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    spellSniperAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as SpellSniperChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.SPELL_SNIPER].normalize(value);
 }
 
 export function normalizeTelekineticChoice(value: unknown): TelekineticChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<TelekineticChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    telekineticAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as TelekineticChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.TELEKINETIC].normalize(value);
 }
 
 export function normalizeTelepathicChoice(value: unknown): TelepathicChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<TelepathicChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    telepathicAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as TelepathicChoice["ability"],
-      detectThoughtsExpended: record.detectThoughtsExpended === true ? true : undefined
-    };
-  }
-
-  return undefined;
+  const choice = singleAbilityChoices[FEATS.TELEPATHIC].normalize(value);
+  return choice
+    ? {
+        ...choice,
+        detectThoughtsExpended:
+          (value as Partial<TelepathicChoice>).detectThoughtsExpended === true ? true : undefined
+      }
+    : undefined;
 }
 
 export function normalizeWarCasterChoice(value: unknown): WarCasterChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<WarCasterChoice>;
-
-  if (
-    typeof record.ability === "string" &&
-    warCasterAbilityOptionSet.has(record.ability as AbilityKey)
-  ) {
-    return {
-      ability: record.ability as WarCasterChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.WAR_CASTER].normalize(value);
 }
 
 export function normalizeSkillExpertChoice(value: unknown): SkillExpertChoice | undefined {
@@ -1112,19 +720,7 @@ export function normalizeSkillExpertChoice(value: unknown): SkillExpertChoice | 
 }
 
 export function normalizeSpeedyChoice(value: unknown): SpeedyChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<SpeedyChoice>;
-
-  if (typeof record.ability === "string" && speedyAbilityOptionSet.has(record.ability as AbilityKey)) {
-    return {
-      ability: record.ability as SpeedyChoice["ability"]
-    };
-  }
-
-  return undefined;
+  return singleAbilityChoices[FEATS.SPEEDY].normalize(value);
 }
 
 export function normalizeWeaponMasterChoice(value: unknown): WeaponMasterChoice | undefined {
@@ -1232,67 +828,11 @@ export function normalizeBoonOfSkillChoice(value: unknown): BoonOfSkillChoice | 
 }
 
 export function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<BlessedWarriorChoice>;
-
-  if (!Array.isArray(record.cantripIds) || record.cantripIds.length !== 2) {
-    return undefined;
-  }
-
-  const cantripIds = [
-    ...new Set(
-      record.cantripIds
-        .filter((id): id is string => typeof id === "string")
-        .map(normalizeFeatSpellId)
-    )
-  ];
-
-  if (cantripIds.length !== 2) {
-    return undefined;
-  }
-
-  if (!cantripIds.every((id) => blessedWarriorCantripOptionsById.has(id))) {
-    return undefined;
-  }
-
-  return {
-    cantripIds: cantripIds as BlessedWarriorChoice["cantripIds"]
-  };
+  return cantripChoices[FEATS.BLESSED_WARRIOR].normalize(value);
 }
 
 export function normalizeDruidicWarriorChoice(value: unknown): DruidicWarriorChoice | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Partial<DruidicWarriorChoice>;
-
-  if (!Array.isArray(record.cantripIds) || record.cantripIds.length !== 2) {
-    return undefined;
-  }
-
-  const cantripIds = [
-    ...new Set(
-      record.cantripIds
-        .filter((id): id is string => typeof id === "string")
-        .map(normalizeFeatSpellId)
-    )
-  ];
-
-  if (cantripIds.length !== 2) {
-    return undefined;
-  }
-
-  if (!cantripIds.every((id) => druidicWarriorCantripOptionsById.has(id))) {
-    return undefined;
-  }
-
-  return {
-    cantripIds: cantripIds as DruidicWarriorChoice["cantripIds"]
-  };
+  return cantripChoices[FEATS.DRUIDIC_WARRIOR].normalize(value);
 }
 
 export function isMagicInitiateSpellList(
@@ -1331,9 +871,7 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
     )
   ];
   const levelOneSpellId =
-    typeof record.levelOneSpellId === "string"
-      ? normalizeFeatSpellId(record.levelOneSpellId)
-      : "";
+    typeof record.levelOneSpellId === "string" ? normalizeFeatSpellId(record.levelOneSpellId) : "";
 
   if (
     cantripIds.length !== 2 ||
@@ -1343,10 +881,7 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
     return undefined;
   }
 
-  if (
-    !levelOneSpellId ||
-    !levelOneSpellOptionsById?.has(levelOneSpellId)
-  ) {
+  if (!levelOneSpellId || !levelOneSpellOptionsById?.has(levelOneSpellId)) {
     return undefined;
   }
 
@@ -1572,15 +1107,15 @@ export function getBoonOfSkillChoiceSummary(choice?: BoonOfSkillChoice): string 
 }
 
 export function getAthleteChoiceSummary(choice?: AthleteChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getChargerChoiceSummary(choice?: ChargerChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getGrapplerChoiceSummary(choice?: GrapplerChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getColdCasterChoiceSummary(choice?: ColdCasterChoice): string | null {
@@ -1598,15 +1133,15 @@ export function getDragonscarredChoiceSummary(choice?: DragonscarredChoice): str
 }
 
 export function getChefChoiceSummary(choice?: ChefChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getCrusherChoiceSummary(choice?: CrusherChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getDualWielderChoiceSummary(choice?: DualWielderChoice): string | null {
-  return choice ? `${choice.ability} +1` : null;
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getElementalAdeptChoiceSummary(choice?: ElementalAdeptChoice): string | null {
@@ -1627,9 +1162,7 @@ export function getHeavilyArmoredChoiceSummary(choice?: HeavilyArmoredChoice): s
   return choice ? `${choice.ability} +1, Heavy armor` : null;
 }
 
-export function getHeavyArmorMasterChoiceSummary(
-  choice?: HeavyArmorMasterChoice
-): string | null {
+export function getHeavyArmorMasterChoiceSummary(choice?: HeavyArmorMasterChoice): string | null {
   return choice ? `${choice.ability} +1, Damage Reduction` : null;
 }
 
@@ -1655,22 +1188,16 @@ export function getMartialWeaponTrainingChoiceSummary(
   return choice ? `${choice.ability} +1, Martial weapons` : null;
 }
 
-export function getMediumArmorMasterChoiceSummary(
-  choice?: MediumArmorMasterChoice
-): string | null {
+export function getMediumArmorMasterChoiceSummary(choice?: MediumArmorMasterChoice): string | null {
   return choice ? `${choice.ability} +1, Dexterous Wearer` : null;
 }
 
-export function getModeratelyArmoredChoiceSummary(
-  choice?: ModeratelyArmoredChoice
-): string | null {
+export function getModeratelyArmoredChoiceSummary(choice?: ModeratelyArmoredChoice): string | null {
   return choice ? `${choice.ability} +1, Medium armor` : null;
 }
 
-export function getMountedCombatantChoiceSummary(
-  choice?: MountedCombatantChoice
-): string | null {
-  return choice ? `${choice.ability} +1` : null;
+export function getMountedCombatantChoiceSummary(choice?: MountedCombatantChoice): string | null {
+  return getSingleAbilityChoiceSummary(choice);
 }
 
 export function getObservantChoiceSummary(choice?: ObservantChoice): string | null {
@@ -1758,27 +1285,11 @@ export function getWeaponMasterChoiceSummary(choice?: WeaponMasterChoice): strin
 }
 
 export function getBlessedWarriorChoiceSummary(choice?: BlessedWarriorChoice): string | null {
-  if (!choice) {
-    return null;
-  }
-
-  const cantripNames = choice.cantripIds
-    .map((cantripId) => blessedWarriorCantripOptionsById.get(cantripId)?.name)
-    .filter((name): name is string => Boolean(name));
-
-  return cantripNames.length > 0 ? cantripNames.join(", ") : null;
+  return cantripChoices[FEATS.BLESSED_WARRIOR].getSummary(choice);
 }
 
 export function getDruidicWarriorChoiceSummary(choice?: DruidicWarriorChoice): string | null {
-  if (!choice) {
-    return null;
-  }
-
-  const cantripNames = choice.cantripIds
-    .map((cantripId) => druidicWarriorCantripOptionsById.get(cantripId)?.name)
-    .filter((name): name is string => Boolean(name));
-
-  return cantripNames.length > 0 ? cantripNames.join(", ") : null;
+  return cantripChoices[FEATS.DRUIDIC_WARRIOR].getSummary(choice);
 }
 
 export function getMagicInitiateSpellListLabel(
@@ -2036,11 +1547,11 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 }
 
 export function getBlessedWarriorCantripOptions(): SpellEntry[] {
-  return blessedWarriorCantripOptions;
+  return cantripChoices[FEATS.BLESSED_WARRIOR].options;
 }
 
 export function getDruidicWarriorCantripOptions(): SpellEntry[] {
-  return druidicWarriorCantripOptions;
+  return cantripChoices[FEATS.DRUIDIC_WARRIOR].options;
 }
 
 export function getColdCasterCantripOptions(): SpellEntry[] {

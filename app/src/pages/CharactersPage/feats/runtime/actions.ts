@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "../../multiclass";
+import { getCharacterLevel } from "../../multiclassState";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
 import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";

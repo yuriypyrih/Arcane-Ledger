@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "./multiclass";
+import { getCharacterLevel } from "./multiclassState";
 import type { AbilityKey, Character, SkillName, SkillProficiencyEntry } from "../../types";
 import { PROF_LEVEL } from "../../types";
 import { getProficiencyBonus } from "./gameplay";

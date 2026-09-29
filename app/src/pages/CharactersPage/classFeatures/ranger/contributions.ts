@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterStatusEntry } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -311,7 +311,7 @@ export function getRangerClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectRangerFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerFeatureContributions),
     {
       character: character as Character
     }

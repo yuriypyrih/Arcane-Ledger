@@ -1,3 +1,4 @@
+import { legacySpellSource, srdSpellSource } from "../sources";
 import {
   ABILITY_TYPES,
   ACTION_TYPE,
@@ -17,14 +18,7 @@ export const arcaneEye: SpellEntry = {
   id: "spell-arcane-eye",
   name: "Arcane Eye",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_arcane-eye",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_arcane-eye"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
@@ -46,14 +40,7 @@ export const auraOfLife: SpellEntry = {
   id: "spell-aura-of-life",
   name: "Aura of Life",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_aura-of-life",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_aura-of-life"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -75,11 +62,7 @@ export const auraOfPurity: SpellEntry = {
   id: "spell-aura-of-purity",
   name: "Aura of Purity",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -100,14 +83,7 @@ export const banishment: SpellEntry = {
   id: "spell-banishment",
   name: "Banishment",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_banishment",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_banishment"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -138,14 +114,7 @@ export const blackTentacles: SpellEntry = {
   id: "spell-black-tentacles",
   name: "Black Tentacles",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_black-tentacles",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_black-tentacles"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -174,14 +143,7 @@ export const blight: SpellEntry = {
   id: "spell-blight",
   name: "Blight",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_blight",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_blight"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -209,14 +171,7 @@ export const charmMonster: SpellEntry = {
   id: "spell-charm-monster",
   name: "Charm Monster",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_charm-monster",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_charm-monster"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
@@ -246,14 +201,7 @@ export const compulsion: SpellEntry = {
   id: "spell-compulsion",
   name: "Compulsion",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_compulsion",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_compulsion"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
@@ -276,14 +224,7 @@ export const confusion: SpellEntry = {
   id: "spell-confusion",
   name: "Confusion",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_confusion",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_confusion"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
@@ -313,14 +254,7 @@ export const conjureMinorElementals: SpellEntry = {
   id: "spell-conjure-minor-elementals",
   name: "Conjure Minor Elementals",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_conjure-minor-elementals",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_conjure-minor-elementals"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -342,14 +276,7 @@ export const conjureWoodlandBeings: SpellEntry = {
   id: "spell-conjure-woodland-beings",
   name: "Conjure Woodland Beings",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_conjure-woodland-beings",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_conjure-woodland-beings"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -380,14 +307,7 @@ export const controlWater: SpellEntry = {
   id: "spell-control-water",
   name: "Control Water",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_control-water",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_control-water"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
@@ -409,14 +329,7 @@ export const deathWard: SpellEntry = {
   id: "spell-death-ward",
   name: "Death Ward",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_death-ward",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_death-ward"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -437,14 +350,7 @@ export const dimensionDoor: SpellEntry = {
   id: "spell-dimension-door",
   name: "Dimension Door",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_dimension-door",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_dimension-door"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -475,14 +381,7 @@ export const divination: SpellEntry = {
   id: "spell-divination",
   name: "Divination",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_divination",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_divination"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -504,14 +403,7 @@ export const dominateBeast: SpellEntry = {
   id: "spell-dominate-beast",
   name: "Dominate Beast",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_dominate-beast",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_dominate-beast"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
@@ -535,11 +427,7 @@ export const elementalBane: SpellEntry = {
   id: "spell-elemental-bane",
   name: "Elemental Bane",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
@@ -590,14 +478,7 @@ export const fabricate: SpellEntry = {
   id: "spell-fabricate",
   name: "Fabricate",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_fabricate",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_fabricate"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -617,14 +498,7 @@ export const faithfulHound: SpellEntry = {
   id: "spell-faithful-hound",
   name: "Faithful Hound",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_faithful-hound",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_faithful-hound"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -654,11 +528,7 @@ export const findGreaterSteed: SpellEntry = {
   id: "spell-find-greater-steed",
   name: "Find Greater Steed",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -679,14 +549,7 @@ export const fireShield: SpellEntry = {
   id: "spell-fire-shield",
   name: "Fire Shield",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_fire-shield",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_fire-shield"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
@@ -748,14 +611,7 @@ export const freedomOfMovement: SpellEntry = {
   id: "spell-freedom-of-movement",
   name: "Freedom of Movement",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_freedom-of-movement",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_freedom-of-movement"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -787,11 +643,7 @@ export const galdersSpeedyCourier: SpellEntry = {
   id: "spell-galders-speedy-courier",
   name: "Galder's Speedy Courier",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -815,11 +667,7 @@ export const gateSeal: SpellEntry = {
   id: "spell-gate-seal",
   name: "Gate Seal",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -841,14 +689,7 @@ export const giantInsect: SpellEntry = {
   id: "spell-giant-insect",
   name: "Giant Insect",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_giant-insect",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_giant-insect"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -870,11 +711,7 @@ export const graspingVine: SpellEntry = {
   id: "spell-grasping-vine",
   name: "Grasping Vine",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -898,11 +735,7 @@ export const gravitySinkhole: SpellEntry = {
   id: "spell-gravity-sinkhole",
   name: "Gravity Sinkhole",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -932,14 +765,7 @@ export const greaterInvisibility: SpellEntry = {
   id: "spell-greater-invisibility",
   name: "Greater Invisibility",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_greater-invisibility",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_greater-invisibility"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
@@ -958,14 +784,7 @@ export const guardianOfFaith: SpellEntry = {
   id: "spell-guardian-of-faith",
   name: "Guardian of Faith",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_guardian-of-faith",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_guardian-of-faith"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -988,11 +807,7 @@ export const guardianOfNature: SpellEntry = {
   id: "spell-guardian-of-nature",
   name: "Guardian of Nature",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -1023,14 +838,7 @@ export const hallucinatoryTerrain: SpellEntry = {
   id: "spell-hallucinatory-terrain",
   name: "Hallucinatory Terrain",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_hallucinatory-terrain",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_hallucinatory-terrain"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
@@ -1057,14 +865,7 @@ export const iceStorm: SpellEntry = {
   id: "spell-ice-storm",
   name: "Ice Storm",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_ice-storm",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_ice-storm"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1096,14 +897,7 @@ export const locateCreature: SpellEntry = {
   id: "spell-locate-creature",
   name: "Locate Creature",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_locate-creature",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_locate-creature"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
@@ -1132,14 +926,7 @@ export const phantasmalKiller: SpellEntry = {
   id: "spell-phantasmal-killer",
   name: "Phantasmal Killer",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_phantasmal-killer",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_phantasmal-killer"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
@@ -1170,14 +957,7 @@ export const polymorph: SpellEntry = {
   id: "spell-polymorph",
   name: "Polymorph",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_polymorph",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_polymorph"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
@@ -1206,14 +986,7 @@ export const privateSanctum: SpellEntry = {
   id: "spell-private-sanctum",
   name: "Private Sanctum",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_private-sanctum",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_private-sanctum"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -1248,11 +1021,7 @@ export const raulothimsPsychicLance: SpellEntry = {
   id: "spell-raulothims-psychic-lance",
   name: "Raulothim's Psychic Lance",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1290,14 +1059,7 @@ export const resilientSphere: SpellEntry = {
   id: "spell-resilient-sphere",
   name: "Resilient Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_resilient-sphere",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_resilient-sphere"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
@@ -1321,14 +1083,7 @@ export const secretChest: SpellEntry = {
   id: "spell-secret-chest",
   name: "Secret Chest",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_secret-chest",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_secret-chest"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -1351,11 +1106,7 @@ export const shadowOfMoil: SpellEntry = {
   id: "spell-shadow-of-moil",
   name: "Shadow Of Moil",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
@@ -1381,11 +1132,7 @@ export const sickeningRadiance: SpellEntry = {
   id: "spell-sickening-radiance",
   name: "Sickening Radiance",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
@@ -1415,11 +1162,7 @@ export const spiritOfDeath: SpellEntry = {
   id: "spell-spirit-of-death",
   name: "Spirit Of Death",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
@@ -1443,11 +1186,7 @@ export const staggeringSmite: SpellEntry = {
   id: "spell-staggering-smite",
   name: "Staggering Smite",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
@@ -1476,14 +1215,7 @@ export const stoneShape: SpellEntry = {
   id: "spell-stone-shape",
   name: "Stone Shape",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_stone-shape",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_stone-shape"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1509,14 +1241,7 @@ export const stoneskin: SpellEntry = {
   id: "spell-stoneskin",
   name: "Stoneskin",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_stoneskin",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_stoneskin"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
@@ -1544,11 +1269,7 @@ export const stormSphere: SpellEntry = {
   id: "spell-storm-sphere",
   name: "Storm Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
@@ -1583,11 +1304,7 @@ export const summonAberration: SpellEntry = {
   id: "spell-summon-aberration",
   name: "Summon Aberration",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -1610,11 +1327,7 @@ export const summonConstruct: SpellEntry = {
   id: "spell-summon-construct",
   name: "Summon Construct",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -1637,11 +1350,7 @@ export const summonElemental: SpellEntry = {
   id: "spell-summon-elemental",
   name: "Summon Elemental",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -1664,11 +1373,7 @@ export const summonGreaterDemon: SpellEntry = {
   id: "spell-summon-greater-demon",
   name: "Summon Greater Demon",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
@@ -1693,14 +1398,7 @@ export const vitriolicSphere: SpellEntry = {
   id: "spell-vitriolic-sphere",
   name: "Vitriolic Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_vitriolic-sphere",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_vitriolic-sphere"),
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1741,14 +1439,7 @@ export const wallOfFire: SpellEntry = {
   id: "spell-wall-of-fire",
   name: "Wall of Fire",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "srd-2024",
-    documentName: "5e 2024 Rules",
-    ruleset: "5e-2024",
-    open5eKey: "srd-2024_wall-of-fire",
-    publisherKey: "wizards-of-the-coast",
-    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
-  },
+  source: srdSpellSource("srd-2024_wall-of-fire"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
@@ -1785,11 +1476,7 @@ export const waterySphere: SpellEntry = {
   id: "spell-watery-sphere",
   name: "Watery Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
+  source: legacySpellSource,
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,

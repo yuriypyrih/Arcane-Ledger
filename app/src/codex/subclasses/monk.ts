@@ -1,11 +1,7 @@
+import { createSubclassFeatureRow } from "./featureRow";
 import { mysticArtsSpellcastingDescription, mysticArtsFocusDescription } from "./monkMysticArts";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
-import type {
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj,
-  SubclassFeatureLevel
-} from "../entries/types";
+import type { SubclassEntry } from "../entries/types";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -13,20 +9,6 @@ const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_11: 11,
   LEVEL_17: 17
 } as const;
-
-function createSubclassFeatureRow(
-  level: SubclassFeatureLevel,
-  feature: CLASS_FEATURE,
-  details: FeatureMapEntry
-): SubclassFeatureClassObj {
-  return {
-    level,
-    classFeatures: [feature],
-    featureOverrides: {
-      [feature]: details
-    }
-  };
-}
 
 export const monkSubclassEntries: SubclassEntry[] = [
   {

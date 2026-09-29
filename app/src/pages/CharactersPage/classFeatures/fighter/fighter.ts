@@ -1,10 +1,10 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { fighterFeatureMap, fighterFeatures } from "../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -259,25 +259,13 @@ export function getFighterStudiedAttacksWeaponAction(
 
 function getFighterFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = fighterFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(fighterFeatures, normalizedLevel);
 }
 
 function getUnlockedFighterFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return fighterFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(fighterFeatures, normalizedLevel);
 }
 
 export function hasFighterFeature(
@@ -952,16 +940,10 @@ export function consumeFighterSecondWindUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        secondWindUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    secondWindUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeFighterIndomitableUse(character: Character): Character {
@@ -980,16 +962,10 @@ export function consumeFighterIndomitableUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        indomitableUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    indomitableUsesExpended: usesExpended + 1
+  });
 }
 
 export function applyShortRestToFighterFeatures(character: Character): Character {
@@ -1010,40 +986,34 @@ export function applyShortRestToFighterFeatures(character: Character): Character
   );
   const usesExpended = fighterState.secondWindUsesExpended ?? 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        secondWindUsesExpended: Math.max(0, usesExpended - 1),
-        actionSurgeUsesExpended: 0,
-        actionSurgeUsedThisTurn: false,
-        actionSurgeExtraActionsRemainingThisTurn: 0,
-        battleMasterSuperiorityDiceExpended:
-          fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
-        battleMasterCombatSuperiorityUsedThisTurn:
-          fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
-        psiWarriorEnergyDiceExpended:
-          fighterState.psiWarriorEnergyDiceExpended !== undefined
-            ? Math.max(0, (fighterState.psiWarriorEnergyDiceExpended ?? 0) - 1)
-            : undefined,
-        psiWarriorPsionicStrikeUsedThisTurn:
-          fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
-        psiWarriorPsiPoweredLeapUsesExpended:
-          fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorTelekineticMovementUsesExpended:
-          fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorTelekineticMasterBonusAttackAvailable:
-          fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
-            ? false
-            : undefined,
-        banneretGroupRecoveryUsesExpended:
-          fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
-        extraAttacksRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    secondWindUsesExpended: Math.max(0, usesExpended - 1),
+    actionSurgeUsesExpended: 0,
+    actionSurgeUsedThisTurn: false,
+    actionSurgeExtraActionsRemainingThisTurn: 0,
+    battleMasterSuperiorityDiceExpended:
+      fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+    battleMasterCombatSuperiorityUsedThisTurn:
+      fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
+    psiWarriorEnergyDiceExpended:
+      fighterState.psiWarriorEnergyDiceExpended !== undefined
+        ? Math.max(0, (fighterState.psiWarriorEnergyDiceExpended ?? 0) - 1)
+        : undefined,
+    psiWarriorPsionicStrikeUsedThisTurn:
+      fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
+    psiWarriorPsiPoweredLeapUsesExpended:
+      fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorTelekineticMovementUsesExpended:
+      fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorTelekineticMasterBonusAttackAvailable:
+      fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
+        ? false
+        : undefined,
+    banneretGroupRecoveryUsesExpended:
+      fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
+    extraAttacksRemainingThisTurn: 0
+  });
 }
 
 export function restoreFighterSecondWindOnShortRest(character: Character): Character {
@@ -1061,16 +1031,10 @@ export function restoreFighterSecondWindOnShortRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        secondWindUsesExpended: Math.max(0, usesExpended - 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    secondWindUsesExpended: Math.max(0, usesExpended - 1)
+  });
 }
 
 export function restoreFighterActionSurgeOnShortRest(character: Character): Character {
@@ -1091,18 +1055,12 @@ export function restoreFighterActionSurgeOnShortRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        actionSurgeUsesExpended: 0,
-        actionSurgeUsedThisTurn: false,
-        actionSurgeExtraActionsRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    actionSurgeUsesExpended: 0,
+    actionSurgeUsedThisTurn: false,
+    actionSurgeExtraActionsRemainingThisTurn: 0
+  });
 }
 
 export function applyLongRestToFighterFeatures(character: Character): Character {
@@ -1126,45 +1084,39 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        secondWindUsesExpended: 0,
-        actionSurgeUsesExpended: 0,
-        actionSurgeUsedThisTurn: false,
-        actionSurgeExtraActionsRemainingThisTurn: 0,
-        indomitableUsesExpended: 0,
-        battleMasterSuperiorityDiceExpended:
-          fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
-        battleMasterCombatSuperiorityUsedThisTurn:
-          fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
-        battleMasterKnowYourEnemyUsesExpended:
-          fighterState.battleMasterKnowYourEnemyUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorEnergyDiceExpended:
-          fighterState.psiWarriorEnergyDiceExpended !== undefined ? 0 : undefined,
-        psiWarriorPsionicStrikeUsedThisTurn:
-          fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
-        psiWarriorPsiPoweredLeapUsesExpended:
-          fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorTelekineticMovementUsesExpended:
-          fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorBulwarkOfForceUsesExpended:
-          fighterState.psiWarriorBulwarkOfForceUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorTelekineticMasterUsesExpended:
-          fighterState.psiWarriorTelekineticMasterUsesExpended !== undefined ? 0 : undefined,
-        psiWarriorTelekineticMasterBonusAttackAvailable:
-          fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
-            ? false
-            : undefined,
-        banneretGroupRecoveryUsesExpended:
-          fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
-        extraAttacksRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    secondWindUsesExpended: 0,
+    actionSurgeUsesExpended: 0,
+    actionSurgeUsedThisTurn: false,
+    actionSurgeExtraActionsRemainingThisTurn: 0,
+    indomitableUsesExpended: 0,
+    battleMasterSuperiorityDiceExpended:
+      fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+    battleMasterCombatSuperiorityUsedThisTurn:
+      fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
+    battleMasterKnowYourEnemyUsesExpended:
+      fighterState.battleMasterKnowYourEnemyUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorEnergyDiceExpended:
+      fighterState.psiWarriorEnergyDiceExpended !== undefined ? 0 : undefined,
+    psiWarriorPsionicStrikeUsedThisTurn:
+      fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
+    psiWarriorPsiPoweredLeapUsesExpended:
+      fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorTelekineticMovementUsesExpended:
+      fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorBulwarkOfForceUsesExpended:
+      fighterState.psiWarriorBulwarkOfForceUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorTelekineticMasterUsesExpended:
+      fighterState.psiWarriorTelekineticMasterUsesExpended !== undefined ? 0 : undefined,
+    psiWarriorTelekineticMasterBonusAttackAvailable:
+      fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
+        ? false
+        : undefined,
+    banneretGroupRecoveryUsesExpended:
+      fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
+    extraAttacksRemainingThisTurn: 0
+  });
 }
 
 export function restoreFighterSecondWindOnLongRest(character: Character): Character {
@@ -1181,16 +1133,10 @@ export function restoreFighterSecondWindOnLongRest(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        secondWindUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    secondWindUsesExpended: 0
+  });
 }
 
 export function restoreFighterActionSurgeOnLongRest(character: Character): Character {
@@ -1211,18 +1157,12 @@ export function restoreFighterActionSurgeOnLongRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        actionSurgeUsesExpended: 0,
-        actionSurgeUsedThisTurn: false,
-        actionSurgeExtraActionsRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    actionSurgeUsesExpended: 0,
+    actionSurgeUsedThisTurn: false,
+    actionSurgeExtraActionsRemainingThisTurn: 0
+  });
 }
 
 export function restoreFighterIndomitableOnLongRest(character: Character): Character {
@@ -1239,16 +1179,10 @@ export function restoreFighterIndomitableOnLongRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        indomitableUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    indomitableUsesExpended: 0
+  });
 }
 
 export function restoreFighterGroupRecoveryOnShortRest(character: Character): Character {
@@ -1329,18 +1263,12 @@ export function advanceFighterFeaturesForNewRound(character: Character): Charact
       (fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0) !== 0 ||
       fighterState.actionSurgeUsedThisTurn === true
     ) {
-      nextCharacter = {
-        ...character,
-        classFeatureState: {
-          ...character.classFeatureState,
-          fighter: {
-            ...fighterState,
-            actionSurgeUsedThisTurn: false,
-            actionSurgeExtraActionsRemainingThisTurn: 0,
-            extraAttacksRemainingThisTurn: 0
-          }
-        }
-      };
+      nextCharacter = replaceClassFeatureState(character, "fighter", {
+        ...fighterState,
+        actionSurgeUsedThisTurn: false,
+        actionSurgeExtraActionsRemainingThisTurn: 0,
+        extraAttacksRemainingThisTurn: 0
+      });
     }
   }
 
@@ -1383,20 +1311,14 @@ export function setFighterWeaponMasterySelections(
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        weaponMasteries: normalizeWeaponMasterySelections(
-          selections,
-          fighterWeaponMasteryOptions,
-          getFighterWeaponMasterySelectionCount(character)
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    weaponMasteries: normalizeWeaponMasterySelections(
+      selections,
+      fighterWeaponMasteryOptions,
+      getFighterWeaponMasterySelectionCount(character)
+    )
+  });
 }
 
 export function getFighterWeaponProficiencyEntries(
@@ -1475,29 +1397,17 @@ export function consumeFighterWeaponAttack(
       return character;
     }
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1,
-          extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "fighter", {
+      ...fighterState,
+      actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1,
+      extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
+    });
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function consumeFighterNonMagicAction(character: Character): Character {
@@ -1528,16 +1438,10 @@ export function consumeFighterNonMagicAction(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1
+  });
 }
 
 export function activateFighterActionSurge(character: Character): Character {
@@ -1555,17 +1459,11 @@ export function activateFighterActionSurge(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        actionSurgeUsesExpended: (fighterState.actionSurgeUsesExpended ?? 0) + 1,
-        actionSurgeUsedThisTurn: true,
-        actionSurgeExtraActionsRemainingThisTurn:
-          (fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    actionSurgeUsesExpended: (fighterState.actionSurgeUsesExpended ?? 0) + 1,
+    actionSurgeUsedThisTurn: true,
+    actionSurgeExtraActionsRemainingThisTurn:
+      (fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0) + 1
+  });
 }

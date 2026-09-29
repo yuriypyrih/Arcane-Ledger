@@ -1,11 +1,6 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  REACTION,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   CONDITION_NAME,
@@ -16,7 +11,7 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -370,7 +365,7 @@ export function canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForS
 
 export const getRogueArcaneTricksterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRogueArcaneTricksterFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueArcaneTricksterFeatureContributions),
     {
       character: character as Character
     }

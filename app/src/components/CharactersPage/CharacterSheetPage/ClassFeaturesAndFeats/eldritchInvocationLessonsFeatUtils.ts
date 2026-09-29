@@ -1,4 +1,4 @@
-import { ELDRITCH_INVOCATION, FEATS } from "../../../../codex/entries";
+import { ELDRITCH_INVOCATION, FEATS } from "../../../../codex/entries/enums";
 import { createCharacterFeatEntry } from "../../../../pages/CharactersPage/feats";
 import { getWarlockInvocationFeatChoice } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import type { CharacterFeatEntry } from "../../../../types";

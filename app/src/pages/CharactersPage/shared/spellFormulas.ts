@@ -1,5 +1,6 @@
-import { getCharacterLevel } from "../multiclass";
-import { ABILITY_TYPES, type SpellEntry } from "../../../codex/entries";
+import { getCharacterLevel } from "../multiclassState";
+import { type SpellEntry } from "../../../codex/entries";
+import { ABILITY_TYPES } from "../../../codex/entries/enums";
 import type { RollMode } from "../../../types";
 import type { AbilityKey, Character } from "../../../types";
 import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateSorcerySpell";

@@ -1,10 +1,6 @@
+import { createSubclassFeatureRow } from "./featureRow";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
-import type {
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj,
-  SubclassFeatureLevel
-} from "../entries/types";
+import type { SubclassEntry } from "../entries/types";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -12,20 +8,6 @@ const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_10: 10,
   LEVEL_14: 14
 } as const;
-
-function createSubclassFeatureRow(
-  level: SubclassFeatureLevel,
-  feature: CLASS_FEATURE,
-  details: FeatureMapEntry
-): SubclassFeatureClassObj {
-  return {
-    level,
-    classFeatures: [feature],
-    featureOverrides: {
-      [feature]: details
-    }
-  };
-}
 
 export const naturesSanctuaryDescription = [
   "As a Magic action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot Cube on the ground within 120 feet of yourself.",

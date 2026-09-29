@@ -1,11 +1,10 @@
 import {
-  DAMAGE_TYPE,
-  DICE,
   type SpellDescriptionEntry,
   type SpellEntry,
   type WeaponDamage,
   type WeaponDamageType
 } from "../../../../codex/entries";
+import { DAMAGE_TYPE, DICE } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
@@ -74,16 +73,20 @@ export function getTrueStrikeSpellcastingAbilityForWeapon(
   character: Character,
   context: TrueStrikeWeaponContext
 ): AbilityKey | null {
-  if (!hasTrueStrikePendingAttack(character.statusEntries) || !isTrueStrikeEligibleWeapon(context)) {
+  if (
+    !hasTrueStrikePendingAttack(character.statusEntries) ||
+    !isTrueStrikeEligibleWeapon(context)
+  ) {
     return null;
   }
 
   return getSpellcastingAbilityForCharacterSpell(character, trueStrikeSpellId);
 }
 
-export function applyTrueStrikeRadiantDamageType(
-  damage: WeaponDamage
-): { damage: WeaponDamage; applied: boolean } {
+export function applyTrueStrikeRadiantDamageType(damage: WeaponDamage): {
+  damage: WeaponDamage;
+  applied: boolean;
+} {
   if (damage.length === 0) {
     return {
       damage,
@@ -94,10 +97,7 @@ export function applyTrueStrikeRadiantDamageType(
   const [primaryDamageAmount, primaryDamageType] = damage[0];
 
   return {
-    damage: [
-      [primaryDamageAmount, appendRadiantDamageType(primaryDamageType)],
-      ...damage.slice(1)
-    ],
+    damage: [[primaryDamageAmount, appendRadiantDamageType(primaryDamageType)], ...damage.slice(1)],
     applied: true
   };
 }
@@ -107,7 +107,10 @@ export function getTrueStrikeDamageAdjustmentForWeapon(
   context: TrueStrikeWeaponContext,
   damage: WeaponDamage
 ): { damage: WeaponDamage; applied: boolean } | null {
-  if (!hasTrueStrikePendingAttack(character.statusEntries) || !isTrueStrikeEligibleWeapon(context)) {
+  if (
+    !hasTrueStrikePendingAttack(character.statusEntries) ||
+    !isTrueStrikeEligibleWeapon(context)
+  ) {
     return null;
   }
 
@@ -134,8 +137,7 @@ export function getTrueStrikeEconomyMultiCountForWeapon(
   character: Pick<Character, "statusEntries">,
   context: TrueStrikeWeaponContext
 ): number {
-  return hasTrueStrikePendingAttack(character.statusEntries) &&
-    isTrueStrikeEligibleWeapon(context)
+  return hasTrueStrikePendingAttack(character.statusEntries) && isTrueStrikeEligibleWeapon(context)
     ? 1
     : 0;
 }

@@ -1,7 +1,13 @@
+import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
+import {
+  singleAbilityChoices,
+  getSingleAbilityChoiceSummary
+} from "../../../../../pages/CharactersPage/feats/singleAbilityChoices";
 import clsx from "clsx";
 import { Pencil, Plus, X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
-import { FEATS, getFeatureTrackingState, type SpellEntry } from "../../../../../codex/entries";
+import { getFeatureTrackingState, type SpellEntry } from "../../../../../codex/entries";
+import { FEATS } from "../../../../../codex/entries/enums";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
@@ -11,32 +17,13 @@ import {
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
-  heavilyArmoredAbilityOptions,
-  heavyArmorMasterAbilityOptions,
-  inspiringLeaderAbilityOptions,
   keenMindSkillOptions,
-  lightlyArmoredAbilityOptions,
-  mageSlayerAbilityOptions,
-  martialWeaponTrainingAbilityOptions,
-  mediumArmorMasterAbilityOptions,
-  moderatelyArmoredAbilityOptions,
-  mountedCombatantAbilityOptions,
   observantAbilityOptions,
   observantSkillOptions,
-  piercerAbilityOptions,
-  poisonerAbilityOptions,
-  polearmMasterAbilityOptions,
   ritualCasterAbilityOptions,
   resilientAbilityOptions,
-  sentinelAbilityOptions,
   shadowTouchedAbilityOptions,
-  slasherAbilityOptions,
-  spellSniperAbilityOptions,
-  telekineticAbilityOptions,
-  telepathicAbilityOptions,
-  warCasterAbilityOptions,
   skillExpertAbilityOptions,
-  speedyAbilityOptions,
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions,
   getAbilityScoreImprovementSummary,
@@ -104,47 +91,20 @@ import {
   SingleAbilityEditor
 } from "../FeatEditorPrimitives";
 import {
-  getPendingBlessedWarriorChoiceSummary,
-  getPendingAthleteChoiceSummary,
   getPendingBoonOfEnergyResistanceChoiceSummary,
   getPendingBoonOfSkillChoiceSummary,
-  getPendingChargerChoiceSummary,
-  getPendingGrapplerChoiceSummary,
-  getPendingChefChoiceSummary,
   getPendingColdCasterChoiceSummary,
-  getPendingCrusherChoiceSummary,
   getPendingDragonscarredChoiceSummary,
-  getPendingDualWielderChoiceSummary,
   getPendingElementalAdeptChoiceSummary,
   getPendingFeyTouchedChoiceSummary,
-  getPendingHeavilyArmoredChoiceSummary,
-  getPendingHeavyArmorMasterChoiceSummary,
-  getPendingInspiringLeaderChoiceSummary,
   getPendingKeenMindChoiceSummary,
-  getPendingLightlyArmoredChoiceSummary,
-  getPendingMageSlayerChoiceSummary,
-  getPendingMartialWeaponTrainingChoiceSummary,
-  getPendingMediumArmorMasterChoiceSummary,
-  getPendingModeratelyArmoredChoiceSummary,
-  getPendingMountedCombatantChoiceSummary,
   getPendingObservantChoiceSummary,
-  getPendingPiercerChoiceSummary,
-  getPendingPoisonerChoiceSummary,
-  getPendingPolearmMasterChoiceSummary,
   getPendingRitualCasterChoiceSummary,
   getPendingResilientChoiceSummary,
-  getPendingSentinelChoiceSummary,
   getPendingShadowTouchedChoiceSummary,
-  getPendingSlasherChoiceSummary,
-  getPendingSpellSniperChoiceSummary,
-  getPendingTelekineticChoiceSummary,
-  getPendingTelepathicChoiceSummary,
-  getPendingWarCasterChoiceSummary,
   getPendingSkillExpertChoiceSummary,
-  getPendingSpeedyChoiceSummary,
   getPendingWeaponMasterChoiceSummary,
   getPendingCrafterChoiceSummary,
-  getPendingDruidicWarriorChoiceSummary,
   getPendingEmeraldEnclaveFledglingChoiceSummary,
   getPendingHarperAgentChoiceSummary,
   getPendingPurpleDragonRookChoiceSummary,
@@ -154,13 +114,11 @@ import {
   getPendingMusicianChoiceSummary,
   getPendingSkilledChoiceSummary,
   getRepeatableFeatEntrySummary,
-  isPendingBlessedWarriorChoiceValid,
   isPendingBoonOfEnergyResistanceChoiceValid,
   isPendingBoonOfSkillChoiceValid,
   isPendingColdCasterChoiceValid,
   isPendingCrafterChoiceValid,
   isPendingDragonscarredChoiceValid,
-  isPendingDruidicWarriorChoiceValid,
   isPendingEmeraldEnclaveFledglingChoiceValid,
   isPendingHarperAgentChoiceValid,
   isPendingPurpleDragonRookChoiceValid,
@@ -214,14 +172,12 @@ import {
 } from "../helpers";
 import type {
   PendingAbilityScoreImprovement,
-  PendingBlessedWarriorChoice,
   PendingBoonOfEnergyResistanceChoice,
   PendingBoonOfSkillChoice,
   PendingColdCasterChoice,
   PendingCrafterChoice,
   PendingCultOfDragonInitiateChoice,
   PendingDragonscarredChoice,
-  PendingDruidicWarriorChoice,
   PendingEmeraldEnclaveFledglingChoice,
   PendingElementalAdeptChoice,
   PendingFeyTouchedChoice,
@@ -229,32 +185,13 @@ import type {
   PendingHarperAgentChoice,
   PendingPurpleDragonRookChoice,
   PendingSpellfireSparkChoice,
-  PendingHeavilyArmoredChoice,
-  PendingHeavyArmorMasterChoice,
-  PendingInspiringLeaderChoice,
   PendingKeenMindChoice,
-  PendingLightlyArmoredChoice,
   PendingMagicInitiateChoice,
-  PendingMageSlayerChoice,
-  PendingMartialWeaponTrainingChoice,
-  PendingMediumArmorMasterChoice,
-  PendingModeratelyArmoredChoice,
-  PendingMountedCombatantChoice,
   PendingObservantChoice,
-  PendingPiercerChoice,
-  PendingPoisonerChoice,
-  PendingPolearmMasterChoice,
   PendingRitualCasterChoice,
   PendingResilientChoice,
-  PendingSentinelChoice,
   PendingShadowTouchedChoice,
-  PendingSlasherChoice,
-  PendingSpellSniperChoice,
-  PendingTelekineticChoice,
-  PendingTelepathicChoice,
-  PendingWarCasterChoice,
   PendingSkillExpertChoice,
-  PendingSpeedyChoice,
   PendingWeaponMasterChoice,
   PendingMusicianChoice,
   TrackingButtonRenderer
@@ -2314,79 +2251,244 @@ function AbilityScoreImprovementEditor({
   );
 }
 
-function renderInlineEditor({
-  featDefinition,
-  featEligibility,
-  characterLevel,
-  skillProficiencies,
-  savingThrowProficiencies,
-  toolProficiencies,
-  languageProficiencies,
-  selectedEntries,
-  editingFeatEntryId,
-  pendingFeatState,
-  blessedWarriorCantripOptions,
-  coldCasterKnowsRayOfFrost,
-  druidicWarriorCantripOptions,
-  onPendingFeatStateChange,
-  onSavePendingAbilityScoreImprovement,
-  onSavePendingAthleteChoice,
-  onSavePendingChargerChoice,
-  onSavePendingGrapplerChoice,
-  onSavePendingChefChoice,
-  onSavePendingCrusherChoice,
-  onSavePendingDualWielderChoice,
-  onSavePendingElementalAdeptChoice,
-  onSavePendingFeyTouchedChoice,
-  onSavePendingHeavilyArmoredChoice,
-  onSavePendingHeavyArmorMasterChoice,
-  onSavePendingInspiringLeaderChoice,
-  onSavePendingKeenMindChoice,
-  onSavePendingLightlyArmoredChoice,
-  onSavePendingMageSlayerChoice,
-  onSavePendingMartialWeaponTrainingChoice,
-  onSavePendingMediumArmorMasterChoice,
-  onSavePendingModeratelyArmoredChoice,
-  onSavePendingMountedCombatantChoice,
-  onSavePendingObservantChoice,
-  onSavePendingPiercerChoice,
-  onSavePendingPoisonerChoice,
-  onSavePendingPolearmMasterChoice,
-  onSavePendingRitualCasterChoice,
-  onSavePendingResilientChoice,
-  onSavePendingSentinelChoice,
-  onSavePendingShadowTouchedChoice,
-  onSavePendingSlasherChoice,
-  onSavePendingSpellSniperChoice,
-  onSavePendingTelekineticChoice,
-  onSavePendingTelepathicChoice,
-  onSavePendingWarCasterChoice,
-  onSavePendingSkillExpertChoice,
-  onSavePendingSpeedyChoice,
-  onSavePendingWeaponMasterChoice,
-  onSavePendingBoonOfEnergyResistanceChoice,
-  onSavePendingBoonOfIrresistibleOffense,
-  onSavePendingBoonOfSkillChoice,
-  onSavePendingBlessedWarriorChoice,
-  onSavePendingColdCasterChoice,
-  onSavePendingDragonscarredChoice,
-  onSavePendingCrafterChoice,
-  onSavePendingDruidicWarriorChoice,
-  onSavePendingEpicBoonAbilityChoice,
-  onSavePendingMagicInitiateChoice,
-  onSavePendingCultOfDragonInitiateChoice,
-  onSavePendingEmeraldEnclaveFledglingChoice,
-  onSavePendingHarperAgentChoice,
-  onSavePendingPurpleDragonRookChoice,
-  onSavePendingSpellfireSparkChoice,
-  onSavePendingMusicianChoice,
-  onSavePendingSkilledChoice
-}: Omit<
-  FeatEditorCardProps,
-  "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onEditFeat" | "onRemoveFeat"
->) {
+const singleAbilityEditors = {
+  [FEATS.ATHLETE]: {
+    feat: FEATS.ATHLETE,
+    pending: "athleteChoice",
+    cancelLabel: "Cancel athlete selection",
+    save: "onSavePendingAthleteChoice"
+  },
+  [FEATS.CHARGER]: {
+    feat: FEATS.CHARGER,
+    pending: "chargerChoice",
+    cancelLabel: "Cancel charger selection",
+    save: "onSavePendingChargerChoice"
+  },
+  [FEATS.GRAPPLER]: {
+    feat: FEATS.GRAPPLER,
+    pending: "grapplerChoice",
+    cancelLabel: "Cancel grappler selection",
+    save: "onSavePendingGrapplerChoice"
+  },
+  [FEATS.CHEF]: {
+    feat: FEATS.CHEF,
+    pending: "chefChoice",
+    cancelLabel: "Cancel chef selection",
+    save: "onSavePendingChefChoice"
+  },
+  [FEATS.CRUSHER]: {
+    feat: FEATS.CRUSHER,
+    pending: "crusherChoice",
+    cancelLabel: "Cancel crusher selection",
+    save: "onSavePendingCrusherChoice"
+  },
+  [FEATS.DUAL_WIELDER]: {
+    feat: FEATS.DUAL_WIELDER,
+    pending: "dualWielderChoice",
+    cancelLabel: "Cancel dual wielder selection",
+    save: "onSavePendingDualWielderChoice"
+  },
+  [FEATS.HEAVILY_ARMORED]: {
+    feat: FEATS.HEAVILY_ARMORED,
+    pending: "heavilyArmoredChoice",
+    cancelLabel: "Cancel heavily armored selection",
+    save: "onSavePendingHeavilyArmoredChoice"
+  },
+  [FEATS.HEAVY_ARMOR_MASTER]: {
+    feat: FEATS.HEAVY_ARMOR_MASTER,
+    pending: "heavyArmorMasterChoice",
+    cancelLabel: "Cancel heavy armor master selection",
+    save: "onSavePendingHeavyArmorMasterChoice"
+  },
+  [FEATS.INSPIRING_LEADER]: {
+    feat: FEATS.INSPIRING_LEADER,
+    pending: "inspiringLeaderChoice",
+    cancelLabel: "Cancel inspiring leader selection",
+    save: "onSavePendingInspiringLeaderChoice"
+  },
+  [FEATS.LIGHTLY_ARMORED]: {
+    feat: FEATS.LIGHTLY_ARMORED,
+    pending: "lightlyArmoredChoice",
+    cancelLabel: "Cancel lightly armored selection",
+    save: "onSavePendingLightlyArmoredChoice"
+  },
+  [FEATS.MAGE_SLAYER]: {
+    feat: FEATS.MAGE_SLAYER,
+    pending: "mageSlayerChoice",
+    cancelLabel: "Cancel mage slayer selection",
+    save: "onSavePendingMageSlayerChoice"
+  },
+  [FEATS.MARTIAL_WEAPON_TRAINING]: {
+    feat: FEATS.MARTIAL_WEAPON_TRAINING,
+    pending: "martialWeaponTrainingChoice",
+    cancelLabel: "Cancel martial weapon training selection",
+    save: "onSavePendingMartialWeaponTrainingChoice"
+  },
+  [FEATS.MEDIUM_ARMOR_MASTER]: {
+    feat: FEATS.MEDIUM_ARMOR_MASTER,
+    pending: "mediumArmorMasterChoice",
+    cancelLabel: "Cancel medium armor master selection",
+    save: "onSavePendingMediumArmorMasterChoice"
+  },
+  [FEATS.MODERATELY_ARMORED]: {
+    feat: FEATS.MODERATELY_ARMORED,
+    pending: "moderatelyArmoredChoice",
+    cancelLabel: "Cancel moderately armored selection",
+    save: "onSavePendingModeratelyArmoredChoice"
+  },
+  [FEATS.MOUNTED_COMBATANT]: {
+    feat: FEATS.MOUNTED_COMBATANT,
+    pending: "mountedCombatantChoice",
+    cancelLabel: "Cancel mounted combatant selection",
+    save: "onSavePendingMountedCombatantChoice"
+  },
+  [FEATS.PIERCER]: {
+    feat: FEATS.PIERCER,
+    pending: "piercerChoice",
+    cancelLabel: "Cancel piercer selection",
+    save: "onSavePendingPiercerChoice"
+  },
+  [FEATS.POISONER]: {
+    feat: FEATS.POISONER,
+    pending: "poisonerChoice",
+    cancelLabel: "Cancel poisoner selection",
+    save: "onSavePendingPoisonerChoice"
+  },
+  [FEATS.POLEARM_MASTER]: {
+    feat: FEATS.POLEARM_MASTER,
+    pending: "polearmMasterChoice",
+    cancelLabel: "Cancel polearm master selection",
+    save: "onSavePendingPolearmMasterChoice"
+  },
+  [FEATS.SENTINEL]: {
+    feat: FEATS.SENTINEL,
+    pending: "sentinelChoice",
+    cancelLabel: "Cancel sentinel selection",
+    save: "onSavePendingSentinelChoice"
+  },
+  [FEATS.SLASHER]: {
+    feat: FEATS.SLASHER,
+    pending: "slasherChoice",
+    cancelLabel: "Cancel slasher selection",
+    save: "onSavePendingSlasherChoice"
+  },
+  [FEATS.SPELL_SNIPER]: {
+    feat: FEATS.SPELL_SNIPER,
+    pending: "spellSniperChoice",
+    cancelLabel: "Cancel spell sniper selection",
+    save: "onSavePendingSpellSniperChoice"
+  },
+  [FEATS.TELEKINETIC]: {
+    feat: FEATS.TELEKINETIC,
+    pending: "telekineticChoice",
+    cancelLabel: "Cancel telekinetic selection",
+    save: "onSavePendingTelekineticChoice"
+  },
+  [FEATS.TELEPATHIC]: {
+    feat: FEATS.TELEPATHIC,
+    pending: "telepathicChoice",
+    cancelLabel: "Cancel telepathic selection",
+    save: "onSavePendingTelepathicChoice"
+  },
+  [FEATS.WAR_CASTER]: {
+    feat: FEATS.WAR_CASTER,
+    pending: "warCasterChoice",
+    cancelLabel: "Cancel war caster selection",
+    save: "onSavePendingWarCasterChoice"
+  },
+  [FEATS.SPEEDY]: {
+    feat: FEATS.SPEEDY,
+    pending: "speedyChoice",
+    cancelLabel: "Cancel speedy selection",
+    save: "onSavePendingSpeedyChoice"
+  },
+  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE]: {
+    feat: FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
+    pending: "boonOfIrresistibleOffense",
+    cancelLabel: "Cancel boon of irresistible offense selection",
+    save: "onSavePendingBoonOfIrresistibleOffense"
+  }
+} as const;
+
+function renderInlineEditor(
+  props: Omit<
+    FeatEditorCardProps,
+    "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onEditFeat" | "onRemoveFeat"
+  >
+) {
+  const {
+    featDefinition,
+    featEligibility,
+    characterLevel,
+    skillProficiencies,
+    savingThrowProficiencies,
+    toolProficiencies,
+    languageProficiencies,
+    selectedEntries,
+    editingFeatEntryId,
+    pendingFeatState,
+    blessedWarriorCantripOptions,
+    coldCasterKnowsRayOfFrost,
+    druidicWarriorCantripOptions,
+    onPendingFeatStateChange,
+    onSavePendingAbilityScoreImprovement,
+    onSavePendingElementalAdeptChoice,
+    onSavePendingFeyTouchedChoice,
+    onSavePendingKeenMindChoice,
+    onSavePendingObservantChoice,
+    onSavePendingRitualCasterChoice,
+    onSavePendingResilientChoice,
+    onSavePendingShadowTouchedChoice,
+    onSavePendingSkillExpertChoice,
+    onSavePendingWeaponMasterChoice,
+    onSavePendingBoonOfEnergyResistanceChoice,
+    onSavePendingBoonOfSkillChoice,
+    onSavePendingBlessedWarriorChoice,
+    onSavePendingColdCasterChoice,
+    onSavePendingDragonscarredChoice,
+    onSavePendingCrafterChoice,
+    onSavePendingDruidicWarriorChoice,
+    onSavePendingEpicBoonAbilityChoice,
+    onSavePendingMagicInitiateChoice,
+    onSavePendingCultOfDragonInitiateChoice,
+    onSavePendingEmeraldEnclaveFledglingChoice,
+    onSavePendingHarperAgentChoice,
+    onSavePendingPurpleDragonRookChoice,
+    onSavePendingSpellfireSparkChoice,
+    onSavePendingMusicianChoice,
+    onSavePendingSkilledChoice
+  } = props;
+
   if (featEligibility && !featEligibility.isEligible) {
     return null;
+  }
+  const abilityEditor =
+    singleAbilityEditors[featDefinition.feat as keyof typeof singleAbilityEditors];
+  const abilityChoice = abilityEditor ? pendingFeatState[abilityEditor.pending] : null;
+  if (abilityEditor && abilityChoice) {
+    const definition = singleAbilityChoices[abilityEditor.feat];
+    return (
+      <SingleAbilityEditor
+        title={definition.label}
+        cancelLabel={abilityEditor.cancelLabel}
+        label="Ability"
+        summary={getSingleAbilityChoiceSummary(abilityChoice) ?? ""}
+        value={abilityChoice.ability}
+        options={[...definition.abilities]}
+        onSave={props[abilityEditor.save]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({ ...current, [abilityEditor.pending]: null }))
+        }
+        onChange={(ability) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            [abilityEditor.pending]: current[abilityEditor.pending]
+              ? (definition.normalize({ ability }) ?? current[abilityEditor.pending])
+              : current[abilityEditor.pending]
+          }))
+        }
+      />
+    );
   }
 
   if (
@@ -2404,186 +2506,6 @@ function renderInlineEditor({
           }))
         }
         onSave={onSavePendingAbilityScoreImprovement}
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.ATHLETE && pendingFeatState.athleteChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Athlete"
-        cancelLabel="Cancel athlete selection"
-        label="Ability"
-        summary={getPendingAthleteChoiceSummary(pendingFeatState.athleteChoice) ?? ""}
-        value={pendingFeatState.athleteChoice.ability}
-        options={["STR", "DEX"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            athleteChoice: null
-          }))
-        }
-        onSave={onSavePendingAthleteChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            athleteChoice: current.athleteChoice
-              ? {
-                  ability: nextValue as "STR" | "DEX"
-                }
-              : current.athleteChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.CHARGER && pendingFeatState.chargerChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Charger"
-        cancelLabel="Cancel charger selection"
-        label="Ability"
-        summary={getPendingChargerChoiceSummary(pendingFeatState.chargerChoice) ?? ""}
-        value={pendingFeatState.chargerChoice.ability}
-        options={["STR", "DEX"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            chargerChoice: null
-          }))
-        }
-        onSave={onSavePendingChargerChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            chargerChoice: current.chargerChoice
-              ? {
-                  ability: nextValue as "STR" | "DEX"
-                }
-              : current.chargerChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.GRAPPLER && pendingFeatState.grapplerChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Grappler"
-        cancelLabel="Cancel grappler selection"
-        label="Ability"
-        summary={getPendingGrapplerChoiceSummary(pendingFeatState.grapplerChoice) ?? ""}
-        value={pendingFeatState.grapplerChoice.ability}
-        options={["STR", "DEX"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            grapplerChoice: null
-          }))
-        }
-        onSave={onSavePendingGrapplerChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            grapplerChoice: current.grapplerChoice
-              ? {
-                  ability: nextValue as "STR" | "DEX"
-                }
-              : current.grapplerChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.CHEF && pendingFeatState.chefChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Chef"
-        cancelLabel="Cancel chef selection"
-        label="Ability"
-        summary={getPendingChefChoiceSummary(pendingFeatState.chefChoice) ?? ""}
-        value={pendingFeatState.chefChoice.ability}
-        options={["CON", "WIS"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            chefChoice: null
-          }))
-        }
-        onSave={onSavePendingChefChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            chefChoice: current.chefChoice
-              ? {
-                  ability: nextValue as "CON" | "WIS"
-                }
-              : current.chefChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.CRUSHER && pendingFeatState.crusherChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Crusher"
-        cancelLabel="Cancel crusher selection"
-        label="Ability"
-        summary={getPendingCrusherChoiceSummary(pendingFeatState.crusherChoice) ?? ""}
-        value={pendingFeatState.crusherChoice.ability}
-        options={["STR", "CON"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            crusherChoice: null
-          }))
-        }
-        onSave={onSavePendingCrusherChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            crusherChoice: current.crusherChoice
-              ? {
-                  ability: nextValue as "STR" | "CON"
-                }
-              : current.crusherChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.DUAL_WIELDER && pendingFeatState.dualWielderChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Dual Wielder"
-        cancelLabel="Cancel dual wielder selection"
-        label="Ability"
-        summary={getPendingDualWielderChoiceSummary(pendingFeatState.dualWielderChoice) ?? ""}
-        value={pendingFeatState.dualWielderChoice.ability}
-        options={["STR", "DEX"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            dualWielderChoice: null
-          }))
-        }
-        onSave={onSavePendingDualWielderChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            dualWielderChoice: current.dualWielderChoice
-              ? {
-                  ability: nextValue as "STR" | "DEX"
-                }
-              : current.dualWielderChoice
-          }))
-        }
       />
     );
   }
@@ -2623,10 +2545,7 @@ function renderInlineEditor({
       <ColdCasterChoiceEditor
         choice={coldCasterChoice}
         knowsRayOfFrost={coldCasterKnowsRayOfFrost}
-        summary={getPendingColdCasterChoiceSummary(
-          coldCasterChoice,
-          coldCasterKnowsRayOfFrost
-        )}
+        summary={getPendingColdCasterChoiceSummary(coldCasterChoice, coldCasterKnowsRayOfFrost)}
         isValid={isPendingColdCasterChoiceValid(coldCasterChoice, coldCasterKnowsRayOfFrost)}
         onCancel={() =>
           onPendingFeatStateChange((current) => ({
@@ -2638,9 +2557,7 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            coldCasterChoice: current.coldCasterChoice
-              ? nextChoice
-              : current.coldCasterChoice
+            coldCasterChoice: current.coldCasterChoice ? nextChoice : current.coldCasterChoice
           }))
         }
       />
@@ -2699,100 +2616,6 @@ function renderInlineEditor({
     );
   }
 
-  if (featDefinition.feat === FEATS.HEAVILY_ARMORED && pendingFeatState.heavilyArmoredChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Heavily Armored"
-        cancelLabel="Cancel heavily armored selection"
-        label="Ability"
-        summary={getPendingHeavilyArmoredChoiceSummary(pendingFeatState.heavilyArmoredChoice) ?? ""}
-        value={pendingFeatState.heavilyArmoredChoice.ability}
-        options={[...heavilyArmoredAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            heavilyArmoredChoice: null
-          }))
-        }
-        onSave={onSavePendingHeavilyArmoredChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            heavilyArmoredChoice: current.heavilyArmoredChoice
-              ? {
-                  ability: nextValue as PendingHeavilyArmoredChoice["ability"]
-                }
-              : current.heavilyArmoredChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.HEAVY_ARMOR_MASTER && pendingFeatState.heavyArmorMasterChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Heavy Armor Master"
-        cancelLabel="Cancel heavy armor master selection"
-        label="Ability"
-        summary={
-          getPendingHeavyArmorMasterChoiceSummary(pendingFeatState.heavyArmorMasterChoice) ?? ""
-        }
-        value={pendingFeatState.heavyArmorMasterChoice.ability}
-        options={[...heavyArmorMasterAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            heavyArmorMasterChoice: null
-          }))
-        }
-        onSave={onSavePendingHeavyArmorMasterChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            heavyArmorMasterChoice: current.heavyArmorMasterChoice
-              ? {
-                  ability: nextValue as PendingHeavyArmorMasterChoice["ability"]
-                }
-              : current.heavyArmorMasterChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.INSPIRING_LEADER && pendingFeatState.inspiringLeaderChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Inspiring Leader"
-        cancelLabel="Cancel inspiring leader selection"
-        label="Ability"
-        summary={
-          getPendingInspiringLeaderChoiceSummary(pendingFeatState.inspiringLeaderChoice) ?? ""
-        }
-        value={pendingFeatState.inspiringLeaderChoice.ability}
-        options={[...inspiringLeaderAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            inspiringLeaderChoice: null
-          }))
-        }
-        onSave={onSavePendingInspiringLeaderChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            inspiringLeaderChoice: current.inspiringLeaderChoice
-              ? {
-                  ability: nextValue as PendingInspiringLeaderChoice["ability"]
-                }
-              : current.inspiringLeaderChoice
-          }))
-        }
-      />
-    );
-  }
-
   if (featDefinition.feat === FEATS.KEEN_MIND && pendingFeatState.keenMindChoice) {
     const keenMindChoice = pendingFeatState.keenMindChoice;
 
@@ -2819,205 +2642,6 @@ function renderInlineEditor({
     );
   }
 
-  if (featDefinition.feat === FEATS.LIGHTLY_ARMORED && pendingFeatState.lightlyArmoredChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Lightly Armored"
-        cancelLabel="Cancel lightly armored selection"
-        label="Ability"
-        summary={getPendingLightlyArmoredChoiceSummary(pendingFeatState.lightlyArmoredChoice) ?? ""}
-        value={pendingFeatState.lightlyArmoredChoice.ability}
-        options={[...lightlyArmoredAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            lightlyArmoredChoice: null
-          }))
-        }
-        onSave={onSavePendingLightlyArmoredChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            lightlyArmoredChoice: current.lightlyArmoredChoice
-              ? {
-                  ability: nextValue as PendingLightlyArmoredChoice["ability"]
-                }
-              : current.lightlyArmoredChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.MAGE_SLAYER && pendingFeatState.mageSlayerChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Mage Slayer"
-        cancelLabel="Cancel mage slayer selection"
-        label="Ability"
-        summary={getPendingMageSlayerChoiceSummary(pendingFeatState.mageSlayerChoice) ?? ""}
-        value={pendingFeatState.mageSlayerChoice.ability}
-        options={[...mageSlayerAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mageSlayerChoice: null
-          }))
-        }
-        onSave={onSavePendingMageSlayerChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mageSlayerChoice: current.mageSlayerChoice
-              ? {
-                  ability: nextValue as PendingMageSlayerChoice["ability"]
-                }
-              : current.mageSlayerChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (
-    featDefinition.feat === FEATS.MARTIAL_WEAPON_TRAINING &&
-    pendingFeatState.martialWeaponTrainingChoice
-  ) {
-    return (
-      <SingleAbilityEditor
-        title="Martial Weapon Training"
-        cancelLabel="Cancel martial weapon training selection"
-        label="Ability"
-        summary={
-          getPendingMartialWeaponTrainingChoiceSummary(
-            pendingFeatState.martialWeaponTrainingChoice
-          ) ?? ""
-        }
-        value={pendingFeatState.martialWeaponTrainingChoice.ability}
-        options={[...martialWeaponTrainingAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            martialWeaponTrainingChoice: null
-          }))
-        }
-        onSave={onSavePendingMartialWeaponTrainingChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            martialWeaponTrainingChoice: current.martialWeaponTrainingChoice
-              ? {
-                  ability: nextValue as PendingMartialWeaponTrainingChoice["ability"]
-                }
-              : current.martialWeaponTrainingChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (
-    featDefinition.feat === FEATS.MEDIUM_ARMOR_MASTER &&
-    pendingFeatState.mediumArmorMasterChoice
-  ) {
-    return (
-      <SingleAbilityEditor
-        title="Medium Armor Master"
-        cancelLabel="Cancel medium armor master selection"
-        label="Ability"
-        summary={
-          getPendingMediumArmorMasterChoiceSummary(pendingFeatState.mediumArmorMasterChoice) ?? ""
-        }
-        value={pendingFeatState.mediumArmorMasterChoice.ability}
-        options={[...mediumArmorMasterAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mediumArmorMasterChoice: null
-          }))
-        }
-        onSave={onSavePendingMediumArmorMasterChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mediumArmorMasterChoice: current.mediumArmorMasterChoice
-              ? {
-                  ability: nextValue as PendingMediumArmorMasterChoice["ability"]
-                }
-              : current.mediumArmorMasterChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (
-    featDefinition.feat === FEATS.MODERATELY_ARMORED &&
-    pendingFeatState.moderatelyArmoredChoice
-  ) {
-    return (
-      <SingleAbilityEditor
-        title="Moderately Armored"
-        cancelLabel="Cancel moderately armored selection"
-        label="Ability"
-        summary={
-          getPendingModeratelyArmoredChoiceSummary(pendingFeatState.moderatelyArmoredChoice) ?? ""
-        }
-        value={pendingFeatState.moderatelyArmoredChoice.ability}
-        options={[...moderatelyArmoredAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            moderatelyArmoredChoice: null
-          }))
-        }
-        onSave={onSavePendingModeratelyArmoredChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            moderatelyArmoredChoice: current.moderatelyArmoredChoice
-              ? {
-                  ability: nextValue as PendingModeratelyArmoredChoice["ability"]
-                }
-              : current.moderatelyArmoredChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.MOUNTED_COMBATANT && pendingFeatState.mountedCombatantChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Mounted Combatant"
-        cancelLabel="Cancel mounted combatant selection"
-        label="Ability"
-        summary={
-          getPendingMountedCombatantChoiceSummary(pendingFeatState.mountedCombatantChoice) ?? ""
-        }
-        value={pendingFeatState.mountedCombatantChoice.ability}
-        options={[...mountedCombatantAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mountedCombatantChoice: null
-          }))
-        }
-        onSave={onSavePendingMountedCombatantChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            mountedCombatantChoice: current.mountedCombatantChoice
-              ? {
-                  ability: nextValue as PendingMountedCombatantChoice["ability"]
-                }
-              : current.mountedCombatantChoice
-          }))
-        }
-      />
-    );
-  }
-
   if (featDefinition.feat === FEATS.OBSERVANT && pendingFeatState.observantChoice) {
     const observantChoice = pendingFeatState.observantChoice;
 
@@ -3038,96 +2662,6 @@ function renderInlineEditor({
           onPendingFeatStateChange((current) => ({
             ...current,
             observantChoice: current.observantChoice ? nextChoice : current.observantChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.PIERCER && pendingFeatState.piercerChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Piercer"
-        cancelLabel="Cancel piercer selection"
-        label="Ability"
-        summary={getPendingPiercerChoiceSummary(pendingFeatState.piercerChoice) ?? ""}
-        value={pendingFeatState.piercerChoice.ability}
-        options={[...piercerAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            piercerChoice: null
-          }))
-        }
-        onSave={onSavePendingPiercerChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            piercerChoice: current.piercerChoice
-              ? {
-                  ability: nextValue as PendingPiercerChoice["ability"]
-                }
-              : current.piercerChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.POISONER && pendingFeatState.poisonerChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Poisoner"
-        cancelLabel="Cancel poisoner selection"
-        label="Ability"
-        summary={getPendingPoisonerChoiceSummary(pendingFeatState.poisonerChoice) ?? ""}
-        value={pendingFeatState.poisonerChoice.ability}
-        options={[...poisonerAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            poisonerChoice: null
-          }))
-        }
-        onSave={onSavePendingPoisonerChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            poisonerChoice: current.poisonerChoice
-              ? {
-                  ability: nextValue as PendingPoisonerChoice["ability"]
-                }
-              : current.poisonerChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.POLEARM_MASTER && pendingFeatState.polearmMasterChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Polearm Master"
-        cancelLabel="Cancel polearm master selection"
-        label="Ability"
-        summary={getPendingPolearmMasterChoiceSummary(pendingFeatState.polearmMasterChoice) ?? ""}
-        value={pendingFeatState.polearmMasterChoice.ability}
-        options={[...polearmMasterAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            polearmMasterChoice: null
-          }))
-        }
-        onSave={onSavePendingPolearmMasterChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            polearmMasterChoice: current.polearmMasterChoice
-              ? {
-                  ability: nextValue as PendingPolearmMasterChoice["ability"]
-                }
-              : current.polearmMasterChoice
           }))
         }
       />
@@ -3186,36 +2720,6 @@ function renderInlineEditor({
     );
   }
 
-  if (featDefinition.feat === FEATS.SENTINEL && pendingFeatState.sentinelChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Sentinel"
-        cancelLabel="Cancel sentinel selection"
-        label="Ability"
-        summary={getPendingSentinelChoiceSummary(pendingFeatState.sentinelChoice) ?? ""}
-        value={pendingFeatState.sentinelChoice.ability}
-        options={[...sentinelAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            sentinelChoice: null
-          }))
-        }
-        onSave={onSavePendingSentinelChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            sentinelChoice: current.sentinelChoice
-              ? {
-                  ability: nextValue as PendingSentinelChoice["ability"]
-                }
-              : current.sentinelChoice
-          }))
-        }
-      />
-    );
-  }
-
   if (featDefinition.feat === FEATS.SHADOW_TOUCHED && pendingFeatState.shadowTouchedChoice) {
     const shadowTouchedChoice = pendingFeatState.shadowTouchedChoice;
 
@@ -3243,156 +2747,6 @@ function renderInlineEditor({
     );
   }
 
-  if (featDefinition.feat === FEATS.SLASHER && pendingFeatState.slasherChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Slasher"
-        cancelLabel="Cancel slasher selection"
-        label="Ability"
-        summary={getPendingSlasherChoiceSummary(pendingFeatState.slasherChoice) ?? ""}
-        value={pendingFeatState.slasherChoice.ability}
-        options={[...slasherAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            slasherChoice: null
-          }))
-        }
-        onSave={onSavePendingSlasherChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            slasherChoice: current.slasherChoice
-              ? {
-                  ability: nextValue as PendingSlasherChoice["ability"]
-                }
-              : current.slasherChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.SPELL_SNIPER && pendingFeatState.spellSniperChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Spell Sniper"
-        cancelLabel="Cancel spell sniper selection"
-        label="Ability"
-        summary={getPendingSpellSniperChoiceSummary(pendingFeatState.spellSniperChoice) ?? ""}
-        value={pendingFeatState.spellSniperChoice.ability}
-        options={[...spellSniperAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            spellSniperChoice: null
-          }))
-        }
-        onSave={onSavePendingSpellSniperChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            spellSniperChoice: current.spellSniperChoice
-              ? {
-                  ability: nextValue as PendingSpellSniperChoice["ability"]
-                }
-              : current.spellSniperChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.TELEKINETIC && pendingFeatState.telekineticChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Telekinetic"
-        cancelLabel="Cancel telekinetic selection"
-        label="Ability"
-        summary={getPendingTelekineticChoiceSummary(pendingFeatState.telekineticChoice) ?? ""}
-        value={pendingFeatState.telekineticChoice.ability}
-        options={[...telekineticAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            telekineticChoice: null
-          }))
-        }
-        onSave={onSavePendingTelekineticChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            telekineticChoice: current.telekineticChoice
-              ? {
-                  ability: nextValue as PendingTelekineticChoice["ability"]
-                }
-              : current.telekineticChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.TELEPATHIC && pendingFeatState.telepathicChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Telepathic"
-        cancelLabel="Cancel telepathic selection"
-        label="Ability"
-        summary={getPendingTelepathicChoiceSummary(pendingFeatState.telepathicChoice) ?? ""}
-        value={pendingFeatState.telepathicChoice.ability}
-        options={[...telepathicAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            telepathicChoice: null
-          }))
-        }
-        onSave={onSavePendingTelepathicChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            telepathicChoice: current.telepathicChoice
-              ? {
-                  ability: nextValue as PendingTelepathicChoice["ability"]
-                }
-              : current.telepathicChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.WAR_CASTER && pendingFeatState.warCasterChoice) {
-    return (
-      <SingleAbilityEditor
-        title="War Caster"
-        cancelLabel="Cancel war caster selection"
-        label="Ability"
-        summary={getPendingWarCasterChoiceSummary(pendingFeatState.warCasterChoice) ?? ""}
-        value={pendingFeatState.warCasterChoice.ability}
-        options={[...warCasterAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            warCasterChoice: null
-          }))
-        }
-        onSave={onSavePendingWarCasterChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            warCasterChoice: current.warCasterChoice
-              ? {
-                  ability: nextValue as PendingWarCasterChoice["ability"]
-                }
-              : current.warCasterChoice
-          }))
-        }
-      />
-    );
-  }
-
   if (featDefinition.feat === FEATS.SKILL_EXPERT && pendingFeatState.skillExpertChoice) {
     const skillExpertChoice = pendingFeatState.skillExpertChoice;
 
@@ -3413,36 +2767,6 @@ function renderInlineEditor({
           onPendingFeatStateChange((current) => ({
             ...current,
             skillExpertChoice: current.skillExpertChoice ? nextChoice : current.skillExpertChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.SPEEDY && pendingFeatState.speedyChoice) {
-    return (
-      <SingleAbilityEditor
-        title="Speedy"
-        cancelLabel="Cancel speedy selection"
-        label="Ability"
-        summary={getPendingSpeedyChoiceSummary(pendingFeatState.speedyChoice) ?? ""}
-        value={pendingFeatState.speedyChoice.ability}
-        options={[...speedyAbilityOptions]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            speedyChoice: null
-          }))
-        }
-        onSave={onSavePendingSpeedyChoice}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            speedyChoice: current.speedyChoice
-              ? {
-                  ability: nextValue as PendingSpeedyChoice["ability"]
-                }
-              : current.speedyChoice
           }))
         }
       />
@@ -3531,108 +2855,58 @@ function renderInlineEditor({
   }
 
   if (
-    featDefinition.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE &&
-    pendingFeatState.boonOfIrresistibleOffense
+    featDefinition.feat === FEATS.BLESSED_WARRIOR ||
+    featDefinition.feat === FEATS.DRUIDIC_WARRIOR
   ) {
-    return (
-      <SingleAbilityEditor
-        title="Boon of Irresistible Offense"
-        cancelLabel="Cancel boon of irresistible offense selection"
-        label="Ability"
-        summary={`${pendingFeatState.boonOfIrresistibleOffense.ability} +1 (max 30)`}
-        value={pendingFeatState.boonOfIrresistibleOffense.ability}
-        options={["STR", "DEX"]}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            boonOfIrresistibleOffense: null
-          }))
-        }
-        onSave={onSavePendingBoonOfIrresistibleOffense}
-        onChange={(nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            boonOfIrresistibleOffense: current.boonOfIrresistibleOffense
-              ? {
-                  ability: nextValue as "STR" | "DEX"
-                }
-              : current.boonOfIrresistibleOffense
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.BLESSED_WARRIOR && pendingFeatState.blessedWarriorChoice) {
-    return (
-      <CantripChoiceEditor
-        title="Blessed Warrior"
-        cancelLabel="Cancel blessed warrior selection"
-        choice={pendingFeatState.blessedWarriorChoice}
-        options={blessedWarriorCantripOptions}
-        summary={getPendingBlessedWarriorChoiceSummary(pendingFeatState.blessedWarriorChoice)}
-        isValid={isPendingBlessedWarriorChoiceValid(pendingFeatState.blessedWarriorChoice)}
-        validationMessage="Choose two different Cleric cantrips."
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            blessedWarriorChoice: null
-          }))
-        }
-        onSave={onSavePendingBlessedWarriorChoice}
-        onChange={(selectionIndex, nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            blessedWarriorChoice: current.blessedWarriorChoice
-              ? {
-                  cantripIds: updateSelectionAtIndex(
-                    current.blessedWarriorChoice.cantripIds,
-                    2,
-                    selectionIndex,
-                    nextValue
-                  ) as PendingBlessedWarriorChoice["cantripIds"]
-                }
-              : current.blessedWarriorChoice
-          }))
-        }
-      />
-    );
-  }
-
-  if (featDefinition.feat === FEATS.DRUIDIC_WARRIOR && pendingFeatState.druidicWarriorChoice) {
-    return (
-      <CantripChoiceEditor
-        title="Druidic Warrior"
-        cancelLabel="Cancel druidic warrior selection"
-        choice={pendingFeatState.druidicWarriorChoice}
-        options={druidicWarriorCantripOptions}
-        summary={getPendingDruidicWarriorChoiceSummary(pendingFeatState.druidicWarriorChoice)}
-        isValid={isPendingDruidicWarriorChoiceValid(pendingFeatState.druidicWarriorChoice)}
-        validationMessage="Choose two different Druid cantrips."
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            druidicWarriorChoice: null
-          }))
-        }
-        onSave={onSavePendingDruidicWarriorChoice}
-        onChange={(selectionIndex, nextValue) =>
-          onPendingFeatStateChange((current) => ({
-            ...current,
-            druidicWarriorChoice: current.druidicWarriorChoice
-              ? {
-                  cantripIds: updateSelectionAtIndex(
-                    current.druidicWarriorChoice.cantripIds,
-                    2,
-                    selectionIndex,
-                    nextValue
-                  ) as PendingDruidicWarriorChoice["cantripIds"]
-                }
-              : current.druidicWarriorChoice
-          }))
-        }
-      />
-    );
+    const feat = featDefinition.feat;
+    const definition = cantripChoices[feat];
+    const config =
+      feat === FEATS.BLESSED_WARRIOR
+        ? {
+            field: "blessedWarriorChoice" as const,
+            options: blessedWarriorCantripOptions,
+            onSave: onSavePendingBlessedWarriorChoice
+          }
+        : {
+            field: "druidicWarriorChoice" as const,
+            options: druidicWarriorCantripOptions,
+            onSave: onSavePendingDruidicWarriorChoice
+          };
+    const choice = pendingFeatState[config.field];
+    if (choice)
+      return (
+        <CantripChoiceEditor
+          title={definition.label}
+          cancelLabel={definition.cancelLabel}
+          choice={choice}
+          options={config.options}
+          summary={definition.getSummary(definition.decodeDraft(choice))}
+          isValid={definition.decodeDraft(choice) !== null}
+          validationMessage={definition.validationMessage}
+          onCancel={() =>
+            onPendingFeatStateChange((current) => ({ ...current, [config.field]: null }))
+          }
+          onSave={config.onSave}
+          onChange={(selectionIndex, nextValue) =>
+            onPendingFeatStateChange((current) => {
+              const currentChoice = current[config.field];
+              return {
+                ...current,
+                [config.field]: currentChoice
+                  ? {
+                      cantripIds: updateSelectionAtIndex(
+                        currentChoice.cantripIds,
+                        2,
+                        selectionIndex,
+                        nextValue
+                      ) as [string, string]
+                    }
+                  : currentChoice
+              };
+            })
+          }
+        />
+      );
   }
 
   if (featDefinition.feat === FEATS.CRAFTER && pendingFeatState.crafterChoice) {

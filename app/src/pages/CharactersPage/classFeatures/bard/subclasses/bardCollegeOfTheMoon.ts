@@ -1,11 +1,9 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { extractDescriptionSection as extractFeatureDescriptionSection } from "../../../shared/descriptionSections";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  SPELL_LIST_CLASS,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../../../../../codex/entries/enums";
 import {
   blessingOfMoonlightDescription,
   inspiredEclipseDescription,
@@ -21,7 +19,7 @@ import type {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -127,45 +125,6 @@ export function hasBardCollegeOfTheMoonBlessingOfMoonlightFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return hasCollegeOfTheMoonBlessingOfMoonlight(character);
-}
-
-function extractFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string,
-  options?: {
-    stripHeading?: boolean;
-  }
-): SpellDescriptionEntry[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: SpellDescriptionEntry[] = [];
-  const headingMarker = `<strong>${heading}</strong>`;
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    if (options?.stripHeading && index === startIndex && entry.includes(headingMarker)) {
-      const strippedEntry = entry.replace(headingMarker, "").trim();
-
-      if (strippedEntry.length > 0) {
-        section.push(strippedEntry);
-      }
-
-      continue;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
 }
 
 function getMoonFeatureDescriptionStrings(
@@ -348,16 +307,10 @@ export function setBardCollegeOfTheMoonPrimalLoreCantripId(
   const nextSpellId =
     typeof spellId === "string" && availableSpellIds.has(spellId) ? spellId : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        primalLoreCantripId: nextSpellId
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    primalLoreCantripId: nextSpellId
+  });
 }
 
 export function setBardCollegeOfTheMoonPrimalLoreSkillSelection(
@@ -369,16 +322,10 @@ export function setBardCollegeOfTheMoonPrimalLoreSkillSelection(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        primalLoreSkill: skill && isPrimalLoreSkill(skill) ? skill : undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    primalLoreSkill: skill && isPrimalLoreSkill(skill) ? skill : undefined
+  });
 }
 
 function createBardCollegeOfTheMoonPrimalLoreSkillEntry(
@@ -462,16 +409,10 @@ export function consumeBardCollegeOfTheMoonBlessingOfMoonlightUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        blessingOfMoonlightUsesExpended: currentExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    blessingOfMoonlightUsesExpended: currentExpended + 1
+  });
 }
 
 export function restoreBardCollegeOfTheMoonBlessingOfMoonlightOnLongRest(
@@ -488,16 +429,10 @@ export function restoreBardCollegeOfTheMoonBlessingOfMoonlightOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        blessingOfMoonlightUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    blessingOfMoonlightUsesExpended: 0
+  });
 }
 
 export function shouldAdvanceBardCollegeOfTheMoonFeaturesForNewRound(
@@ -517,16 +452,10 @@ export function clearBardCollegeOfTheMoonTurnState(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        lunarVitalityUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    lunarVitalityUsedThisTurn: false
+  });
 }
 
 export function activateBardCollegeOfTheMoonLunarVitality(
@@ -541,18 +470,11 @@ export function activateBardCollegeOfTheMoonLunarVitality(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended:
-          Math.max(0, bardState.bardicInspirationUsesExpended ?? 0) + 1,
-        lunarVitalityUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    bardicInspirationUsesExpended: Math.max(0, bardState.bardicInspirationUsesExpended ?? 0) + 1,
+    lunarVitalityUsedThisTurn: true
+  });
 }
 
 export function applyBardCollegeOfTheMoonInspiredEclipseStatus(character: Character): Character {
@@ -699,7 +621,7 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
 
 export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBardCollegeOfTheMoonContributions(character)),
+    getCompiledFeatureContributions(character, collectBardCollegeOfTheMoonContributions),
     {
       character: character as Character
     }

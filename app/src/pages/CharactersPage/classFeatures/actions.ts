@@ -1,22 +1,17 @@
-import { getSpellFeatureCharacter, getClassLevel, hasCharacterClass } from "../multiclass";
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
+import { getSpellRuntimeCharacter } from "../characterRuntime/classContexts";
+import { getClassLevel, hasCharacterClass } from "../multiclassState";
+import type { AbilityKey, Character } from "../../../types";
 import { ALL_SKILLS, SKILL } from "../../../types";
 import type {
   RangerHunterDefensiveTacticsChoice,
   RangerHunterPreyChoice,
-  SkillName,
-  WEAPON_PROFICIENCY
+  SkillName
 } from "../../../types";
 import type { WeaponAction } from "../gameplay";
-import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
+
 import { abilityKeys } from "../constants";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable,
-  shouldTrackRoundScopedResources
-} from "../combat";
-import { getExhaustionD20TestPenalty, removeCharacterStatusEntry } from "../statusEntries";
+
+import { getExhaustionD20TestPenalty } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
   getCustomTraitAbilityCheckRollIndicators,
@@ -63,16 +58,7 @@ import type { SpeciesContributionCharacter } from "../speciesContributions";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
-  activateBardCollegeOfDanceInspiringMovement,
-  applyMantleOfMajestyStatus,
-  applyInspiredEclipseStatus,
-  applySuperiorInspirationOnInitiative,
   applyBardBattleMagicAfterSpellCast,
-  consumeBlessingOfMoonlightUse,
-  consumeBardWeaponAttack,
-  consumeBeguilingMagicOrBardicInspiration,
-  consumeMantleOfMajestyUse,
-  expendBardicInspirationUse,
   getBlessingOfMoonlightUsesRemaining,
   getBlessingOfMoonlightUsesTotal,
   getBardExpertiseSelections,
@@ -93,189 +79,55 @@ import {
   getMantleOfMajestyUsesRemaining,
   getMantleOfMajestyUsesTotal,
   hasActiveMantleOfMajesty,
-  restoreAllBardicInspirationUses,
-  restoreBardicInspirationUse,
   setBardLoreBonusProficiencySelections,
   setBardMagicalDiscoveriesSpellIds,
   setBardPrimalLoreCantripId,
-  setBardPrimalLoreSkillSelection,
-  setBardExpertiseSelections
+  setBardPrimalLoreSkillSelection
 } from "./bard/bard";
 import { getBardCollegeOfLorePeerlessSkillDescriptionAdditions } from "./bard/subclasses/bardCollegeOfLore";
 import { normalizeFeatureActionCardUsage } from "./cardUsage";
 import {
-  activateBarbarianBerserkerRetaliation,
-  applyPersistentRageOnInitiative,
-  consumeBarbarianWarriorOfTheGodsCharges,
-  expendBarbarianRageUse,
-  consumeBarbarianDivineFuryBonus,
-  consumeBarbarianBrutalStrikeBonus,
-  consumeBarbarianFrenzyBonus,
-  consumeBarbarianWeaponAttack,
-  deactivateBarbarianRecklessAttack,
-  deactivateBarbarianRage,
   getBarbarianAdditionalWeaponMasteries,
   hasBarbarianBatteringRootsBonus,
-  getBarbarianPersistentRageUsesRemaining,
-  getBarbarianPersistentRageUsesTotal,
-  getBarbarianRageUsesRemaining,
-  getBarbarianRageUsesTotal,
   getBarbarianPrimalKnowledgeSkillOptions,
   getBarbarianPrimalKnowledgeSkillSelection,
   getBarbarianRageDamageBonus,
   getBarbarianIndomitableMightDescriptionAdditions,
   getBarbarianIndomitableMightMinimumAbilityForAbilityRoll,
-  getBarbarianIndomitableMightMinimumAbilityForSkillRoll,
-  getBarbarianWarriorOfTheGodsUsesRemaining,
-  getBarbarianWarriorOfTheGodsUsesTotal,
-  restoreAllBarbarianRageUses,
-  restoreBarbarianRageUse,
-  getBarbarianWildHeartAspectChoice,
-  setBarbarianWildHeartAspectChoice,
-  setBarbarianPrimalKnowledgeSkillSelection
+  getBarbarianIndomitableMightMinimumAbilityForSkillRoll
 } from "./barbarian/barbarian";
 import {
-  activateClericBlessingOfTheTrickster,
-  consumeClericWeaponAttack,
-  consumeClericGuidedStrikeReaction,
-  consumeClericWardingFlareUse,
-  expendClericChannelDivinityUse,
   getClericBlessedStrikesChoice,
-  getClericChannelDivinityUsesRemaining,
-  getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
-  guidedStrikeReactionEntryId,
   hasClericWarPriestBonusAttackAvailable,
-  getClericWardingFlareUsesRemaining,
-  getClericWardingFlareUsesTotal,
   getKnowledgeDomainBlessingsSkillSelections,
   getKnowledgeDomainBlessingsToolSelection,
   getKnowledgeDomainUnfetteredMindSavingThrowOptions,
   getKnowledgeDomainUnfetteredMindSavingThrowSelection,
   isKnowledgeDomainUnfetteredMindLockedToInt,
-  markClericBlessedStrikeUsed,
-  restoreClericChannelDivinityOnLongRest,
-  restoreClericChannelDivinityOnShortRest,
   setClericBlessedStrikesChoice,
   setClericDivineOrderChoice,
   setKnowledgeDomainBlessingsSkillSelections,
   setKnowledgeDomainBlessingsToolSelection,
-  setKnowledgeDomainUnfetteredMindSavingThrowSelection,
-  wardingFlareReactionEntryId
+  setKnowledgeDomainUnfetteredMindSavingThrowSelection
 } from "./cleric/cleric";
+
 import {
-  activateDruidNatureMagician,
-  applyArchdruidOnInitiative,
-  activateDruidStarryForm,
-  consumeDruidCosmicOmenUse,
-  consumeDruidNaturalRecoveryUse,
-  consumeDruidStarMapGuidingBoltUse,
-  activateDruidWildResurgenceLevelOneSpellSlotRecovery,
-  activateDruidWildResurgenceWildShapeRecovery,
-  activateDruidWildCompanion,
-  getDruidActiveStarryFormConstellation,
-  getDruidCircleOfTheLandChoice,
-  getDruidCosmicOmenSelection,
-  getDruidCosmicOmenUsesRemaining,
-  getDruidCosmicOmenUsesTotal,
-  getDruidNaturalRecoveryUsesRemaining,
-  getDruidNaturalRecoveryUsesTotal,
-  getDruidElementalFuryChoice,
-  hasDruidTwinklingConstellationsFeature,
-  activateDruidWildShape,
-  deactivateDruidWildShape,
-  expendOneDruidWildShapeUse,
-  getDruidNatureMagicianOptions,
-  getDruidNatureMagicianUsesRemaining,
-  getDruidNatureMagicianUsesTotal,
-  getDruidStarMapGuidingBoltUsesRemaining,
-  getDruidStarMapGuidingBoltUsesTotal,
-  getDruidWildResurgenceAvailableSpellSlotLevels,
-  getDruidWildResurgenceSpellSlotRecoveryUsesRemaining,
-  getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
-  getDruidWildShapeActiveForm,
-  getDruidWildShapeIneligibilityReason,
-  getDruidWildShapeKnownForms,
-  getDruidWildShapeRules,
-  getDruidWildShapeUsesRemaining,
-  getDruidWildShapeUsesTotal,
-  getDruidPrimalOrderChoice,
-  isDruidWildShapeStatusSourceId,
-  markDruidPrimalStrikeUsed,
-  restoreAllDruidWildShapeUses,
-  restoreDruidCosmicOmenOnLongRest,
-  restoreOneDruidWildShapeUse,
-  setDruidActiveStarryFormConstellation,
-  setDruidCircleOfTheLandChoice,
-  setDruidCosmicOmenSelection,
-  setDruidElementalFuryChoice,
-  setDruidPrimalOrderChoice,
-  setDruidWildShapeKnownForms
-} from "./druid/druid";
-import {
-  applyRangerWinterWalkerFrozenHauntStatusEntries,
-  consumeRangerFavoredEnemyUse,
-  consumeRangerGloomStalkerDreadAmbusherUse,
-  consumeRangerWinterWalkerChillingRetributionUse,
-  consumeRangerWinterWalkerFrozenHauntUse,
-  consumeRangerFeyReinforcementsUse,
-  consumeRangerMistyWandererUse,
-  consumeRangerWinterWalkerPolarStrikesUse,
-  chillingRetributionReactionId,
-  markRangerDreadfulStrikesUsed,
-  markRangerHunterColossusSlayerUsed,
-  consumeRangerNaturesVeilUse,
-  consumeRangerTirelessUse,
-  consumeRangerWeaponAttack,
-  markRangerHunterHordeBreakerUsed,
   getRangerDeftExplorerExpertiseSelection,
   getRangerDeftExplorerLanguageSelections,
-  getRangerFeyReinforcementsUsesRemaining,
-  getRangerFeyReinforcementsUsesTotal,
   getRangerFeyWandererGiftSelection,
   getRangerHunterDefensiveTacticsChoice,
   getRangerHunterPreyChoice,
   getRangerHunterSuperiorHuntersDefenseDamageTypeSelection,
   getRangerGloomStalkerIronMindSavingThrowOptions,
   getRangerGloomStalkerIronMindSavingThrowSelection,
-  getRangerGloomStalkerDreadAmbusherUsesRemaining,
-  getRangerGloomStalkerDreadAmbusherUsesTotal,
-  getRangerMistyWandererUsesRemaining,
-  getRangerMistyWandererUsesTotal,
-  getRangerWinterWalkerFrozenHauntSpellOptionState,
-  getRangerWinterWalkerFortifyingSoulHealingFacts,
-  getRangerWinterWalkerFortifyingSoulHealingFormula,
-  getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay,
-  getRangerWinterWalkerChillingRetributionUsesRemaining,
-  getRangerWinterWalkerChillingRetributionUsesTotal,
-  getRangerWinterWalkerFrozenHauntUsesRemaining,
-  getRangerWinterWalkerFrozenHauntUsesTotal,
   getRangerOtherworldlyGlamourSkillSelection,
-  getRangerFavoredEnemyUsesRemaining,
-  getRangerFavoredEnemyUsesTotal,
   getRangerLevel9ExpertiseSelections,
-  getRangerNaturesVeilUsesRemaining,
-  getRangerNaturesVeilUsesTotal,
-  rangerHunterSuperiorHuntersDefenseDamageTypeOptions,
-  rangerOtherworldlyGlamourSkillOptions,
-  getRangerTirelessUsesRemaining,
-  getRangerTirelessUsesTotal,
-  rangerFeyWandererGiftOptions,
   isRangerGloomStalkerIronMindLockedToWis,
-  activateRangerHunterSuperiorHuntersDefense,
-  restoreRangerFeyReinforcementsOnLongRest,
-  restoreRangerGloomStalkerDreadAmbusherOnLongRest,
-  restoreRangerMistyWandererOnLongRest,
-  restoreRangerNaturesVeilOnLongRest,
-  restoreRangerTirelessOnLongRest,
   setRangerDeftExplorerExpertiseSelection,
   setRangerDeftExplorerLanguageSelections,
   setRangerFeyWandererGiftSelection,
   setRangerHunterDefensiveTacticsChoice,
-  setRangerHunterHordeBreakerActionKey,
   setRangerHunterPreyChoice,
   setRangerHunterSuperiorHuntersDefenseDamageTypeSelection,
   setRangerGloomStalkerIronMindSavingThrowSelection,
@@ -286,304 +138,61 @@ import {
   getRogueExpertiseSelections,
   getRogueSkillReferenceDescriptionAdditions,
   getRogueSkillRollD20Minimum,
-  getRogueSpellThiefUsesRemaining,
-  getRogueSpellThiefUsesTotal,
-  getRogueStrokeOfLuckUsesRemaining,
-  getRogueStrokeOfLuckUsesTotal,
-  consumeRogueSpellThiefUse,
-  consumeRogueWeaponAttack,
-  restoreRogueStrokeOfLuckOnLongRest,
-  restoreRogueSpellThiefOnLongRest,
-  restoreRogueStrokeOfLuckOnShortRest,
   setRogueExpertiseSelections,
   setRogueThievesCantLanguageSelection,
   getRogueThievesCantLanguageSelection
 } from "./rogue/rogue";
 import {
-  consumeRogueScionOfTheThreeBloodthirstUse,
-  getRogueScionOfTheThreeAuraOfMalevolenceFormulaFact,
   getRogueScionOfTheThreeDreadAllegianceChoice,
-  getRogueScionOfTheThreeBloodthirstUsesRemaining,
-  getRogueScionOfTheThreeBloodthirstUsesTotal,
-  rogueScionOfTheThreeBloodthirstReactionId,
   setRogueScionOfTheThreeDreadAllegianceChoice
 } from "./rogue/subclasses/rogueScionOfTheThree";
 import {
   getRogueThiefSkillReferenceDescriptionAdditions,
   hasRogueThiefThiefsReflexesFeature
 } from "./rogue/subclasses/rogueThief";
+
 import {
-  expendRogueSoulknifePsionicDie,
-  getRogueSoulknifePsionicDiceRemaining,
-  getRogueSoulknifePsionicDiceTotal,
-  getRogueSoulknifePsionicDie,
-  restoreAllRogueSoulknifePsionicDice,
-  restoreRogueSoulknifePsionicDie
-} from "./rogue/subclasses/rogueSoulknife";
-import {
-  activateInnateSorcery,
-  createSpellSlotFromSorceryPoints,
-  convertSpellSlotToSorceryPoints,
-  expendOneSorceryPoint,
-  getInnateSorceryUsesRemaining,
-  getInnateSorceryUsesTotal,
-  getInnateSorceryActivationSorceryPointCost,
-  getSorcererMetamagicActionCost,
-  getSorcererMetamagicDefinitions,
-  getSorcererMetamagicSelectionCount,
-  getSorcererMetamagicSelectionLimitForAction,
-  getSorcererMetamagicSelections,
-  getSorceryPointsRemaining,
-  getSorceryPointsTotal,
-  hasActiveInnateSorcery,
-  hasArcaneApotheosisFreeMetamagicAvailable,
-  restoreAllSorceryPoints,
-  restoreInnateSorceryOnLongRest,
-  restoreOneSorceryPoint,
-  setSorcererMetamagicSelections,
-  spendMetamagicOptions
-} from "./sorcerer/sorcerer";
-import {
-  consumeSorcererSubclassRestoreBalanceUse,
-  getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost,
-  getSorcererSubclassCrownOfSpellfireUsesRemaining,
-  getSorcererSubclassCrownOfSpellfireUsesTotal,
-  sorcererBendLuckReactionEntryId,
-  getSorcererDraconicElementalAffinityDamageTypeSelection,
-  getSorcererSubclassRestoreBalanceUsesRemaining,
-  getSorcererSubclassRestoreBalanceUsesTotal,
   restoreSorcererSubclassFeaturesOnSpellCast,
-  restoreSorcererSubclassFeaturesOnSpellSlotCast,
-  setSorcererDraconicElementalAffinityDamageTypeSelection,
-  sorcererDraconicElementalAffinityDamageTypeOptions
+  restoreSorcererSubclassFeaturesOnSpellSlotCast
 } from "./sorcerer/subclasses";
 import {
-  consumeContactPatronUse,
-  expendWarlockHealingLightDie,
-  consumeWarlockBeguilingDefenseUse,
-  consumeMysticArcanumUse,
-  getContactPatronUsesRemaining,
-  getContactPatronUsesTotal,
-  getWarlockBeguilingDefenseUsesRemaining,
-  getWarlockBeguilingDefenseUsesTotal,
   getWarlockEldritchMindSavingThrowDescriptionAdditions,
-  getWarlockEldritchInvocationLimit,
-  getWarlockFiendishResilienceDamageTypeSelection,
-  getWarlockHealingLightDiceRemaining,
-  getWarlockHealingLightDiceTotal,
-  getWarlockHealingLightMaxSpend,
-  getWarlockMagicalCunningUsesRemaining,
-  getWarlockMagicalCunningUsesTotal,
-  getWarlockInvocationBlockingSelectionNames,
-  getWarlockInvocationOptions,
-  getWarlockInvocationSelectionIds,
-  getWarlockLearnedInvocationOptions,
-  normalizeWarlockInvocationSelectionIds,
-  getWarlockMysticArcanumSelections,
-  getWarlockMysticArcanumSpellId,
-  getWarlockMysticArcanumSpellOptions,
-  getWarlockFeatureReactionSpellDefinition,
-  applyWarlockFeaturesAfterSpellCast,
-  getWarlockPactMagicSlotTotal,
-  getWarlockPactMagicSlotsRemaining,
-  getWarlockStepsOfTheFeyUsesRemaining,
-  getWarlockStepsOfTheFeyUsesTotal,
-  restoreAllWarlockHealingLightDice,
-  restoreContactPatronOnLongRest,
-  restoreWarlockHealingLightDie,
-  restoreWarlockHealingLightOnLongRest,
-  restoreWarlockBeguilingDefenseOnLongRest,
-  restoreWarlockMagicalCunningOnLongRest,
-  consumeWarlockStepsOfTheFeyUse,
-  spendWarlockHealingLightDice,
-  setWarlockFiendishResilienceDamageTypeSelection,
-  setWarlockMysticArcanumSpellId,
-  setWarlockInvocationSelectionIds,
-  warlockFiendPatronFiendishResilienceDamageTypeOptions,
-  warlockBeguilingDefenseReactionId
+  applyWarlockFeaturesAfterSpellCast
 } from "./warlock/warlock";
 import { getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions } from "./warlock/subclasses/warlockFiendPatron";
 import {
-  activateArcaneRecovery,
   applyWizardFeaturesAfterSpellCast,
-  consumeWizardWeaponAttack,
-  consumeWizardSignatureSpellFreeCast,
-  getArcaneRecoveryUsesRemaining,
-  getArcaneRecoveryUsesTotal,
-  getWizardExpendedSignatureSpellIds,
-  getWizardScholarSelection,
-  getWizardSavantSpellIds,
-  getWizardSignatureSpellIds,
-  getWizardSpellbookSpellEntry,
-  hasWizardSignatureSpellFreeCastAvailable,
-  hasWizardSpellcastWeaponBonusActionAvailable,
-  getWizardSpellMasterySelection,
-  getWizardSpellMasterySpellIds,
-  setWizardScholarSelection,
-  setWizardSavantSpellIds,
-  setWizardSignatureSpellIds,
-  setWizardSpellMasterySelection,
-  syncWizardSignatureSpellsToSpellbook,
-  syncWizardSpellMasterySelectionsToSpellbook
+  hasWizardSpellcastWeaponBonusActionAvailable
 } from "./wizard/wizard";
-import {
-  consumeWizardIllusionistIllusorySelfUse,
-  consumeWizardIllusionistPhantasmalCreaturesUse,
-  getWizardIllusionistIllusorySelfFallbackSlotSummary,
-  getWizardIllusionistIllusorySelfUsesRemaining,
-  getWizardIllusionistIllusorySelfUsesTotal,
-  getWizardIllusionistPhantasmalCreaturesSpellOptionState,
-  wizardIllusionistIllusorySelfReactionId
-} from "./wizard/subclasses/wizardIllusionist";
+
 import { getWizardAbjurerSpellResistanceSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardAbjurer";
 import { getWizardBladesingerFocusSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardBladesinger";
-import {
-  hasActivePaladinOathOfVengeanceVowOfEnmity,
-  soulOfVengeanceReactionId
-} from "./paladin/subclasses/paladinOathOfVengeance";
+
 import { getSelectedSubclassForCharacter } from "../subclasses";
 import { getSubclassDerivedFeatureState } from "./subclasses";
+
 import {
-  applyLayOnHands,
-  consumeElementalRebukeUse,
-  consumeGloriousDefenseUse,
-  expendPaladinChannelDivinityUse,
-  consumeFaithfulSteedUse,
-  consumePaladinWeaponAttack,
-  consumePaladinsSmiteUse,
-  elementalRebukeReactionId,
-  getElementalRebukeUsesRemaining,
-  getElementalRebukeUsesTotal,
-  getGloriousDefenseUsesRemaining,
-  getGloriousDefenseUsesTotal,
-  getLayOnHandsCurableConditions,
-  getPaladinChannelDivinityUsesRemaining,
-  getPaladinChannelDivinityUsesTotal,
-  getPaladinHealingPoolRemaining,
-  getPaladinHealingPoolTotal,
-  getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter as getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection,
-  getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter as getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
-  getPaladinsSmiteUsesRemaining,
-  gloriousDefenseReactionId,
-  hasActivePaladinAuraOfProtection,
-  paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions,
-  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
-  restorePaladinChannelDivinityOnLongRest,
-  restorePaladinChannelDivinityOnShortRest,
-  restorePaladinLayOnHandsOnLongRest,
-  setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter as setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection,
-  setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter as setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
-} from "./paladin/paladin";
-import {
-  applyMonkUncannyMetabolismOnInitiative,
-  applyPerfectFocusOnInitiative,
-  consumeMonkWeaponAttack,
-  expendMonkFocusPoint,
-  getMonkFocusPointsRemaining,
-  getMonkFocusPointsTotal,
-  getMonkFlurryOfBlowsAttackMultiCount,
-  getMonkUncannyMetabolismUsesRemaining,
-  getMonkUncannyMetabolismUsesTotal,
-  hasMonkPerfectFocus,
-  getMonkUnarmedStrikeMultiCount,
-  restoreAllMonkFocusPoints,
-  restoreMonkUncannyMetabolismOnLongRest,
-  restoreOneMonkFocusPoint
-} from "./monk/monk";
-import {
-  consumeMonkWarriorOfMercyHandOfHarm,
-  monkWarriorOfMercyHandOfHarmBonusLabel
-} from "./monk/subclasses/monkWarriorOfMercy";
-import { consumeMonkWarriorOfTheElementsEmpoweredStrikes } from "./monk/subclasses/monkWarriorOfTheElements";
-import {
-  activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter as activateFighterPsiWarriorTelekineticMasterSpellCast,
-  activateFighterPsiWarriorTelekineticMovementForCharacter as activateFighterPsiWarriorTelekineticMovement,
-  consumeFighterSecondWindUse,
-  consumeFighterPsiWarriorPsionicStrikeForCharacter as consumeFighterPsiWarriorPsionicStrike,
-  consumeFighterIndomitableUse,
-  expendFighterBattleMasterSuperiorityDieForCharacter as expendFighterBattleMasterSuperiorityDie,
-  expendFighterPsiWarriorEnergyDieForCharacter as expendFighterPsiWarriorEnergyDie,
-  consumeFighterWeaponAttack,
-  fighterBanneretKnightlyEnvoySkillOptions,
-  getFighterBattleMasterManeuverSelectionCountForCharacter as getFighterBattleMasterManeuverSelectionCount,
-  getFighterBattleMasterManeuverSelectionsForCharacter as getFighterBattleMasterManeuverSelections,
-  getFighterBattleMasterSuperiorityDiceRemainingForCharacter as getFighterBattleMasterSuperiorityDiceRemaining,
-  getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
-  getFighterBattleMasterSuperiorityDieForCharacter as getFighterBattleMasterSuperiorityDie,
-  getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter as getFighterBanneretKnightlyEnvoyLanguageSelection,
-  getFighterBanneretKnightlyEnvoySkillSelectionForCharacter as getFighterBanneretKnightlyEnvoySkillSelection,
-  getFighterIndomitableUsesRemaining,
-  getFighterIndomitableUsesTotal,
-  getFighterSecondWindUsesRemaining,
-  getFighterSecondWindUsesTotal,
   getFighterTacticalMindDescriptionAdditions,
-  getFighterPsiWarriorEnergyDiceRemainingForCharacter as getFighterPsiWarriorEnergyDiceRemaining,
-  getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
-  getFighterPsiWarriorEnergyDieForCharacter as getFighterPsiWarriorEnergyDie,
-  getFighterPsiWarriorProtectiveFieldFormulaForCharacter as getFighterPsiWarriorProtectiveFieldFormula,
-  getFighterPsiWarriorPsionicStrikeFormulaForCharacter as getFighterPsiWarriorPsionicStrikeFormula,
-  getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter as getFighterPsiWarriorTelekineticMasterUsesRemaining,
-  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter as getFighterPsiWarriorTelekineticMasterUsesTotal,
-  getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter as getFighterPsiWarriorTelekineticMovementUsesRemaining,
-  getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter as getFighterPsiWarriorTelekineticMovementUsesTotal,
-  hasFighterPsiWarriorTelekineticMasterBonusAttackAvailableForCharacter as hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable,
-  hasFighterPsiWarriorPsionicStrikeAvailableForCharacter as hasFighterPsiWarriorPsionicStrikeAvailable,
-  restoreAllFighterBattleMasterSuperiorityDiceForCharacter as restoreAllFighterBattleMasterSuperiorityDice,
-  restoreAllFighterPsiWarriorEnergyDiceForCharacter as restoreAllFighterPsiWarriorEnergyDice,
-  restoreFighterBattleMasterSuperiorityDieForCharacter as restoreFighterBattleMasterSuperiorityDie,
-  restoreFighterSecondWindOnLongRest,
-  restoreFighterSecondWindOnShortRest,
-  restoreFighterPsiWarriorEnergyDieForCharacter as restoreFighterPsiWarriorEnergyDie,
-  restoreFighterPsiWarriorTelekineticMasterOnLongRest,
-  setFighterBattleMasterManeuverSelectionsForCharacter as setFighterBattleMasterManeuverSelections,
-  setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter as setFighterBanneretKnightlyEnvoyLanguageSelection,
-  setFighterBanneretKnightlyEnvoySkillSelectionForCharacter as setFighterBanneretKnightlyEnvoySkillSelection
+  hasFighterPsiWarriorTelekineticMasterBonusAttackAvailableForCharacter as hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable
 } from "./fighter/fighter";
-import {
-  consumeSharedEconomyMultiForCharacterAction,
-  createEconomyMultiContextForFeatureAction,
-  createEconomyMultiContextForFeatureActionOption,
-  createEconomyMultiContextForSpell,
-  createEconomyMultiContextForWeaponAction,
-  getSharedEconomyMultiCountForCharacterAction
-} from "./economyMulti";
-import {
-  collectActiveClassFeatureState,
-  getActiveClassFeatureModule,
-  getClassFeatureModules
-} from "./modules";
+
+import { collectActiveClassFeatureState } from "./modules";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
-  DerivedFeatureStatusEntry,
   FeatureActionCard,
-  FeatureActionHeaderTag,
-  FeatureActionHeaderTagPool,
-  FeatureActionCardUsage,
-  FeatureActionCardUsageCharges,
-  FeatureActionCardUsageCost,
-  FeatureActionDrawerConfig,
-  FeatureActionExecuteConfig,
-  FeatureActionFact,
-  FeatureActionIcon,
   FeatureActionOptionCard,
-  FeatureActionOptionSelection,
-  FeatureActionResource,
   FeatureActionSource,
-  FeatureActionTone,
   FeatureAbilityScoreBonus,
   FeatureArmorProficiencyEntry,
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
-  EconomyMultiActionContext,
   FeatureEquipmentEntry,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
   FeatureInitiativeBonus,
-  FeatureEconomyMultiAccessRule,
-  FeatureEconomyMultiPool,
   FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
@@ -597,20 +206,16 @@ import type {
   SpeedFeatureContext,
   SkillIndicatorMap,
   SpellFeatureContext,
-  WeaponAttackConsumptionContext,
   WeaponFeatureContext
 } from "./types";
-import type { CharacterStatusEntry } from "../../../types";
+
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../codex/entries";
 import {
-  getSpellEntryById,
   SPELL_LIST_CLASS,
-  type ReactionEntry,
-  type SpellDescriptionEntry,
-  type SpellEntry,
   type WEAPON_COMBAT_TYPE,
   type WEAPON_MASTERY,
   type WEAPON_PROPERTY
-} from "../../../codex/entries";
+} from "../../../codex/entries/enums";
 import { PROF_LEVEL } from "../../../types";
 import { clearRoundScopedFeatureStateIfOutOfCombat, mergeIndicatorMaps } from "./state";
 
@@ -1451,8 +1056,8 @@ export function getSpellDamageBonusesForCharacter(
     Partial<Pick<Character, "inventoryItems" | "subclassId">>,
   spell: SpellFeatureContext["spell"]
 ): FeatureDamageBonus[] {
-  const baseFeatureState = collectActiveClassFeatureState(getSpellFeatureCharacter(character));
-  const subclassDerivedState = getSubclassDerivedFeatureState(getSpellFeatureCharacter(character));
+  const baseFeatureState = collectActiveClassFeatureState(getSpellRuntimeCharacter(character));
+  const subclassDerivedState = getSubclassDerivedFeatureState(getSpellRuntimeCharacter(character));
 
   return [
     createPotentSpellcastingDamageBonusEntry(character, spell),

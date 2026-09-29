@@ -1,9 +1,5 @@
-import {
-  WEAPON_COMBAT_TYPE,
-  WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type WeaponType
-} from "../../codex/entries";
+import { type WeaponType } from "../../codex/entries";
+import { WEAPON_COMBAT_TYPE, WEAPON_PROPERTY, WEAPON_TRAINING } from "../../codex/entries/enums";
 
 export type MonkWeaponCandidate = {
   type: WeaponType;

@@ -1,9 +1,10 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
+} from "../../../multiclassState";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -16,7 +17,8 @@ import type {
   CharacterRageFeatureState,
   CharacterStatusEntry
 } from "../../../../../types";
-import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
+import { getReactionEntryById } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
@@ -41,7 +43,7 @@ import {
 } from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -372,16 +374,10 @@ export function activateBarbarianPathOfTheBerserkerRetaliation(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        retaliationAttacksRemaining: 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    retaliationAttacksRemaining: 1
+  });
 }
 
 export function consumeBarbarianPathOfTheBerserkerRetaliationAttack(
@@ -397,16 +393,10 @@ export function consumeBarbarianPathOfTheBerserkerRetaliationAttack(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        retaliationAttacksRemaining: retaliationAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    retaliationAttacksRemaining: retaliationAttacksRemaining - 1
+  });
 }
 
 export function activateBarbarianPathOfTheBerserkerIntimidatingPresence(
@@ -424,32 +414,20 @@ export function activateBarbarianPathOfTheBerserkerIntimidatingPresence(
   );
 
   if (usesRemaining > 0) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        rage: {
-          ...rageState,
-          intimidatingPresenceUsesExpended: (rageState.intimidatingPresenceUsesExpended ?? 0) + 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "rage", {
+      ...rageState,
+      intimidatingPresenceUsesExpended: (rageState.intimidatingPresenceUsesExpended ?? 0) + 1
+    });
   }
 
   if (rageUsesRemaining <= 0) {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        usesExpended: rageState.usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    usesExpended: rageState.usesExpended + 1
+  });
 }
 
 export function consumeBarbarianPathOfTheBerserkerFrenzyBonus(
@@ -460,16 +438,10 @@ export function consumeBarbarianPathOfTheBerserkerFrenzyBonus(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        frenzyPending: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    frenzyPending: false
+  });
 }
 
 export function restoreBarbarianPathOfTheBerserkerIntimidatingPresenceOnLongRest(
@@ -484,16 +456,10 @@ export function restoreBarbarianPathOfTheBerserkerIntimidatingPresenceOnLongRest
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rage: {
-        ...rageState,
-        intimidatingPresenceUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rage", {
+    ...rageState,
+    intimidatingPresenceUsesExpended: 0
+  });
 }
 
 function hasActiveRecklessAttackStatus(character: Partial<Pick<Character, "statusEntries">>) {
@@ -596,7 +562,7 @@ export const getBarbarianPathOfTheBerserkerDerivedFeatureState: SubclassRuntimeR
   character
 ) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBarbarianPathOfTheBerserkerContributions(character)),
+    getCompiledFeatureContributions(character, collectBarbarianPathOfTheBerserkerContributions),
     {
       character: character as Character
     }

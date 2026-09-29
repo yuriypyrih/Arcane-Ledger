@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
+import type { DivinityEntry, FeatureMapEntry, SpellEntry } from "../../../../codex/entries";
 import type {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   FEAT_CATEGORY,
   FEATS,
-  DivinityEntry,
-  FeatureMapEntry,
-  TRACKER,
-  SpellEntry
-} from "../../../../codex/entries";
+  TRACKER
+} from "../../../../codex/entries/enums";
 import type {
   AbilityKey,
   BlessedWarriorChoice,

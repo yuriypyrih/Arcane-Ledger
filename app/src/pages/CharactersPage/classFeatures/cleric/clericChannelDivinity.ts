@@ -1,5 +1,6 @@
-import { getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getClassLevel } from "../../multiclassState";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import {
   getClericFeatureRow,
@@ -46,16 +47,10 @@ export function expendClericChannelDivinityUse(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    channelDivinityUsesExpended: usesExpended + 1
+  });
 }
 
 export function restoreClericChannelDivinityOnShortRest(character: Character): Character {
@@ -68,17 +63,11 @@ export function restoreClericChannelDivinityOnShortRest(character: Character): C
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: false,
-        channelDivinityUsesExpended: Math.max(0, (clericState.channelDivinityUsesExpended ?? 0) - 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    blessedStrikeUsedThisTurn: false,
+    channelDivinityUsesExpended: Math.max(0, (clericState.channelDivinityUsesExpended ?? 0) - 1)
+  });
 }
 
 export function restoreClericChannelDivinityOnLongRest(character: Character): Character {
@@ -91,15 +80,9 @@ export function restoreClericChannelDivinityOnLongRest(character: Character): Ch
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: false,
-        channelDivinityUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    blessedStrikeUsedThisTurn: false,
+    channelDivinityUsesExpended: 0
+  });
 }

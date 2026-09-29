@@ -1,8 +1,8 @@
 import {
-  ELDRITCH_INVOCATION,
   getEldritchInvocationEntryById,
   type SpellDescriptionEntry
 } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 import {
   SENSE,
   STATUS_DURATION_KIND,

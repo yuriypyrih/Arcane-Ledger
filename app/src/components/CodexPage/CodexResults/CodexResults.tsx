@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
+import { type SpellEntry } from "../../../codex/entries";
+import { ARMOR_TYPES, ENTRY_CATEGORIES } from "../../../codex/entries/enums";
 import { getClassSignatureStyle } from "../../CharactersPage/classSignature";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";

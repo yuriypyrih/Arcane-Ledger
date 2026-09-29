@@ -1,9 +1,5 @@
-import type {
-  DAMAGE_TYPE,
-  SpellDescriptionEntry,
-  TRACKER,
-  WEAPON_COMBAT_TYPE
-} from "../codex/entries";
+import type { SpellDescriptionEntry } from "../codex/entries";
+import type { DAMAGE_TYPE, TRACKER, WEAPON_COMBAT_TYPE } from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";

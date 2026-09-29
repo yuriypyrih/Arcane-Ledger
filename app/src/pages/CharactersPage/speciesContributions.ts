@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "./multiclass";
+import { getCharacterLevel } from "./multiclassState";
 import { getSpellEntryById, type SpellEntry } from "../../codex/entries";
 import type { AbilityKey, Character } from "../../types";
 import type { FeatureContributionSpec, FeatureFreeCastEntry } from "./featureContributions";

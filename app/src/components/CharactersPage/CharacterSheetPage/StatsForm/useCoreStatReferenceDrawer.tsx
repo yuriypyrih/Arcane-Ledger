@@ -1,4 +1,7 @@
-import { getClassLevel, getClassSubclassId } from "../../../../pages/CharactersPage/multiclass";
+import {
+  getClassLevel,
+  getClassSubclassId
+} from "../../../../pages/CharactersPage/multiclassState";
 import { useState } from "react";
 import { useReadOnlySheet } from "../readOnlySheetContext";
 import { getClassHitDicePools } from "../../../../pages/CharactersPage/hitDice";

@@ -1,7 +1,5 @@
-import {
-  FEATS,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -50,17 +48,19 @@ export function getDragonscarredResistanceStatusEntries(
     const damageType = entry.dragonscarred.damageType;
     const sourceId = `${dragonscarredDamageResistanceSourceId}-${entry.id}-${damageType.toLowerCase()}`;
 
-    return [{
-      id: sourceId,
-      group: STATUS_ENTRY_GROUP.RESISTANCES,
-      value: damageType,
-      source: dragonscarredSource,
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
-      duration: {
-        kind: STATUS_DURATION_KIND.INFINITE
-      },
-      sourceId,
-      description
-    }];
+    return [
+      {
+        id: sourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: damageType,
+        source: dragonscarredSource,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId,
+        description
+      }
+    ];
   });
 }

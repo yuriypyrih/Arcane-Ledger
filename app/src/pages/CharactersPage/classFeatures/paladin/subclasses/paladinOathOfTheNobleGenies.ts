@@ -1,13 +1,13 @@
+import { activatePaladinTimedFeature } from "../timedActivation";
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  REACTION,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type {
   Character,
@@ -32,7 +32,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -344,16 +344,10 @@ export function setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
       ? undefined
       : normalizePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        nobleGeniesGeniesSplendorSkill: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    nobleGeniesGeniesSplendorSkill: nextSelection
+  });
 }
 
 export function setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(
@@ -366,17 +360,11 @@ export function setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType
 
   const paladinState = character.classFeatureState?.paladin ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        nobleGeniesAuraOfElementalShieldingDamageType:
-          normalizePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(damageType)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    nobleGeniesAuraOfElementalShieldingDamageType:
+      normalizePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(damageType)
+  });
 }
 
 export function getPaladinOathOfTheNobleGeniesElementalRebukeUsesTotal(
@@ -643,16 +631,10 @@ export function consumePaladinOathOfTheNobleGeniesElementalRebukeUse(
 
   const paladinState = character.classFeatureState?.paladin ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        elementalRebukeUsesExpended: (paladinState.elementalRebukeUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    elementalRebukeUsesExpended: (paladinState.elementalRebukeUsesExpended ?? 0) + 1
+  });
 }
 
 export function restorePaladinOathOfTheNobleGeniesElementalRebukeOnLongRest(
@@ -668,16 +650,10 @@ export function restorePaladinOathOfTheNobleGeniesElementalRebukeOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        elementalRebukeUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    elementalRebukeUsesExpended: 0
+  });
 }
 
 export function hasActivePaladinOathOfTheNobleGeniesNobleScion(
@@ -832,52 +808,14 @@ export function applyPaladinOathOfTheNobleGeniesNobleScionStatus(character: Char
 }
 
 export function activatePaladinOathOfTheNobleGeniesNobleScion(character: Character): Character {
-  if (
-    !hasPaladinOathOfTheNobleGeniesNobleScionFeature(character) ||
-    hasActivePaladinOathOfTheNobleGeniesNobleScion(character)
-  ) {
-    return character;
-  }
-
-  const usesRemaining = getPaladinOathOfTheNobleGeniesNobleScionUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const paladinState = character.classFeatureState?.paladin ?? {};
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        paladin: {
-          ...paladinState,
-          nobleScionUsesExpended: (paladinState.nobleScionUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSheetSpellSlotTotals(character);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyPaladinOathOfTheNobleGeniesNobleScionStatus(nextCharacter);
+  return activatePaladinTimedFeature(character, {
+    hasFeature: hasPaladinOathOfTheNobleGeniesNobleScionFeature,
+    isActive: hasActivePaladinOathOfTheNobleGeniesNobleScion,
+    getRemaining: getPaladinOathOfTheNobleGeniesNobleScionUsesRemaining,
+    counter: "nobleScionUsesExpended",
+    getFallbackSlotLevel: getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotLevel,
+    applyStatus: applyPaladinOathOfTheNobleGeniesNobleScionStatus
+  });
 }
 
 export function restorePaladinOathOfTheNobleGeniesNobleScionOnLongRest(
@@ -893,16 +831,10 @@ export function restorePaladinOathOfTheNobleGeniesNobleScionOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        nobleScionUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "paladin", {
+    ...paladinState,
+    nobleScionUsesExpended: 0
+  });
 }
 
 function collectPaladinOathOfTheNobleGeniesContributions(
@@ -1038,7 +970,7 @@ export const getPaladinOathOfTheNobleGeniesDerivedFeatureState: SubclassRuntimeR
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectPaladinOathOfTheNobleGeniesContributions(character)),
+    getCompiledFeatureContributions(character, collectPaladinOathOfTheNobleGeniesContributions),
     {
       character: character as Character
     }

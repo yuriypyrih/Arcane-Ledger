@@ -1,10 +1,6 @@
+import { createSubclassFeatureRow } from "./featureRow";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
-import type {
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj,
-  SubclassFeatureLevel
-} from "../entries/types";
+import type { SubclassEntry } from "../entries/types";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -51,20 +47,6 @@ export const unbreakableMajestyDescription = [
   "For the duration, whenever any creature hits you with an attack roll for the first time on a turn, the attacker must succeed on a <link:Charisma saving throw>Charisma saving throw</link> against your spell save DC, or the attack misses instead, as the creature recoils from your majesty.",
   "Once you assume this majestic presence, you can't do so again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
 ] as const;
-
-function createSubclassFeatureRow(
-  level: SubclassFeatureLevel,
-  feature: CLASS_FEATURE,
-  details: FeatureMapEntry
-): SubclassFeatureClassObj {
-  return {
-    level,
-    classFeatures: [feature],
-    featureOverrides: {
-      [feature]: details
-    }
-  };
-}
 
 export const inspiringMovementDescription = [
   "When an enemy you can see ends its turn within 5 feet of you, you can take a Reaction and expend one use of your Bardic Inspiration to move up to half your Speed.",

@@ -1,99 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { renderFormFooter } from "./uiAdapters";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
-import CellContainer from "../../../../../CellContainer/CellContainer";
-import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
-import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
-import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
-import RollStatePill from "../../../../../RollStatePill/RollStatePill";
+
+import ActionShape from "../../../../../ActionShape";
+
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
-import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
-import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
-import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
+
 import {
-  activateBardicInspirationForCharacter,
-  activateInnateSorceryForCharacter,
-  activateClericBlessingOfTheTricksterForCharacter,
-  activateDruidNatureMagicianForCharacter,
-  activateDruidStarryFormForCharacter,
-  activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter,
-  activateDruidWildResurgenceWildShapeRecoveryForCharacter,
-  activateDruidWildShapeForCharacter,
-  activateDruidWildCompanionForCharacter,
-  activateFeatureActionForCharacter,
-  activateFeatureActionOptionsForCharacter,
-  activateFeatureActionOptionForCharacter,
-  activateArcaneRecoveryForCharacter,
-  applySpellCastFeatureEffectsForCharacter,
-  applyInspiredEclipseStatusForCharacter,
-  applyMantleOfMajestyStatusForCharacter,
-  applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
-  applyLayOnHandsForCharacter,
-  consumeBeguilingMagicOrBardicInspirationForCharacter,
-  consumeMantleOfMajestyUseForCharacter,
-  consumeContactPatronUseForCharacter,
-  expendChannelDivinityUseForCharacter,
-  consumeFighterPsiWarriorPsionicStrikeForCharacter,
-  consumeMysticArcanumUseForCharacter,
-  consumeRangerGloomStalkerDreadAmbusherUseForCharacter,
-  consumeRangerWinterWalkerFrozenHauntUseForCharacter,
-  consumeRangerWinterWalkerPolarStrikesUseForCharacter,
-  createSpellSlotFromSorceryPointsForCharacter,
-  consumeFaithfulSteedUseForCharacter,
-  consumePaladinsSmiteUseForCharacter,
-  hasDruidTwinklingConstellationsFeatureForCharacter,
-  getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
-  getDruidWildShapeKnownFormsForCharacter,
-  getDruidWildShapeUsesRemainingForCharacter,
-  getDruidWildShapeUsesTotalForCharacter,
-  consumeRangerFavoredEnemyUseForCharacter,
-  consumeRangerTirelessUseForCharacter,
-  consumeBarbarianWarriorOfTheGodsChargesForCharacter,
-  clearRoundScopedFeatureStateForCharacter,
-  convertSpellSlotToSorceryPointsForCharacter,
-  consumeNonMagicActionForCharacter,
-  consumeSharedEconomyMultiForCharacterAction,
-  consumeWeaponAttackActionForCharacter,
-  createEconomyMultiContextForFeatureAction,
-  createEconomyMultiContextForFeatureActionOption,
-  expendMonkFocusPointForCharacter,
-  getBardicInspirationUsesRemainingForCharacter,
-  getChannelDivinityUsesRemainingForCharacter,
-  getChannelDivinityUsesTotalForCharacter,
-  getInnateSorceryActivationSorceryPointCostForCharacter,
-  getMantleOfMajestyFallbackSlotLevelForCharacter,
-  getMantleOfMajestyUsesRemainingForCharacter,
-  getSorcererMetamagicActionCostForCharacter,
-  getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForCharacter,
-  getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter,
-  getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter,
   getSorceryPointsRemainingForCharacter,
-  getSorceryPointsTotalForCharacter,
-  getLayOnHandsCurableConditionsForCharacter,
-  getSharedEconomyMultiCountForCharacterAction,
-  getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter,
-  getWarlockHealingLightDiceRemainingForCharacter,
-  getWarlockHealingLightMaxSpendForCharacter,
-  getWarlockMysticArcanumSelectionsForCharacter,
-  getWarlockPactMagicSlotsRemainingForCharacter,
-  hasActivePaladinAuraOfProtectionForCharacter,
-  restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
-  markFeatureWeaponBonusUseForCharacter,
-  markRangerHunterHordeBreakerUsedForCharacter,
-  setRangerHunterHordeBreakerActionKeyForCharacter,
-  spendWarlockHealingLightDiceForCharacter,
-  type FeatureActionCard,
-  type FeatureActionHeaderTag,
-  type FeatureActionOptionCard
+  setRangerHunterHordeBreakerActionKeyForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
   createFeatureActionCardCost,
-  createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
@@ -106,67 +25,12 @@ import {
   spendLuckyPointForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
-import {
-  channelDivinityActionKey,
-  preserveLifeActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
-import {
-  druidNatureMagicianActionKey,
-  druidWildResurgenceActionKey,
-  druidWildCompanionActionKey,
-  druidWildShapeActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/druid/druid";
-import {
-  activateBarbarianRage,
-  activateBarbarianWildHeartRage,
-  barbarianRageActionKey,
-  barbarianWarriorOfTheGodsActionKey,
-  getBarbarianBrutalStrikeDamageFormula,
-  getBarbarianBrutalStrikeSelectionLimit,
-  getBarbarianRageOfTheWildsOptions,
-  getBarbarianRageOfTheGodsUsesRemaining,
-  getBarbarianRageOfTheGodsUsesTotal,
-  getBarbarianPowerOfTheWildsOptions
-} from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
-import {
-  consumeFighterBattleMasterKnowYourEnemyForCharacter,
-  expendFighterBattleMasterSuperiorityDieForCharacter,
-  getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter,
-  getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
-  applyFighterTeamTacticsStatus,
-  consumeFighterGroupRecoveryUse,
-  getFighterGroupRecoveryHealingFormula,
-  getFighterGroupRecoveryUsesRemaining,
-  getFighterGroupRecoveryUsesTotal,
-  fighterSecondWindActionKey,
-  getFighterSecondWindHealingFormula,
-  markFighterBattleMasterCombatSuperiorityUsedForCharacter
-} from "../../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
-import {
-  paladinChannelDivinityActionKey,
-  type LayOnHandsCondition
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
-import {
-  activatePaladinOathOfDevotionSacredWeapon,
-  applyPaladinOathOfDevotionSacredWeaponAction
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
-import {
-  activatePaladinOathOfVengeanceVowOfEnmity,
-  applyPaladinOathOfVengeanceVowOfEnmityAction
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfVengeance";
-import {
-  applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
-  getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
-  hasPaladinOathOfTheNobleGeniesElementalSmite,
-  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+
+import { barbarianRageActionKey } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
+import { fighterSecondWindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
+
 import {
   fortifyingSoulActionKey,
-  getRangerWinterWalkerFortifyingSoulHealingFormula,
-  getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay,
-  huntersMarkSpellId,
-  getRangerTirelessTemporaryHitPointsFormulaDisplay,
-  getRangerTirelessTemporaryHitPointsFormula,
   tirelessActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { rangerBeastMasterReviveActionKey } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerBeastMaster";
@@ -174,277 +38,78 @@ import {
   innateSorceryActionKey,
   metamagicActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
+import { sorcererWarpingImplosionActionKey } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererAberrantSorcery";
+
+import { sorcererWildMagicSurgeActionKey } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
 import {
-  sorcererWarpingImplosionActionKey,
-  sorcererWarpingImplosionDamageFormula,
-  sorcererWarpingImplosionDamageFormulaDisplay
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererAberrantSorcery";
-import {
-  getSorcererSpellfireBurstBolsteringFlamesRollFormula,
-  getSorcererSpellfireBurstRadiantFireRollFormula,
-  sorcererSpellfireBurstActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererSpellfireSorcery";
-import {
-  hasSorcererControlledChaosFeatureForCharacter,
-  sorcererTidesOfChaosActionKey,
-  sorcererWildMagicSurgeActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
-import {
-  activateWarlockAwakenedMind,
   darkOnesOwnLuckActionKey,
-  getWarlockClairvoyantCombatantUsesRemaining,
-  getWarlockClairvoyantCombatantUsesTotal,
   hurlThroughHellActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
-import {
-  getArcaneRecoverySelectionLevelTotal,
-  type ArcaneRecoverySelection
-} from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+
 import { wizardAbjurerArcaneWardActionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
-import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
-import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
+
 import {
   rebornKnowledgeFromPastLifeActionKey,
   shifterBeasthideOptionKey,
   shifterShiftingActionKey
 } from "../../../../../../pages/CharactersPage/species";
+
 import {
-  getRogueSneakAttackEffectDefinitions,
-  getRogueSneakAttackFormula,
-  getRogueSneakAttackFormulaDisplay
-} from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
-import {
-  consumeRogueSoulknifeRendMindUse,
-  getRogueSoulknifePsionicDiceRemaining,
-  getRogueSoulknifePsychicTeleportationRollFormula,
-  getRogueSoulknifePsychicTeleportationRollFormulaDisplay,
-  getRogueSoulknifePsychicWhispersRollFormula,
-  getRogueSoulknifePsychicWhispersRollFormulaDisplay,
-  getRogueSoulknifeRendMindSavingThrowDc,
-  getRogueSoulknifeRendMindUsesRemaining,
-  getRogueSoulknifeRendMindUsesTotal,
-  hasRogueSoulknifeRendMindFeature,
   rogueSoulknifePsychicTeleportationActionKey,
   rogueSoulknifePsychicWhispersActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
-import {
-  getCombatActionsForCharacter,
-  type GameplayActionDefinition
-} from "../../../../../../pages/CharactersPage/combatActions";
+import { type GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import { isCommonActionKey } from "../../../../../../pages/CharactersPage/commonActions";
-import {
-  ACTION_CATEGORY,
-  ECONOMY_TYPE,
-  getRoundTrackerResourceForEconomyType,
-  type EconomyType
-} from "../../../../../../pages/CharactersPage/actionEconomy";
-import {
-  getAbilityModifierBreakdownForCharacter,
-  getAbilityScoresForCharacter
-} from "../../../../../../pages/CharactersPage/abilities";
-import {
-  getProficiencyBonus,
-  type WeaponAction
-} from "../../../../../../pages/CharactersPage/gameplay";
-import {
-  isRoundTrackerResourceAvailable,
-  shouldTrackRoundScopedResources
-} from "../../../../../../pages/CharactersPage/combat";
-import { removeInvisibleConditionFromCharacter } from "../../../../../../pages/CharactersPage/statusEntries";
-import {
-  applyRolledHealingToCharacter,
-  applyRolledTemporaryHitPointsToCharacter,
-  consumeRoundTrackerResourceForCharacter,
-  prepareCharacterForRoundTrackerResourceConsumption
-} from "../../gameplayStateUtils";
-import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
-import {
-  getSavingThrowLevelFromEntries,
-  getSavingThrowProficiencyForAbilityKey
-} from "../../../../../../pages/CharactersPage/proficiency";
-import { getFeatureDescriptionForCharacter } from "../../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
-import {
-  CLASS_FEATURE,
-  ACTION_TYPE,
-  DAMAGE_TYPE,
-  MAGIC_SCHOOL,
-  type SpellEntry
-} from "../../../../../../codex/entries";
-import {
-  formatSignedLabel,
-  getProficiencyMultiplier,
-  getRoundTrackerResourceForSpell
-} from "../../../../../../pages/CharactersPage/shared";
-import {
-  getSpellLevel,
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../../../../../pages/CharactersPage/spellcasting";
-import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import {
-  getActionShapeForEconomyType,
-  getEconomyShapeState,
-  getRoundTrackerActionWarning
-} from "../../gameplayWidgetUtils";
+
+import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import {
   runWithActionConfirmationToast,
   type ActionConfirmationToastTrigger
 } from "../../../actionConfirmationToast";
-import {
-  formatResolvedRollStateDetailText,
-  getRollModeFromIndicators
-} from "../../../../../RollStatePill/rollState";
-import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
+
 import d20Icon from "../../../../../../assets/svg/d20.svg";
-import { setNextRollModeOverride, useAppDispatch, useAppSelector } from "../../../../../../store";
+
 import ActionButton from "../../../../../ActionButton";
 import styles from "./ActionsWidget.module.css";
-import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
-import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
-import GameplayActionDrawer from "./GameplayActionDrawer";
+
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import FortifyingSoulActionFooter from "./FortifyingSoulActionFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer
-} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
-import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
-import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
+
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 import WeaponAttackFooterButtons from "./WeaponAttackFooterButtons";
-import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
-import DruidStarryFormActionBody from "../TraitsConditionsWidget/DruidStarryFormActionBody";
-import {
-  FighterSecondWindActionBody,
-  FighterSecondWindActionFooter
-} from "./FighterSecondWindAction";
-import HealingLightActionBody, { type HealingLightTarget } from "./HealingLightActionBody";
-import {
-  IndomitableActionBody,
-  IndomitableActionFooter,
-  type IndomitableOption
-} from "./IndomitableAction";
-import PortentActionBody, { portentActionFormId } from "./PortentActionBody";
-import {
-  chargeMagicItemActionFormId,
-  drainMagicItemActionFormId
-} from "./forms/MagicItemTinkerActionBody";
-import ArtificerArcaneFirearmActionFooter from "./forms/ArtificerArcaneFirearmActionFooter";
-import ArtificerEldritchCannonActionFooter from "./forms/ArtificerEldritchCannonActionFooter";
-import ArtificerSteelDefenderActionFooter from "./forms/ArtificerSteelDefenderActionFooter";
-import ExperimentalElixirActionFooter from "./forms/ExperimentalElixirActionFooter";
-import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
+
+import { FighterSecondWindActionFooter } from "./FighterSecondWindAction";
+
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
-import ThirdEyeActionBody from "./ThirdEyeActionBody";
+
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
-import { WarriorOfTheGodsActionBody, WarriorOfTheGodsActionFooter } from "./WarriorOfTheGodsAction";
-import {
-  appendRollModifier,
-  getWeaponAttackFormulaPresentation,
-  getWeaponDamageFormulaPresentation
-} from "./actionsWidgetPresentation";
-import {
-  applyArcaneWardActionUse,
-  getArcaneWardDisabledReason,
-  getArcaneWardSpellSlotOptions
-} from "./arcaneWardAction";
-import {
-  applyRangerHuntersMarkTargetWeaponAction,
-  getRangerHuntersMarkTargetWeaponOptionState,
-  huntersMarkWeaponDamageBonusLabel
-} from "./rangerHuntersMarkWeapon";
+
 import RangerHunterWeaponOptions from "./RangerHunterWeaponOptions";
-import { applyCriticalHitToWeaponAction } from "./weaponCriticalHit";
-import { consumeMonkStunningStrike } from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
+
 import {
-  activateMonkFlurryOfBlows,
-  getMonkPatientDefenseTemporaryHitPointsFormula,
   monkFlurryOfBlowsActionKey,
-  monkPatientDefenseActionKey,
-  monkStepOfTheWindActionKey
+  monkPatientDefenseActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
+import { monkHandOfHealingActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
-  activateMonkWarriorOfMercyHandOfHealing,
-  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining,
-  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal,
-  getMonkWarriorOfMercyHandOfHealingFormula,
-  isMonkWarriorOfMercyFlurryOfHealingAndHarmActive,
-  monkHandOfHealingActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
-import {
-  consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
-  activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
   monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
-  getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula,
   monkWholenessOfBodyActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
-import {
-  activateMonkWarriorOfShadowImprovedShadowStep,
-  monkShadowStepActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
-import {
-  getMonkWarriorOfTheElementsElementalBurstDamageFormula,
-  hasMonkWarriorOfTheElementsElementalEpitome,
-  monkElementalAttunementActionKey,
-  monkElementalBurstActionKey,
-  setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
+import { monkShadowStepActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
+import { monkElementalBurstActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
 import { CommonActionFooter } from "./CommonAction";
-import ElementalAttunementResistanceSelector from "../TraitsConditionsWidget/ElementalAttunementResistanceSelector";
+
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
 import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
-import {
-  SpellfireBurstActionBody,
-  SpellfireBurstActionFooter,
-  type SpellfireBurstEffect,
-  type SpellfireBurstTarget
-} from "./SpellfireBurstAction";
-import CommonActionsModal from "./CommonActionsModal";
-import { getCommonActionPathStates } from "./commonActionEconomy";
-import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
-import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
-import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
-import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
-import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
-import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
-import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
-import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
-import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
-import RageActionBody from "./forms/RageActionBody";
-import WildCompanionActionBody from "./forms/WildCompanionActionBody";
-import WildResurgenceActionBody from "./forms/WildResurgenceActionBody";
-import WildShapeActionBody from "./forms/WildShapeActionBody";
-import {
-  createChannelDivinityOptionRows,
-  type ChannelDivinityOptionRow
-} from "../../../channelDivinityUtils";
-import { getWeaponAttackPathStates } from "./weaponActionEconomy";
-import {
-  formatD20RollFormula,
-  getFeatureActionDrawerPrimaryLabel,
-  getFixedSpellEntryForExecute,
-  grantMonkFleetStepFollowUpIfEligible,
-  resolveFeatureSavingThrowBonusTotal,
-  shouldConsumeMonkFleetStepFollowUp
-} from "./actionHelpers";
-import type {
-  ActionsWidgetDrawerFooterContext,
-  ActionsWidgetProps
-} from "./types";
-import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
-import { useActionsWidgetExecution } from "./useActionsWidgetExecution";
-import { useActionsWidgetActions } from "./useActionsWidgetActions";
-import { useActionResourceOptionModel } from "./useActionResourceOptionModel";
-import { useSelectedActionModel } from "./useSelectedActionModel";
-import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
-import ActionsGrid from "./ActionsGrid";
-import FeatureSpellDrawers from "./FeatureSpellDrawers";
-import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
+
+import { getFeatureActionDrawerPrimaryLabel } from "./actionHelpers";
+import type { ActionsWidgetDrawerFooterContext } from "./types";
 
 const rollingFeatureEffectKinds = new Set([
   "second-wind",
@@ -515,23 +180,15 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     arcaneWardSpellSlotOptions,
     bardicInspirationFallbackSpellSlotOptions,
     beastMasterReviveSpellSlotOptions,
-    canSubmitLayOnHands,
-    canSubmitSelectedWarriorOfTheGodsRoll,
     canUseInspiredEclipse,
-    canUseSelectedWildCompanionResource,
-    canUseSelectedWildResurgenceMode,
     character,
-    confirmFontOfMagicSelection,
     confirmSelectedFeatureOptions,
     executeCommonAction,
     executeFeatureActivate,
     executeMonkFlurryOfBlowsAction,
     executeMonkHandOfHealingPath,
-    fixedSpellSlotTotals,
-    fixedSpellSlotsRemaining,
     handleWeaponAttackRoll,
     handleWeaponDamageRoll,
-    indomitableSavingThrowOptions,
     isClairvoyantCombatantSelected,
     isColossusSlayerSelected,
     isCrownOfSpellfireSelected,
@@ -549,38 +206,23 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     isHuntersMarkTargetSelected,
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
-    isArcaneFirearmSubmitting,
-    isArtificerMagicItemTinkerSubmitting,
-    isEldritchCannonSubmitting,
-    isExperimentalElixirSubmitting,
-    isSteelDefenderSubmitting,
     isPolarStrikesSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
-    isRageOfTheGodsSelected,
     isRecklessAttackSelected,
-    isSacredWeaponSelected,
     isStunningStrikeSelected,
     isVampiricBiteSelected,
-    isVowOfEnmitySelected,
-    natureMagicianOptions,
     onPersistCharacter,
     closeActionDrawer,
-    openMysticArcanumSpell,
-    openWeaponDetailReference,
-    roundTracker,
     selectedAction,
     selectedActionEconomyShapeState,
     selectedActionOptionKeys,
-    selectedAasimarCelestialRevelationOptionKey,
-    selectedArcaneRecoverySelection,
     selectedArcaneWardDisabledReason,
     selectedArcaneWardSpellSlotLevel,
     selectedBardicInspirationFallbackDisabledReason,
     selectedBardicInspirationSpellSlotLevel,
     selectedBeastMasterReviveDisabledReason,
     selectedBeastMasterReviveSpellSlotLevel,
-    selectedBlessingOfTheTricksterTarget,
     selectedChannelDivinityRows,
     selectedClairvoyantCombatantToggleDisabled,
     selectedClairvoyantCombatantToggleDisabledReason,
@@ -594,10 +236,6 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedCrownOfSpellfireUsesRemaining,
     selectedCrownOfSpellfireUsesTotal,
     selectedDrawerOption,
-    selectedArtificerEldritchCannonSpellSlotLevel,
-    selectedArtificerSteelDefenderSpellSlotLevel,
-    selectedExperimentalElixirOptionKey,
-    selectedExperimentalElixirSpellSlotLevel,
     selectedFeatureAction,
     selectedFeatureActionPathStates,
     selectedFeatureActionPrimaryDisabledReason,
@@ -605,55 +243,19 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedFlurryOfHealingAndHarmDisabledReason,
     selectedFlurryOfHealingAndHarmUsesRemaining,
     selectedFlurryOfHealingAndHarmUsesTotal,
-    selectedFontOfMagicSelection,
-    selectedFontOfMagicWarning,
     selectedHandOfHealingActionPathStates,
     selectedHandOfHealingFlurryOfHealingAndHarmHelperText,
-    selectedHealingLightDiceCount,
-    selectedHealingLightDiceRemaining,
-    selectedHealingLightMaxDicePerUse,
-    selectedHealingLightMaxSelectableDice,
-    selectedHealingLightTarget,
-    selectedRecoverVitalityDiceCount,
-    selectedRecoverVitalityMaxSelectableDice,
     selectedImprovedShadowStepState,
-    selectedIndomitableAbility,
-    selectedIndomitableOption,
-    selectedLayOnHandsConditions,
-    selectedLayOnHandsPoolSpendAmount,
-    selectedLayOnHandsPoolSpendInput,
-    selectedLayOnHandsTarget,
     selectedMetamagicCost,
-    selectedMonkElementalAttunementResistanceDamageType,
     selectedMonkPatientDefenseTemporaryHitPointsFormula,
     selectedMonkWholenessOfBodyHealingFormula,
-    selectedNatureMagicianOption,
-    selectedNatureMagicianSpellSlotLevel,
-    selectedOptionEconomyShapeState,
     selectedOptionWarning,
-    selectedRageOfTheGodsDescription,
-    selectedRageOfTheGodsUsesRemaining,
-    selectedRageOfTheGodsUsesTotal,
-    selectedRageOptionKey,
-    selectedRageOptions,
-    selectedRagePowerOptionKey,
-    selectedRagePowerOptions,
     selectedRageSelectionWarning,
-    selectedSecondWindGroupRecoveryFormula,
     selectedSecondWindGroupRecoveryUsesRemaining,
     selectedSecondWindGroupRecoveryUsesTotal,
-    selectedSecondWindHealingFormula,
-    selectedSpellfireBurstTarget,
-    selectedStarryFormConstellation,
-    selectedThirdEyeOptionKey,
     selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText,
-    selectedWarriorOfTheGodsChargeCount,
-    selectedWarriorOfTheGodsUsesRemaining,
-    selectedWeaponAttackFormula,
     selectedWeaponColossusSlayerState,
     selectedWeaponColossusSlayerToggleDisabled,
-    selectedWeaponDamageFormula,
-    selectedWeaponDetails,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponEffectiveAction,
@@ -686,23 +288,11 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedWeaponQuiveringPalmToggleDisabled,
     selectedWeaponVampiricBiteState,
     selectedWeaponVampiricBiteToggleDisabled,
-    selectedWeaponRollState,
-    selectedWeaponSacredWeaponState,
-    selectedWeaponSacredWeaponToggleDisabled,
     selectedWeaponSecondaryAttackPathState,
     selectedWeaponSecondaryDisabledReason,
     selectedWeaponStunningStrikeDisabledReason,
     selectedWeaponStunningStrikeState,
     selectedWeaponStunningStrikeToggleDisabled,
-    selectedWeaponVowOfEnmityState,
-    selectedWeaponVowOfEnmityToggleDisabled,
-    selectedWildCompanionResource,
-    selectedWildCompanionSpellSlotLevel,
-    selectedWildResurgenceMode,
-    selectedWildResurgenceSpellSlotLevel,
-    selectedFluidFormsMonster,
-    selectedWildShapeMonster,
-    selectedWildShapeMonsterSlug,
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
     setIsCrownOfSpellfireSelected,
@@ -723,92 +313,21 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     setIsPolarStrikesSelected,
     setIsPsionicStrikeSelected,
     setIsQuiveringPalmSelected,
-    setIsRageOfTheGodsSelected,
     setIsRecklessAttackSelected,
-    setIsSacredWeaponSelected,
     setIsStunningStrikeSelected,
     setIsVampiricBiteSelected,
-    setIsVowOfEnmitySelected,
-    setSelectedActionOptionKeys,
-    setSelectedArcaneRecoverySelection,
     setSelectedArcaneWardSpellSlotLevel,
     setSelectedBardicInspirationSpellSlotLevel,
     setSelectedBeastMasterReviveSpellSlotLevel,
-    setSelectedBlessingOfTheTricksterTarget,
-    setSelectedChannelDivinityOptionKey,
-    setSelectedDivineInterventionSpell,
-    setSelectedArtificerEldritchCannonSpellSlotLevel,
-    setSelectedArtificerSteelDefenderSpellSlotLevel,
-    setSelectedExperimentalElixirSpellSlotLevel,
-    setSelectedFontOfMagicSelection,
-    setSelectedHealingLightDiceCount,
-    setSelectedHealingLightTarget,
-    setSelectedIndomitableAbility,
-    setSelectedLayOnHandsConditions,
-    setSelectedLayOnHandsPoolSpendInput,
-    setSelectedLayOnHandsTarget,
-    setSelectedNatureMagicianSpellSlotLevel,
-    setSelectedRageOptionKey,
-    setSelectedRagePowerOptionKey,
-    setSelectedSpellfireBurstTarget,
-    setSelectedStarryFormConstellation,
-    setSelectedThirdEyeOptionKey,
-    setSelectedWarriorOfTheGodsChargeCount,
-    setSelectedWildCompanionResource,
-    setSelectedWildCompanionSpellSlotLevel,
-    setSelectedWildResurgenceMode,
-    setSelectedWildResurgenceSpellSlotLevel,
-    setSelectedWildShapeMonsterSlug,
-    setSelectedWildShapePreviewSlug,
-    setSneakAttackActionSelection,
     showBardicInspirationFallbackSlotSelect,
     showSelectedFlurryOfHealingAndHarmToggle,
-    sneakAttackActionSelection,
-    submitArcaneRecovery,
-    submitBlessingOfTheTrickster,
-    submitBrutalStrike,
-    submitArtificerArcaneFirearm,
-    submitArtificerEldritchCannon,
-    submitArtificerSteelDefender,
-    submitArtificerExperimentalElixir,
-    submitAasimarCelestialRevelation,
-    submitAasimarHealingHands,
-    submitDragonbornBreathWeapon,
-    submitDragonbornDraconicFlight,
-    submitDwarfStonecunning,
-    submitGoliathCloudsJaunt,
-    submitGoliathLargeForm,
-    submitGoliathStonesEndurance,
-    submitGoliathStormsThunder,
-    submitHealingLight,
-    submitIndomitable,
-    submitLayOnHands,
     submitMonkElementalBurst,
     submitMonkPatientDefense,
     submitMonkWholenessOfBody,
-    submitNatureMagician,
-    submitPortent,
     submitRage,
     submitRogueSoulknifePsionicDieRollAction,
-    submitSneakAttack,
-    submitSorcererSpellfireBurst,
     submitSorcererWarpingImplosion,
-    submitSorcererWildMagicSurge,
-    submitBoonOfFluidFormsShapechanger,
-    submitStarryForm,
-    submitThirdEye,
-    submitWarriorOfTheGods,
-    submitWildCompanion,
-    submitWildResurgence,
-    submitWildShape,
-    toggleFeatureOptionSelection,
-    updateMonkElementalAttunementResistanceDamageType,
-    wildCompanionSpellSlotOptions,
-    wildResurgenceSpellSlotOptions,
-    wildResurgenceSpellSlotRecoveryUsesRemaining,
-    wildShapeKnownForms,
-    wildShapeUsesRemaining,
-    wildShapeUsesTotal
+    submitSorcererWildMagicSurge
   } = context;
   if (!selectedAction) {
     return null;
@@ -1209,467 +728,12 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
       />
     );
   }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "portent"
-  ) {
-    return (
-      <ActionButton className={styles.footerActionButton} type="submit" form={portentActionFormId}>
-        Save Portent
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    (selectedAction.drawer.formKind === "artificer-charge-magic-item" ||
-      selectedAction.drawer.formKind === "artificer-drain-magic-item")
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-    const formId =
-      selectedAction.drawer.formKind === "artificer-charge-magic-item"
-        ? chargeMagicItemActionFormId
-        : drainMagicItemActionFormId;
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        type="submit"
-        form={formId}
-        loading={isArtificerMagicItemTinkerSubmitting}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "artificer-experimental-elixir"
-  ) {
-    return (
-      <ExperimentalElixirActionFooter
-        character={character}
-        selectedOptionKey={selectedExperimentalElixirOptionKey}
-        selectedSpellSlotLevel={selectedExperimentalElixirSpellSlotLevel}
-        isSubmitting={isExperimentalElixirSubmitting}
-        disabledReason={selectedFeatureActionPrimaryDisabledReason}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        onSelectedSpellSlotLevelChange={setSelectedExperimentalElixirSpellSlotLevel}
-        onUseElixir={submitArtificerExperimentalElixir}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "artificer-eldritch-cannon"
-  ) {
-    return (
-      <ArtificerEldritchCannonActionFooter
-        character={character}
-        selectedOptionKey={selectedActionOptionKeys[0] ?? null}
-        selectedSpellSlotLevel={selectedArtificerEldritchCannonSpellSlotLevel}
-        isSubmitting={isEldritchCannonSubmitting}
-        disabledReason={selectedFeatureActionPrimaryDisabledReason}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        onSelectedSpellSlotLevelChange={setSelectedArtificerEldritchCannonSpellSlotLevel}
-        onUseCannon={submitArtificerEldritchCannon}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "artificer-steel-defender"
-  ) {
-    return (
-      <ArtificerSteelDefenderActionFooter
-        character={character}
-        selectedSpellSlotLevel={selectedArtificerSteelDefenderSpellSlotLevel}
-        isSubmitting={isSteelDefenderSubmitting}
-        disabledReason={selectedFeatureActionPrimaryDisabledReason}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        onSelectedSpellSlotLevelChange={setSelectedArtificerSteelDefenderSpellSlotLevel}
-        onUseSteelDefender={submitArtificerSteelDefender}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "artificer-arcane-firearm"
-  ) {
-    return (
-      <ArtificerArcaneFirearmActionFooter
-        selectedStackId={selectedActionOptionKeys[0] ?? null}
-        isSubmitting={isArcaneFirearmSubmitting}
-        disabledReason={selectedFeatureActionPrimaryDisabledReason}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        onUseArcaneFirearm={submitArtificerArcaneFirearm}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "sneak-attack"
-  ) {
-    const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
-    const rendMindUsesRemaining = getRogueSoulknifeRendMindUsesRemaining(character);
-    const rendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
-    const rendMindCanUse =
-      rendMindUsesRemaining > 0 || getRogueSoulknifePsionicDiceRemaining(character) > 0;
-
-    return (
-      <div className={styles.footerActionStack}>
-        {hasRendMind ? (
-          <FeatureOptInToggle
-            label="Rend Mind"
-            checked={sneakAttackActionSelection.useRendMind}
-            disabled={!rendMindCanUse}
-            muted={!rendMindCanUse}
-            title={
-              rendMindCanUse ? undefined : "Rend Mind needs a charge or 1 Psionic Die remaining."
-            }
-            onCheckedChange={(checked) =>
-              setSneakAttackActionSelection({
-                ...sneakAttackActionSelection,
-                useRendMind: checked
-              })
-            }
-            metaItems={[
-              {
-                kind: "tracker",
-                current: rendMindUsesRemaining,
-                total: rendMindUsesTotal
-              },
-              {
-                kind: "cost",
-                label: "Use 1 Psionic Die instead",
-                icon: "psi"
-              }
-            ]}
-            usageKey="rend-mind"
-          />
-        ) : null}
-        <ActionDiceConfirmFooter
-          actionName={selectedAction.action.name}
-          confirmLabel={selectedFeaturePrimaryLabel}
-          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-          onConfirm={() => submitSneakAttack(sneakAttackActionSelection)}
-          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-        />
-      </div>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "aasimar-healing-hands"
-  ) {
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={submitAasimarHealingHands}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "dragonborn-breath-weapon"
-  ) {
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={submitDragonbornBreathWeapon}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "aasimar-celestial-revelation"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitAasimarCelestialRevelation)}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          selectedAasimarCelestialRevelationOptionKey === null
-        }
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "dragonborn-draconic-flight"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitDragonbornDraconicFlight)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "dwarf-stonecunning"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitDwarfStonecunning)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "goliath-clouds-jaunt"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitGoliathCloudsJaunt)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "goliath-large-form"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitGoliathLargeForm)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "goliath-stones-endurance"
-  ) {
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={submitGoliathStonesEndurance}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.execute.kind === "custom-form" &&
-    selectedAction.execute.formKind === "goliath-storms-thunder"
-  ) {
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={submitGoliathStormsThunder}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "healing-light"
-  ) {
-    const selectedDiceCanBeUsed =
-      selectedHealingLightDiceCount > 0 &&
-      selectedHealingLightDiceCount <= selectedHealingLightMaxSelectableDice;
-
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel="Use Healing Light"
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null || !selectedDiceCanBeUsed}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={() =>
-          submitHealingLight(selectedHealingLightDiceCount, selectedHealingLightTarget)
-        }
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "recover-vitality"
-  ) {
-    const selectedDiceCanBeUsed =
-      selectedRecoverVitalityDiceCount > 0 &&
-      selectedRecoverVitalityDiceCount <= selectedRecoverVitalityMaxSelectableDice;
-
-    return (
-      <ActionDiceConfirmFooter
-        actionName={selectedAction.action.name}
-        confirmLabel="Use Recover Vitality"
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null || !selectedDiceCanBeUsed}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={() => executeFeatureActivate(selectedAction.action)}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
+  const formFooter = renderFormFooter({
+    ...context,
+    confirmSelectedActionToast,
+    selectedFeaturePrimaryLabel
+  });
+  if (formFooter !== undefined) return formFooter;
 
   if (
     selectedAction.kind === "feature" &&
@@ -1762,12 +826,9 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
         confirmLabel={selectedFeaturePrimaryLabel}
         actionPaths={selectedFeatureActionPathStates.map((path) => ({
           ...path,
-          disabledReason:
-            path.disabledReason ?? selectedFeatureActionPrimaryDisabledReason
+          disabledReason: path.disabledReason ?? selectedFeatureActionPrimaryDisabledReason
         }))}
-        onConfirmPath={(economyType) =>
-          executeFeatureActivate(selectedAction.action, economyType)
-        }
+        onConfirmPath={(economyType) => executeFeatureActivate(selectedAction.action, economyType)}
       />
     );
   }
@@ -2260,363 +1321,6 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     );
   }
 
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "arcane-recovery"
-  ) {
-    const selectedArcaneRecoveryLevelTotal = getArcaneRecoverySelectionLevelTotal(
-      selectedArcaneRecoverySelection
-    );
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(() =>
-          submitArcaneRecovery(selectedArcaneRecoverySelection)
-        )}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          selectedArcaneRecoveryLevelTotal <= 0
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "spellfire-burst"
-  ) {
-    return (
-      <SpellfireBurstActionFooter
-        actionName={selectedAction.name}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onUseEffect={submitSorcererSpellfireBurst}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "indomitable"
-  ) {
-    return (
-      <IndomitableActionFooter
-        actionName={selectedAction.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null || selectedIndomitableOption === null
-        }
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={() => selectedIndomitableOption && submitIndomitable(selectedIndomitableOption)}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "blessing-of-the-trickster"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitBlessingOfTheTrickster)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "lay-on-hands"
-  ) {
-    return (
-      <LayOnHandsActionFooter
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null || !canSubmitLayOnHands}
-        onConfirm={() =>
-          submitLayOnHands({
-            target: selectedLayOnHandsTarget,
-            poolSpendAmount: selectedLayOnHandsPoolSpendAmount,
-            conditions: selectedLayOnHandsConditions
-          })
-        }
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "third-eye"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitThirdEye)}
-        disabled={
-          selectedThirdEyeOptionKey === null || selectedFeatureActionPrimaryDisabledReason !== null
-        }
-        trailingBadge={
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-            className={styles.footerActionShape}
-          />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "boon-fluid-forms-shapechanger"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitBoonOfFluidFormsShapechanger)}
-        disabled={
-          !selectedFluidFormsMonster || selectedFeatureActionPrimaryDisabledReason !== null
-        }
-        trailingBadge={
-          <ActionShape
-            shape="action"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "wild-shape"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitWildShape)}
-        disabled={!selectedWildShapeMonster || selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "starry-form"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitStarryForm)}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          selectedStarryFormConstellation === null
-        }
-        trailingBadge={
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "wild-companion"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitWildCompanion)}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          !canUseSelectedWildCompanionResource
-        }
-        trailingBadge={
-          <ActionShape
-            shape="action"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-            className={styles.footerActionShape}
-          />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "nature-magician"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitNatureMagician)}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null || !selectedNatureMagicianOption
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "wild-resurgence"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitWildResurgence)}
-        disabled={
-          !canUseSelectedWildResurgenceMode || selectedFeatureActionPrimaryDisabledReason !== null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "font-of-magic"
-  ) {
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(confirmFontOfMagicSelection)}
-        disabled={
-          selectedFontOfMagicSelection === null ||
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          selectedFontOfMagicWarning !== null
-        }
-        trailingBadge={
-          selectedFontOfMagicSelection?.kind === "points-to-slot" ? (
-            <ActionShape
-              shape="bonusAction"
-              isSelected={selectedFontOfMagicWarning === null}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "warrior-of-the-gods"
-  ) {
-    return (
-      <WarriorOfTheGodsActionFooter
-        actionName={selectedAction.name}
-        confirmLabel={selectedFeaturePrimaryLabel}
-        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
-        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
-        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-        disabled={
-          selectedFeatureActionPrimaryDisabledReason !== null ||
-          !canSubmitSelectedWarriorOfTheGodsRoll
-        }
-        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-        onConfirm={() => submitWarriorOfTheGods(selectedWarriorOfTheGodsChargeCount)}
-        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-      />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "brutal-strike"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={confirmSelectedActionToast(submitBrutalStrike)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
   if (selectedAction.kind === "feature" && selectedAction.action.key === barbarianRageActionKey) {
     return (
       <ActionButton
@@ -2632,35 +1336,6 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             className={styles.footerActionShape}
           />
-        }
-      >
-        {selectedFeaturePrimaryLabel}
-      </ActionButton>
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "genie-magic-wish-magic" &&
-    selectedAction.execute.kind === "spell"
-  ) {
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-    return (
-      <ActionButton
-        className={styles.footerActionButton}
-        onClick={() => setIsFixedSpellDrawerOpen(true)}
-        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-        trailingBadge={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null
         }
       >
         {selectedFeaturePrimaryLabel}

@@ -1,17 +1,19 @@
 import type {
-  BODY_SIZE,
   EquipmentCost,
-  FEATS,
   SpellEntry,
   WeaponDamage,
   WeaponRange,
-  WeaponType,
+  WeaponType
+} from "../codex/entries";
+import type {
+  BODY_SIZE,
+  FEATS,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
   WEAPON_TRAINING
-} from "../codex/entries";
+} from "../codex/entries/enums";
 import type {
   ArmorProficiencyEntry,
   LANGUAGE_PROFICIENCY,

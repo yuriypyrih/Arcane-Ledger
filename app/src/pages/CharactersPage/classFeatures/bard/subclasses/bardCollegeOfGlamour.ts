@@ -1,12 +1,13 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
 import {
   ABILITY_TYPES,
   CLASS_FEATURE,
   MAGIC_SCHOOL,
-  SPELL_LIST_CLASS,
-  type SpellEntry
-} from "../../../../../codex/entries";
+  SPELL_LIST_CLASS
+} from "../../../../../codex/entries/enums";
 import {
   mantleOfInspirationDescription,
   mantleOfMajestyDescription,
@@ -24,7 +25,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -187,16 +188,10 @@ export function consumeBardCollegeOfGlamourBeguilingMagicUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        beguilingMagicUsesExpended: currentExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    beguilingMagicUsesExpended: currentExpended + 1
+  });
 }
 
 export function restoreBardCollegeOfGlamourBeguilingMagicOnLongRest(
@@ -213,16 +208,10 @@ export function restoreBardCollegeOfGlamourBeguilingMagicOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        beguilingMagicUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    beguilingMagicUsesExpended: 0
+  });
 }
 
 export function consumeBardCollegeOfGlamourBeguilingMagicOrBardicInspiration(
@@ -331,16 +320,10 @@ export function consumeBardCollegeOfGlamourMantleOfMajestyUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        mantleOfMajestyUsesExpended: (bardState.mantleOfMajestyUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    mantleOfMajestyUsesExpended: (bardState.mantleOfMajestyUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreBardCollegeOfGlamourMantleOfMajestyOnLongRest(
@@ -355,16 +338,10 @@ export function restoreBardCollegeOfGlamourMantleOfMajestyOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        mantleOfMajestyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    mantleOfMajestyUsesExpended: 0
+  });
 }
 
 export function getBardCollegeOfGlamourUnbreakableMajestyUsesTotal(
@@ -393,16 +370,10 @@ export function consumeBardCollegeOfGlamourUnbreakableMajestyUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        unbreakableMajestyUsesExpended: (bardState.unbreakableMajestyUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    unbreakableMajestyUsesExpended: (bardState.unbreakableMajestyUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreBardCollegeOfGlamourUnbreakableMajestyOnShortRest(
@@ -417,16 +388,10 @@ export function restoreBardCollegeOfGlamourUnbreakableMajestyOnShortRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        unbreakableMajestyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    unbreakableMajestyUsesExpended: 0
+  });
 }
 
 export function restoreBardCollegeOfGlamourUnbreakableMajestyOnLongRest(
@@ -857,7 +822,7 @@ export function collectBardCollegeOfGlamourContributions(
 
 export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBardCollegeOfGlamourContributions(character)),
+    getCompiledFeatureContributions(character, collectBardCollegeOfGlamourContributions),
     {
       character: character as Character
     }

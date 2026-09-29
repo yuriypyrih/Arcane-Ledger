@@ -1,4 +1,5 @@
-import { ACTION_TYPE, SPELL_LIST_CLASS, type SpellEntry } from "../../../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../../../codex/entries";
+import { ACTION_TYPE, SPELL_LIST_CLASS } from "../../../../../../../codex/entries/enums";
 import { getSpellEntriesForSpellListClass } from "../../../../../../../codex/classes/spellAccess";
 import SelectInput from "../../../../../FormInputs/SelectInput";
 import styles from "../ActionsWidget.module.css";

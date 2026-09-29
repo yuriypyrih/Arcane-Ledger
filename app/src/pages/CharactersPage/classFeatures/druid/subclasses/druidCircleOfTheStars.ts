@@ -1,16 +1,12 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  REACTION,
-  getSpellEntryByName,
-  type ReactionEntry
-} from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { getSpellEntryByName, type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, REACTION } from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterDruidFeatureState,
@@ -27,7 +23,7 @@ import {
 } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -435,16 +431,10 @@ export function setDruidCosmicOmenSelection(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        cosmicOmenSelection: selection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    cosmicOmenSelection: selection
+  });
 }
 
 export function restoreDruidStarMapGuidingBoltOnLongRest(
@@ -458,16 +448,10 @@ export function restoreDruidStarMapGuidingBoltOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        starMapGuidingBoltUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    starMapGuidingBoltUsesExpended: 0
+  });
 }
 
 export function restoreDruidCosmicOmenOnLongRest(
@@ -481,16 +465,10 @@ export function restoreDruidCosmicOmenOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        cosmicOmenUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    cosmicOmenUsesExpended: 0
+  });
 }
 
 export function consumeDruidStarMapGuidingBoltUse(
@@ -503,19 +481,13 @@ export function consumeDruidStarMapGuidingBoltUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        starMapGuidingBoltUsesExpended: Math.min(
-          getDruidStarMapGuidingBoltUsesTotal(character),
-          (druidState.starMapGuidingBoltUsesExpended ?? 0) + 1
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    starMapGuidingBoltUsesExpended: Math.min(
+      getDruidStarMapGuidingBoltUsesTotal(character),
+      (druidState.starMapGuidingBoltUsesExpended ?? 0) + 1
+    )
+  });
 }
 
 export function consumeDruidCosmicOmenUse(
@@ -528,19 +500,13 @@ export function consumeDruidCosmicOmenUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        cosmicOmenUsesExpended: Math.min(
-          getDruidCosmicOmenUsesTotal(character),
-          (druidState.cosmicOmenUsesExpended ?? 0) + 1
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    cosmicOmenUsesExpended: Math.min(
+      getDruidCosmicOmenUsesTotal(character),
+      (druidState.cosmicOmenUsesExpended ?? 0) + 1
+    )
+  });
 }
 
 export function activateDruidStarryForm(
@@ -869,7 +835,7 @@ export function collectDruidCircleOfTheStarsContributions(
 
 export const getDruidCircleOfTheStarsDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectDruidCircleOfTheStarsContributions(character)),
+    getCompiledFeatureContributions(character, collectDruidCircleOfTheStarsContributions),
     {
       character: character as Character
     }

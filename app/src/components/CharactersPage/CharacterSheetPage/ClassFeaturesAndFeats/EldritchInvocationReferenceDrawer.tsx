@@ -1,12 +1,8 @@
 import { useMemo, useState } from "react";
-import {
-  TRACKER,
-  type DivinityEntry,
-  type FEATS,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type DivinityEntry, type SpellEntry } from "../../../../codex/entries";
+import { TRACKER, type FEATS } from "../../../../codex/entries/enums";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
-import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { getFeatDefinition } from "../../../../pages/CharactersPage/feats/catalog";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import {
   LazyCodexDivinityDrawer as CodexDivinityDrawer,

@@ -1,22 +1,18 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   isSpellFromClass,
   hasCharacterClass,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  REACTION,
-  SPELL_LIST_CLASS,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION, SPELL_LIST_CLASS } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -243,16 +239,10 @@ export function activateSorcererWildMagicTidesOfChaos(character: Character): Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        tidesOfChaosUsesExpended: tidesOfChaosUsesTotal
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    tidesOfChaosUsesExpended: tidesOfChaosUsesTotal
+  });
 }
 
 export function consumeSorcererWildMagicTamedSurgeUse(character: Character): Character {
@@ -264,16 +254,10 @@ export function consumeSorcererWildMagicTamedSurgeUse(character: Character): Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        tamedSurgeUsesExpended: tamedSurgeUsesTotal
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    tamedSurgeUsesExpended: tamedSurgeUsesTotal
+  });
 }
 
 export function restoreSorcererWildMagicTidesOfChaosOnLongRest(character: Character): Character {
@@ -285,16 +269,10 @@ export function restoreSorcererWildMagicTidesOfChaosOnLongRest(character: Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        tidesOfChaosUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    tidesOfChaosUsesExpended: 0
+  });
 }
 
 export function restoreSorcererWildMagicTamedSurgeOnLongRest(character: Character): Character {
@@ -306,16 +284,10 @@ export function restoreSorcererWildMagicTamedSurgeOnLongRest(character: Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        tamedSurgeUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    tamedSurgeUsesExpended: 0
+  });
 }
 
 export function restoreSorcererWildMagicFeaturesOnLongRest(character: Character): Character {
@@ -333,16 +305,10 @@ export function restoreSorcererWildMagicTidesOfChaosOnSpellCast(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        tidesOfChaosUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    tidesOfChaosUsesExpended: 0
+  });
 }
 
 function isWildMagicSorcerySpellCandidate(spell: Pick<SpellEntry, "spellLevel" | "spellLists">) {
@@ -540,7 +506,7 @@ export const getSorcererWildMagicSorceryDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectSorcererWildMagicSorceryContributions(character)),
+    getCompiledFeatureContributions(character, collectSorcererWildMagicSorceryContributions),
     {
       character: character as Character
     }

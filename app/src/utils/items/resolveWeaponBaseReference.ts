@@ -1,4 +1,4 @@
-import { RARITY_TYPES, type WEAPON_BASE } from "../../codex/entries";
+import { RARITY_TYPES, type WEAPON_BASE } from "../../codex/entries/enums";
 import { getWeaponEntries } from "../../codex/selectors";
 
 export type WeaponBaseReference = {
@@ -84,13 +84,10 @@ function resolveWeaponBaseFromLookupValue(value: string | null | undefined): WEA
     return directMatch;
   }
 
-  const suffixMatch = commonWeaponBaseLookupEntries.find(
-    (entry) =>
-      normalizedValues.some((normalizedValue) =>
-        entry.slugs.some(
-          (slug) => normalizedValue === slug || normalizedValue.endsWith(`_${slug}`)
-        )
-      )
+  const suffixMatch = commonWeaponBaseLookupEntries.find((entry) =>
+    normalizedValues.some((normalizedValue) =>
+      entry.slugs.some((slug) => normalizedValue === slug || normalizedValue.endsWith(`_${slug}`))
+    )
   );
 
   return suffixMatch?.baseWeapon ?? null;

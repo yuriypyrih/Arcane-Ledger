@@ -1,3 +1,4 @@
+import { extractDescriptionSection } from "./shared/descriptionSections";
 import {
   getSpeciesEntryByName,
   getSpellEntryById,
@@ -55,44 +56,14 @@ function getHexbloodEntry(species = hexbloodName): SpeciesEntry | null {
 
 function getHexbloodDescriptionSection(
   heading: string,
-  options: {
+  _options: {
     stopBeforeHeading?: string;
   } = {}
 ): SpellDescriptionEntry[] {
   const description = getHexbloodEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
-
-  if (!description) {
-    return [];
-  }
-
-  const startIndex = description.findIndex((descriptionEntry) =>
-    descriptionEntry.includes(`<strong>${heading}.`)
-  );
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const descriptionEntry = description[index]!;
-
-    if (
-      index > startIndex &&
-      (options.stopBeforeHeading
-        ? descriptionEntry.includes(`<strong>${options.stopBeforeHeading}.`)
-        : descriptionEntry.startsWith("<strong>"))
-    ) {
-      break;
-    }
-
-    section.push(descriptionEntry);
-  }
-
-  return section;
+  return extractDescriptionSection(description ?? [], `<strong>${heading}.`);
 }
 
 function getHexbloodDescriptionText(heading: string, fallback: string): string {

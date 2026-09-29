@@ -1,15 +1,17 @@
 import {
+  getSpellEntryById,
+  type SpellDescriptionEntry,
+  type WeaponDamage
+} from "../../../codex/entries";
+import {
   DAMAGE_TYPE,
   DICE,
   ENTRY_CATEGORIES,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  getSpellEntryById,
-  type SpellDescriptionEntry,
-  type WeaponDamage
-} from "../../../codex/entries";
+  WEAPON_TRAINING
+} from "../../../codex/entries/enums";
 import {
   hasActiveSylunesViperTemporaryHitPoints,
   isActiveSylunesViperStatusEntry,
@@ -52,20 +54,20 @@ function createRepeatedDamageDice(
   die: DICE,
   damageType: DAMAGE_TYPE
 ): WeaponDamage {
-  return Array.from({ length: Math.max(0, Math.floor(diceCount)) }, () => [
-    die,
-    damageType
-  ]);
+  return Array.from({ length: Math.max(0, Math.floor(diceCount)) }, () => [die, damageType]);
 }
 
 function getSourceSpellSlotLevel(
   context: EphemeralWeaponActionContext,
   fallbackLevel: number
 ): number {
-  const sourceValue = context.sourceSpellSlotLevel ?? context.sourceStatusEntry?.sourceSpellSlotLevel;
+  const sourceValue =
+    context.sourceSpellSlotLevel ?? context.sourceStatusEntry?.sourceSpellSlotLevel;
   const numericValue = Number(sourceValue);
 
-  return Number.isFinite(numericValue) ? Math.max(fallbackLevel, Math.floor(numericValue)) : fallbackLevel;
+  return Number.isFinite(numericValue)
+    ? Math.max(fallbackLevel, Math.floor(numericValue))
+    : fallbackLevel;
 }
 
 function getSpellDescription(spellId: string): SpellDescriptionEntry[] {

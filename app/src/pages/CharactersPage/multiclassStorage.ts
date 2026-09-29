@@ -12,7 +12,7 @@ import {
   getClassEditorCharacter,
   projectStartingClass,
   readMulticlass
-} from "./multiclass";
+} from "./multiclassState";
 
 /** Normalize each class with its own progression, without rewriting legacy characters. */
 export function normalizeMulticlassCharacter(

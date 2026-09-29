@@ -173,7 +173,13 @@ wiring, persistence and visible results.
   they retain the real Redux store, character normalization and local storage. Separate cloud-opening
   integration tests use the actual resolver and storage while controlling only the API transport.
   `cloud-upload.test.tsx` mounts the real sync coordinator and controls API responses to cover edits
-  during uploads, transient failure/retry, and revision conflicts without automatic overwrite.
+  during uploads, transient failure/retry, and revision conflicts without automatic overwrite. It
+  also checks logout during an upload, logout/account changes during initialization (including a
+  batched logout/login to the same account), deletion during a successful or failed upload,
+  navigation to another sheet, and active edits that have not reached local storage yet.
+  `gameplay.test.tsx` checks independent multiclass resource pools through exhaustion, manual
+  recovery, and save/load. The spell-catalog content check associates each Bigby's Hand rule with
+  its effect, so moving a damage formula or saving throw to the wrong effect fails the test.
 - The frontend has an existing cyclic runtime import graph. The Vitest setup initializes the public
   feat-runtime barrel first because Vite's server-side export-star evaluation otherwise exposes partial
   cyclic exports. These tests do not assert that arbitrary runtime leaf import orders are supported.
@@ -206,10 +212,10 @@ page logic, sheet components (including TSX), background character synchronizati
 sheet store. It measures the Vitest suite, not browser journeys. The broader denominator deliberately
 exposes untouched UI and synchronization code rather than reporting rules-only coverage as sheet
 coverage. A high line count is not evidence of correct gameplay. Remaining areas include exhaustive
-subclass/feat combinations, account changes or deletion during an in-flight cloud upload,
+subclass/feat combinations, claim/import and force-resolution races across accounts,
 Master Chest process crashes between document writes, GM encounter flows,
 real email/image upload services, other browser engines, visual snapshots,
-service-worker behavior, and exhaustive dice/spell-effect execution paths.
+service-worker update/install edge cases, and exhaustive dice/spell-effect execution paths.
 
 ### Concurrent writes and recovery
 
@@ -281,3 +287,40 @@ Automatic retries are disabled so a flaky failure stays visible.
 The matrix checks composition and durable state. Within an approved test scope, prefer a targeted
 expected outcome for an individual subclass interaction; a matrix pass alone is not proof that every
 feature combination works. [Multiclass behavior and compatibility](multiclass.md) describes the implemented boundaries.
+
+## Scalability and behavior measurements
+
+The September 2026 pass retains the existing test harness. Focused additions cover public/snapshot
+spell parity (including a secondary Wizard), real weapon description injection and removal, same-ID
+custom spell isolation, ordinary-use-first Paladin fallback payment, feat spent-state round trips,
+and canceled/stale monster requests with cached offline previews. Existing sheet integration and
+browser journeys still cover immediate recalculation, open drawers, concentration and selective
+rest recovery. See [the scalability report](scalability-2026-09-29.md) and
+[feature authoring](feature-authoring.md) for implementation boundaries and measured results.
+
+Run `npm --prefix app run test:benchmark` for comparative runtime timings. It uses Vitest's existing
+benchmark support, representative single/multiclass fixtures, and 25/100-contribution scaling cases.
+It forces the lazy combat-summary fields so a snapshot allocation alone cannot look like a complete
+derivation. Each case runs for at least 1 second/50 iterations after warmup. Capture JSON with
+`-- --outputJson=/tmp/arcane-runtime.json`. Run baseline and changed code sequentially on the same
+machine without builds or other tests in parallel. Timings are measurements, not CI assertions;
+investigate reproducible regressions exceeding both 10% and 2 ms.
+
+`npm --prefix app run bundle:report` reports raw and individually gzipped production JavaScript,
+CSS, other assets, total assets, and HTML-linked initial assets after a build. Initial HTML assets
+are not the entire character-sheet route or the service worker's precache.
+
+`node app/scripts/profile-sheet.mjs --url http://127.0.0.1:4181 --out /tmp/sheet-profile.json`
+uses the installed Playwright browser and synthetic guest sheets. For development render counts,
+enable `ENABLE_RENDER_PROFILER_BY_DEFAULT_IN_DEV` only in a disposable source copy and serve it
+with the existing `vite.e2e.config.ts` on the selected port. Do not enable the profiler in shipped
+source. The script records section commits, existing runtime measures, and interaction wall time;
+Playwright actionability/protocol overhead and browser scheduling are included in wall time. Its
+500 ms settling window includes delayed HP persistence in counts, not in the displayed interaction
+time. Runtime measures can be nested: their duration sum is work sampled, not additive user latency.
+
+For a separate production/offline check, build and serve `dist` locally, then run the same script
+with `--offline`. That mode allows the real service worker, waits for its control, disconnects the
+browser, reloads the saved sheet, checks ability/armor persistence, and casts a spell offline.
+Requests to external hosts are blocked; API calls use a synthetic guest response. This is a local
+Chromium production check, not coverage of every browser's PWA installation/update lifecycle.

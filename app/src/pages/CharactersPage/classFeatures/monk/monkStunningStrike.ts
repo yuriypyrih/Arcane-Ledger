@@ -1,11 +1,13 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
   type WEAPON_COMBAT_TYPE,
   type WEAPON_PROPERTY,
   type WEAPON_TRAINING
-} from "../../../../codex/entries";
+} from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { isMonkWeapon } from "../../monkWeapons";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
@@ -33,11 +35,7 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
   }
 
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(monkFeatures, normalizedLevel);
 }
 
 function hasMonkStunningStrikeFeature(character: MonkStunningStrikeCharacter): boolean {
@@ -135,18 +133,9 @@ export function consumeMonkStunningStrike(character: Character): Character {
     ? Math.max(0, Math.floor(rawFocusPointsExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.min(
-          totalFocusPoints,
-          focusPointsExpended + stunningStrikeFocusCost
-        ),
-        stunningStrikeUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + stunningStrikeFocusCost),
+    stunningStrikeUsedThisTurn: true
+  });
 }

@@ -1,6 +1,9 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { druidFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterDruidFeatureState, MonsterRecord } from "../../../../types";
 import { normalizeMonsterRecord } from "../../../../utils/monsters";
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
@@ -8,25 +11,13 @@ import { druidWildShapeStatusSourceIdPrefix } from "./actionKeys";
 
 export function getDruidFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = druidFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(druidFeatures, normalizedLevel);
 }
 
 function getUnlockedDruidFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return druidFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(druidFeatures, normalizedLevel);
 }
 
 export function hasDruidFeature(
@@ -94,16 +85,10 @@ export function expendOneDruidWildShapeUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        wildShapeUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    wildShapeUsesExpended: usesExpended + 1
+  });
 }
 
 export function isDruidWildShapeStatusSourceId(value: unknown): value is string {

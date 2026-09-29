@@ -1,8 +1,8 @@
 import {
-  ELDRITCH_INVOCATION,
   getEldritchInvocationEntryById,
   type SpellDescriptionEntry
 } from "../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../codex/entries/enums";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { falseLifeSpellId } from "../../characterRuntime/spellImplementations/falseLifeConfig";
 import {
@@ -10,10 +10,7 @@ import {
   mageArmorCastOnSelfOptionId,
   mageArmorSpellId
 } from "../../characterRuntime/spellImplementations/spells1Config";
-import type {
-  FeatureActionCard,
-  FeatureActionSpellEffectKind
-} from "../types";
+import type { FeatureActionCard, FeatureActionSpellEffectKind } from "../types";
 
 export const ascendantStepActionKey = "warlock-ascendant-step";
 export const armorOfShadowsActionKey = "warlock-armor-of-shadows";
@@ -142,8 +139,7 @@ const warlockInvocationSpellActionDefinitions: WarlockInvocationSpellActionDefin
     ],
     summary: "Cast Water Breathing once per Long Rest.",
     detail: "Open Water Breathing and cast it without expending a spell slot.",
-    actionAvailabilityText:
-      "Cast once without expending a spell slot. Recharges on a Long Rest."
+    actionAvailabilityText: "Cast once without expending a spell slot. Recharges on a Long Rest."
   },
   {
     invocationId: ELDRITCH_INVOCATION.MISTY_VISIONS,

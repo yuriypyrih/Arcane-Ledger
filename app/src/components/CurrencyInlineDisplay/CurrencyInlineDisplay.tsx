@@ -5,7 +5,7 @@ import coinElectrumIcon from "../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../assets/svg/coin-silver.svg";
-import { CURRENCY_TYPE } from "../../codex/entries";
+import { CURRENCY_TYPE } from "../../codex/entries/enums";
 import type { CharacterCurrencies, CurrencyKey } from "../../types";
 import styles from "./CurrencyInlineDisplay.module.css";
 

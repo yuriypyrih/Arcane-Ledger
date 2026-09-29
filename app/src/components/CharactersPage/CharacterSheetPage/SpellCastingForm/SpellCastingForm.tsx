@@ -14,12 +14,8 @@ import SpellSlotActionSheet from "./SpellSlotActionSheet";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
-import {
-  CLASS_FEATURE,
-  MAGIC_SCHOOL,
-  getSpellEntryById,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL } from "../../../../codex/entries/enums";
 import type { Character, CharacterCompanion, CharacterCustomTraitEffect } from "../../../../types";
 import {
   normalizeRoundTracker,
@@ -375,8 +371,9 @@ function SpellCastingForm({
   const [isSpellManagementModalOpen, setIsSpellManagementModalOpen] = useState(false);
   const [isSpellcastingGuideOpen, setIsSpellcastingGuideOpen] = useState(false);
   const readOnly = useReadOnlySheet();
-  const [activeWizardSpellFilter, setActiveWizardSpellFilter] =
-    useState<WizardSpellViewFilter>(readOnly ? "all" : "prepared");
+  const [activeWizardSpellFilter, setActiveWizardSpellFilter] = useState<WizardSpellViewFilter>(
+    readOnly ? "all" : "prepared"
+  );
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(

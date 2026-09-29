@@ -1,5 +1,5 @@
-import { getCharacterLevel } from "../../multiclass";
-import { FEATS } from "../../../../codex/entries";
+import { getCharacterLevel } from "../../multiclassState";
+import { FEATS } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { isCharacterBloodied } from "../../bloodied";
 import type { FeatureIndicator } from "../../classFeatures/types";

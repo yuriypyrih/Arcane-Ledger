@@ -1,11 +1,9 @@
+import { useCustomBestiaryRecords, useMonsterPickerRecords } from "./useMonsterPickerRecords";
+import { MONSTERS_PER_PAGE, useMonsterPickerPage } from "./useMonsterPickerPage";
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
-import {
-  listCustomBestiary,
-  type CustomBestiaryListScope,
-  type CustomBestiaryRecord
-} from "../../../../api/customBestiary";
+import { useEffect, useMemo, useState } from "react";
+import { isApiOfflineError } from "../../../../api";
+import { type CustomBestiaryListScope } from "../../../../api/customBestiary";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
@@ -31,23 +29,14 @@ import { useAppSelector } from "../../../../store";
 import {
   customBestiaryRecordToListItem,
   filterCustomBestiaryRecords,
-  getCustomBestiaryMonsterByKey,
   sortCustomBestiaryRecords
 } from "../CompanionsSection/customBestiaryBrowser";
 import {
-  getCachedMonsterEntry,
   getMonsterChallengeRatingNumber,
   getMonsterKey,
-  getMonsterListItemKey,
-  primeMonsterEntryCache
+  getMonsterListItemKey
 } from "../../../../utils/monsters";
-import type {
-  Character,
-  CodexStatus,
-  MonsterListItem,
-  MonsterOrdering,
-  MonsterRecord
-} from "../../../../types";
+import type { Character, MonsterListItem, MonsterOrdering, MonsterRecord } from "../../../../types";
 import SheetActionButton from "../SheetActionButton";
 import styles from "./DruidWildShapeMonsterModal.module.css";
 
@@ -57,8 +46,6 @@ type DruidWildShapeMonsterModalProps = {
   onSelectedMonstersChange: (monsters: MonsterRecord[]) => void;
   onClose: () => void;
 };
-
-const MONSTERS_PER_PAGE = 20;
 const DEFAULT_VALID_MONSTER_TYPE = "Beast";
 const DEFAULT_VALID_MONSTER_SOURCE = "srd-2024";
 
@@ -102,23 +89,25 @@ function DruidWildShapeMonsterModal({
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("cr");
   const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
   const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
-  const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
-  const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [onlyValidBeasts, setOnlyValidBeasts] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewKey, setPreviewKey] = useState<string | null>(null);
-  const [previewMonster, setPreviewMonster] = useState<MonsterRecord | null>(null);
-  const [previewStatus, setPreviewStatus] = useState<CodexStatus>("ready");
   const [pendingAddKey, setPendingAddKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [monsterCache, setMonsterCache] = useState<Record<string, MonsterRecord>>(() =>
-    selectedMonsters.reduce<Record<string, MonsterRecord>>((cache, monster) => {
-      cache[getMonsterKey(monster)] = monster;
-      return cache;
-    }, {})
-  );
-  const loadedCustomBestiaryForAuthRef = useRef<string | null>(null);
   const isCustomBestiaryMode = canUseCustomBestiary && monsterSourceMode === "custom";
+  const { customBestiaryRecords, customBestiaryStatus } = useCustomBestiaryRecords(
+    authUserId,
+    customBestiaryScope,
+    isCustomBestiaryMode
+  );
+
+  const { previewKey, setPreviewKey, previewMonster, previewStatus, resolveMonster } =
+    useMonsterPickerRecords(
+      selectedMonsters,
+      customBestiaryRecords,
+      isOnline,
+      `${authUserId}:${customBestiaryScope}:${monsterSourceMode}`
+    );
+
   const { payload, status } = useMonsterEntries({
     enabled: !isCustomBestiaryMode,
     page: currentPage,
@@ -155,17 +144,16 @@ function DruidWildShapeMonsterModal({
     query,
     rules?.maxCr
   ]);
-  const customBestiaryPageItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * MONSTERS_PER_PAGE;
+  const { browserMonsters, browserTotalEntries, browserStatus, totalPages } = useMonsterPickerPage(
+    currentPage,
+    setCurrentPage,
+    isCustomBestiaryMode,
+    customBestiaryItems,
+    customBestiaryStatus,
+    payload,
+    status
+  );
 
-    return customBestiaryItems.slice(startIndex, startIndex + MONSTERS_PER_PAGE);
-  }, [currentPage, customBestiaryItems]);
-  const browserMonsters = isCustomBestiaryMode ? customBestiaryPageItems : (payload?.results ?? []);
-  const browserTotalEntries = isCustomBestiaryMode
-    ? customBestiaryItems.length
-    : (payload?.count ?? 0);
-  const browserStatus = isCustomBestiaryMode ? customBestiaryStatus : status;
-  const totalPages = Math.max(1, Math.ceil(browserTotalEntries / MONSTERS_PER_PAGE));
   const selectedMonsterKeySet = useMemo(
     () => new Set(selectedMonsters.map((monster) => getMonsterKey(monster))),
     [selectedMonsters]
@@ -192,76 +180,6 @@ function DruidWildShapeMonsterModal({
   }, [canUseCustomBestiary, monsterSourceMode]);
 
   useEffect(() => {
-    let active = true;
-    const loadKey =
-      isCustomBestiaryMode && authUserId ? `${authUserId}:${customBestiaryScope}` : null;
-
-    if (!loadKey) {
-      return () => {
-        active = false;
-      };
-    }
-
-    if (loadedCustomBestiaryForAuthRef.current === loadKey) {
-      return () => {
-        active = false;
-      };
-    }
-
-    loadedCustomBestiaryForAuthRef.current = loadKey;
-    setCustomBestiaryStatus("loading");
-
-    void listCustomBestiary({
-      scope: customBestiaryScope,
-      suppressFailureToast: true
-    })
-      .then(({ customBestiary }) => {
-        if (!active) {
-          return;
-        }
-
-        setCustomBestiaryRecords(customBestiary);
-        setCustomBestiaryStatus("ready");
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
-        setCustomBestiaryStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
-        loadedCustomBestiaryForAuthRef.current = null;
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [authUserId, customBestiaryScope, isCustomBestiaryMode]);
-
-  useEffect(() => {
-    if (currentPage <= totalPages) {
-      return;
-    }
-
-    setCurrentPage(totalPages);
-  }, [currentPage, totalPages]);
-
-  useEffect(() => {
-    if (selectedMonsters.length === 0) {
-      return;
-    }
-
-    setMonsterCache((currentCache) => {
-      const nextCache = { ...currentCache };
-
-      selectedMonsters.forEach((monster) => {
-        nextCache[getMonsterKey(monster)] = monster;
-      });
-
-      return nextCache;
-    });
-  }, [selectedMonsters]);
-
-  useEffect(() => {
     if (!onlyValidBeasts) {
       return;
     }
@@ -269,73 +187,6 @@ function DruidWildShapeMonsterModal({
     setMonsterTypeFilter(DEFAULT_VALID_MONSTER_TYPE);
     setMonsterSourceFilter(DEFAULT_VALID_MONSTER_SOURCE);
   }, [onlyValidBeasts]);
-
-  useEffect(() => {
-    let active = true;
-    const abortController = new AbortController();
-
-    async function loadPreview() {
-      if (!previewKey) {
-        setPreviewMonster(null);
-        setPreviewStatus("ready");
-        return;
-      }
-
-      const customBestiaryMonster = getCustomBestiaryMonsterByKey(
-        customBestiaryRecords,
-        previewKey
-      );
-      const cachedMonster =
-        customBestiaryMonster ?? monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
-
-      if (cachedMonster) {
-        primeMonsterEntryCache(cachedMonster);
-        setPreviewMonster(cachedMonster);
-        setPreviewStatus("ready");
-        return;
-      }
-
-      if (!isOnline) {
-        setPreviewMonster(null);
-        setPreviewStatus("server-unavailable");
-        return;
-      }
-
-      setPreviewStatus("loading");
-
-      try {
-        const payload = await fetchMonsterByKey(previewKey, {
-          signal: abortController.signal
-        });
-
-        if (!active) {
-          return;
-        }
-
-        primeMonsterEntryCache(payload);
-        setMonsterCache((currentCache) => ({
-          ...currentCache,
-          [getMonsterKey(payload)]: payload
-        }));
-        setPreviewMonster(payload);
-        setPreviewStatus("ready");
-      } catch (error) {
-        if (!active || abortController.signal.aborted) {
-          return;
-        }
-
-        setPreviewMonster(null);
-        setPreviewStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
-      }
-    }
-
-    void loadPreview();
-
-    return () => {
-      active = false;
-      abortController.abort();
-    };
-  }, [customBestiaryRecords, isOnline, monsterCache, previewKey]);
 
   function removeMonster(key: string) {
     setNotice(null);
@@ -381,15 +232,8 @@ function DruidWildShapeMonsterModal({
     setNotice(null);
 
     try {
-      const fullMonster =
-        getCustomBestiaryMonsterByKey(customBestiaryRecords, monsterKey) ??
-        monsterCache[monsterKey] ??
-        (await fetchMonsterByKey(monsterKey));
-
-      setMonsterCache((currentCache) => ({
-        ...currentCache,
-        [getMonsterKey(fullMonster)]: fullMonster
-      }));
+      const fullMonster = await resolveMonster(monsterKey);
+      if (!fullMonster) return;
       onSelectedMonstersChange([...selectedMonsters, fullMonster]);
       setNotice(null);
     } catch (error) {
@@ -551,7 +395,6 @@ function DruidWildShapeMonsterModal({
                       { label: "Public", value: "public" }
                     ]}
                     onValueChange={(nextScope) => {
-                      loadedCustomBestiaryForAuthRef.current = null;
                       setCustomBestiaryScope(nextScope);
                     }}
                   />

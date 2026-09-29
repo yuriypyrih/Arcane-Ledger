@@ -1,5 +1,8 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { extractDescriptionSection as extractFeatureDescriptionSection } from "../../../shared/descriptionSections";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -15,7 +18,7 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -90,31 +93,6 @@ function getRangerGloomStalkerFeatureDescriptionEntries(feature: CLASS_FEATURE):
   return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
     (entry): entry is string => typeof entry === "string"
   );
-}
-
-function extractFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string
-): string[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
 }
 
 const dreadAmbusherDescription = getRangerGloomStalkerFeatureDescriptionEntries(
@@ -358,16 +336,10 @@ export function setRangerGloomStalkerIronMindSavingThrowSelection(
       ? proficiency
       : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        ironMindSavingThrow: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    ironMindSavingThrow: nextSelection
+  });
 }
 
 function getRangerGloomStalkerIronMindSavingThrowProficiencyEntries(
@@ -449,17 +421,11 @@ export function consumeRangerGloomStalkerDreadAmbusherUse(character: Character):
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        dreadAmbusherUsesExpended: usesExpended + 1,
-        dreadAmbusherUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    dreadAmbusherUsesExpended: usesExpended + 1,
+    dreadAmbusherUsedThisTurn: true
+  });
 }
 
 export function restoreRangerGloomStalkerDreadAmbusherOnLongRest(character: Character): Character {
@@ -476,17 +442,11 @@ export function restoreRangerGloomStalkerDreadAmbusherOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        dreadAmbusherUsesExpended: 0,
-        dreadAmbusherUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    dreadAmbusherUsesExpended: 0,
+    dreadAmbusherUsedThisTurn: false
+  });
 }
 
 function getRangerGloomStalkerDerivedStatusEntries(
@@ -617,7 +577,7 @@ function collectRangerGloomStalkerContributions(
 
 export const getRangerGloomStalkerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRangerGloomStalkerContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerGloomStalkerContributions),
     {
       character: character as Character
     }

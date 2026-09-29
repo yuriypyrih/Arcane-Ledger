@@ -1,10 +1,10 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { rangerFeatures } from "../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   appendDescriptionAddition,
@@ -108,25 +108,13 @@ function dedupe<T>(values: T[]): T[] {
 
 function getRangerFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = rangerFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(rangerFeatures, normalizedLevel);
 }
 
 function getUnlockedRangerFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return rangerFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(rangerFeatures, normalizedLevel);
 }
 
 export function hasRangerFeature(
@@ -778,16 +766,10 @@ export function setRangerDeftExplorerExpertiseSelection(
 
   const rangerState = getRangerFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        deftExplorerExpertise: selection ?? undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    deftExplorerExpertise: selection ?? undefined
+  });
 }
 
 export function getRangerDeftExplorerLanguageSelections(
@@ -809,16 +791,10 @@ export function setRangerDeftExplorerLanguageSelections(
 
   const rangerState = getRangerFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        deftExplorerLanguages: normalizeRangerLanguageSelections(selections)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    deftExplorerLanguages: normalizeRangerLanguageSelections(selections)
+  });
 }
 
 export function getRangerLevel9ExpertiseSelections(
@@ -838,18 +814,12 @@ export function setRangerLevel9ExpertiseSelections(
   const rangerState = getRangerFeatureState(character);
   const deftExplorerExpertise = rangerState.deftExplorerExpertise;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        expertise: normalizeRangerExpertiseSelections(selections).filter(
-          (skill) => skill !== deftExplorerExpertise
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    expertise: normalizeRangerExpertiseSelections(selections).filter(
+      (skill) => skill !== deftExplorerExpertise
+    )
+  });
 }
 
 export function getRangerFavoredEnemyUsesTotal(
@@ -1236,16 +1206,10 @@ export function consumeRangerFavoredEnemyUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        favoredEnemyUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    favoredEnemyUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerTirelessUse(character: Character): Character {
@@ -1261,16 +1225,10 @@ export function consumeRangerTirelessUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        tirelessUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    tirelessUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerNaturesVeilUse(character: Character): Character {
@@ -1286,16 +1244,10 @@ export function consumeRangerNaturesVeilUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        naturesVeilUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    naturesVeilUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerFeyReinforcementsUse(character: Character): Character {
@@ -1359,16 +1311,10 @@ export function restoreRangerFavoredEnemyOnLongRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        favoredEnemyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    favoredEnemyUsesExpended: 0
+  });
 }
 
 export function restoreRangerTirelessOnLongRest(character: Character): Character {
@@ -1382,16 +1328,10 @@ export function restoreRangerTirelessOnLongRest(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        tirelessUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    tirelessUsesExpended: 0
+  });
 }
 
 export function restoreRangerNaturesVeilOnLongRest(character: Character): Character {
@@ -1405,16 +1345,10 @@ export function restoreRangerNaturesVeilOnLongRest(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        naturesVeilUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    naturesVeilUsesExpended: 0
+  });
 }
 
 export function restoreRangerWinterWalkerFortifyingSoulOnLongRest(character: Character): Character {
@@ -1523,21 +1457,15 @@ export function applyShortRestToRangerFeatures(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        extraAttacksRemainingThisTurn: 0,
-        dreadfulStrikesUsedThisTurn: false,
-        winterWalkerPolarStrikesUsedThisTurn: false,
-        dreadAmbusherUsedThisTurn: false,
-        hunterColossusSlayerUsedThisTurn: false,
-        hunterHordeBreakerUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    extraAttacksRemainingThisTurn: 0,
+    dreadfulStrikesUsedThisTurn: false,
+    winterWalkerPolarStrikesUsedThisTurn: false,
+    dreadAmbusherUsedThisTurn: false,
+    hunterColossusSlayerUsedThisTurn: false,
+    hunterHordeBreakerUsedThisTurn: false
+  });
 }
 
 export function advanceRangerFeaturesForNewRound(character: Character): Character {
@@ -1564,21 +1492,15 @@ export function advanceRangerFeaturesForNewRound(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        extraAttacksRemainingThisTurn: 0,
-        dreadfulStrikesUsedThisTurn: false,
-        winterWalkerPolarStrikesUsedThisTurn: false,
-        dreadAmbusherUsedThisTurn: false,
-        hunterColossusSlayerUsedThisTurn: false,
-        hunterHordeBreakerUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    extraAttacksRemainingThisTurn: 0,
+    dreadfulStrikesUsedThisTurn: false,
+    winterWalkerPolarStrikesUsedThisTurn: false,
+    dreadAmbusherUsedThisTurn: false,
+    hunterColossusSlayerUsedThisTurn: false,
+    hunterHordeBreakerUsedThisTurn: false
+  });
 }
 
 export function markRangerDreadfulStrikesUsed(character: Character): Character {
@@ -1592,16 +1514,10 @@ export function markRangerDreadfulStrikesUsed(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        dreadfulStrikesUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    dreadfulStrikesUsedThisTurn: true
+  });
 }
 
 export function markRangerHunterColossusSlayerUsed(character: Character): Character {
@@ -1672,16 +1588,10 @@ export function setRangerWeaponMasterySelections(
 
   const rangerState = normalizeRangerFeatureState(character.classFeatureState?.ranger, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        weaponMasteries: normalizeRangerWeaponMasteries(selections)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    weaponMasteries: normalizeRangerWeaponMasteries(selections)
+  });
 }
 
 export function getRangerWeaponProficiencyEntries(
@@ -1806,14 +1716,8 @@ export function consumeRangerWeaponAttack(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }

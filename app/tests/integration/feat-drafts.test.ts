@@ -22,8 +22,47 @@ import { createPortableCharacterSheet } from "../../src/pages/CharactersPage/por
 import { normalizeCharacter } from "../../src/pages/CharactersPage/storage";
 import { characterFixture } from "../fixtures/character";
 import { skillExpertFeat } from "../fixtures/feats";
+import { cantripChoices } from "../../src/pages/CharactersPage/feats/cantripChoices";
+import { getFeatGrantedCantripEntriesForCharacter } from "../../src/pages/CharactersPage/feats/runtime/spellcasting";
 
 describe("feat editor drafts preserve the rest of the sheet", () => {
+  it.each([
+    [FEATS.BLESSED_WARRIOR, "blessedWarrior", "spell-sacred-flame"],
+    [FEATS.DRUIDIC_WARRIOR, "druidicWarrior", "spell-starry-wisp"]
+  ] as const)(
+    "%s rejects duplicate and unavailable choices and retains its granted cantrips after save",
+    (feat, field, second) => {
+      const definition = cantripChoices[feat];
+      expect(
+        definition.decodeDraft({ cantripIds: ["spell-guidance", "spell-guidance"] })
+      ).toBeNull();
+      expect(
+        definition.decodeDraft({ cantripIds: ["spell-guidance", "spell-fire-bolt"] })
+      ).toBeNull();
+      const choice = definition.decodeDraft({ cantripIds: ["spell-guidance", second] })!;
+      const original = characterFixture({ level: 4, xp: 2700 });
+      const draft = upsertFeatInDraft(
+        createFeatEditorDraft(original),
+        {
+          id: field,
+          feat,
+          takenAtLevel: 4,
+          source: { type: "manual" },
+          [field]: choice
+        },
+        null
+      );
+      expect(original.feats).toEqual([]);
+      const saved = normalizeCharacter(
+        createPortableCharacterSheet(applyFeatEditorDraftToCharacter(original, draft))
+      )!;
+      expect(
+        getFeatGrantedCantripEntriesForCharacter(saved)
+          .map((spell) => spell.id)
+          .sort()
+      ).toEqual(["spell-guidance", second].sort());
+    }
+  );
   it("adds, edits, saves and removes Skill Expert with its sourced proficiency", () => {
     const original = characterFixture({ level: 4, xp: 2700 });
     const feat = skillExpertFeat();

@@ -1,4 +1,8 @@
-import { getCharacterLevel } from "./multiclass";
+import {
+  getAppliedAbilityScoreBonus,
+  compareLabeledAbilityScoreBonuses
+} from "./shared/abilityBonusMath";
+import { getCharacterLevel } from "./multiclassState";
 import type { AbilityKey, AbilityScores, Character } from "../../types";
 import { abilityKeys } from "./constants";
 import { getAbilityScoreBonusesForCharacter, type FeatureAbilityScoreBonus } from "./classFeatures";
@@ -76,54 +80,6 @@ function normalizeAbilityScore(value: number): number {
   return Math.max(1, Math.floor(value));
 }
 
-function getAppliedAbilityScoreBonus(
-  currentScore: number,
-  bonus: FeatureAbilityScoreBonus
-): number {
-  const normalizedValue = Math.floor(bonus.value);
-
-  if (!Number.isFinite(normalizedValue) || normalizedValue === 0) {
-    return 0;
-  }
-
-  if (bonus.maxScore === null || bonus.maxScore === undefined) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue > 0) {
-    return Math.max(0, Math.min(normalizedValue, bonus.maxScore - currentScore));
-  }
-
-  return normalizedValue;
-}
-
-function sortAbilityScoreBonuses(
-  left: FeatureAbilityScoreBonus,
-  right: FeatureAbilityScoreBonus
-): number {
-  const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
-  const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
-
-  if (leftHasCap !== rightHasCap) {
-    return leftHasCap ? -1 : 1;
-  }
-
-  if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-    return (
-      (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
-    );
-  }
-
-  const leftOrder = left.order ?? 0;
-  const rightOrder = right.order ?? 0;
-
-  if (leftOrder !== rightOrder) {
-    return leftOrder - rightOrder;
-  }
-
-  return left.label.localeCompare(right.label);
-}
-
 export function getAbilityScoreBreakdownForCharacter(
   character: AbilityCharacterContext,
   ability: AbilityKey,
@@ -162,7 +118,7 @@ export function getAbilityScoreBreakdownForCharacter(
     })
   ]
     .filter((bonus) => bonus.ability === ability)
-    .sort(sortAbilityScoreBonuses);
+    .sort(compareLabeledAbilityScoreBonuses);
   let total = baseScore;
   const entries: AbilityScoreBreakdownEntry[] = [
     {

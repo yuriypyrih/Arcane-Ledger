@@ -1,5 +1,6 @@
-import { hasCharacterClass } from "../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { hasCharacterClass } from "../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,

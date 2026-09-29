@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import { useMemo, useState } from "react";
 import type { Character, CharacterCustomAction } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";

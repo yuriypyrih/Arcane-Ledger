@@ -1,10 +1,11 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { BattleMasterManeuverId } from "../../../../../codex/subclasses/fighterBattleMaster";
 import {
@@ -24,7 +25,7 @@ import {
 } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -280,20 +281,14 @@ export function setFighterBattleMasterManeuverSelections(
 
   const fighterState = getBattleMasterStateRecord(character.classFeatureState?.fighter);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizeFighterBattleMasterFeatureState(fighterState, character),
-        battleMasterManeuverIds: normalizeFighterBattleMasterManeuverSelections(
-          selections,
-          maneuverSelectionCount
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizeFighterBattleMasterFeatureState(fighterState, character),
+    battleMasterManeuverIds: normalizeFighterBattleMasterManeuverSelections(
+      selections,
+      maneuverSelectionCount
+    )
+  });
 }
 
 export function expendFighterBattleMasterSuperiorityDie(character: Character): Character {
@@ -311,17 +306,11 @@ export function expendFighterBattleMasterSuperiorityDie(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterSuperiorityDiceExpended: diceExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterSuperiorityDiceExpended: diceExpended + 1
+  });
 }
 
 export function markFighterBattleMasterCombatSuperiorityUsed(character: Character): Character {
@@ -336,17 +325,11 @@ export function markFighterBattleMasterCombatSuperiorityUsed(character: Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterCombatSuperiorityUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterCombatSuperiorityUsedThisTurn: true
+  });
 }
 
 export function consumeFighterBattleMasterKnowYourEnemy(character: Character): Character {
@@ -361,17 +344,11 @@ export function consumeFighterBattleMasterKnowYourEnemy(character: Character): C
   if (usesRemaining > 0) {
     const usesExpended = normalizedState.battleMasterKnowYourEnemyUsesExpended ?? 0;
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...normalizedState,
-          battleMasterKnowYourEnemyUsesExpended: usesExpended + 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "fighter", {
+      ...fighterState,
+      ...normalizedState,
+      battleMasterKnowYourEnemyUsesExpended: usesExpended + 1
+    });
   }
 
   return expendFighterBattleMasterSuperiorityDie(character);
@@ -389,17 +366,11 @@ function clearFighterBattleMasterCombatSuperiorityUsed(character: Character): Ch
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterCombatSuperiorityUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterCombatSuperiorityUsedThisTurn: false
+  });
 }
 
 export function restoreOneFighterBattleMasterSuperiorityDie(character: Character): Character {
@@ -417,17 +388,11 @@ export function restoreOneFighterBattleMasterSuperiorityDie(character: Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterSuperiorityDiceExpended: diceExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterSuperiorityDiceExpended: diceExpended - 1
+  });
 }
 
 export function restoreAllFighterBattleMasterSuperiorityDice(character: Character): Character {
@@ -444,17 +409,11 @@ export function restoreAllFighterBattleMasterSuperiorityDice(character: Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterSuperiorityDiceExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterSuperiorityDiceExpended: 0
+  });
 }
 
 export function restoreFighterBattleMasterSuperiorityDiceOnShortRest(
@@ -485,17 +444,11 @@ export function restoreFighterBattleMasterKnowYourEnemyOnLongRest(character: Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        battleMasterKnowYourEnemyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    battleMasterKnowYourEnemyUsesExpended: 0
+  });
 }
 
 function getCombatSuperiorityManeuverLinkItems(character: BattleMasterCharacter): string[] {
@@ -795,7 +748,7 @@ export function collectFighterBattleMasterContributions(
 
 export const getFighterBattleMasterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectFighterBattleMasterContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterBattleMasterContributions),
     {
       character: character as Character
     }

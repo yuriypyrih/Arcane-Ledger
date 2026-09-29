@@ -1,10 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  getSpellEntryById,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { getSpellEntryById, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import {
@@ -16,7 +13,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -206,16 +203,10 @@ function resetWarlockCelestialPatronRadiantSoulTurnState(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        radiantSoulUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    radiantSoulUsedThisTurn: false
+  });
 }
 
 function getWarlockCelestialPatronDerivedStatusEntries(
@@ -256,16 +247,10 @@ export function applyWarlockCelestialPatronFeaturesAfterSpellCast(
 
   const warlockState = character.classFeatureState?.warlock ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        radiantSoulUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    radiantSoulUsedThisTurn: true
+  });
 }
 
 export function advanceWarlockCelestialPatronFeaturesForNewRound(character: Character): Character {
@@ -363,16 +348,10 @@ export function spendWarlockCelestialPatronHealingLightDice(
     ? Math.max(0, Math.floor(rawDiceExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        healingLightDiceExpended: Math.min(totalDice, diceExpended + normalizedDiceCount)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    healingLightDiceExpended: Math.min(totalDice, diceExpended + normalizedDiceCount)
+  });
 }
 
 export function expendWarlockCelestialPatronHealingLightDie(character: Character): Character {
@@ -394,16 +373,10 @@ export function restoreWarlockCelestialPatronHealingLightDie(character: Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        healingLightDiceExpended: diceExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    healingLightDiceExpended: diceExpended - 1
+  });
 }
 
 export function restoreWarlockCelestialPatronHealingLightOnLongRest(
@@ -419,16 +392,12 @@ export function restoreWarlockCelestialPatronHealingLightOnLongRest(
     return resetWarlockCelestialPatronRadiantSoulTurnState(character);
   }
 
-  return resetWarlockCelestialPatronRadiantSoulTurnState({
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        healingLightDiceExpended: 0
-      }
-    }
-  });
+  return resetWarlockCelestialPatronRadiantSoulTurnState(
+    replaceClassFeatureState(character, "warlock", {
+      ...warlockState,
+      healingLightDiceExpended: 0
+    })
+  );
 }
 
 export function restoreAllWarlockCelestialPatronHealingLightDice(character: Character): Character {
@@ -473,16 +442,10 @@ export function consumeWarlockCelestialPatronSearingVengeanceUse(character: Char
     ? Math.max(0, Math.floor(rawUsesExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        searingVengeanceUsesExpended: Math.min(totalUses, usesExpended + 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    searingVengeanceUsesExpended: Math.min(totalUses, usesExpended + 1)
+  });
 }
 
 export function restoreWarlockCelestialPatronSearingVengeanceOnLongRest(
@@ -498,16 +461,12 @@ export function restoreWarlockCelestialPatronSearingVengeanceOnLongRest(
     return resetWarlockCelestialPatronRadiantSoulTurnState(character);
   }
 
-  return resetWarlockCelestialPatronRadiantSoulTurnState({
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        searingVengeanceUsesExpended: 0
-      }
-    }
-  });
+  return resetWarlockCelestialPatronRadiantSoulTurnState(
+    replaceClassFeatureState(character, "warlock", {
+      ...warlockState,
+      searingVengeanceUsesExpended: 0
+    })
+  );
 }
 
 export function restoreWarlockCelestialPatronFeaturesOnLongRest(character: Character): Character {
@@ -774,7 +733,7 @@ export function collectWarlockCelestialPatronContributions(
 
 export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWarlockCelestialPatronContributions(character)),
+    getCompiledFeatureContributions(character, collectWarlockCelestialPatronContributions),
     {
       character: character as Character
     }

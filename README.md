@@ -117,3 +117,12 @@ Run `npm test` for rule, component, persistence, and backend/database checks. Ru
 for desktop/mobile browser journeys, and `npm run test:types` to type-check the test code.
 See [the testing guide](docs/testing.md) for installation, isolated test services, coverage, and
 failure artifacts. Pull requests run these checks through `.github/workflows/tests.yml`.
+
+After `npm --prefix app run build`, run `npm --prefix app run bundle:report` to measure all
+compiled JavaScript, gzip JavaScript, CSS, other assets, and the main entry chunk. See the
+[September 2026 quality improvements](docs/repo-quality-2026-09-29.md) for the baseline,
+measured changes, and verification scope.
+
+The [deep scalability pass](docs/scalability-2026-09-29.md) reports the subsequent runtime,
+description, component, and bundle measurements. Use the [feature authoring guide](docs/feature-authoring.md)
+when connecting new subclasses or feats to the existing runtime and sheet UI.

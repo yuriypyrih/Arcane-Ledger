@@ -17,19 +17,18 @@ import {
 } from "../../../utils/codex";
 import {
   BACKGROUND_SOURCE_VALUES,
-  ENTRY_CATEGORIES,
-  FEAT_CATEGORY,
-  MAGIC_SCHOOL,
   SPECIES_SOURCE_VALUES,
-  SPELL_LIST_CLASS,
   type BackgroundSource,
   type SpeciesSource
 } from "../../../codex/entries";
-import ItemBrowserFilters from "../../ItemBrowser";
 import {
-  FEAT_SOURCE_VALUES,
-  type FeatSource
-} from "../../../pages/CharactersPage/feats/source";
+  ENTRY_CATEGORIES,
+  FEAT_CATEGORY,
+  MAGIC_SCHOOL,
+  SPELL_LIST_CLASS
+} from "../../../codex/entries/enums";
+import ItemBrowserFilters from "../../ItemBrowser";
+import { FEAT_SOURCE_VALUES, type FeatSource } from "../../../pages/CharactersPage/feats/source";
 import {
   FEAT_CATEGORY_FILTER_VALUES,
   type FeatCategoryFilter
@@ -352,7 +351,9 @@ function CodexFilters({
               className={styles.input}
               value={monsterSourceFilter ?? "ALL"}
               onChange={(event) =>
-                onMonsterSourceFilterChange(event.target.value === "ALL" ? null : event.target.value)
+                onMonsterSourceFilterChange(
+                  event.target.value === "ALL" ? null : event.target.value
+                )
               }
             >
               <option value="ALL">All</option>

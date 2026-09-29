@@ -1,6 +1,8 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL } from "../../../../../codex/entries/enums";
 import { divineForeknowledgeDescription } from "../../../../../codex/subclasses/cleric";
 import type {
   Character,
@@ -23,7 +25,7 @@ import { artisanToolProficiencies, type ToolProficiency } from "../../../profici
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -337,16 +339,10 @@ export function setKnowledgeDomainBlessingsSkillSelections(
     new Set(selections.filter(isKnowledgeDomainBlessingsSkill))
   ).slice(0, 2);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        knowledgeBlessingsSkills: nextSelections
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    knowledgeBlessingsSkills: nextSelections
+  });
 }
 
 export function setKnowledgeDomainBlessingsToolSelection(
@@ -364,16 +360,10 @@ export function setKnowledgeDomainBlessingsToolSelection(
   const nextSelection =
     selection && isKnowledgeDomainBlessingsTool(selection) ? selection : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        knowledgeBlessingsTool: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    knowledgeBlessingsTool: nextSelection
+  });
 }
 
 export function getKnowledgeDomainSkillProficiencyEntries(
@@ -505,16 +495,10 @@ export function setKnowledgeDomainUnfetteredMindSavingThrowSelection(
       ? proficiency
       : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        unfetteredMindSavingThrow: nextSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    unfetteredMindSavingThrow: nextSelection
+  });
 }
 
 export function getKnowledgeDomainSavingThrowProficiencyEntries(
@@ -735,16 +719,10 @@ export function activateClericDivineForeknowledge(character: Character): Charact
       character
     );
 
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        cleric: {
-          ...clericState,
-          divineForeknowledgeUsesExpended: (clericState.divineForeknowledgeUsesExpended ?? 0) + 1
-        }
-      }
-    };
+    nextCharacter = replaceClassFeatureState(character, "cleric", {
+      ...clericState,
+      divineForeknowledgeUsesExpended: (clericState.divineForeknowledgeUsesExpended ?? 0) + 1
+    });
   } else {
     const fallbackSlotLevel = getDivineForeknowledgeFallbackSlotLevel(character);
 
@@ -846,21 +824,15 @@ export function restoreClericDivineForeknowledgeOnLongRest(character: Character)
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        divineForeknowledgeUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    divineForeknowledgeUsesExpended: 0
+  });
 }
 
 export const getClericKnowledgeDomainDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectClericKnowledgeDomainContributions(character)),
+    getCompiledFeatureContributions(character, collectClericKnowledgeDomainContributions),
     {
       character: character as Character
     }

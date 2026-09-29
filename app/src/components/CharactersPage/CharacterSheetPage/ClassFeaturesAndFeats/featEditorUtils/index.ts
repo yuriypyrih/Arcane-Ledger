@@ -1,5 +1,8 @@
+import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
+import { singleAbilityChoices } from "../../../../../pages/CharactersPage/feats/singleAbilityChoices";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import { DAMAGE_TYPE, FEATS, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { DAMAGE_TYPE, FEATS } from "../../../../../codex/entries/enums";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
   dragonscarredAbilityOptions,
@@ -7,35 +10,15 @@ import {
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
-  heavilyArmoredAbilityOptions,
-  heavyArmorMasterAbilityOptions,
-  inspiringLeaderAbilityOptions,
   keenMindSkillOptions,
-  lightlyArmoredAbilityOptions,
-  mageSlayerAbilityOptions,
-  martialWeaponTrainingAbilityOptions,
-  mediumArmorMasterAbilityOptions,
-  moderatelyArmoredAbilityOptions,
-  mountedCombatantAbilityOptions,
   observantAbilityOptions,
   observantSkillOptions,
-  piercerAbilityOptions,
-  poisonerAbilityOptions,
-  polearmMasterAbilityOptions,
   ritualCasterAbilityOptions,
   resilientAbilityOptions,
-  sentinelAbilityOptions,
   shadowTouchedAbilityOptions,
-  slasherAbilityOptions,
-  spellSniperAbilityOptions,
-  telekineticAbilityOptions,
-  telepathicAbilityOptions,
-  warCasterAbilityOptions,
   skillExpertAbilityOptions,
-  speedyAbilityOptions,
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions,
-  getBlessedWarriorCantripOptions,
   getBlessedWarriorChoiceSummary,
   getAthleteChoiceSummary,
   getBoonOfEnergyResistanceChoiceSummary,
@@ -81,7 +64,6 @@ import {
   getSkillExpertChoiceSummary,
   getSpeedyChoiceSummary,
   getWeaponMasterChoiceSummary,
-  getDruidicWarriorCantripOptions,
   getDruidicWarriorChoiceSummary,
   getEpicBoonAbilityOptions,
   getMagicInitiateCantripOptions,
@@ -102,9 +84,7 @@ import {
   getSkilledChoiceSummary
 } from "../../../../../pages/CharactersPage/feats";
 import { isHarperAgentInstrument } from "../../../../../pages/CharactersPage/feats/harperAgent";
-import {
-  isPurpleDragonRookSkill
-} from "../../../../../pages/CharactersPage/feats/purpleDragonRook";
+import { isPurpleDragonRookSkill } from "../../../../../pages/CharactersPage/feats/purpleDragonRook";
 import { isSpellfireSparkSpellcastingAbility } from "../../../../../pages/CharactersPage/feats/spellfireSpark";
 import {
   getCrafterChoiceSummary,
@@ -309,27 +289,6 @@ function decodeSkilledSelection(value: string): SkilledFeatSelection | null {
   return null;
 }
 
-function decodePendingCantripChoice<TChoice extends BlessedWarriorChoice | DruidicWarriorChoice>(
-  choice: { cantripIds: [string, string] },
-  options: SpellEntry[]
-): TChoice | null {
-  const cantripIds = [...new Set(choice.cantripIds.filter((spellId) => spellId.length > 0))];
-
-  if (cantripIds.length !== 2) {
-    return null;
-  }
-
-  const optionIds = new Set(options.map((spell) => spell.id));
-
-  if (!cantripIds.every((spellId) => optionIds.has(spellId))) {
-    return null;
-  }
-
-  return {
-    cantripIds: cantripIds as TChoice["cantripIds"]
-  } as TChoice;
-}
-
 export function createEmptyPendingFeatState(): PendingFeatState {
   return {
     abilityScoreImprovement: null,
@@ -396,9 +355,7 @@ export function createDefaultPendingAbilityScoreImprovement(): PendingAbilitySco
 }
 
 export function createDefaultPendingBoonOfIrresistibleOffense(): PendingBoonOfIrresistibleOffense {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.BOON_OF_IRRESISTIBLE_OFFENSE].createDefault();
 }
 
 export function createDefaultPendingBoonOfEnergyResistanceChoice(): PendingBoonOfEnergyResistanceChoice {
@@ -416,21 +373,15 @@ export function createDefaultPendingBoonOfSkillChoice(): PendingBoonOfSkillChoic
 }
 
 export function createDefaultPendingAthleteChoice(): PendingAthleteChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.ATHLETE].createDefault();
 }
 
 export function createDefaultPendingChargerChoice(): PendingChargerChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.CHARGER].createDefault();
 }
 
 export function createDefaultPendingGrapplerChoice(): PendingGrapplerChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.GRAPPLER].createDefault();
 }
 
 export function createDefaultPendingColdCasterChoice(
@@ -459,21 +410,15 @@ export function createDefaultPendingDragonscarredChoice(): PendingDragonscarredC
 }
 
 export function createDefaultPendingChefChoice(): PendingChefChoice {
-  return {
-    ability: "CON"
-  };
+  return singleAbilityChoices[FEATS.CHEF].createDefault();
 }
 
 export function createDefaultPendingCrusherChoice(): PendingCrusherChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.CRUSHER].createDefault();
 }
 
 export function createDefaultPendingDualWielderChoice(): PendingDualWielderChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.DUAL_WIELDER].createDefault();
 }
 
 export function createDefaultPendingElementalAdeptChoice(): PendingElementalAdeptChoice {
@@ -491,21 +436,15 @@ export function createDefaultPendingFeyTouchedChoice(): PendingFeyTouchedChoice 
 }
 
 export function createDefaultPendingHeavilyArmoredChoice(): PendingHeavilyArmoredChoice {
-  return {
-    ability: "CON"
-  };
+  return singleAbilityChoices[FEATS.HEAVILY_ARMORED].createDefault();
 }
 
 export function createDefaultPendingHeavyArmorMasterChoice(): PendingHeavyArmorMasterChoice {
-  return {
-    ability: "CON"
-  };
+  return singleAbilityChoices[FEATS.HEAVY_ARMOR_MASTER].createDefault();
 }
 
 export function createDefaultPendingInspiringLeaderChoice(): PendingInspiringLeaderChoice {
-  return {
-    ability: "WIS"
-  };
+  return singleAbilityChoices[FEATS.INSPIRING_LEADER].createDefault();
 }
 
 export function createDefaultPendingKeenMindChoice(): PendingKeenMindChoice {
@@ -515,39 +454,27 @@ export function createDefaultPendingKeenMindChoice(): PendingKeenMindChoice {
 }
 
 export function createDefaultPendingLightlyArmoredChoice(): PendingLightlyArmoredChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.LIGHTLY_ARMORED].createDefault();
 }
 
 export function createDefaultPendingMageSlayerChoice(): PendingMageSlayerChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.MAGE_SLAYER].createDefault();
 }
 
 export function createDefaultPendingMartialWeaponTrainingChoice(): PendingMartialWeaponTrainingChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.MARTIAL_WEAPON_TRAINING].createDefault();
 }
 
 export function createDefaultPendingMediumArmorMasterChoice(): PendingMediumArmorMasterChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.MEDIUM_ARMOR_MASTER].createDefault();
 }
 
 export function createDefaultPendingModeratelyArmoredChoice(): PendingModeratelyArmoredChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.MODERATELY_ARMORED].createDefault();
 }
 
 export function createDefaultPendingMountedCombatantChoice(): PendingMountedCombatantChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.MOUNTED_COMBATANT].createDefault();
 }
 
 export function createDefaultPendingObservantChoice(): PendingObservantChoice {
@@ -558,21 +485,15 @@ export function createDefaultPendingObservantChoice(): PendingObservantChoice {
 }
 
 export function createDefaultPendingPiercerChoice(): PendingPiercerChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.PIERCER].createDefault();
 }
 
 export function createDefaultPendingPoisonerChoice(): PendingPoisonerChoice {
-  return {
-    ability: "DEX"
-  };
+  return singleAbilityChoices[FEATS.POISONER].createDefault();
 }
 
 export function createDefaultPendingPolearmMasterChoice(): PendingPolearmMasterChoice {
-  return {
-    ability: "DEX"
-  };
+  return singleAbilityChoices[FEATS.POLEARM_MASTER].createDefault();
 }
 
 export function createDefaultPendingRitualCasterChoice(): PendingRitualCasterChoice {
@@ -589,9 +510,7 @@ export function createDefaultPendingResilientChoice(): PendingResilientChoice {
 }
 
 export function createDefaultPendingSentinelChoice(): PendingSentinelChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.SENTINEL].createDefault();
 }
 
 export function createDefaultPendingShadowTouchedChoice(): PendingShadowTouchedChoice {
@@ -602,33 +521,23 @@ export function createDefaultPendingShadowTouchedChoice(): PendingShadowTouchedC
 }
 
 export function createDefaultPendingSlasherChoice(): PendingSlasherChoice {
-  return {
-    ability: "STR"
-  };
+  return singleAbilityChoices[FEATS.SLASHER].createDefault();
 }
 
 export function createDefaultPendingSpellSniperChoice(): PendingSpellSniperChoice {
-  return {
-    ability: "INT"
-  };
+  return singleAbilityChoices[FEATS.SPELL_SNIPER].createDefault();
 }
 
 export function createDefaultPendingTelekineticChoice(): PendingTelekineticChoice {
-  return {
-    ability: "INT"
-  };
+  return singleAbilityChoices[FEATS.TELEKINETIC].createDefault();
 }
 
 export function createDefaultPendingTelepathicChoice(): PendingTelepathicChoice {
-  return {
-    ability: "INT"
-  };
+  return singleAbilityChoices[FEATS.TELEPATHIC].createDefault();
 }
 
 export function createDefaultPendingWarCasterChoice(): PendingWarCasterChoice {
-  return {
-    ability: "INT"
-  };
+  return singleAbilityChoices[FEATS.WAR_CASTER].createDefault();
 }
 
 export function createDefaultPendingSkillExpertChoice(): PendingSkillExpertChoice {
@@ -640,9 +549,7 @@ export function createDefaultPendingSkillExpertChoice(): PendingSkillExpertChoic
 }
 
 export function createDefaultPendingSpeedyChoice(): PendingSpeedyChoice {
-  return {
-    ability: "DEX"
-  };
+  return singleAbilityChoices[FEATS.SPEEDY].createDefault();
 }
 
 export function createDefaultPendingWeaponMasterChoice(): PendingWeaponMasterChoice {
@@ -653,30 +560,22 @@ export function createDefaultPendingWeaponMasterChoice(): PendingWeaponMasterCho
 }
 
 export function createDefaultPendingBlessedWarriorChoice(): PendingBlessedWarriorChoice {
+  const definition = cantripChoices[FEATS.BLESSED_WARRIOR];
   return {
-    cantripIds: createDefaultPendingCantripChoice(getBlessedWarriorCantripOptions(), [
-      "Guidance",
-      "Sacred Flame"
-    ])
+    cantripIds: createDefaultPendingCantripChoice(definition.options, definition.preferredNames)
   };
 }
 
 export function createDefaultPendingDruidicWarriorChoice(): PendingDruidicWarriorChoice {
+  const definition = cantripChoices[FEATS.DRUIDIC_WARRIOR];
   return {
-    cantripIds: createDefaultPendingCantripChoice(getDruidicWarriorCantripOptions(), [
-      "Guidance",
-      "Starry Wisp"
-    ])
+    cantripIds: createDefaultPendingCantripChoice(definition.options, definition.preferredNames)
   };
 }
 
 export function createDefaultPendingCrafterChoice(): PendingCrafterChoice {
   return {
-    toolProficiencies: [
-      crafterNoneOptionValue,
-      crafterNoneOptionValue,
-      crafterNoneOptionValue
-    ]
+    toolProficiencies: [crafterNoneOptionValue, crafterNoneOptionValue, crafterNoneOptionValue]
   };
 }
 
@@ -726,11 +625,7 @@ export function createDefaultPendingSpellfireSparkChoice(): PendingSpellfireSpar
 
 export function createDefaultPendingMusicianChoice(): PendingMusicianChoice {
   return {
-    toolProficiencies: [
-      musicianNoneOptionValue,
-      musicianNoneOptionValue,
-      musicianNoneOptionValue
-    ]
+    toolProficiencies: [musicianNoneOptionValue, musicianNoneOptionValue, musicianNoneOptionValue]
   };
 }
 
@@ -1628,11 +1523,7 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
     return {
       ...createEmptyPendingFeatState(),
       skilledChoice: {
-        selections: entry.skilled.selections.map(encodeSkilledSelection) as [
-          string,
-          string,
-          string
-        ]
+        selections: entry.skilled.selections.map(encodeSkilledSelection) as [string, string, string]
       }
     };
   }
@@ -1643,10 +1534,7 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
 export function decodePendingBlessedWarriorChoice(
   choice: PendingBlessedWarriorChoice
 ): BlessedWarriorChoice | null {
-  return decodePendingCantripChoice<BlessedWarriorChoice>(
-    choice,
-    getBlessedWarriorCantripOptions()
-  );
+  return cantripChoices[FEATS.BLESSED_WARRIOR].decodeDraft(choice);
 }
 
 export function isPendingBlessedWarriorChoiceValid(choice: PendingBlessedWarriorChoice): boolean {
@@ -1662,10 +1550,10 @@ export function getPendingBlessedWarriorChoiceSummary(
 export function decodePendingBoonOfEnergyResistanceChoice(
   choice: PendingBoonOfEnergyResistanceChoice
 ): BoonOfEnergyResistanceChoice | null {
-  const firstDamageType =
-    choice.damageTypes[0] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
-  const secondDamageType =
-    choice.damageTypes[1] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
+  const firstDamageType = choice
+    .damageTypes[0] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
+  const secondDamageType = choice
+    .damageTypes[1] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
 
   if (!boonOfEnergyResistanceDamageTypeOptions.includes(firstDamageType)) {
     return null;
@@ -1731,19 +1619,11 @@ export function getPendingAthleteChoiceSummary(choice: PendingAthleteChoice): st
 }
 
 export function decodePendingChargerChoice(choice: PendingChargerChoice): ChargerChoice | null {
-  return choice.ability === "STR" || choice.ability === "DEX"
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.CHARGER].normalize(choice) ?? null;
 }
 
 export function decodePendingGrapplerChoice(choice: PendingGrapplerChoice): GrapplerChoice | null {
-  return choice.ability === "STR" || choice.ability === "DEX"
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.GRAPPLER].normalize(choice) ?? null;
 }
 
 export function getPendingChargerChoiceSummary(choice: PendingChargerChoice): string | null {
@@ -1813,9 +1693,7 @@ export function decodePendingDragonscarredChoice(
   };
 }
 
-export function isPendingDragonscarredChoiceValid(
-  choice: PendingDragonscarredChoice
-): boolean {
+export function isPendingDragonscarredChoiceValid(choice: PendingDragonscarredChoice): boolean {
   return decodePendingDragonscarredChoice(choice) !== null;
 }
 
@@ -1826,11 +1704,7 @@ export function getPendingDragonscarredChoiceSummary(
 }
 
 export function decodePendingChefChoice(choice: PendingChefChoice): ChefChoice | null {
-  return choice.ability === "CON" || choice.ability === "WIS"
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.CHEF].normalize(choice) ?? null;
 }
 
 export function getPendingChefChoiceSummary(choice: PendingChefChoice): string | null {
@@ -1838,11 +1712,7 @@ export function getPendingChefChoiceSummary(choice: PendingChefChoice): string |
 }
 
 export function decodePendingCrusherChoice(choice: PendingCrusherChoice): CrusherChoice | null {
-  return choice.ability === "STR" || choice.ability === "CON"
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.CRUSHER].normalize(choice) ?? null;
 }
 
 export function getPendingCrusherChoiceSummary(choice: PendingCrusherChoice): string | null {
@@ -1852,11 +1722,7 @@ export function getPendingCrusherChoiceSummary(choice: PendingCrusherChoice): st
 export function decodePendingDualWielderChoice(
   choice: PendingDualWielderChoice
 ): DualWielderChoice | null {
-  return choice.ability === "STR" || choice.ability === "DEX"
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.DUAL_WIELDER].normalize(choice) ?? null;
 }
 
 export function getPendingDualWielderChoiceSummary(
@@ -1907,20 +1773,14 @@ export function isPendingFeyTouchedChoiceValid(choice: PendingFeyTouchedChoice):
   return decodePendingFeyTouchedChoice(choice) !== null;
 }
 
-export function getPendingFeyTouchedChoiceSummary(
-  choice: PendingFeyTouchedChoice
-): string | null {
+export function getPendingFeyTouchedChoiceSummary(choice: PendingFeyTouchedChoice): string | null {
   return getFeyTouchedChoiceSummary(decodePendingFeyTouchedChoice(choice) ?? undefined);
 }
 
 export function decodePendingHeavilyArmoredChoice(
   choice: PendingHeavilyArmoredChoice
 ): HeavilyArmoredChoice | null {
-  return heavilyArmoredAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.HEAVILY_ARMORED].normalize(choice) ?? null;
 }
 
 export function getPendingHeavilyArmoredChoiceSummary(
@@ -1932,29 +1792,19 @@ export function getPendingHeavilyArmoredChoiceSummary(
 export function decodePendingHeavyArmorMasterChoice(
   choice: PendingHeavyArmorMasterChoice
 ): HeavyArmorMasterChoice | null {
-  return heavyArmorMasterAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.HEAVY_ARMOR_MASTER].normalize(choice) ?? null;
 }
 
 export function getPendingHeavyArmorMasterChoiceSummary(
   choice: PendingHeavyArmorMasterChoice
 ): string | null {
-  return getHeavyArmorMasterChoiceSummary(
-    decodePendingHeavyArmorMasterChoice(choice) ?? undefined
-  );
+  return getHeavyArmorMasterChoiceSummary(decodePendingHeavyArmorMasterChoice(choice) ?? undefined);
 }
 
 export function decodePendingInspiringLeaderChoice(
   choice: PendingInspiringLeaderChoice
 ): InspiringLeaderChoice | null {
-  return inspiringLeaderAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.INSPIRING_LEADER].normalize(choice) ?? null;
 }
 
 export function getPendingInspiringLeaderChoiceSummary(
@@ -1984,11 +1834,7 @@ export function getPendingKeenMindChoiceSummary(choice: PendingKeenMindChoice): 
 export function decodePendingLightlyArmoredChoice(
   choice: PendingLightlyArmoredChoice
 ): LightlyArmoredChoice | null {
-  return lightlyArmoredAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.LIGHTLY_ARMORED].normalize(choice) ?? null;
 }
 
 export function getPendingLightlyArmoredChoiceSummary(
@@ -2000,27 +1846,17 @@ export function getPendingLightlyArmoredChoiceSummary(
 export function decodePendingMageSlayerChoice(
   choice: PendingMageSlayerChoice
 ): MageSlayerChoice | null {
-  return mageSlayerAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.MAGE_SLAYER].normalize(choice) ?? null;
 }
 
-export function getPendingMageSlayerChoiceSummary(
-  choice: PendingMageSlayerChoice
-): string | null {
+export function getPendingMageSlayerChoiceSummary(choice: PendingMageSlayerChoice): string | null {
   return getMageSlayerChoiceSummary(decodePendingMageSlayerChoice(choice) ?? undefined);
 }
 
 export function decodePendingMartialWeaponTrainingChoice(
   choice: PendingMartialWeaponTrainingChoice
 ): MartialWeaponTrainingChoice | null {
-  return martialWeaponTrainingAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.MARTIAL_WEAPON_TRAINING].normalize(choice) ?? null;
 }
 
 export function getPendingMartialWeaponTrainingChoiceSummary(
@@ -2034,11 +1870,7 @@ export function getPendingMartialWeaponTrainingChoiceSummary(
 export function decodePendingMediumArmorMasterChoice(
   choice: PendingMediumArmorMasterChoice
 ): MediumArmorMasterChoice | null {
-  return mediumArmorMasterAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.MEDIUM_ARMOR_MASTER].normalize(choice) ?? null;
 }
 
 export function getPendingMediumArmorMasterChoiceSummary(
@@ -2052,11 +1884,7 @@ export function getPendingMediumArmorMasterChoiceSummary(
 export function decodePendingModeratelyArmoredChoice(
   choice: PendingModeratelyArmoredChoice
 ): ModeratelyArmoredChoice | null {
-  return moderatelyArmoredAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.MODERATELY_ARMORED].normalize(choice) ?? null;
 }
 
 export function getPendingModeratelyArmoredChoiceSummary(
@@ -2070,19 +1898,13 @@ export function getPendingModeratelyArmoredChoiceSummary(
 export function decodePendingMountedCombatantChoice(
   choice: PendingMountedCombatantChoice
 ): MountedCombatantChoice | null {
-  return mountedCombatantAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.MOUNTED_COMBATANT].normalize(choice) ?? null;
 }
 
 export function getPendingMountedCombatantChoiceSummary(
   choice: PendingMountedCombatantChoice
 ): string | null {
-  return getMountedCombatantChoiceSummary(
-    decodePendingMountedCombatantChoice(choice) ?? undefined
-  );
+  return getMountedCombatantChoiceSummary(decodePendingMountedCombatantChoice(choice) ?? undefined);
 }
 
 export function decodePendingObservantChoice(
@@ -2097,9 +1919,7 @@ export function decodePendingObservantChoice(
     : null;
 }
 
-export function getPendingObservantChoiceSummary(
-  choice: PendingObservantChoice
-): string | null {
+export function getPendingObservantChoiceSummary(choice: PendingObservantChoice): string | null {
   return getObservantChoiceSummary(decodePendingObservantChoice(choice) ?? undefined);
 }
 
@@ -2108,25 +1928,15 @@ export function isPendingObservantChoiceValid(choice: PendingObservantChoice): b
 }
 
 export function decodePendingPiercerChoice(choice: PendingPiercerChoice): PiercerChoice | null {
-  return piercerAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.PIERCER].normalize(choice) ?? null;
 }
 
 export function getPendingPiercerChoiceSummary(choice: PendingPiercerChoice): string | null {
   return getPiercerChoiceSummary(decodePendingPiercerChoice(choice) ?? undefined);
 }
 
-export function decodePendingPoisonerChoice(
-  choice: PendingPoisonerChoice
-): PoisonerChoice | null {
-  return poisonerAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+export function decodePendingPoisonerChoice(choice: PendingPoisonerChoice): PoisonerChoice | null {
+  return singleAbilityChoices[FEATS.POISONER].normalize(choice) ?? null;
 }
 
 export function getPendingPoisonerChoiceSummary(choice: PendingPoisonerChoice): string | null {
@@ -2136,11 +1946,7 @@ export function getPendingPoisonerChoiceSummary(choice: PendingPoisonerChoice): 
 export function decodePendingPolearmMasterChoice(
   choice: PendingPolearmMasterChoice
 ): PolearmMasterChoice | null {
-  return polearmMasterAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.POLEARM_MASTER].normalize(choice) ?? null;
 }
 
 export function getPendingPolearmMasterChoiceSummary(
@@ -2160,9 +1966,9 @@ export function decodePendingRitualCasterChoice(
   const requiredSpellCount = getRitualCasterSpellCountForLevel(characterLevel);
   const spellIds = [
     ...new Set(
-      choice.spellIds.slice(0, requiredSpellCount).filter(
-        (spellId) => spellId !== ritualCasterNoneOptionValue && spellId.length > 0
-      )
+      choice.spellIds
+        .slice(0, requiredSpellCount)
+        .filter((spellId) => spellId !== ritualCasterNoneOptionValue && spellId.length > 0)
     )
   ];
   const ritualSpellOptionIds = new Set(getRitualCasterSpellOptions().map((spell) => spell.id));
@@ -2207,9 +2013,7 @@ export function decodePendingResilientChoice(
     : null;
 }
 
-export function getPendingResilientChoiceSummary(
-  choice: PendingResilientChoice
-): string | null {
+export function getPendingResilientChoiceSummary(choice: PendingResilientChoice): string | null {
   return getResilientChoiceSummary(decodePendingResilientChoice(choice) ?? undefined);
 }
 
@@ -2218,16 +2022,10 @@ export function isPendingResilientChoiceValid(choice: PendingResilientChoice): b
 }
 
 export function decodePendingSentinelChoice(choice: PendingSentinelChoice): SentinelChoice | null {
-  return sentinelAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.SENTINEL].normalize(choice) ?? null;
 }
 
-export function getPendingSentinelChoiceSummary(
-  choice: PendingSentinelChoice
-): string | null {
+export function getPendingSentinelChoiceSummary(choice: PendingSentinelChoice): string | null {
   return getSentinelChoiceSummary(decodePendingSentinelChoice(choice) ?? undefined);
 }
 
@@ -2247,9 +2045,7 @@ export function decodePendingShadowTouchedChoice(
   };
 }
 
-export function isPendingShadowTouchedChoiceValid(
-  choice: PendingShadowTouchedChoice
-): boolean {
+export function isPendingShadowTouchedChoiceValid(choice: PendingShadowTouchedChoice): boolean {
   return decodePendingShadowTouchedChoice(choice) !== null;
 }
 
@@ -2260,11 +2056,7 @@ export function getPendingShadowTouchedChoiceSummary(
 }
 
 export function decodePendingSlasherChoice(choice: PendingSlasherChoice): SlasherChoice | null {
-  return slasherAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.SLASHER].normalize(choice) ?? null;
 }
 
 export function getPendingSlasherChoiceSummary(choice: PendingSlasherChoice): string | null {
@@ -2274,11 +2066,7 @@ export function getPendingSlasherChoiceSummary(choice: PendingSlasherChoice): st
 export function decodePendingSpellSniperChoice(
   choice: PendingSpellSniperChoice
 ): SpellSniperChoice | null {
-  return spellSniperAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.SPELL_SNIPER].normalize(choice) ?? null;
 }
 
 export function getPendingSpellSniperChoiceSummary(
@@ -2290,11 +2078,7 @@ export function getPendingSpellSniperChoiceSummary(
 export function decodePendingTelekineticChoice(
   choice: PendingTelekineticChoice
 ): TelekineticChoice | null {
-  return telekineticAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.TELEKINETIC].normalize(choice) ?? null;
 }
 
 export function getPendingTelekineticChoiceSummary(
@@ -2306,32 +2090,20 @@ export function getPendingTelekineticChoiceSummary(
 export function decodePendingTelepathicChoice(
   choice: PendingTelepathicChoice
 ): TelepathicChoice | null {
-  return telepathicAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.TELEPATHIC].normalize(choice) ?? null;
 }
 
-export function getPendingTelepathicChoiceSummary(
-  choice: PendingTelepathicChoice
-): string | null {
+export function getPendingTelepathicChoiceSummary(choice: PendingTelepathicChoice): string | null {
   return getTelepathicChoiceSummary(decodePendingTelepathicChoice(choice) ?? undefined);
 }
 
 export function decodePendingWarCasterChoice(
   choice: PendingWarCasterChoice
 ): WarCasterChoice | null {
-  return warCasterAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.WAR_CASTER].normalize(choice) ?? null;
 }
 
-export function getPendingWarCasterChoiceSummary(
-  choice: PendingWarCasterChoice
-): string | null {
+export function getPendingWarCasterChoiceSummary(choice: PendingWarCasterChoice): string | null {
   return getWarCasterChoiceSummary(decodePendingWarCasterChoice(choice) ?? undefined);
 }
 
@@ -2364,11 +2136,7 @@ export function getPendingSkillExpertChoiceSummary(
 }
 
 export function decodePendingSpeedyChoice(choice: PendingSpeedyChoice): SpeedyChoice | null {
-  return speedyAbilityOptions.includes(choice.ability)
-    ? {
-        ability: choice.ability
-      }
-    : null;
+  return singleAbilityChoices[FEATS.SPEEDY].normalize(choice) ?? null;
 }
 
 export function getPendingSpeedyChoiceSummary(choice: PendingSpeedyChoice): string | null {
@@ -2400,7 +2168,7 @@ export function isPendingWeaponMasterChoiceValid(choice: PendingWeaponMasterChoi
 export function decodePendingDruidicWarriorChoice(
   choice: PendingDruidicWarriorChoice
 ): DruidicWarriorChoice | null {
-  return decodePendingCantripChoice<DruidicWarriorChoice>(choice, getDruidicWarriorCantripOptions());
+  return cantripChoices[FEATS.DRUIDIC_WARRIOR].decodeDraft(choice);
 }
 
 export function decodePendingMagicInitiateChoice(
@@ -2506,9 +2274,7 @@ export function isPendingPurpleDragonRookChoiceValid(
 export function getPendingPurpleDragonRookChoiceSummary(
   choice: PendingPurpleDragonRookChoice
 ): string | null {
-  return getPurpleDragonRookChoiceSummary(
-    decodePendingPurpleDragonRookChoice(choice) ?? undefined
-  );
+  return getPurpleDragonRookChoiceSummary(decodePendingPurpleDragonRookChoice(choice) ?? undefined);
 }
 
 export function decodePendingSpellfireSparkChoice(
@@ -2532,8 +2298,8 @@ export function getPendingSpellfireSparkChoiceSummary(
 }
 
 export function decodePendingMusicianChoice(choice: PendingMusicianChoice): MusicianChoice | null {
-  const toolProficiencies = choice.toolProficiencies.filter(
-    (tool): tool is ToolProficiency => musicianToolOptionSet.has(tool as ToolProficiency)
+  const toolProficiencies = choice.toolProficiencies.filter((tool): tool is ToolProficiency =>
+    musicianToolOptionSet.has(tool as ToolProficiency)
   );
   const uniqueToolProficiencies = [...new Set(toolProficiencies)];
 
@@ -2612,11 +2378,8 @@ export function isPendingCultOfDragonInitiateChoiceValid(
   editingFeatEntryId: string | null = null
 ): boolean {
   return (
-    decodePendingCultOfDragonInitiateChoice(
-      choice,
-      languageProficiencies,
-      editingFeatEntryId
-    ) !== null
+    decodePendingCultOfDragonInitiateChoice(choice, languageProficiencies, editingFeatEntryId) !==
+    null
   );
 }
 
@@ -2626,11 +2389,8 @@ export function getPendingCultOfDragonInitiateChoiceSummary(
   editingFeatEntryId: string | null = null
 ): string | null {
   return getCultOfDragonInitiateChoiceSummary(
-    decodePendingCultOfDragonInitiateChoice(
-      choice,
-      languageProficiencies,
-      editingFeatEntryId
-    ) ?? undefined
+    decodePendingCultOfDragonInitiateChoice(choice, languageProficiencies, editingFeatEntryId) ??
+      undefined
   );
 }
 

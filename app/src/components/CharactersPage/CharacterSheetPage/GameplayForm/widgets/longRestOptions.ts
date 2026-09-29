@@ -5,7 +5,6 @@ import {
   getCharacterSpellSlotPools,
   recoverSlotPools
 } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
   getAasimarCelestialRevelationUsesTotal,
@@ -103,24 +102,19 @@ import {
   restoreBarbarianZealousPresenceOnLongRest,
   restoreBarbarianPersistentRageOnLongRest,
   restoreBarbarianRageOnLongRest,
-  restoreBarbarianRageOnShortRest,
   restoreBarbarianRelentlessRageOnLongRest,
-  restoreBarbarianRelentlessRageOnShortRest,
   restoreBarbarianWarriorOfTheGodsOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import {
-  restoreBardicInspirationOnShortRest,
   getBardicInspirationUsesTotal,
   getBlessingOfMoonlightUsesTotal,
   getBeguilingMagicUsesTotal,
   getMantleOfMajestyUsesTotal,
   getUnbreakableMajestyUsesTotal,
-  applyShortRestToBardFeatures,
   restoreBlessingOfMoonlightOnLongRest,
   restoreBeguilingMagicOnLongRest,
   restoreMantleOfMajestyOnLongRest,
   restoreUnbreakableMajestyOnLongRest,
-  restoreUnbreakableMajestyOnShortRest,
   restoreBardicInspirationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
@@ -128,16 +122,12 @@ import {
   getClericWarPriestUsesTotal,
   getClericWardingFlareUsesTotal,
   getDivineForeknowledgeUsesTotal,
-  hasClericImprovedWardingFlareFeature,
   hasClericDivineInterventionFeature,
-  restoreClericChannelDivinityOnShortRest,
   restoreClericCoronaOfLightOnLongRest,
   restoreClericDivineForeknowledgeOnLongRest,
   restoreClericDivineInterventionOnLongRest,
   restoreClericWarPriestOnLongRest,
-  restoreClericWarPriestOnShortRest,
-  restoreClericWardingFlareOnLongRest,
-  restoreClericWardingFlareOnShortRest
+  restoreClericWardingFlareOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
@@ -152,23 +142,16 @@ import {
   getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter as getFighterPsiWarriorTelekineticMovementUsesTotal,
   getFighterSecondWindUsesTotal,
   restoreFighterActionSurgeOnLongRest,
-  restoreFighterActionSurgeOnShortRest,
   restoreFighterBattleMasterKnowYourEnemyOnLongRest,
   restoreFighterBattleMasterSuperiorityDiceOnLongRest,
-  restoreFighterBattleMasterSuperiorityDiceOnShortRest,
   restoreFighterGroupRecoveryOnLongRest,
-  restoreFighterGroupRecoveryOnShortRest,
   restoreFighterIndomitableOnLongRest,
   restoreFighterPsiWarriorBulwarkOfForceOnLongRest,
   restoreFighterPsiWarriorEnergyDiceOnLongRest,
-  restoreFighterPsiWarriorEnergyDiceOnShortRest,
   restoreFighterPsiWarriorTelekineticMasterOnLongRest,
   restoreFighterPsiWarriorPsiPoweredLeapOnLongRest,
-  restoreFighterPsiWarriorPsiPoweredLeapOnShortRest,
   restoreFighterPsiWarriorTelekineticMovementOnLongRest,
-  restoreFighterPsiWarriorTelekineticMovementOnShortRest,
-  restoreFighterSecondWindOnLongRest,
-  restoreFighterSecondWindOnShortRest
+  restoreFighterSecondWindOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import {
   getDruidCosmicOmenUsesTotal,
@@ -184,8 +167,7 @@ import {
   restoreDruidNatureMagicianOnLongRest,
   restoreDruidStarMapGuidingBoltOnLongRest,
   restoreDruidWildResurgenceOnLongRest,
-  restoreAllDruidWildShapeUses,
-  restoreOneDruidWildShapeUse
+  restoreAllDruidWildShapeUses
 } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
 import {
   getElderChampionUsesTotal,
@@ -199,7 +181,6 @@ import {
   getPaladinHealingPoolTotal,
   getPaladinsSmiteUsesTotal,
   getUndyingSentinelUsesTotal,
-  restorePaladinChannelDivinityOnShortRest,
   restoreElderChampionOnLongRest,
   restoreElementalRebukeOnLongRest,
   restoreFaithfulSteedOnLongRest,
@@ -221,7 +202,6 @@ import {
   restoreMonkFlurryOfHealingAndHarmOnLongRest,
   restoreMonkHandOfUltimateJusticeOnLongRest,
   restoreMonkFocusPointsOnLongRest,
-  restoreMonkFocusPointsOnShortRest,
   restoreMonkUncannyMetabolismOnLongRest,
   restoreMonkWholenessOfBodyOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
@@ -249,13 +229,10 @@ import {
   getRogueSpellThiefUsesTotal,
   getRogueStrokeOfLuckUsesTotal,
   restoreRogueSpellThiefOnLongRest,
-  restoreRogueStrokeOfLuckOnLongRest,
-  restoreRogueStrokeOfLuckOnShortRest
+  restoreRogueStrokeOfLuckOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import {
   getRogueScionOfTheThreeBloodthirstUsesTotal,
-  hasRogueScionOfTheThreeDreadIncarnateFeature,
-  restoreRogueScionOfTheThreeBloodthirstOnShortRest,
   restoreRogueScionOfTheThreeBloodthirstOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueScionOfTheThree";
 import {
@@ -266,13 +243,10 @@ import {
   restoreAllRogueSoulknifePsionicDice,
   restoreRogueSoulknifePsychicWhispersOnLongRest,
   restoreRogueSoulknifePsychicVeilOnLongRest,
-  restoreRogueSoulknifeRendMindOnLongRest,
-  restoreRogueSoulknifePsionicDie
+  restoreRogueSoulknifeRendMindOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import {
-  applySorcerousRestorationOnShortRest,
   getInnateSorceryUsesTotal,
-  getSorcerousRestorationUsesRemaining,
   getSorcerousRestorationUsesTotal,
   getSorceryPointsTotal,
   restoreInnateSorceryOnLongRest,
@@ -308,7 +282,6 @@ import {
   hasWarlockFeature,
   restoreWarlockBeguilingDefenseOnLongRest,
   restoreWarlockClairvoyantCombatantOnLongRest,
-  restoreWarlockClairvoyantCombatantOnShortRest,
   restoreContactPatronOnLongRest,
   restoreWarlockGiftOfTheDepthsOnLongRest,
   restoreWarlockGiftOfTheProtectorsOnLongRest,
@@ -317,7 +290,6 @@ import {
   restoreWarlockHealingLightOnLongRest,
   restoreWarlockSearingVengeanceOnLongRest,
   restoreMysticArcanumOnLongRest,
-  restoreWarlockPactMagicSpellSlots,
   restoreWarlockMagicalCunningOnLongRest,
   restoreWarlockStepsOfTheFeyOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
@@ -325,8 +297,7 @@ import {
   getArcaneRecoveryUsesTotal,
   getWizardSignatureSpellIds,
   restoreArcaneRecoveryOnLongRest,
-  restoreWizardSignatureSpellsOnLongRest,
-  restoreWizardSignatureSpellsOnShortRest
+  restoreWizardSignatureSpellsOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import {
   getWizardBladesongUsesTotal,
@@ -337,7 +308,6 @@ import {
   getWizardIllusionistIllusorySelfUsesTotal,
   getWizardIllusionistPhantasmalCreaturesUsesTotal,
   restoreWizardIllusionistIllusorySelfOnLongRest,
-  restoreWizardIllusionistIllusorySelfOnShortRest,
   restoreWizardIllusionistPhantasmalCreaturesOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardIllusionist";
 import {
@@ -349,7 +319,7 @@ import {
   restoreWizardEvokerOverchannelOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEvoker";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   applyBoonOfBountifulHealthTemporaryHitPointsBonus,
   boonOfRevelryIrresistibleDanceSpellId,
@@ -381,14 +351,12 @@ import {
 import {} from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
-  applyShortRestToCharacterStatusEntries,
   getExhaustionLevel,
   normalizeCharacterStatusEntries,
   setCharacterExhaustionLevel
 } from "../../../../../pages/CharactersPage/statusEntries";
 import {
   applyLongRestToCharacterCompanions,
-  applyShortRestToCharacterCompanions,
   hasFiniteCompanionDuration
 } from "../../../../../pages/CharactersPage/companions";
 import {

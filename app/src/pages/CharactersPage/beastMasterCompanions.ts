@@ -1,4 +1,4 @@
-import { getClassLevel, getClassSubclassId } from "./multiclass";
+import { getClassLevel, getClassSubclassId } from "./multiclassState";
 import type { Character, CharacterCompanion, MonsterRecord } from "../../types";
 import { getMonsterHitPoints } from "../../utils/monsters";
 import {

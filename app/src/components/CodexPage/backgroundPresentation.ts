@@ -1,10 +1,7 @@
-import {
-  FEATS,
-  SPELL_LIST_CLASS,
-  type BackgroundEntry
-} from "../../codex/entries";
+import { type BackgroundEntry } from "../../codex/entries";
+import { FEATS, SPELL_LIST_CLASS } from "../../codex/entries/enums";
 import { formatStarterPackStartingEquipmentSummary } from "../../codex/classes/starterPack";
-import { getFeatLabel } from "../../pages/CharactersPage/feats";
+import { getFeatLabel } from "../../pages/CharactersPage/feats/catalog";
 import { getToolProficiencyLabel } from "../../pages/CharactersPage/proficiencyOptions";
 import type { AbilityKey } from "../../types/characters";
 

@@ -1,6 +1,8 @@
-import { hasCharacterClass, getClassLevel } from "../../../multiclass";
+import { getUnlockedProgressionFeatures } from "../../../../../codex/progression";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../../multiclassState";
 import { barbarianFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
 
 export type BarbarianSubclassContributionCharacter = Pick<Character, "className"> &
@@ -13,24 +15,12 @@ function getNormalizedLevel(level: number | undefined): number {
 function getUnlockedBarbarianFeatures(level: number | undefined): Set<CLASS_FEATURE> {
   const normalizedLevel = getNormalizedLevel(level);
 
-  return barbarianFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(barbarianFeatures, normalizedLevel);
 }
 
 function getBarbarianFeatureRow(level: number | undefined) {
   const normalizedLevel = getNormalizedLevel(level);
-  const matchingRows = barbarianFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows[matchingRows.length - 1] ?? null;
+  return getProgressionRow(barbarianFeatures, normalizedLevel);
 }
 
 export function getBarbarianSubclassContributionRageState(

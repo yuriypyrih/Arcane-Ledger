@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
-import {
-  CLASS_FEATURE,
-  FEAT_CATEGORY,
-  FEATS,
-  type DivinityEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type DivinityEntry, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, FEAT_CATEGORY, FEATS } from "../../../../codex/entries/enums";
 import { createCharacterFeatEntry } from "../../../../pages/CharactersPage/feats";
 import {
   getEffectiveNonExpertSkillOptions,

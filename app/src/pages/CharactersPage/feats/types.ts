@@ -7,7 +7,7 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../types";
-import type { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries";
+import type { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries/enums";
 import type { TOOL_PROFICIENCY } from "../../../types";
 import type { FeatSource } from "./source";
 

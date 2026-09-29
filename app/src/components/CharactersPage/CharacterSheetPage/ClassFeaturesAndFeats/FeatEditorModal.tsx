@@ -1,8 +1,10 @@
 import clsx from "clsx";
 import { useMemo, type Dispatch, type SetStateAction } from "react";
-import { FEAT_CATEGORY, FEATS, type SpellEntry } from "../../../../codex/entries";
+import { type SpellEntry } from "../../../../codex/entries";
+import { FEAT_CATEGORY, FEATS } from "../../../../codex/entries/enums";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
-import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { type FeatDefinition } from "../../../../pages/CharactersPage/feats";
+import { getFeatCategoryLabel } from "../../../../pages/CharactersPage/feats/catalog";
 import type {
   CharacterFeatEntry,
   LanguageProficiencyEntry,
@@ -345,9 +347,7 @@ function FeatEditorModal({
                 onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
                 onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
                 onSavePendingMagicInitiateChoice={onSavePendingMagicInitiateChoice}
-                onSavePendingCultOfDragonInitiateChoice={
-                  onSavePendingCultOfDragonInitiateChoice
-                }
+                onSavePendingCultOfDragonInitiateChoice={onSavePendingCultOfDragonInitiateChoice}
                 onSavePendingEmeraldEnclaveFledglingChoice={
                   onSavePendingEmeraldEnclaveFledglingChoice
                 }

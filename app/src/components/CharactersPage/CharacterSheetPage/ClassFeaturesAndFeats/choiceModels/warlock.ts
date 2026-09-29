@@ -1,4 +1,5 @@
-import { DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import {
   getWarlockFiendishResilienceDamageTypeSelectionForCharacter,
   getWarlockMysticArcanumSpellIdForCharacter,

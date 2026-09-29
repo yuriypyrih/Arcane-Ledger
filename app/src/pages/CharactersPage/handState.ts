@@ -1,4 +1,5 @@
-import { WEAPON_PROPERTY, type WeaponDamage, type WeaponEntry } from "../../codex/entries";
+import { type WeaponDamage, type WeaponEntry } from "../../codex/entries";
+import { WEAPON_PROPERTY } from "../../codex/entries/enums";
 
 export type HeldWeaponDescriptor = {
   key: string;

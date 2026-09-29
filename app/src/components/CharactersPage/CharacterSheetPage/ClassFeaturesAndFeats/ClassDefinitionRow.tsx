@@ -14,7 +14,7 @@ import {
   CUSTOM_CLASS_NAME_MAX_LENGTH
 } from "../../../../pages/CharactersPage/customOrigins";
 import { getCharacterClassRulesConfig } from "../../../../pages/CharactersPage/customClass";
-import { getClassEditorCharacter } from "../../../../pages/CharactersPage/multiclass";
+import { getClassEditorCharacter } from "../../../../pages/CharactersPage/multiclassState";
 import {
   createDeclaredClass,
   removeDeclaredClass,

@@ -1,10 +1,11 @@
-import { getCharacterClasses, getClassEditorCharacter } from "../multiclass";
+import { getClassRuntimeCharacter } from "../characterRuntime/classContexts";
+import { getCharacterClasses } from "../multiclassState";
 import {
   getClassEntryByName,
-  type CLASS_FEATURE,
   type FeatureMapEntry,
   type SpellDescriptionEntry
 } from "../../../codex/entries";
+import { type CLASS_FEATURE } from "../../../codex/entries/enums";
 import {
   artificerFeatureMap,
   barbarianFeatureMap,
@@ -138,7 +139,7 @@ export function getFeatureDescriptionMetadataForCharacter(
       getCharacterClasses(character)
         .map((entry) =>
           getFeatureDescriptionMetadataForCharacter(
-            getClassEditorCharacter(character, entry),
+            getClassRuntimeCharacter(character, entry),
             feature
           )
         )
@@ -160,7 +161,7 @@ export function getFeatureDescriptionForCharacter(
     return (
       getCharacterClasses(character)
         .map((entry) =>
-          getFeatureDescriptionForCharacter(getClassEditorCharacter(character, entry), feature)
+          getFeatureDescriptionForCharacter(getClassRuntimeCharacter(character, entry), feature)
         )
         .find((value) => value.length) ?? []
     );

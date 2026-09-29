@@ -1,4 +1,6 @@
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterArtificerFeatureState,
@@ -100,9 +102,7 @@ export function hasArtificerBattleSmithImprovedDefenderFeature(
   return hasArtificerSubclassFeature(character, battleSmithSubclassId, 15);
 }
 
-export function getArtificerArcaneJoltUsesTotal(
-  character: BattleSmithArcaneJoltCharacter
-): number {
+export function getArtificerArcaneJoltUsesTotal(character: BattleSmithArcaneJoltCharacter): number {
   if (!hasArtificerBattleSmithArcaneJoltFeature(character)) {
     return 0;
   }
@@ -230,18 +230,12 @@ export function consumeArtificerArcaneJoltUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...arcaneJoltState,
-        battleSmithArcaneJoltUsesExpended: usesExpended + 1,
-        battleSmithArcaneJoltUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...arcaneJoltState,
+    battleSmithArcaneJoltUsesExpended: usesExpended + 1,
+    battleSmithArcaneJoltUsedThisTurn: true
+  });
 }
 
 export function restoreArtificerArcaneJoltOnLongRest(character: Character): Character {
@@ -262,18 +256,12 @@ export function restoreArtificerArcaneJoltOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...arcaneJoltState,
-        battleSmithArcaneJoltUsesExpended: 0,
-        battleSmithArcaneJoltUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...arcaneJoltState,
+    battleSmithArcaneJoltUsesExpended: 0,
+    battleSmithArcaneJoltUsedThisTurn: false
+  });
 }
 
 export function clearArtificerArcaneJoltForNewRound(character: Character): Character {
@@ -287,16 +275,10 @@ export function clearArtificerArcaneJoltForNewRound(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        battleSmithArcaneJoltUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    battleSmithArcaneJoltUsedThisTurn: false
+  });
 }
 
 export function transformArtificerBattleSmithArcaneJoltWeaponAction(

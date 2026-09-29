@@ -95,23 +95,26 @@ describe("spell catalog corrections", () => {
     ]);
   });
 
-  it("includes the four hand effects and their 2024 rules", () => {
-    const description = getSpellEntryById("spell-arcane-hand")!.description.join(" ");
-    for (const effect of ["Clenched Fist", "Forceful Hand", "Grasping Hand", "Interposing Hand"]) {
-      expect(description).toContain(`<strong>${effect}.</strong>`);
-    }
-    for (const rule of [
-      "5d8",
-      "4d6",
-      "Strength saving throw",
-      "Dexterity saving throw",
-      "spell save DC",
-      "Half Cover",
-      "Difficult Terrain",
-      "2d8",
-      "2d6"
-    ]) {
-      expect(description).toContain(rule);
+  it("associates each hand effect with its own 2024 rules and scaling", () => {
+    const description = getSpellEntryById("spell-arcane-hand")!.description;
+    const effectRules = [
+      ["Clenched Fist", "5d8", "Force damage"],
+      ["Forceful Hand", "Strength saving throw", "pushed"],
+      ["Grasping Hand", "Dexterity saving throw", "spell save DC", "4d6"],
+      ["Interposing Hand", "Half Cover", "Difficult Terrain"],
+      [
+        "Using a Higher-Level Spell Slot",
+        "Clenched Fist increases by <strong>2d8</strong>",
+        "Grasping Hand increases by <strong>2d6</strong>"
+      ]
+    ];
+    for (const [effect, ...rules] of effectRules) {
+      const paragraphs = description.filter(
+        (entry): entry is string =>
+          typeof entry === "string" && entry.startsWith(`<strong>${effect}.</strong>`)
+      );
+      expect(paragraphs, effect).toHaveLength(1);
+      for (const rule of rules) expect(paragraphs[0], effect).toContain(rule);
     }
   });
 });

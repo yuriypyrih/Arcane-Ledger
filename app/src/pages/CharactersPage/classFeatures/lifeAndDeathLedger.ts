@@ -1,18 +1,13 @@
-import { getClassLevel } from "../multiclass";
-import {
-  CLASS_FEATURE,
-  ELDRITCH_INVOCATION,
-  FEATS,
-  getEldritchInvocationEntryById,
-  type SpellDescriptionEntry
-} from "../../../codex/entries";
+import { getClassLevel } from "../multiclassState";
+import { getEldritchInvocationEntryById, type SpellDescriptionEntry } from "../../../codex/entries";
+import { CLASS_FEATURE, ELDRITCH_INVOCATION, FEATS } from "../../../codex/entries/enums";
 import type { Character } from "../../../types";
 import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
 import { normalizeDeathSaveTrack } from "../deathSaves";
-import { getFeatDefinition } from "../feats";
+import { getFeatDefinition } from "../feats/catalog";
 import {
   getBoonOfRecoveryLastStandStateForCharacter,
   spendBoonOfRecoveryLastStandForCharacter

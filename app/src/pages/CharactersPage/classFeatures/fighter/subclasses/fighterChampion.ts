@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   fighterChampionImprovedCriticalDescription,
   fighterChampionSuperiorCriticalDescription
@@ -10,7 +11,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { isCharacterBloodied } from "../../../bloodied";
 import { normalizeRoundTracker } from "../../../combat";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -287,7 +288,7 @@ export function collectFighterChampionContributions(
 
 export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectFighterChampionContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterChampionContributions),
     {
       character: character as Character
     }

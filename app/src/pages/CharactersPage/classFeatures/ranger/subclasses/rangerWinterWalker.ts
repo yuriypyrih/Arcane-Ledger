@@ -1,11 +1,8 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  REACTION,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { extractDescriptionSection as extractFeatureDescriptionSection } from "../../../shared/descriptionSections";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
 import {
@@ -21,7 +18,7 @@ import {
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -111,31 +108,6 @@ function getRangerWinterWalkerFeatureDescriptionEntries(feature: CLASS_FEATURE):
   return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
     (entry): entry is string => typeof entry === "string"
   );
-}
-
-function extractFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string
-): string[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
 }
 
 const frigidExplorerDescription = getRangerWinterWalkerFeatureDescriptionEntries(
@@ -636,16 +608,10 @@ export function consumeRangerWinterWalkerFortifyingSoulUse(character: Character)
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        fortifyingSoulUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    fortifyingSoulUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerWinterWalkerChillingRetributionUse(character: Character): Character {
@@ -661,16 +627,10 @@ export function consumeRangerWinterWalkerChillingRetributionUse(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        chillingRetributionUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    chillingRetributionUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerWinterWalkerFrozenHauntUse(character: Character): Character {
@@ -686,16 +646,10 @@ export function consumeRangerWinterWalkerFrozenHauntUse(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        frozenHauntUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    frozenHauntUsesExpended: usesExpended + 1
+  });
 }
 
 export function restoreRangerWinterWalkerFortifyingSoulOnLongRest(character: Character): Character {
@@ -709,16 +663,10 @@ export function restoreRangerWinterWalkerFortifyingSoulOnLongRest(character: Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        fortifyingSoulUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    fortifyingSoulUsesExpended: 0
+  });
 }
 
 export function restoreRangerWinterWalkerChillingRetributionOnLongRest(
@@ -734,16 +682,10 @@ export function restoreRangerWinterWalkerChillingRetributionOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        chillingRetributionUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    chillingRetributionUsesExpended: 0
+  });
 }
 
 export function restoreRangerWinterWalkerFrozenHauntOnLongRest(character: Character): Character {
@@ -757,16 +699,10 @@ export function restoreRangerWinterWalkerFrozenHauntOnLongRest(character: Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        frozenHauntUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    frozenHauntUsesExpended: 0
+  });
 }
 
 function getRangerWinterWalkerFeatureActions(
@@ -927,16 +863,10 @@ export function consumeRangerWinterWalkerPolarStrikesUse(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        winterWalkerPolarStrikesUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    winterWalkerPolarStrikesUsedThisTurn: true
+  });
 }
 
 function collectRangerWinterWalkerContributions(
@@ -1051,7 +981,7 @@ function collectRangerWinterWalkerContributions(
 
 export const getRangerWinterWalkerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRangerWinterWalkerContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerWinterWalkerContributions),
     {
       character: character as Character
     }

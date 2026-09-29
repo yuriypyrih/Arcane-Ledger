@@ -1,9 +1,5 @@
-import {
-  ENTRY_CATEGORIES,
-  type CodexCategory,
-  type CodexEntry,
-  type SpellEntry
-} from "../entries";
+import { type CodexCategory, type CodexEntry, type SpellEntry } from "../entries";
+import { ENTRY_CATEGORIES } from "../entries/enums";
 import {
   getCodexEntries,
   getCodexEntryById,
@@ -28,8 +24,8 @@ function createCodexRepository(): CodexRepository {
       return cachedEntries;
     }
 
-    const nextEntriesPromise = Promise.resolve(getSyncEntriesByCategory(category)).then((entries) =>
-      category === ENTRY_CATEGORIES.SPELLS ? entries : sortEntriesByName(entries)
+    const nextEntriesPromise = Promise.resolve(getSyncEntriesByCategory(category)).then(
+      (entries) => (category === ENTRY_CATEGORIES.SPELLS ? entries : sortEntriesByName(entries))
     );
     categoryCache.set(category, nextEntriesPromise);
     return nextEntriesPromise;

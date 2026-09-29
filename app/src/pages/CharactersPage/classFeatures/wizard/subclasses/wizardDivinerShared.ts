@@ -3,8 +3,8 @@ import {
   getClassLevel,
   getClassSpellbookIds,
   getClassSubclassId
-} from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";

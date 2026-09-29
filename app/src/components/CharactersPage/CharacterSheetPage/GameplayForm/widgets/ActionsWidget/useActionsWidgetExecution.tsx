@@ -1,98 +1,32 @@
+import { applyActionResourceTransition } from "./actionResourceTransition";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
-import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
-import CellContainer from "../../../../../CellContainer/CellContainer";
-import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
-import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
-import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
-import RollStatePill from "../../../../../RollStatePill/RollStatePill";
-import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
-import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
+
+import { useEffect } from "react";
+
+import type { Character } from "../../../../../../types";
 import { getMonsterKey } from "../../../../../../utils/monsters";
-import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
+
 import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
   activateBardicInspirationForCharacter,
   activateInnateSorceryForCharacter,
-  activateClericBlessingOfTheTricksterForCharacter,
-  activateDruidNatureMagicianForCharacter,
-  activateDruidStarryFormForCharacter,
-  activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter,
-  activateDruidWildResurgenceWildShapeRecoveryForCharacter,
-  activateDruidWildShapeForCharacter,
-  activateDruidWildCompanionForCharacter,
   activateFeatureActionForCharacter,
-  activateFeatureActionOptionsForCharacter,
-  activateFeatureActionOptionForCharacter,
-  activateArcaneRecoveryForCharacter,
-  applySpellCastFeatureEffectsForCharacter,
   applyInspiredEclipseStatusForCharacter,
-  applyMantleOfMajestyStatusForCharacter,
-  applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
   applyRangerWinterWalkerFortifyingSoulSelfStatusForCharacter,
-  applyLayOnHandsForCharacter,
-  consumeBeguilingMagicOrBardicInspirationForCharacter,
-  consumeMantleOfMajestyUseForCharacter,
-  consumeContactPatronUseForCharacter,
   consumeWarlockEldritchSmitePactMagicSlotForCharacter,
   consumeWarlockLifedrinkerHitDieForCharacter,
-  expendChannelDivinityUseForCharacter,
   consumeFighterPsiWarriorPsionicStrikeForCharacter,
-  consumeMysticArcanumUseForCharacter,
   consumeRangerGloomStalkerDreadAmbusherUseForCharacter,
-  consumeRangerWinterWalkerFrozenHauntUseForCharacter,
   consumeRangerWinterWalkerPolarStrikesUseForCharacter,
-  createSpellSlotFromSorceryPointsForCharacter,
-  consumeFaithfulSteedUseForCharacter,
-  consumePaladinsSmiteUseForCharacter,
-  hasDruidTwinklingConstellationsFeatureForCharacter,
-  getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
-  getDruidWildShapeKnownFormsForCharacter,
-  getDruidWildShapeUsesRemainingForCharacter,
-  getDruidWildShapeUsesTotalForCharacter,
-  consumeRangerFavoredEnemyUseForCharacter,
   consumeRangerTirelessUseForCharacter,
-  consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   clearRoundScopedFeatureStateForCharacter,
-  convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
-  consumeSharedEconomyMultiForCharacterAction,
   consumeWeaponAttackActionForCharacter,
-  createEconomyMultiContextForFeatureAction,
-  createEconomyMultiContextForFeatureActionOption,
-  expendMonkFocusPointForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
-  getChannelDivinityUsesRemainingForCharacter,
-  getChannelDivinityUsesTotalForCharacter,
-  getInnateSorceryActivationSorceryPointCostForCharacter,
-  getMantleOfMajestyFallbackSlotLevelForCharacter,
-  getMantleOfMajestyUsesRemainingForCharacter,
-  getSorcererMetamagicActionCostForCharacter,
-  getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForCharacter,
-  getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter,
-  getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter,
-  getSorceryPointsRemainingForCharacter,
-  getSorceryPointsTotalForCharacter,
-  getLayOnHandsCurableConditionsForCharacter,
-  getSharedEconomyMultiCountForCharacterAction,
-  getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
-  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter,
-  getWarlockHealingLightDiceRemainingForCharacter,
-  getWarlockHealingLightMaxSpendForCharacter,
-  getWarlockMysticArcanumSelectionsForCharacter,
-  getWarlockPactMagicSlotsRemainingForCharacter,
-  hasActivePaladinAuraOfProtectionForCharacter,
-  restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   markRangerHunterHordeBreakerUsedForCharacter,
-  setRangerHunterHordeBreakerActionKeyForCharacter,
-  spendWarlockHealingLightDiceForCharacter,
-  type FeatureActionCard,
-  type FeatureActionHeaderTag,
-  type FeatureActionOptionCard
+  type FeatureActionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   boonOfFateImproveFateActionKey,
@@ -115,12 +49,7 @@ import { getHitDiceRemainingForCharacter } from "../../../../../../pages/Charact
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import { activateBarbarianRecklessAttack } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import { applyBarbarianRecklessAttackIndicatorToWeaponAction } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarianRecklessAttack";
-import {
-  createChargesCardUsage,
-  createFeatureActionCardCost,
-  createNamedUsageHeaderTags,
-  createNamedResourceCardUsage
-} from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+
 import {
   applyDhampirVampiricBiteWeaponAction,
   applyOrcAdrenalineRushForCharacter,
@@ -132,29 +61,14 @@ import {
   rebornKnowledgeFromPastLifeRollFormula
 } from "../../../../../../pages/CharactersPage/species";
 import { hasExpeditiousRetreatDashBonusActionPath } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
-import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
-import {
-  channelDivinityActionKey,
-  preserveLifeActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
+
 import {
   druidNatureMagicianActionKey,
   druidWildResurgenceActionKey,
   druidWildCompanionActionKey,
   druidWildShapeActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/druid/druid";
-import {
-  activateBarbarianRage,
-  activateBarbarianWildHeartRage,
-  barbarianRageActionKey,
-  barbarianWarriorOfTheGodsActionKey,
-  getBarbarianBrutalStrikeDamageFormula,
-  getBarbarianBrutalStrikeSelectionLimit,
-  getBarbarianRageOfTheWildsOptions,
-  getBarbarianRageOfTheGodsUsesRemaining,
-  getBarbarianRageOfTheGodsUsesTotal,
-  getBarbarianPowerOfTheWildsOptions
-} from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
+
 import {
   consumeFighterBattleMasterKnowYourEnemyForCharacter,
   expendFighterBattleMasterSuperiorityDieForCharacter,
@@ -164,15 +78,10 @@ import {
   consumeFighterGroupRecoveryUse,
   getFighterGroupRecoveryHealingFormula,
   getFighterGroupRecoveryUsesRemaining,
-  getFighterGroupRecoveryUsesTotal,
-  fighterSecondWindActionKey,
   getFighterSecondWindHealingFormula,
   markFighterBattleMasterCombatSuperiorityUsedForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
-import {
-  paladinChannelDivinityActionKey,
-  type LayOnHandsCondition
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
+
 import {
   activatePaladinOathOfDevotionSacredWeapon,
   applyPaladinOathOfDevotionSacredWeaponAction
@@ -181,95 +90,38 @@ import {
   activatePaladinOathOfVengeanceVowOfEnmity,
   applyPaladinOathOfVengeanceVowOfEnmityAction
 } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfVengeance";
-import {
-  applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
-  getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
-  hasPaladinOathOfTheNobleGeniesElementalSmite,
-  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+
 import {
   fortifyingSoulActionKey,
-  getRangerWinterWalkerFortifyingSoulHealingFormula,
-  getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay,
-  huntersMarkSpellId,
   getRangerTirelessTemporaryHitPointsFormulaDisplay,
-  getRangerTirelessTemporaryHitPointsFormula,
-  tirelessActionKey
+  getRangerTirelessTemporaryHitPointsFormula
 } from "../../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { rangerBeastMasterReviveActionKey } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerBeastMaster";
-import {
-  innateSorceryActionKey,
-  metamagicActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
-import {
-  sorcererWarpingImplosionActionKey,
-  sorcererWarpingImplosionDamageFormula,
-  sorcererWarpingImplosionDamageFormulaDisplay
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererAberrantSorcery";
-import {
-  getSorcererSpellfireBurstBolsteringFlamesRollFormula,
-  getSorcererSpellfireBurstRadiantFireRollFormula,
-  sorcererSpellfireBurstActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererSpellfireSorcery";
-import {
-  hasSorcererControlledChaosFeatureForCharacter,
-  sorcererTidesOfChaosActionKey,
-  sorcererWildMagicSurgeActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
+import { innateSorceryActionKey } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
+
+import { sorcererTidesOfChaosActionKey } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
 import {
   activateWarlockAwakenedMind,
   darkOnesOwnLuckActionKey,
-  getWarlockClairvoyantCombatantUsesRemaining,
-  getWarlockClairvoyantCombatantUsesTotal,
   hurlThroughHellActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
-import {
-  getArcaneRecoverySelectionLevelTotal,
-  type ArcaneRecoverySelection
-} from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+
 import { wizardAbjurerArcaneWardActionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
-import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
-import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
-import {
-  getRogueSneakAttackEffectDefinitions,
-  getRogueSneakAttackFormula,
-  getRogueSneakAttackFormulaDisplay
-} from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
-import {
-  consumeRogueSoulknifeRendMindUse,
-  getRogueSoulknifePsionicDiceRemaining,
-  getRogueSoulknifePsychicTeleportationRollFormula,
-  getRogueSoulknifePsychicTeleportationRollFormulaDisplay,
-  getRogueSoulknifePsychicWhispersRollFormula,
-  getRogueSoulknifePsychicWhispersRollFormulaDisplay,
-  getRogueSoulknifeRendMindSavingThrowDc,
-  getRogueSoulknifeRendMindUsesRemaining,
-  getRogueSoulknifeRendMindUsesTotal,
-  hasRogueSoulknifeRendMindFeature,
-  rogueSoulknifePsychicTeleportationActionKey,
-  rogueSoulknifePsychicWhispersActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
+
 import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
-import { isCommonActionKey } from "../../../../../../pages/CharactersPage/commonActions";
+
 import {
   activateCustomActionForCharacter,
   isCustomActionKey
 } from "../../../../../../pages/CharactersPage/customActions";
 import {
-  ACTION_CATEGORY,
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
   type EconomyType
 } from "../../../../../../pages/CharactersPage/actionEconomy";
-import {
-  getAbilityModifierBreakdownForCharacter,
-  getAbilityScoresForCharacter
-} from "../../../../../../pages/CharactersPage/abilities";
-import {
-  getProficiencyBonus,
-  type WeaponAction
-} from "../../../../../../pages/CharactersPage/gameplay";
+
+import { type WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import {
   clearLightWeaponDamagePenalty,
   isRoundTrackerResourceAvailable,
@@ -282,113 +134,47 @@ import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../../gameplayStateUtils";
-import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
+
 import { consumeTrueStrikePendingAttackForCharacter } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
-import {
-  getSavingThrowLevelFromEntries,
-  getSavingThrowProficiencyForAbilityKey
-} from "../../../../../../pages/CharactersPage/proficiency";
-import { getFeatureDescriptionForCharacter } from "../../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
-import {
-  CLASS_FEATURE,
-  ACTION_TYPE,
-  DAMAGE_TYPE,
-  FEATS,
-  MAGIC_SCHOOL,
-  type SpellEntry
-} from "../../../../../../codex/entries";
-import {
-  formatSignedLabel,
-  getProficiencyMultiplier,
-  getRoundTrackerResourceForSpell
-} from "../../../../../../pages/CharactersPage/shared";
+
+import { FEATS } from "../../../../../../codex/entries/enums";
+
 import {
   getSpellLevel,
   normalizeSpellSlotsExpended
 } from "../../../../../../pages/CharactersPage/spellcasting";
-import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import {
-  getActionShapeForEconomyType,
-  getEconomyShapeState,
-  getRoundTrackerActionWarning
-} from "../../gameplayWidgetUtils";
-import {
-  formatResolvedRollStateDetailText,
-  getRollModeFromIndicators
-} from "../../../../../RollStatePill/rollState";
+
+import { getRollModeFromIndicators } from "../../../../../RollStatePill/rollState";
 import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
-import d20Icon from "../../../../../../assets/svg/d20.svg";
-import { setNextRollModeOverride, useAppDispatch, useAppSelector } from "../../../../../../store";
-import ActionButton from "../../../../../ActionButton";
-import styles from "./ActionsWidget.module.css";
-import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
-import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
-import GameplayActionDrawer from "./GameplayActionDrawer";
-import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
-import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
-import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
-import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../../../CodexPage/LazyCodexReferenceDrawers";
-import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
-import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
-import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
-import WeaponAttackFooterButtons from "./WeaponAttackFooterButtons";
-import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
-import DruidStarryFormActionBody from "../TraitsConditionsWidget/DruidStarryFormActionBody";
-import {
-  FighterSecondWindActionBody,
-  FighterSecondWindActionFooter
-} from "./FighterSecondWindAction";
-import HealingLightActionBody, { type HealingLightTarget } from "./HealingLightActionBody";
-import {
-  IndomitableActionBody,
-  IndomitableActionFooter,
-  type IndomitableOption
-} from "./IndomitableAction";
-import PortentActionBody, { portentActionFormId } from "./PortentActionBody";
-import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
-import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
-import ThirdEyeActionBody from "./ThirdEyeActionBody";
-import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
-import { WarriorOfTheGodsActionBody, WarriorOfTheGodsActionFooter } from "./WarriorOfTheGodsAction";
+
+import { setNextRollModeOverride } from "../../../../../../store";
+
 import {
   appendRollModifier,
   getWeaponAttackFormulaPresentation,
   getWeaponDamageFormulaPresentation
 } from "./actionsWidgetPresentation";
-import {
-  applyArcaneWardActionUse,
-  getArcaneWardDisabledReason,
-  getArcaneWardSpellSlotOptions
-} from "./arcaneWardAction";
+import { applyArcaneWardActionUse } from "./arcaneWardAction";
 import {
   applyRangerHuntersMarkTargetWeaponAction,
   getRangerHuntersMarkTargetWeaponOptionState,
   huntersMarkWeaponDamageBonusLabel
 } from "./rangerHuntersMarkWeapon";
-import RangerHunterWeaponOptions from "./RangerHunterWeaponOptions";
+
 import { applyWeaponDamageBonusPreview } from "./fighterPsiWarriorWeapon";
 import { applyCriticalHitToWeaponAction } from "./weaponCriticalHit";
 import { consumeMonkStunningStrike } from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
 import {
   activateMonkFlurryOfBlows,
-  getMonkPatientDefenseTemporaryHitPointsFormula,
-  monkFlurryOfBlowsActionKey,
-  monkPatientDefenseActionKey,
   monkStepOfTheWindActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
   activateMonkWarriorOfMercyHandOfHealing,
-  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining,
-  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal,
-  getMonkWarriorOfMercyHandOfHealingFormula,
-  isMonkWarriorOfMercyFlurryOfHealingAndHarmActive,
-  monkHandOfHealingActionKey
+  getMonkWarriorOfMercyHandOfHealingFormula
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
   consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
   activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
-  monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
   getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula,
   monkWholenessOfBodyActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
@@ -396,62 +182,15 @@ import {
   activateMonkWarriorOfShadowImprovedShadowStep,
   monkShadowStepActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
+
+import { type WeaponAttackPathState } from "./weaponActionEconomy";
 import {
-  getMonkWarriorOfTheElementsElementalBurstDamageFormula,
-  hasMonkWarriorOfTheElementsElementalEpitome,
-  monkElementalAttunementActionKey,
-  monkElementalBurstActionKey,
-  setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
-import { CommonActionFooter } from "./CommonAction";
-import ElementalAttunementResistanceSelector from "../TraitsConditionsWidget/ElementalAttunementResistanceSelector";
-import { ElementalBurstActionFooter } from "./ElementalBurstAction";
-import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
-import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
-import {
-  SpellfireBurstActionBody,
-  SpellfireBurstActionFooter,
-  type SpellfireBurstEffect,
-  type SpellfireBurstTarget
-} from "./SpellfireBurstAction";
-import CommonActionsModal from "./CommonActionsModal";
-import { getCommonActionPathStates } from "./commonActionEconomy";
-import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
-import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
-import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
-import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
-import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
-import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
-import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
-import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
-import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
-import RageActionBody from "./forms/RageActionBody";
-import WildCompanionActionBody from "./forms/WildCompanionActionBody";
-import WildResurgenceActionBody from "./forms/WildResurgenceActionBody";
-import WildShapeActionBody from "./forms/WildShapeActionBody";
-import {
-  createChannelDivinityOptionRows,
-  type ChannelDivinityOptionRow
-} from "../../../channelDivinityUtils";
-import { getWeaponAttackPathStates, type WeaponAttackPathState } from "./weaponActionEconomy";
-import {
-  formatD20RollFormula,
-  getFeatureActionDrawerPrimaryLabel,
-  getFixedSpellEntryForExecute,
   grantMonkFleetStepFollowUpIfEligible,
-  resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type { ActionsWidgetExecutionContext, ActionsWidgetProps } from "./types";
-import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
+import type { ActionsWidgetExecutionContext } from "./types";
+
 import { useActionsWidgetSubmissions } from "./useActionsWidgetSubmissions";
-import { useActionsWidgetActions } from "./useActionsWidgetActions";
-import { useActionResourceOptionModel } from "./useActionResourceOptionModel";
-import { useSelectedActionModel } from "./useSelectedActionModel";
-import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
-import ActionsGrid from "./ActionsGrid";
-import FeatureSpellDrawers from "./FeatureSpellDrawers";
-import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 
 export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext) {
   const {
@@ -1465,24 +1204,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     }
 
     if (action.key === innateSorceryActionKey) {
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = activateInnateSorceryForCharacter(preparedCharacter, {
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateInnateSorceryForCharacter(preparedCharacter, {
           useCrownOfSpellfire: isCrownOfSpellfireSelected
-        });
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+        })));
       closeActionDrawer();
       return;
     }
@@ -1491,24 +1215,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       const useClairvoyantCombatant =
         isClairvoyantCombatantSelected && !selectedClairvoyantCombatantToggleDisabled;
 
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = activateWarlockAwakenedMind(preparedCharacter, {
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateWarlockAwakenedMind(preparedCharacter, {
           useClairvoyantCombatant
-        });
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+        })));
       closeActionDrawer();
       return;
     }
@@ -1603,23 +1312,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         featState.normalizedFeats
       );
 
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter =
-          spendPurpleDragonCommandantEncourageAllyForCharacter(preparedCharacter);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => spendPurpleDragonCommandantEncourageAllyForCharacter(preparedCharacter)));
 
       openDiceRoller({
         title: "Encourage Ally",
@@ -1646,22 +1339,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
       const healingFormula = getBoonOfRecoveryRecoverVitalityFormula(diceCount);
 
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = spendBoonOfRecoveryDiceForCharacter(preparedCharacter, diceCount);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => spendBoonOfRecoveryDiceForCharacter(preparedCharacter, diceCount)));
 
       openDiceRoller({
         title: "Recover Vitality",
@@ -1711,22 +1389,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
       const healingFormula = getDurableSpeedyRecoveryHealingFormulaForCharacter(character);
 
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = spendDurableSpeedyRecoveryHitDieForCharacter(preparedCharacter);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => spendDurableSpeedyRecoveryHitDieForCharacter(preparedCharacter)));
 
       openDiceRoller({
         title: "Speedy Recovery",
@@ -1798,23 +1461,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     }
 
     if (effectKind === "know-your-enemy") {
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter =
-          consumeFighterBattleMasterKnowYourEnemyForCharacter(preparedCharacter);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => consumeFighterBattleMasterKnowYourEnemyForCharacter(preparedCharacter)));
       closeActionDrawer();
       return;
     }
@@ -1922,22 +1569,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       const temporaryHitPointsFormulaDisplay =
         getRangerTirelessTemporaryHitPointsFormulaDisplay(character);
 
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = consumeRangerTirelessUseForCharacter(preparedCharacter);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
+      onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => consumeRangerTirelessUseForCharacter(preparedCharacter)));
 
       openDiceRoller({
         title: "Tireless",

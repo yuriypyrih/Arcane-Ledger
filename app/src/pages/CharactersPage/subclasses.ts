@@ -1,9 +1,5 @@
-import type {
-  CLASS_FEATURE,
-  FeatureMapEntry,
-  SubclassEntry,
-  SubclassFeatureClassObj
-} from "../../codex/entries";
+import type { FeatureMapEntry, SubclassEntry, SubclassFeatureClassObj } from "../../codex/entries";
+import type { CLASS_FEATURE } from "../../codex/entries/enums";
 import { getSubclassEntryById, getSubclassEntriesForClass } from "../../codex/subclasses";
 import type { Character } from "../../types";
 import { isCustomSubclassId } from "./customOrigins";

@@ -1,9 +1,5 @@
-import {
-  ENTRY_CATEGORIES,
-  type ArmorEntry,
-  type ItemEntry,
-  type WeaponEntry
-} from "../../../../codex/entries";
+import { type ArmorEntry, type ItemEntry, type WeaponEntry } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES } from "../../../../codex/entries/enums";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import type { ResolvedCustomLoadoutEntry } from "../../../../pages/CharactersPage/customEquipment";
 import {

@@ -1,4 +1,10 @@
 import {
+  type EquipmentCost,
+  type WeaponDamage,
+  type WeaponDamageAmount,
+  type WeaponRange
+} from "../../codex/entries";
+import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
   DICE,
@@ -6,12 +12,8 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type EquipmentCost,
-  type WeaponDamage,
-  type WeaponDamageAmount,
-  type WeaponRange
-} from "../../codex/entries";
+  WEAPON_TRAINING
+} from "../../codex/entries/enums";
 import type {
   AbilityKey,
   CharacterInventoryItem,
@@ -94,7 +96,10 @@ function normalizeWeight(value: unknown, fallback = 1): number | null {
   return Math.round(clampNumber(value, 0, 999999, fallback) * 100) / 100;
 }
 
-function normalizeEquipmentCost(value: unknown, fallback: EquipmentCost = defaultCost): EquipmentCost {
+function normalizeEquipmentCost(
+  value: unknown,
+  fallback: EquipmentCost = defaultCost
+): EquipmentCost {
   if (!isObjectRecord(value)) {
     return fallback;
   }
@@ -150,7 +155,9 @@ function normalizeWeaponDamage(value: unknown, fallback: WeaponDamage): WeaponDa
           ? [rawType as DAMAGE_TYPE]
           : [];
 
-      return amount && damageTypes.length > 0 ? ([amount, damageTypes] as WeaponDamage[number]) : null;
+      return amount && damageTypes.length > 0
+        ? ([amount, damageTypes] as WeaponDamage[number])
+        : null;
     })
     .filter((entry): entry is WeaponDamage[number] => entry !== null);
 
@@ -277,15 +284,15 @@ export function hasCharacterItemMods(mods: CharacterItemMods | null | undefined)
 
   return Boolean(
     mods.isCustom ||
-      mods.isMagicItem ||
-      mods.requiresAttunement ||
-      mods.name ||
-      mods.description ||
-      mods.cost ||
-      mods.weight !== undefined ||
-      mods.weapon ||
-      mods.armor ||
-      (mods.effects?.length ?? 0) > 0
+    mods.isMagicItem ||
+    mods.requiresAttunement ||
+    mods.name ||
+    mods.description ||
+    mods.cost ||
+    mods.weight !== undefined ||
+    mods.weapon ||
+    mods.armor ||
+    (mods.effects?.length ?? 0) > 0
   );
 }
 
@@ -341,7 +348,9 @@ function formatWeightAsItemWeight(weight: number | null | undefined): string {
 
   return Number.isInteger(weight)
     ? String(weight)
-    : String(weight).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+    : String(weight)
+        .replace(/\.0+$/, "")
+        .replace(/(\.\d*?)0+$/, "$1");
 }
 
 function getFirstDamageType(damage: WeaponDamage | undefined): DAMAGE_TYPE {
@@ -377,7 +386,10 @@ function createWeaponMasteryRecord(mastery: WEAPON_MASTERY): ItemDetailWeaponPro
   };
 }
 
-function getWeaponPropertyDetail(property: WEAPON_PROPERTY, weapon: CharacterItemWeaponMods): string | null {
+function getWeaponPropertyDetail(
+  property: WEAPON_PROPERTY,
+  weapon: CharacterItemWeaponMods
+): string | null {
   if (property === WEAPON_PROPERTY.RANGE && weapon.range) {
     return `${weapon.range.normal}/${weapon.range.long}`;
   }
@@ -427,7 +439,10 @@ function createArmorRecord(armor: CharacterItemArmorMods) {
   };
 }
 
-function getCategoryReference(category: CharacterItemModCategory, armor?: CharacterItemArmorMods | null) {
+function getCategoryReference(
+  category: CharacterItemModCategory,
+  armor?: CharacterItemArmorMods | null
+) {
   if (category === "weapon") {
     return createReference("weapon", "Weapon");
   }
@@ -448,12 +463,14 @@ export function createCustomItemRecordFromMods(id: string, mods: CharacterItemMo
   const description = mods.description?.trim() || "";
   const weight = mods.weight === undefined ? 1 : mods.weight;
   const cost = mods.cost ?? defaultCost;
-  const weapon = baseCategory === "weapon"
-    ? (mods.weapon ?? { damage: defaultWeaponDamage, properties: [] })
-    : undefined;
-  const armor = baseCategory === "armor"
-    ? (mods.armor ?? { armorType: "light" as const, armorClass: 11 })
-    : undefined;
+  const weapon =
+    baseCategory === "weapon"
+      ? (mods.weapon ?? { damage: defaultWeaponDamage, properties: [] })
+      : undefined;
+  const armor =
+    baseCategory === "armor"
+      ? (mods.armor ?? { armorType: "light" as const, armorClass: 11 })
+      : undefined;
 
   const item: ItemRecord = {
     id,
@@ -484,7 +501,9 @@ export function createCustomItemRecordFromMods(id: string, mods: CharacterItemMo
   return item;
 }
 
-export function getEffectiveInventoryItemRecord(stack: CharacterInventoryItem): EffectiveItemRecord {
+export function getEffectiveInventoryItemRecord(
+  stack: CharacterInventoryItem
+): EffectiveItemRecord {
   const mods = stack.mods;
 
   if (!mods) {
@@ -529,7 +548,10 @@ export function getEffectiveInventoryItemRecord(stack: CharacterInventoryItem): 
 export function getItemShieldBonus(item: ItemRecord): number {
   const armor = (item as EffectiveItemRecord).itemModsArmor;
 
-  if ((item as EffectiveItemRecord).itemModsBaseCategory === "armor" && armor?.armorType === "shield") {
+  if (
+    (item as EffectiveItemRecord).itemModsBaseCategory === "armor" &&
+    armor?.armorType === "shield"
+  ) {
     return clampInteger(armor.armorClass, 0, 30, 2);
   }
 

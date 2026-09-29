@@ -1,11 +1,16 @@
+import { spendClassResource } from "../../shared/resourceState";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { extractDescriptionSection as extractSubclassFeatureDescriptionSection } from "../../../shared/descriptionSections";
+import { getProgressionRow } from "../../../../../codex/progression";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
+} from "../../../multiclassState";
 import { sorcererFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import type { Character } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -23,7 +28,7 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -135,38 +140,9 @@ const revelationInFleshAlterationDefinitions: RevelationInFleshAlterationDefinit
   }
 ];
 
-function extractSubclassFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string
-): string[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
-}
-
 function getSorcererFeatureRow(level: number | undefined) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(sorcererFeatures, normalizedLevel);
 }
 
 function getSorcererAberrantSorceryPointsTotal(
@@ -205,38 +181,16 @@ function getSorcererAberrantSpellSaveDc(
 }
 
 function spendSorcererAberrantSorceryPoints(character: Character, cost: number): Character {
-  const normalizedCost = Math.max(0, Math.floor(cost));
-
-  if (normalizedCost <= 0) {
-    return character;
-  }
-
-  const totalPoints = getSorcererAberrantSorceryPointsTotal(character);
-  const remainingPoints = getSorcererAberrantSorceryPointsRemaining(character);
-
-  if (totalPoints <= 0 || remainingPoints < normalizedCost) {
-    return character;
-  }
-
-  const currentExpended = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
-  const nextExpended = Math.max(
-    0,
-    Math.min(
-      totalPoints,
-      (Number.isFinite(currentExpended) ? Math.floor(currentExpended) : 0) + normalizedCost
-    )
+  return spendClassResource(
+    character,
+    {
+      stateKey: "sorcerer",
+      counter: "sorceryPointsExpended",
+      total: getSorcererAberrantSorceryPointsTotal(character),
+      remaining: getSorcererAberrantSorceryPointsRemaining(character)
+    },
+    cost
   );
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        sorceryPointsExpended: nextExpended
-      }
-    }
-  };
 }
 
 function hasSorcererAberrantTelepathicSpeechFeature(
@@ -802,16 +756,10 @@ export function activateSorcererAberrantWarpingImplosion(character: Character): 
       )
     );
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...character.classFeatureState?.sorcerer,
-          warpingImplosionUsesExpended: nextExpended
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "sorcerer", {
+      ...character.classFeatureState?.sorcerer,
+      warpingImplosionUsesExpended: nextExpended
+    });
   }
 
   return spendSorcererAberrantSorceryPoints(character, warpingImplosionFallbackSorceryPointCost);
@@ -822,16 +770,10 @@ export function restoreSorcererAberrantWarpingImplosionOnLongRest(character: Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        warpingImplosionUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    warpingImplosionUsesExpended: 0
+  });
 }
 
 function getFeatureActionByKey(
@@ -972,7 +914,7 @@ function collectSorcererAberrantSorceryContributions(
 
 export const getSorcererAberrantSorceryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectSorcererAberrantSorceryContributions(character)),
+    getCompiledFeatureContributions(character, collectSorcererAberrantSorceryContributions),
     {
       character: character as Character
     }

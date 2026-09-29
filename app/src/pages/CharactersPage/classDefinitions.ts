@@ -1,7 +1,7 @@
 import type { Character, CharacterClassEntry, CharacterMulticlass, SkillName } from "../../types";
 import { PROFICIENCY_SOURCE, PROF_LEVEL } from "../../types";
 import { createMulticlassDraft, applyClassProgression } from "./multiclassProgression";
-import { getClassEditorCharacter, readMulticlass } from "./multiclass";
+import { getClassEditorCharacter, readMulticlass } from "./multiclassState";
 import {
   createSkillEntry,
   createToolEntry,

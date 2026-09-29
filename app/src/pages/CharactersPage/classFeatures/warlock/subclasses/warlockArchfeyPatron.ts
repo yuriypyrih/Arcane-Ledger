@@ -1,15 +1,18 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  MAGIC_SCHOOL,
-  REACTION,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import {
+  ACTION_TYPE,
+  CLASS_FEATURE,
+  MAGIC_SCHOOL,
+  REACTION
+} from "../../../../../codex/entries/enums";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import {
   CONDITION_NAME,
@@ -20,7 +23,7 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -313,16 +316,10 @@ export function consumeWarlockArchfeyPatronStepsOfTheFeyUse(character: Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        stepsOfTheFeyUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    stepsOfTheFeyUsesExpended: usesExpended + 1
+  });
 }
 
 export function restoreWarlockArchfeyPatronStepsOfTheFeyOnLongRest(
@@ -338,16 +335,10 @@ export function restoreWarlockArchfeyPatronStepsOfTheFeyOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        stepsOfTheFeyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    stepsOfTheFeyUsesExpended: 0
+  });
 }
 
 export function restoreWarlockArchfeyPatronBeguilingDefenseOnLongRest(
@@ -363,16 +354,10 @@ export function restoreWarlockArchfeyPatronBeguilingDefenseOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        beguilingDefenseUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    beguilingDefenseUsesExpended: 0
+  });
 }
 
 export function consumeWarlockArchfeyPatronBeguilingDefenseUse(character: Character): Character {
@@ -387,16 +372,10 @@ export function consumeWarlockArchfeyPatronBeguilingDefenseUse(character: Charac
     const totalUses = getWarlockArchfeyPatronBeguilingDefenseUsesTotal(character);
     const usesExpended = warlockState.beguilingDefenseUsesExpended ?? 0;
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        warlock: {
-          ...warlockState,
-          beguilingDefenseUsesExpended: Math.min(totalUses, usesExpended + 1)
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "warlock", {
+      ...warlockState,
+      beguilingDefenseUsesExpended: Math.min(totalUses, usesExpended + 1)
+    });
   }
 
   const pactMagicSlotsRemaining = getWarlockArchfeyPatronPactMagicSlotsRemaining(character);
@@ -594,7 +573,7 @@ export function collectWarlockArchfeyPatronContributions(
 
 export const getWarlockArchfeyPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWarlockArchfeyPatronContributions(character)),
+    getCompiledFeatureContributions(character, collectWarlockArchfeyPatronContributions),
     {
       character: character as Character
     }

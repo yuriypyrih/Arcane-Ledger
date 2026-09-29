@@ -1,29 +1,19 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { clericFeatures, type ClericFeatureClassObj } from "../../../../codex/classes/cleric";
 import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterClericFeatureState } from "../../../../types";
 
 export function getClericFeatureRow(level: number): ClericFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = clericFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(clericFeatures, normalizedLevel);
 }
 
 function getUnlockedClericFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return clericFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(clericFeatures, normalizedLevel);
 }
 
 export function hasClericFeature(

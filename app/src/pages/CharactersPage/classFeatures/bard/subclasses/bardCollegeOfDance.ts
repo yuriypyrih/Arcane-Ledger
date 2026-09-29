@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import type { Character, CharacterBardFeatureState } from "../../../../../types";
 import { SKILL } from "../../../../../types";
 import {
@@ -10,7 +12,7 @@ import { getInventoryItemOnHandQuantity, isItemShieldRecord } from "../../../inv
 import { getEffectiveInventoryItemRecord } from "../../../itemMods";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -170,16 +172,10 @@ export function grantBardCollegeOfDanceAgileStrikes(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        dazzlingFootworkUnarmedStrikesRemainingThisTurn: 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    dazzlingFootworkUnarmedStrikesRemainingThisTurn: 1
+  });
 }
 
 export function consumeBardCollegeOfDanceAgileStrike(
@@ -197,16 +193,10 @@ export function consumeBardCollegeOfDanceAgileStrike(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        dazzlingFootworkUnarmedStrikesRemainingThisTurn: remaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    dazzlingFootworkUnarmedStrikesRemainingThisTurn: remaining - 1
+  });
 }
 
 export function clearBardCollegeOfDanceTurnState(
@@ -217,16 +207,10 @@ export function clearBardCollegeOfDanceTurnState(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        dazzlingFootworkUnarmedStrikesRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    dazzlingFootworkUnarmedStrikesRemainingThisTurn: 0
+  });
 }
 
 export function shouldAdvanceBardCollegeOfDanceFeaturesForNewRound(
@@ -313,7 +297,7 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
   }
 
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectBardCollegeOfDanceContributions(character)),
+    getCompiledFeatureContributions(character, collectBardCollegeOfDanceContributions),
     {
       character: character as Character
     }

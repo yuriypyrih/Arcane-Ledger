@@ -1,10 +1,7 @@
-import { WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries";
+import { WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries/enums";
 import type { Character } from "../../types";
 import type { WeaponAction } from "./gameplay";
-import {
-  normalizeRoundTracker,
-  type LightWeaponAttackState
-} from "./combat";
+import { normalizeRoundTracker, type LightWeaponAttackState } from "./combat";
 import { hasActiveWeaponMastery } from "./weaponMasteryStatus";
 
 export type LightWeaponFollowUpKind = "bonus" | "nick";
@@ -67,15 +64,14 @@ function getDamageBonusTotal(action: Pick<WeaponAction, "damageBonusEntries">): 
 export function isLightWeaponAction(
   action: Pick<WeaponAction, "attackKind" | "properties">
 ): boolean {
-  return action.attackKind === "weapon" && (action.properties ?? []).includes(WEAPON_PROPERTY.LIGHT);
+  return (
+    action.attackKind === "weapon" && (action.properties ?? []).includes(WEAPON_PROPERTY.LIGHT)
+  );
 }
 
 export function hasActiveNickMasteryForWeaponAction(
   character: Pick<Character, "weaponProficiencies">,
-  action: Pick<
-    WeaponAction,
-    "attackKind" | "baseWeapon" | "mastery" | "hasActiveMastery"
-  >
+  action: Pick<WeaponAction, "attackKind" | "baseWeapon" | "mastery" | "hasActiveMastery">
 ): boolean {
   if (action.attackKind !== "weapon" || action.mastery !== WEAPON_MASTERY.NICK) {
     return false;
@@ -131,9 +127,7 @@ export function shouldApplyLightWeaponDamagePenalty(
   return lightWeaponAttack.triggerWeaponKey !== action.key;
 }
 
-export function applyLightWeaponDamagePenalty<T extends LightWeaponActionContext>(
-  action: T
-): T {
+export function applyLightWeaponDamagePenalty<T extends LightWeaponActionContext>(action: T): T {
   const damageAbility = action.damageAbility ?? action.ability;
   const damageAbilityFormulaLabel =
     action.damageAbilityFormulaLabel ?? action.abilityFormulaLabel ?? damageAbility;

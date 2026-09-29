@@ -1,12 +1,16 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
 import {
   hasCharacterClass,
   getClassLevel,
   getClassSpellbookIds,
   getClassSubclassId
-} from "../../multiclass";
+} from "../../multiclassState";
 import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
-import { CLASS_FEATURE, getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
+import { getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type {
   Character,
   CharacterWizardFeatureState,
@@ -85,25 +89,13 @@ function clampWizardLevel(level: number): number {
 
 function getWizardFeatureRow(level: number): WizardFeatureClassObj | null {
   const normalizedLevel = clampWizardLevel(level);
-  const matchingRows = wizardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(wizardFeatures, normalizedLevel);
 }
 
 function getUnlockedWizardFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = clampWizardLevel(level);
 
-  return wizardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(wizardFeatures, normalizedLevel);
 }
 
 function getWizardFeatureState(
@@ -388,16 +380,10 @@ export function setWizardScholarSelection(
 
   const wizardState = getWizardFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        scholar: normalizeWizardScholarSelection(selection) ?? undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    scholar: normalizeWizardScholarSelection(selection) ?? undefined
+  });
 }
 
 export function getWizardSkillProficiencyEntries(
@@ -512,16 +498,10 @@ export function setWizardSpellMasterySelection(
     nextSelections[spellLevel] = spellId;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        spellMasterySpellIds: nextSelections
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    spellMasterySpellIds: nextSelections
+  });
 }
 
 export function syncWizardSpellMasterySelectionsToSpellbook(character: Character): Character {
@@ -541,19 +521,13 @@ export function syncWizardSpellMasterySelectionsToSpellbook(character: Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        spellMasterySpellIds: {
-          ...(level1Selection ? { 1: level1Selection } : {}),
-          ...(level2Selection ? { 2: level2Selection } : {})
-        }
-      }
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    spellMasterySpellIds: {
+      ...(level1Selection ? { 1: level1Selection } : {}),
+      ...(level2Selection ? { 2: level2Selection } : {})
     }
-  };
+  });
 }
 
 export function getWizardAlwaysPreparedSpellIds(
@@ -587,17 +561,11 @@ export function setWizardSignatureSpellIds(character: Character, spellIds: strin
     wizardState.expendedSignatureSpellIds
   ).filter((spellId) => normalizedSpellIds.includes(spellId));
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        signatureSpellIds: normalizedSpellIds,
-        expendedSignatureSpellIds: nextExpendedIds
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    signatureSpellIds: normalizedSpellIds,
+    expendedSignatureSpellIds: nextExpendedIds
+  });
 }
 
 export function getWizardExpendedSignatureSpellIds(
@@ -635,16 +603,10 @@ export function consumeWizardSignatureSpellFreeCast(
   const wizardState = getWizardFeatureState(character);
   const expendedIds = getWizardExpendedSignatureSpellIds(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        expendedSignatureSpellIds: [...expendedIds, spellId]
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    expendedSignatureSpellIds: [...expendedIds, spellId]
+  });
 }
 
 export function restoreWizardSignatureSpellsOnShortRest(character: Character): Character {
@@ -658,16 +620,10 @@ export function restoreWizardSignatureSpellsOnShortRest(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        expendedSignatureSpellIds: []
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    expendedSignatureSpellIds: []
+  });
 }
 
 export function restoreWizardSignatureSpellsOnLongRest(character: Character): Character {
@@ -696,17 +652,11 @@ export function syncWizardSignatureSpellsToSpellbook(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        signatureSpellIds: validSelectionIds,
-        expendedSignatureSpellIds: validExpendedIds
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    signatureSpellIds: validSelectionIds,
+    expendedSignatureSpellIds: validExpendedIds
+  });
 }
 
 export function applyShortRestToWizardFeatures(character: Character): Character {
@@ -943,16 +893,10 @@ export function restoreArcaneRecoveryOnLongRest(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      wizard: {
-        ...wizardState,
-        arcaneRecoveryUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "wizard", {
+    ...wizardState,
+    arcaneRecoveryUsesExpended: 0
+  });
 }
 
 export function getWizardFeatureRowForCharacter(

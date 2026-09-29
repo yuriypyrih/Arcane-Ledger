@@ -1,4 +1,5 @@
-import { FEATS, SPELL_LIST_CLASS, type BackgroundEntry } from "../../codex/entries";
+import { type BackgroundEntry } from "../../codex/entries";
+import { FEATS, SPELL_LIST_CLASS } from "../../codex/entries/enums";
 import { getBackgroundEntries, getBackgroundEntryByName } from "../../codex/selectors";
 import type {
   AbilityKey,

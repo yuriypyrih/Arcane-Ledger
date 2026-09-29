@@ -1,8 +1,8 @@
-import { getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { getClassLevel } from "../../multiclassState";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterStatusEntry } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -374,7 +374,7 @@ export function getRogueClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectRogueFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueFeatureContributions),
     {
       character: character as Character
     }

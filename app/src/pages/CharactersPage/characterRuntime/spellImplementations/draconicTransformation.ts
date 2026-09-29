@@ -1,10 +1,9 @@
 import {
-  ABILITY_TYPES,
-  SPELL_LIST_CLASS,
   getSpellEntryById,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { ABILITY_TYPES, SPELL_LIST_CLASS } from "../../../../codex/entries/enums";
 import {
   EFFECT_NAME,
   SENSE,
@@ -53,9 +52,7 @@ function getDraconicTransformationSpellEntry(): DraconicTransformationSpellFormu
   );
 }
 
-function getDraconicTransformationDescriptionSection(
-  heading: string
-): SpellDescriptionEntry[] {
+function getDraconicTransformationDescriptionSection(heading: string): SpellDescriptionEntry[] {
   const spell = getDraconicTransformationSpellEntry();
 
   for (const entry of spell.description ?? []) {

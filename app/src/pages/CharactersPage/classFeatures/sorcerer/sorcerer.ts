@@ -1,11 +1,14 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import {
   sorcererFeatureMap,
   sorcererFeatures,
   type SorcererFeatureClassObj
 } from "../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterSorcererFeatureState } from "../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -223,25 +226,13 @@ function dedupe<T>(values: T[]): T[] {
 
 function getSorcererFeatureRow(level: number): SorcererFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(sorcererFeatures, normalizedLevel);
 }
 
 function getUnlockedSorcererFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(sorcererFeatures, normalizedLevel);
 }
 
 function getSorcererFeatureState(
@@ -332,16 +323,10 @@ function updateSorceryPointsExpended(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        sorceryPointsExpended: nextExpended
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    sorceryPointsExpended: nextExpended
+  });
 }
 
 function formatSorceryPointCostLabel(cost: number): string {
@@ -663,16 +648,10 @@ export function setSorcererMetamagicSelections(
     getSorcererMetamagicSelectionCount(character)
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        metamagicSelections: normalizedSelections
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    metamagicSelections: normalizedSelections
+  });
 }
 
 export function getSorcererFeatureActions(
@@ -906,16 +885,10 @@ export function activateInnateSorcery(
 
   if (usesRemaining > 0) {
     const sorcererState = getSorcererFeatureState(character);
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...sorcererState,
-          innateSorceryUsesExpended: (sorcererState.innateSorceryUsesExpended ?? 0) + 1
-        }
-      }
-    };
+    nextCharacter = replaceClassFeatureState(character, "sorcerer", {
+      ...sorcererState,
+      innateSorceryUsesExpended: (sorcererState.innateSorceryUsesExpended ?? 0) + 1
+    });
   } else {
     if (fallbackSorceryPointCost <= 0) {
       return character;
@@ -1132,16 +1105,10 @@ export function restoreInnateSorceryOnLongRest(character: Character): Character 
 
   const sorcererState = getSorcererFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        innateSorceryUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    innateSorceryUsesExpended: 0
+  });
 }
 
 export function restoreSorcerousRestorationOnLongRest(character: Character): Character {
@@ -1151,16 +1118,10 @@ export function restoreSorcerousRestorationOnLongRest(character: Character): Cha
 
   const sorcererState = getSorcererFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        sorcerousRestorationUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    sorcerousRestorationUsesExpended: 0
+  });
 }
 
 export function restoreSorceryPointsOnLongRest(character: Character): Character {
@@ -1232,22 +1193,14 @@ export function advanceSorcererFeaturesForNewRound(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...sorcererState,
-        arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
-          ? false
-          : sorcererState.arcaneApotheosisFreeMetamagicUsedThisTurn,
-        spellfireBurstUsedThisTurn: hasSpellfireBurst
-          ? false
-          : sorcererState.spellfireBurstUsedThisTurn,
-        wildMagicSurgeUsedThisTurn: hasWildMagicSurge
-          ? false
-          : sorcererState.wildMagicSurgeUsedThisTurn
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...sorcererState,
+    arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
+      ? false
+      : sorcererState.arcaneApotheosisFreeMetamagicUsedThisTurn,
+    spellfireBurstUsedThisTurn: hasSpellfireBurst
+      ? false
+      : sorcererState.spellfireBurstUsedThisTurn,
+    wildMagicSurgeUsedThisTurn: hasWildMagicSurge ? false : sorcererState.wildMagicSurgeUsedThisTurn
+  });
 }

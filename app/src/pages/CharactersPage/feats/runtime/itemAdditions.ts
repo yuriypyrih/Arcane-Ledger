@@ -1,17 +1,17 @@
-import { FEATS, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import type { ItemRecord } from "../../../../types";
 import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
-import { getFeatDefinition, getFeatLabel } from "..";
+import { getFeatDefinition, getFeatLabel } from "../catalog";
 import { healerKitItemKeys, poisonersKitItemKeys } from "./constants";
-import { isPoisonerBrewPoisonDescriptionEntry, filterDescriptionEntries } from "./descriptionMatchers";
+import {
+  isPoisonerBrewPoisonDescriptionEntry,
+  filterDescriptionEntries
+} from "./descriptionMatchers";
 import type { FeatDerivedState } from "./types";
 
 function normalizeItemRuntimeKey(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/['’]/g, "")
-    .replace(/\s+/g, "-");
+  return value.trim().toLowerCase().replace(/['’]/g, "").replace(/\s+/g, "-");
 }
 
 function getItemRuntimeKeys(item: Pick<ItemRecord, "id" | "key" | "name">): string[] {

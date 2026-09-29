@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import {
-  FEATS,
   KeywordTooltip,
   getDivinityEntryByName,
   type DivinityEntry,
   type KeywordTooltipEntry,
   type SpellEntry
 } from "../../codex/entries";
+import { FEATS } from "../../codex/entries/enums";
 import { getSpellEntryByName } from "../../codex/selectors";
 import {
   getKeywordDescriptionLines,

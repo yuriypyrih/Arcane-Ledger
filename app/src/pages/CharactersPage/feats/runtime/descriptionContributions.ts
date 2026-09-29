@@ -1,6 +1,6 @@
-import { FEATS } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import type { FeatureDescriptionContribution } from "../../featureContributions";
-import { getFeatDefinition, getFeatLabel } from "..";
+import { getFeatDefinition, getFeatLabel } from "../catalog";
 import {
   filterDescriptionEntries,
   isArcheryWeaponActionDescriptionEntry,
@@ -119,8 +119,7 @@ const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinit
     target: "stat",
     targetKey: featDescriptionTargetKeys.speed,
     predicate: (entry) =>
-      entry.startsWith("<strong>Hop Up.</strong>") ||
-      entry.startsWith("<strong>Jumping.</strong>")
+      entry.startsWith("<strong>Hop Up.</strong>") || entry.startsWith("<strong>Jumping.</strong>")
   },
   {
     feat: FEATS.CHARGER,
@@ -460,9 +459,7 @@ function getFeatDescriptionEntries(definition: FeatDescriptionContributionDefini
     : filterDescriptionEntries(description, definition.predicate ?? (() => false));
 }
 
-export function getFeatDescriptionContributions(
-  feat: FEATS
-): FeatureDescriptionContribution[] {
+export function getFeatDescriptionContributions(feat: FEATS): FeatureDescriptionContribution[] {
   return featDescriptionContributionDefinitions.flatMap((definition) => {
     if (definition.feat !== feat) {
       return [];

@@ -1,12 +1,12 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { extractDescriptionSection as extractFeatureDescriptionSection } from "../../../shared/descriptionSections";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  REACTION,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type {
   Character,
@@ -25,7 +25,7 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -87,31 +87,6 @@ function getRangerHunterFeatureDescriptionEntries(feature: CLASS_FEATURE): strin
   return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
     (entry): entry is string => typeof entry === "string"
   );
-}
-
-function extractFeatureDescriptionSection(
-  description: readonly string[],
-  heading: string
-): string[] {
-  const startIndex = description.findIndex((entry) => entry.includes(heading));
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const entry = description[index]!;
-
-    if (index > startIndex && entry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(entry);
-  }
-
-  return section;
 }
 
 const huntersPreyDescription = getRangerHunterFeatureDescriptionEntries(CLASS_FEATURE.HUNTERS_PREY);
@@ -238,16 +213,10 @@ export function setRangerHunterPreyChoice(
 
   const normalizedChoice = choice === null ? undefined : normalizeRangerHunterPreyChoice(choice);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        huntersPreyChoice: normalizedChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    huntersPreyChoice: normalizedChoice
+  });
 }
 
 export function getRangerHunterDefensiveTacticsChoice(
@@ -276,16 +245,10 @@ export function setRangerHunterDefensiveTacticsChoice(
   const normalizedChoice =
     choice === null ? undefined : normalizeRangerHunterDefensiveTacticsChoice(choice);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        defensiveTacticsChoice: normalizedChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    defensiveTacticsChoice: normalizedChoice
+  });
 }
 
 export function getRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
@@ -316,16 +279,10 @@ export function setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
       ? undefined
       : normalizeRangerHunterSuperiorHuntersDefenseDamageType(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        superiorHuntersDefenseDamageType: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    superiorHuntersDefenseDamageType: normalizedSelection
+  });
 }
 
 export function activateRangerHunterSuperiorHuntersDefense(character: Character): Character {
@@ -634,16 +591,10 @@ export function setRangerHunterHordeBreakerActionKey(
   const normalizedActionKey =
     typeof actionKey === "string" && actionKey.trim().length > 0 ? actionKey : undefined;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        hunterHordeBreakerActionKey: normalizedActionKey
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    hunterHordeBreakerActionKey: normalizedActionKey
+  });
 }
 
 export function markRangerHunterColossusSlayerUsed(character: Character): Character {
@@ -655,16 +606,10 @@ export function markRangerHunterColossusSlayerUsed(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        hunterColossusSlayerUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    hunterColossusSlayerUsedThisTurn: true
+  });
 }
 
 export function markRangerHunterHordeBreakerUsed(character: Character): Character {
@@ -676,17 +621,11 @@ export function markRangerHunterHordeBreakerUsed(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        hunterHordeBreakerUsedThisTurn: true,
-        hunterHordeBreakerActionKey: undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    hunterHordeBreakerUsedThisTurn: true,
+    hunterHordeBreakerActionKey: undefined
+  });
 }
 
 function getRangerHunterDefensiveTacticsDerivedStatusEntries(
@@ -818,7 +757,7 @@ function collectRangerHunterContributions(
 
 export const getRangerHunterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRangerHunterContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerHunterContributions),
     {
       character: character as Character
     }

@@ -1,22 +1,17 @@
 import {
   BACKGROUND_SOURCE_VALUES,
-  ENTRY_CATEGORIES,
-  MAGIC_SCHOOL,
   SPECIES_SOURCE_VALUES,
-  SPELL_LIST_CLASS,
   type BackgroundSource,
   type SpeciesSource
 } from "../../codex/entries";
+import { ENTRY_CATEGORIES, MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../codex/entries/enums";
 import {
   isMonsterChallengeRatingBucket,
   MONSTER_SOURCE_OPTIONS,
   MONSTER_TYPE_OPTIONS,
   type MonsterChallengeRatingBucket
 } from "../../constants/monsters";
-import {
-  FEAT_SOURCE_VALUES,
-  type FeatSource
-} from "../CharactersPage/feats/source";
+import { FEAT_SOURCE_VALUES, type FeatSource } from "../CharactersPage/feats/source";
 import {
   FEAT_CATEGORY_FILTER_VALUES,
   type FeatCategoryFilter
@@ -177,7 +172,9 @@ function parseMonsterTypeFilter(value: string | null): string | null {
     return null;
   }
 
-  return MONSTER_TYPE_OPTIONS.includes(value as (typeof MONSTER_TYPE_OPTIONS)[number]) ? value : null;
+  return MONSTER_TYPE_OPTIONS.includes(value as (typeof MONSTER_TYPE_OPTIONS)[number])
+    ? value
+    : null;
 }
 
 function parseMonsterSourceFilter(value: string | null): string | null {
@@ -241,7 +238,10 @@ export function parseCodexSearchState(
     itemTab:
       parseEnumFilter(searchParams.get(ITEM_TAB_PARAM), ITEM_TABS) ?? DEFAULT_ITEM_BROWSER_TAB,
     itemCategoryFilter: parseOptionalFilter(searchParams.get(ITEM_CATEGORY_PARAM)),
-    itemAttackTypeFilter: parseEnumFilter(searchParams.get(ITEM_ATTACK_TYPE_PARAM), ITEM_ATTACK_TYPES),
+    itemAttackTypeFilter: parseEnumFilter(
+      searchParams.get(ITEM_ATTACK_TYPE_PARAM),
+      ITEM_ATTACK_TYPES
+    ),
     itemProficiencyTypeFilter: parseEnumFilter(
       searchParams.get(ITEM_PROFICIENCY_TYPE_PARAM),
       ITEM_PROFICIENCY_TYPES
@@ -258,10 +258,7 @@ export function parseCodexSearchState(
       searchParams.get(BACKGROUND_SOURCE_PARAM),
       BACKGROUND_SOURCES
     ),
-    speciesSourceFilter: parseEnumFilter(
-      searchParams.get(SPECIES_SOURCE_PARAM),
-      SPECIES_SOURCES
-    ),
+    speciesSourceFilter: parseEnumFilter(searchParams.get(SPECIES_SOURCE_PARAM), SPECIES_SOURCES),
     currentPage: parsePageValue(searchParams.get(PAGE_PARAM))
   };
 }
@@ -400,10 +397,7 @@ export function resetPageSearchParam(searchParams: URLSearchParams): URLSearchPa
   return searchParams;
 }
 
-export function setPageSearchParam(
-  searchParams: URLSearchParams,
-  page: number
-): URLSearchParams {
+export function setPageSearchParam(searchParams: URLSearchParams, page: number): URLSearchParams {
   if (page <= 1) {
     searchParams.delete(PAGE_PARAM);
     return searchParams;

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import {
   getWizardSavantSpellIdsForCharacter,
   setWizardSavantSpellIdsForCharacter

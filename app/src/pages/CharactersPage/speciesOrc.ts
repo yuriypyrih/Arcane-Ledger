@@ -1,4 +1,5 @@
-import { getCharacterLevel } from "./multiclass";
+import { extractDescriptionSection } from "./shared/descriptionSections";
+import { getCharacterLevel } from "./multiclassState";
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -34,32 +35,7 @@ function getOrcDescriptionSection(heading: string): SpellDescriptionEntry[] {
   const description = getOrcEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
-
-  if (!description) {
-    return [];
-  }
-
-  const startIndex = description.findIndex((descriptionEntry) =>
-    descriptionEntry.includes(`<strong>${heading}.`)
-  );
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const descriptionEntry = description[index]!;
-
-    if (index > startIndex && descriptionEntry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(descriptionEntry);
-  }
-
-  return section;
+  return extractDescriptionSection(description ?? [], `<strong>${heading}.`);
 }
 
 function getOrcDescriptionText(heading: string, fallback: string): string {

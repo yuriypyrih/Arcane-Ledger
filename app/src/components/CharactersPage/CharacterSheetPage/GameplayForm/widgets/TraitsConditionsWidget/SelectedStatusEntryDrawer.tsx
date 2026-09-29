@@ -1,8 +1,9 @@
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import { Pencil } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
-import type { DAMAGE_TYPE, ReactionEntry, SpellEntry } from "../../../../../../codex/entries";
+import type { ReactionEntry, SpellEntry } from "../../../../../../codex/entries";
+import type { DAMAGE_TYPE } from "../../../../../../codex/entries/enums";
 import { consumeRoundTrackerResourceForCharacter } from "../../gameplayStateUtils";
 import { getRoundTrackerActionWarning } from "../../gameplayWidgetUtils";
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";

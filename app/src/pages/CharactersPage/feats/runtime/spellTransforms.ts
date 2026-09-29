@@ -1,8 +1,9 @@
-import { DAMAGE_TYPE, FEATS, SPELL_COMPONENT, type SpellEntry } from "../../../../codex/entries";
+import { type SpellEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE, FEATS, SPELL_COMPONENT } from "../../../../codex/entries/enums";
 import type { CharacterFeatEntry } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
-import { getFeatLabel } from "..";
+import { getFeatLabel } from "../catalog";
 import {
   boonOfRevelryIrresistibleDanceSpellId,
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,

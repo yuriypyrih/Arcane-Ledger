@@ -12,7 +12,7 @@ import {
   getCharacterLevel,
   projectStartingClass,
   readMulticlass
-} from "./multiclass";
+} from "./multiclassState";
 import { getClassFeatureModules } from "./classFeatures/modules";
 import { reconcileClassFeatChoices } from "./multiclassFeatChoices";
 import { getMinimumXpForLevel } from "./experience";

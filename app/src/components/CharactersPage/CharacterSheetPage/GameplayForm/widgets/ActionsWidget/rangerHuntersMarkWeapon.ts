@@ -8,7 +8,7 @@ import {
   isRangerHuntersMarkConcentrationStatusEntry
 } from "../../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
-import { CLASS_FEATURE } from "../../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../../codex/entries/enums";
 import { applyWeaponDamageBonusPreview } from "./fighterPsiWarriorWeapon";
 
 export const huntersMarkWeaponDamageBonusLabel = "Hunter's Mark";

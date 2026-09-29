@@ -3,8 +3,8 @@ import {
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../multiclass";
-import { CLASS_FEATURE } from "../../../codex/entries";
+} from "../multiclassState";
+import { CLASS_FEATURE } from "../../../codex/entries/enums";
 import { getClassEntryByName } from "../../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character } from "../../../types";
 import {

@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, type ClassEntry, type FeatureClassObj } from "../../codex/entries";
+import { type ClassEntry, type FeatureClassObj } from "../../codex/entries";
+import { CLASS_FEATURE } from "../../codex/entries/enums";
 import { getSubclassSpellcastingProgressionRow } from "../../codex/classes/subclassSpellcasting";
 import { getClassEntryByName } from "../../codex/selectors";
 import type { CharacterClassRulesConfig, CharacterCustomClassConfig } from "../../types";
@@ -149,13 +150,7 @@ export function getPreparedSpellLimitForCharacter(
   }
 
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return null;
   }
@@ -179,13 +174,7 @@ export function usesPreparedSpellsForCharacter(
   classRules?: CharacterClassRulesConfig
 ): boolean {
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return true;
   }

@@ -1,4 +1,4 @@
-import type { CLASS_FEATURE } from "../../codex/entries";
+import type { CLASS_FEATURE } from "../../codex/entries/enums";
 import { getClassEntryByName } from "../../codex/selectors";
 import { STATUS_ENTRY_SOURCE_TYPE, type Character, type CharacterFeatEntry } from "../../types";
 import { removeConjuredInventoryItems } from "./inventoryItems";

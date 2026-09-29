@@ -1,5 +1,5 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
-import { DAMAGE_TYPE, DURATION, TRACKER } from "../../codex/entries";
+import { DAMAGE_TYPE, DURATION, TRACKER } from "../../codex/entries/enums";
 import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
 import { normalizeMonsterRecord } from "../../utils/monsters";
 import { isObjectRecord } from "../../utils/normalize";

@@ -1,11 +1,7 @@
-import { isSpellFromClass } from "../../multiclass";
+import { isSpellFromClass } from "../../multiclassState";
 import { sorcererFeatureMap } from "../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  SPELL_LIST_CLASS,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { hasActiveInnateSorcery } from "./sorcerer";

@@ -1,12 +1,12 @@
 import { WEAPON_PROFICIENCY } from "../../types";
+import { type WeaponEntry } from "../../codex/entries";
 import {
   RARITY_TYPES,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type WeaponEntry
-} from "../../codex/entries";
+  WEAPON_TRAINING
+} from "../../codex/entries/enums";
 import { getWeaponEntries } from "../../codex/selectors";
 import { formatCodexLabel } from "../../utils/codex";
 import {
@@ -24,10 +24,7 @@ const weaponProficiencyByTraining: Record<WeaponType, WEAPON_PROFICIENCY> = {
 const splitWeaponProficienciesByLegacyGroup: Partial<
   Record<WEAPON_PROFICIENCY, WEAPON_PROFICIENCY[]>
 > = {
-  [WEAPON_PROFICIENCY.SIMPLE]: [
-    WEAPON_PROFICIENCY.SIMPLE_MELEE,
-    WEAPON_PROFICIENCY.SIMPLE_RANGED
-  ],
+  [WEAPON_PROFICIENCY.SIMPLE]: [WEAPON_PROFICIENCY.SIMPLE_MELEE, WEAPON_PROFICIENCY.SIMPLE_RANGED],
   [WEAPON_PROFICIENCY.MARTIAL]: [
     WEAPON_PROFICIENCY.MARTIAL_MELEE,
     WEAPON_PROFICIENCY.MARTIAL_RANGED
@@ -93,20 +90,22 @@ const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, stri
 
 const commonWeaponEntriesByBaseWeapon = new Map<WEAPON_BASE, WeaponEntry>(
   getWeaponEntries()
-    .filter(
-      (entry) =>
-        entry.rarity === RARITY_TYPES.COMMON && typeof entry.baseWeapon === "string"
-    )
+    .filter((entry) => entry.rarity === RARITY_TYPES.COMMON && typeof entry.baseWeapon === "string")
     .map((entry) => [entry.baseWeapon as WEAPON_BASE, entry])
 );
 
 const weaponProficiencyLabelsByBaseWeapon = new Map<WEAPON_BASE, string>(
-  [...commonWeaponEntriesByBaseWeapon.entries()].map(([baseWeapon, entry]) => [baseWeapon, entry.name])
+  [...commonWeaponEntriesByBaseWeapon.entries()].map(([baseWeapon, entry]) => [
+    baseWeapon,
+    entry.name
+  ])
 );
 
 const weaponSpecificProficiencyOptions = Object.values(WEAPON_BASE)
   .map((baseWeapon) => weaponProficiencyByBaseWeapon[baseWeapon])
-  .sort((left, right) => getWeaponProficiencyLabel(left).localeCompare(getWeaponProficiencyLabel(right)));
+  .sort((left, right) =>
+    getWeaponProficiencyLabel(left).localeCompare(getWeaponProficiencyLabel(right))
+  );
 
 const monkOnlyWeaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
   WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
@@ -122,21 +121,17 @@ export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
   ...weaponSpecificProficiencyOptions
 ];
 
-export function isLegacyGroupedWeaponProficiency(
-  proficiency: WEAPON_PROFICIENCY
-): boolean {
+export function isLegacyGroupedWeaponProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
   return legacyGroupedWeaponProficiencyOptions.includes(proficiency);
 }
 
-export function expandWeaponProficiency(
-  proficiency: WEAPON_PROFICIENCY
-): WEAPON_PROFICIENCY[] {
+export function expandWeaponProficiency(proficiency: WEAPON_PROFICIENCY): WEAPON_PROFICIENCY[] {
   return splitWeaponProficienciesByLegacyGroup[proficiency] ?? [proficiency];
 }
 
-export function expandWeaponProficiencyEntries<
-  TEntry extends { proficiency: WEAPON_PROFICIENCY }
->(entries: readonly TEntry[]): TEntry[] {
+export function expandWeaponProficiencyEntries<TEntry extends { proficiency: WEAPON_PROFICIENCY }>(
+  entries: readonly TEntry[]
+): TEntry[] {
   return entries.flatMap((entry) =>
     expandWeaponProficiency(entry.proficiency).map(
       (proficiency) =>
@@ -151,11 +146,7 @@ export function expandWeaponProficiencyEntries<
 export function expandWeaponProficiencies(
   proficiencies: readonly WEAPON_PROFICIENCY[]
 ): WEAPON_PROFICIENCY[] {
-  return [
-    ...new Set(
-      proficiencies.flatMap((proficiency) => expandWeaponProficiency(proficiency))
-    )
-  ];
+  return [...new Set(proficiencies.flatMap((proficiency) => expandWeaponProficiency(proficiency)))];
 }
 
 export function getExpandedWeaponProficiencyLabels(
@@ -183,7 +174,10 @@ export function doesWeaponProficiencyMatchWeapon(
     properties?: WEAPON_PROPERTY[];
   }
 ): boolean {
-  if (options?.baseWeapon && proficiency === getWeaponProficiencyForBaseWeapon(options.baseWeapon)) {
+  if (
+    options?.baseWeapon &&
+    proficiency === getWeaponProficiencyForBaseWeapon(options.baseWeapon)
+  ) {
     return true;
   }
 
@@ -196,31 +190,19 @@ export function doesWeaponProficiencyMatchWeapon(
   }
 
   if (proficiency === WEAPON_PROFICIENCY.SIMPLE_MELEE) {
-    return (
-      training === WEAPON_TRAINING.SIMPLE &&
-      options.combatType === WEAPON_COMBAT_TYPE.MELEE
-    );
+    return training === WEAPON_TRAINING.SIMPLE && options.combatType === WEAPON_COMBAT_TYPE.MELEE;
   }
 
   if (proficiency === WEAPON_PROFICIENCY.SIMPLE_RANGED) {
-    return (
-      training === WEAPON_TRAINING.SIMPLE &&
-      options.combatType === WEAPON_COMBAT_TYPE.RANGED
-    );
+    return training === WEAPON_TRAINING.SIMPLE && options.combatType === WEAPON_COMBAT_TYPE.RANGED;
   }
 
   if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE) {
-    return (
-      training === WEAPON_TRAINING.MARTIAL &&
-      options.combatType === WEAPON_COMBAT_TYPE.MELEE
-    );
+    return training === WEAPON_TRAINING.MARTIAL && options.combatType === WEAPON_COMBAT_TYPE.MELEE;
   }
 
   if (proficiency === WEAPON_PROFICIENCY.MARTIAL_RANGED) {
-    return (
-      training === WEAPON_TRAINING.MARTIAL &&
-      options.combatType === WEAPON_COMBAT_TYPE.RANGED
-    );
+    return training === WEAPON_TRAINING.MARTIAL && options.combatType === WEAPON_COMBAT_TYPE.RANGED;
   }
 
   if (options.properties === undefined) {
@@ -261,17 +243,11 @@ export function getMatchingWeaponProficiencies(
   }
 
   if (options?.combatType !== undefined) {
-    if (
-      training === WEAPON_TRAINING.SIMPLE &&
-      options.combatType === WEAPON_COMBAT_TYPE.MELEE
-    ) {
+    if (training === WEAPON_TRAINING.SIMPLE && options.combatType === WEAPON_COMBAT_TYPE.MELEE) {
       candidates.push(WEAPON_PROFICIENCY.SIMPLE_MELEE);
     }
 
-    if (
-      training === WEAPON_TRAINING.SIMPLE &&
-      options.combatType === WEAPON_COMBAT_TYPE.RANGED
-    ) {
+    if (training === WEAPON_TRAINING.SIMPLE && options.combatType === WEAPON_COMBAT_TYPE.RANGED) {
       candidates.push(WEAPON_PROFICIENCY.SIMPLE_RANGED);
     }
 
@@ -301,26 +277,18 @@ export function getMatchingWeaponProficiencies(
       }
     }
 
-    if (
-      training === WEAPON_TRAINING.MARTIAL &&
-      options.combatType === WEAPON_COMBAT_TYPE.MELEE
-    ) {
+    if (training === WEAPON_TRAINING.MARTIAL && options.combatType === WEAPON_COMBAT_TYPE.MELEE) {
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE);
     }
 
-    if (
-      training === WEAPON_TRAINING.MARTIAL &&
-      options.combatType === WEAPON_COMBAT_TYPE.RANGED
-    ) {
+    if (training === WEAPON_TRAINING.MARTIAL && options.combatType === WEAPON_COMBAT_TYPE.RANGED) {
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_RANGED);
     }
   }
 
   candidates.push(getWeaponProficiencyForTraining(training));
 
-  return candidates.filter(
-    (candidate, index) => candidates.indexOf(candidate) === index
-  );
+  return candidates.filter((candidate, index) => candidates.indexOf(candidate) === index);
 }
 
 export function isMonkOnlyWeaponProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
@@ -332,11 +300,15 @@ export function getWeaponProficiencyOptionsForClass(className?: string): WEAPON_
     return weaponProficiencyOptions;
   }
 
-  return weaponProficiencyOptions.filter((proficiency) => !isMonkOnlyWeaponProficiency(proficiency));
+  return weaponProficiencyOptions.filter(
+    (proficiency) => !isMonkOnlyWeaponProficiency(proficiency)
+  );
 }
 
 export function getEditableWeaponProficiencyOptions(): WEAPON_PROFICIENCY[] {
-  return weaponProficiencyOptions.filter((proficiency) => !isMonkOnlyWeaponProficiency(proficiency));
+  return weaponProficiencyOptions.filter(
+    (proficiency) => !isMonkOnlyWeaponProficiency(proficiency)
+  );
 }
 
 export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
@@ -360,23 +332,20 @@ export function getWeaponProficiencyLabel(proficiency: WEAPON_PROFICIENCY): stri
   }
 
   return (
-    weaponProficiencyLabelsByBaseWeapon.get(
-      proficiency as unknown as WEAPON_BASE
-    ) ??
-    proficiency.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (character) => character.toUpperCase())
+    weaponProficiencyLabelsByBaseWeapon.get(proficiency as unknown as WEAPON_BASE) ??
+    proficiency
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (character) => character.toUpperCase())
   );
 }
 
-export function getWeaponProficiencyTypeLabel(
-  proficiency: WEAPON_PROFICIENCY
-): string | null {
+export function getWeaponProficiencyTypeLabel(proficiency: WEAPON_PROFICIENCY): string | null {
   if (!isWeaponMasteryProficiency(proficiency)) {
     return null;
   }
 
-  const weaponEntry = commonWeaponEntriesByBaseWeapon.get(
-    proficiency as unknown as WEAPON_BASE
-  );
+  const weaponEntry = commonWeaponEntriesByBaseWeapon.get(proficiency as unknown as WEAPON_BASE);
 
   return weaponEntry
     ? `${formatCodexLabel(weaponEntry.type.training)} ${formatCodexLabel(weaponEntry.type.combat)}`

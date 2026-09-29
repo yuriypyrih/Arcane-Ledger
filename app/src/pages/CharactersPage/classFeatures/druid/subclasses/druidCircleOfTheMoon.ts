@@ -1,12 +1,13 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterDruidFeatureState } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -189,16 +190,10 @@ export function restoreDruidMoonlightStepOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        moonlightStepUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    moonlightStepUsesExpended: 0
+  });
 }
 
 export function activateDruidMoonlightStep(
@@ -212,19 +207,13 @@ export function activateDruidMoonlightStep(
   const usesRemaining = getDruidMoonlightStepUsesRemaining(character);
 
   if (usesRemaining > 0) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        druid: {
-          ...druidState,
-          moonlightStepUsesExpended: Math.min(
-            getDruidMoonlightStepUsesTotal(character),
-            (druidState.moonlightStepUsesExpended ?? 0) + 1
-          )
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "druid", {
+      ...druidState,
+      moonlightStepUsesExpended: Math.min(
+        getDruidMoonlightStepUsesTotal(character),
+        (druidState.moonlightStepUsesExpended ?? 0) + 1
+      )
+    });
   }
 
   const fallbackSlotLevel = getDruidMoonlightStepFallbackSlotLevel(character);
@@ -488,7 +477,7 @@ export function collectDruidCircleOfTheMoonContributions(
 
 export const getDruidCircleOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectDruidCircleOfTheMoonContributions(character)),
+    getCompiledFeatureContributions(character, collectDruidCircleOfTheMoonContributions),
     {
       character: character as Character
     }

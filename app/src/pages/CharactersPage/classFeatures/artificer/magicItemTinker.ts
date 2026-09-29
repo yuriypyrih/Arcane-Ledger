@@ -1,6 +1,8 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type {
   Character,
   CharacterArtificerFeatureState,
@@ -370,18 +372,12 @@ function consumeArtificerMagicItemTinkerDrainUse(character: Character): Characte
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...magicItemTinkerState,
-        magicItemTinkerDrainUsesExpended:
-          (magicItemTinkerState.magicItemTinkerDrainUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...magicItemTinkerState,
+    magicItemTinkerDrainUsesExpended:
+      (magicItemTinkerState.magicItemTinkerDrainUsesExpended ?? 0) + 1
+  });
 }
 
 function consumeArtificerMagicItemTinkerTransmuteUse(character: Character): Character {
@@ -395,18 +391,12 @@ function consumeArtificerMagicItemTinkerTransmuteUse(character: Character): Char
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...magicItemTinkerState,
-        magicItemTinkerTransmuteUsesExpended:
-          (magicItemTinkerState.magicItemTinkerTransmuteUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...magicItemTinkerState,
+    magicItemTinkerTransmuteUsesExpended:
+      (magicItemTinkerState.magicItemTinkerTransmuteUsesExpended ?? 0) + 1
+  });
 }
 
 export function chargeArtificerMagicItemForCharacter(
@@ -690,16 +680,10 @@ export function restoreArtificerMagicItemTinkerDrainOnLongRest(character: Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        magicItemTinkerDrainUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    magicItemTinkerDrainUsesExpended: 0
+  });
 }
 
 export function restoreArtificerMagicItemTinkerTransmuteOnLongRest(
@@ -715,14 +699,8 @@ export function restoreArtificerMagicItemTinkerTransmuteOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        magicItemTinkerTransmuteUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    magicItemTinkerTransmuteUsesExpended: 0
+  });
 }

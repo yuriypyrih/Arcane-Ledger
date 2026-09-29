@@ -1,5 +1,5 @@
+import { extractDescriptionSection } from "./shared/descriptionSections";
 import {
-  SPELL_LIST_CLASS,
   getSpeciesEntryByName,
   getSpellEntries,
   getSpellEntryById,
@@ -7,6 +7,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../codex/entries";
+import { SPELL_LIST_CLASS } from "../../codex/entries/enums";
 import {
   ALL_SKILLS,
   SENSE,
@@ -60,32 +61,7 @@ function getKhoravarDescriptionSection(heading: string): SpellDescriptionEntry[]
   const description = getKhoravarEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
-
-  if (!description) {
-    return [];
-  }
-
-  const startIndex = description.findIndex((descriptionEntry) =>
-    descriptionEntry.includes(`<strong>${heading}.`)
-  );
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const descriptionEntry = description[index]!;
-
-    if (index > startIndex && descriptionEntry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(descriptionEntry);
-  }
-
-  return section;
+  return extractDescriptionSection(description ?? [], `<strong>${heading}.`);
 }
 
 function getKhoravarDescriptionText(heading: string, fallback: string): string {

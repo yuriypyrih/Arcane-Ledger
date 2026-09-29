@@ -1,4 +1,4 @@
-import { getClassLevel, getClassSubclassId } from "../multiclass";
+import { getClassLevel, getClassSubclassId } from "../multiclassState";
 import type { Character } from "../../../types";
 import { collectActiveClassFeatureState } from "../classFeatures/modules";
 import {

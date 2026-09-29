@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import {
   coronaOfLightDescription,
   improvedWardingFlareDescription,
@@ -24,7 +26,7 @@ import {
   clericChannelDivinityOptionKeys
 } from "../../channelDivinity";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -370,16 +372,10 @@ export function consumeClericWardingFlareUse(character: Character): Character {
 
   const clericState = character.classFeatureState?.cleric ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        wardingFlareUsesExpended: (clericState.wardingFlareUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    wardingFlareUsesExpended: (clericState.wardingFlareUsesExpended ?? 0) + 1
+  });
 }
 
 function restoreClericWardingFlareUses(character: Character, minimumLevel: number): Character {
@@ -393,16 +389,10 @@ function restoreClericWardingFlareUses(character: Character, minimumLevel: numbe
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        wardingFlareUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    wardingFlareUsesExpended: 0
+  });
 }
 
 export function restoreClericWardingFlareOnShortRest(character: Character): Character {
@@ -424,16 +414,10 @@ export function restoreClericCoronaOfLightOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        coronaOfLightUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...clericState,
+    coronaOfLightUsesExpended: 0
+  });
 }
 
 function getClericLightDomainActionsByKey(
@@ -516,7 +500,7 @@ export function collectClericLightDomainContributions(
 
 export const getClericLightDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectClericLightDomainContributions(character)),
+    getCompiledFeatureContributions(character, collectClericLightDomainContributions),
     {
       character: character as Character
     }

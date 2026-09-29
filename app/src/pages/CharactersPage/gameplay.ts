@@ -1,4 +1,13 @@
-import { getCharacterLevel } from "./multiclass";
+import { getCharacterLevel } from "./multiclassState";
+import {
+  getSpellEntryById,
+  type SpellDescriptionEntry,
+  type WeaponDamage,
+  type WeaponDamageAmount,
+  type WeaponDamageType,
+  type WeaponEntry,
+  type WeaponRange
+} from "../../codex/entries";
 import {
   DICE,
   DAMAGE_TYPE,
@@ -8,15 +17,8 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_TRAINING,
-  WEAPON_PROPERTY,
-  getSpellEntryById,
-  type SpellDescriptionEntry,
-  type WeaponDamage,
-  type WeaponDamageAmount,
-  type WeaponDamageType,
-  type WeaponEntry,
-  type WeaponRange
-} from "../../codex/entries";
+  WEAPON_PROPERTY
+} from "../../codex/entries/enums";
 import { getWeaponEntries } from "../../codex/selectors";
 import type {
   AbilityKey,

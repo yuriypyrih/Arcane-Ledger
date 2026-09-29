@@ -1,9 +1,5 @@
-import {
-  ACTION_TYPE,
-  getSpellEntryByName,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../codex/entries";
+import { getSpellEntryByName, type ReactionEntry, type SpellEntry } from "../../../codex/entries";
+import { ACTION_TYPE } from "../../../codex/entries/enums";
 import type { AbilityKey, Character } from "../../../types";
 import type { WeaponAction } from "../gameplay";
 export { createDefaultFeatureActionDescription } from "./featureActionDescription";

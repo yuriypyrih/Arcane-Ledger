@@ -1,4 +1,4 @@
-import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries";
+import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries/enums";
 import { WEAPON_PROFICIENCY } from "../../../../types";
 import type { FeatDefinition, FeatRequirement } from "../types";
 

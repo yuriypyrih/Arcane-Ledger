@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { FEATS } from "../../../codex/entries";
+import { FEATS } from "../../../codex/entries/enums";
 import {
   LANGUAGE_PROFICIENCY,
   type CharacterFeatEntry,
@@ -13,7 +13,6 @@ import {
 } from "../../../types";
 import SelectInput from "../FormInputs/SelectInput";
 import {
-  getFeatLabel,
   getMagicInitiateCantripOptions,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
   getMagicInitiateLevelOneSpellOptions,
@@ -22,6 +21,7 @@ import {
   magicInitiateSpellListOptions,
   spellfireSparkSpellcastingAbilityOptions
 } from "../../../pages/CharactersPage/feats";
+import { getFeatLabel } from "../../../pages/CharactersPage/feats/catalog";
 import { purpleDragonRookSkillOptions } from "../../../pages/CharactersPage/feats/purpleDragonRook";
 import { getSourceChoiceSkillOptions } from "../../../pages/CharactersPage/proficiency";
 import {
@@ -50,9 +50,7 @@ type OriginFeatSetupControlsProps = {
   lockedMagicInitiateSpellList?: MagicInitiateChoice["spellList"];
   onMagicInitiateChange: (partialChoice: Partial<MagicInitiateChoice>) => void;
   onCultOfDragonInitiateLanguageChange: (language: LANGUAGE_PROFICIENCY) => void;
-  onEmeraldEnclaveFledglingChange: (
-    partialChoice: Partial<EmeraldEnclaveFledglingChoice>
-  ) => void;
+  onEmeraldEnclaveFledglingChange: (partialChoice: Partial<EmeraldEnclaveFledglingChoice>) => void;
   onSpellfireSparkChange: (partialChoice: Partial<SpellfireSparkChoice>) => void;
   onPurpleDragonRookSkillChange: (skill: PurpleDragonRookChoice["skill"]) => void;
   onToolFeatSelection: (
@@ -113,12 +111,7 @@ function OriginFeatSetupControls({
     ) {
       onCultOfDragonInitiateLanguageChange(expectedLanguage);
     }
-  }, [
-    feat,
-    featEntry,
-    languageProficiencies,
-    onCultOfDragonInitiateLanguageChange
-  ]);
+  }, [feat, featEntry, languageProficiencies, onCultOfDragonInitiateLanguageChange]);
 
   if (!feat || !featEntry) {
     return <p className={styles.helperText}>{emptyText}</p>;
@@ -252,8 +245,7 @@ function OriginFeatSetupControls({
                 key={language}
                 value={language}
                 disabled={
-                  knowsDraconicFromOtherSource &&
-                  language === cultOfDragonInitiateDefaultLanguage
+                  knowsDraconicFromOtherSource && language === cultOfDragonInitiateDefaultLanguage
                 }
               >
                 {getCultOfDragonInitiateLanguageLabel(language)}
@@ -277,8 +269,8 @@ function OriginFeatSetupControls({
             value={choice.spellcastingAbility}
             onChange={(event) =>
               onEmeraldEnclaveFledglingChange({
-                spellcastingAbility:
-                  event.target.value as EmeraldEnclaveFledglingChoice["spellcastingAbility"]
+                spellcastingAbility: event.target
+                  .value as EmeraldEnclaveFledglingChoice["spellcastingAbility"]
               })
             }
           >
@@ -305,8 +297,8 @@ function OriginFeatSetupControls({
             value={choice.spellcastingAbility}
             onChange={(event) =>
               onSpellfireSparkChange({
-                spellcastingAbility:
-                  event.target.value as SpellfireSparkChoice["spellcastingAbility"]
+                spellcastingAbility: event.target
+                  .value as SpellfireSparkChoice["spellcastingAbility"]
               })
             }
           >
@@ -394,11 +386,7 @@ function OriginFeatSetupControls({
             className={styles.fieldInput}
             value={selectedTool}
             onChange={(event) =>
-              onToolFeatSelection(
-                FEATS.HARPER_AGENT,
-                0,
-                event.target.value as TOOL_PROFICIENCY
-              )
+              onToolFeatSelection(FEATS.HARPER_AGENT, 0, event.target.value as TOOL_PROFICIENCY)
             }
           >
             {musicalInstrumentToolProficiencies.map((tool) => (
@@ -430,9 +418,7 @@ function OriginFeatSetupControls({
             className={styles.fieldInput}
             value={selectedSkill}
             onChange={(event) =>
-              onPurpleDragonRookSkillChange(
-                event.target.value as PurpleDragonRookChoice["skill"]
-              )
+              onPurpleDragonRookSkillChange(event.target.value as PurpleDragonRookChoice["skill"])
             }
           >
             {purpleDragonRookSkillOptions.map((skill) => (

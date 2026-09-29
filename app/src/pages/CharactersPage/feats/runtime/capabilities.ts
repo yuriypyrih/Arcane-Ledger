@@ -1,4 +1,4 @@
-import { FEATS } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 
 export type FeatRuntimeCapability =
   | "abilityBonus"
@@ -148,7 +148,14 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.FEY_TOUCHED]: {
     feat: FEATS.FEY_TOUCHED,
-    capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform"]
+    capabilities: [
+      "abilityBonus",
+      "choice",
+      "freeCast",
+      "restRecovery",
+      "spellGrant",
+      "spellTransform"
+    ]
   },
   [FEATS.GRAPPLER]: { feat: FEATS.GRAPPLER, capabilities: ["abilityBonus", "choice"] },
   [FEATS.GREAT_WEAPON_FIGHTING]: {
@@ -234,7 +241,14 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.POISONER]: {
     feat: FEATS.POISONER,
-    capabilities: ["abilityBonus", "choice", "itemDescription", "proficiency", "spellTransform", "weaponActionTransform"]
+    capabilities: [
+      "abilityBonus",
+      "choice",
+      "itemDescription",
+      "proficiency",
+      "spellTransform",
+      "weaponActionTransform"
+    ]
   },
   [FEATS.POLEARM_MASTER]: {
     feat: FEATS.POLEARM_MASTER,
@@ -251,7 +265,14 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.RITUAL_CASTER]: {
     feat: FEATS.RITUAL_CASTER,
-    capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform"]
+    capabilities: [
+      "abilityBonus",
+      "choice",
+      "freeCast",
+      "restRecovery",
+      "spellGrant",
+      "spellTransform"
+    ]
   },
   [FEATS.SAVAGE_ATTACKER]: {
     feat: FEATS.SAVAGE_ATTACKER,
@@ -263,7 +284,14 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.SHADOW_TOUCHED]: {
     feat: FEATS.SHADOW_TOUCHED,
-    capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform"]
+    capabilities: [
+      "abilityBonus",
+      "choice",
+      "freeCast",
+      "restRecovery",
+      "spellGrant",
+      "spellTransform"
+    ]
   },
   [FEATS.SHARPSHOOTER]: {
     feat: FEATS.SHARPSHOOTER,
@@ -311,7 +339,15 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.TELEPATHIC]: {
     feat: FEATS.TELEPATHIC,
-    capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform", "status"]
+    capabilities: [
+      "abilityBonus",
+      "choice",
+      "freeCast",
+      "restRecovery",
+      "spellGrant",
+      "spellTransform",
+      "status"
+    ]
   },
   [FEATS.THROWN_WEAPON_FIGHTING]: {
     feat: FEATS.THROWN_WEAPON_FIGHTING,

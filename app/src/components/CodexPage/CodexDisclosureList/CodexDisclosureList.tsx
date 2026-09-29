@@ -13,9 +13,6 @@ import {
 } from "../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
-  ENTRY_CATEGORIES,
-  FEATS,
-  TRACKER,
   type BackgroundEntry,
   type CodexEntry,
   type CodexStatus,
@@ -23,6 +20,7 @@ import {
   type SpeciesEntry,
   type SpellEntry
 } from "../../../codex/entries";
+import { ENTRY_CATEGORIES, FEATS, TRACKER } from "../../../codex/entries/enums";
 import {
   resolveKeywordReference,
   type ResolvedKeywordReference

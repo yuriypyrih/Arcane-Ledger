@@ -1,9 +1,5 @@
-import {
-  FEATS,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS, REACTION } from "../../../../codex/entries/enums";
 import {
   CONDITION_NAME,
   SENSE,
@@ -79,8 +75,7 @@ export function getEpicBoonFeatResourceState(
 ): EpicBoonFeatResourceState {
   const boonOfFateImproveFateTotal = featSet.has(FEATS.BOON_OF_FATE) ? 1 : 0;
   const boonOfFateImproveFateExpended = normalizedFeats.some(
-    (entry) =>
-      entry.feat === FEATS.BOON_OF_FATE && entry.boonOfFate?.improveFateExpended === true
+    (entry) => entry.feat === FEATS.BOON_OF_FATE && entry.boonOfFate?.improveFateExpended === true
   );
   const boonOfFluidFormsShapechangerTotal = featSet.has(FEATS.BOON_OF_FLUID_FORMS) ? 1 : 0;
   const boonOfFluidFormsShapechangerExpended = normalizedFeats.some(
@@ -105,13 +100,11 @@ export function getEpicBoonFeatResourceState(
   );
   const boonOfRecoveryLastStandExpended = normalizedFeats.some(
     (entry) =>
-      entry.feat === FEATS.BOON_OF_RECOVERY &&
-      entry.boonOfRecovery?.lastStandExpended === true
+      entry.feat === FEATS.BOON_OF_RECOVERY && entry.boonOfRecovery?.lastStandExpended === true
   );
   const boonOfTerrorFleeFoolsTotal = featSet.has(FEATS.BOON_OF_TERROR) ? 1 : 0;
   const boonOfTerrorFleeFoolsExpended = normalizedFeats.some(
-    (entry) =>
-      entry.feat === FEATS.BOON_OF_TERROR && entry.boonOfTerror?.fleeFoolsExpended === true
+    (entry) => entry.feat === FEATS.BOON_OF_TERROR && entry.boonOfTerror?.fleeFoolsExpended === true
   );
   const boonOfSoulDrinkerSiphonLifeTotal = featSet.has(FEATS.BOON_OF_SOUL_DRINKER) ? 1 : 0;
   const boonOfSoulDrinkerSiphonLifeExpended = normalizedFeats.some(
@@ -133,10 +126,7 @@ export function getEpicBoonFeatResourceState(
     boonOfFluidFormsShapechangerRemaining:
       boonOfFluidFormsShapechangerTotal > 0 && !boonOfFluidFormsShapechangerExpended ? 1 : 0,
     boonOfFluidFormsShapechangerTotal,
-    boonOfRecoveryDiceRemaining: Math.max(
-      0,
-      boonOfRecoveryDiceTotal - boonOfRecoveryDiceExpended
-    ),
+    boonOfRecoveryDiceRemaining: Math.max(0, boonOfRecoveryDiceTotal - boonOfRecoveryDiceExpended),
     boonOfRecoveryDiceTotal,
     boonOfRecoveryLastStandRemaining:
       boonOfRecoveryLastStandTotal > 0 && !boonOfRecoveryLastStandExpended ? 1 : 0,
@@ -154,9 +144,7 @@ export function getEpicBoonFeatHitPointMaximumBonus(featSet: ReadonlySet<FEATS>)
   return featSet.has(FEATS.BOON_OF_FORTITUDE) ? 40 : 0;
 }
 
-export function getEpicBoonFeatSpeedBonuses(
-  featSet: ReadonlySet<FEATS>
-): FeatureSpeedBonus[] {
+export function getEpicBoonFeatSpeedBonuses(featSet: ReadonlySet<FEATS>): FeatureSpeedBonus[] {
   if (!featSet.has(FEATS.BOON_OF_SPEED)) {
     return [];
   }

@@ -1,4 +1,4 @@
-import { getClassLevel } from "../../../../../pages/CharactersPage/multiclass";
+import { getClassLevel } from "../../../../../pages/CharactersPage/multiclassState";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { Character } from "../../../../../types";
 import d20Icon from "../../../../../assets/svg/d20.svg";

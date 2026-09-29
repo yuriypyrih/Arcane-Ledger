@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getWizardDivinerFeatureDescriptionEntries } from "./wizardDivinerShared";
 
 export type WizardDivinerThirdEyeOptionKey =
@@ -35,9 +35,7 @@ function extractThirdEyeOptionDescription(name: string, fallback: string): strin
     entry.startsWith(`<strong>${name}.</strong>`)
   );
 
-  return matchingEntry
-    ? matchingEntry.replace(/^<strong>[^<]+<\/strong>\s*/, "").trim()
-    : fallback;
+  return matchingEntry ? matchingEntry.replace(/^<strong>[^<]+<\/strong>\s*/, "").trim() : fallback;
 }
 
 const darkvisionRawDescription = extractThirdEyeOptionDescription(
@@ -90,7 +88,5 @@ export const wizardDivinerThirdEyeSeeInvisibilityDescription = [seeInvisibilityR
 export function getWizardDivinerThirdEyeOptionDefinition(
   optionKey: WizardDivinerThirdEyeOptionKey
 ): WizardDivinerThirdEyeOptionDefinition | null {
-  return (
-    wizardDivinerThirdEyeOptionDefinitions.find((option) => option.key === optionKey) ?? null
-  );
+  return wizardDivinerThirdEyeOptionDefinitions.find((option) => option.key === optionKey) ?? null;
 }

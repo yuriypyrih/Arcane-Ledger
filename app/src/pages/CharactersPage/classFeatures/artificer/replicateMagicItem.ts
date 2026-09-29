@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import { artificerFeatures } from "../../../../codex/classes/artificer";
 import type {
   Character,
@@ -242,17 +243,11 @@ export function setArtificerReplicateMagicItemPlanKeysForCharacter(
     new Set(nextPlanKeys)
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...character.classFeatureState?.artificer,
-        replicateMagicItemPlanKeys: nextPlanKeys.length > 0 ? nextPlanKeys : undefined,
-        armorerImprovedArmorReplicationPlanKey: nextArmorReplicationPlanKey
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...character.classFeatureState?.artificer,
+    replicateMagicItemPlanKeys: nextPlanKeys.length > 0 ? nextPlanKeys : undefined,
+    armorerImprovedArmorReplicationPlanKey: nextArmorReplicationPlanKey
+  });
 }
 
 export function setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(
@@ -266,16 +261,10 @@ export function setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(
     new Set(basePlanKeys)
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...character.classFeatureState?.artificer,
-        armorerImprovedArmorReplicationPlanKey: nextPlanKey
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...character.classFeatureState?.artificer,
+    armorerImprovedArmorReplicationPlanKey: nextPlanKey
+  });
 }
 
 export function isArtificerReplicateMagicItemPlanSelectionInputRequired(

@@ -1,4 +1,4 @@
-import { getClassLevel } from "../../multiclass";
+import { getClassLevel } from "../../multiclassState";
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
 import type {
   ClassFeatureDerivedState,

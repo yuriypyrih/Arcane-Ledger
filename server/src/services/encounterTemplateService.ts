@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import {
@@ -158,7 +159,9 @@ export function assertEncounterCreatureListSize(creatures: readonly unknown[]) {
   });
 }
 
-function normalizePrimalBeastKind(value: unknown): EncounterTemplateCreatureRecord["primalBeastKind"] {
+function normalizePrimalBeastKind(
+  value: unknown
+): EncounterTemplateCreatureRecord["primalBeastKind"] {
   if (value === undefined || value === null || value === "") {
     return undefined;
   }
@@ -194,7 +197,11 @@ async function findOwnedEncounterTemplateDocument(options: {
 
 export function normalizeEncounterTemplateName(value: unknown) {
   if (typeof value !== "string") {
-    throw new AppError("Encounter template name is required.", 400, "INVALID_ENCOUNTER_TEMPLATE_NAME");
+    throw new AppError(
+      "Encounter template name is required.",
+      400,
+      "INVALID_ENCOUNTER_TEMPLATE_NAME"
+    );
   }
 
   const name = value.trim();
@@ -224,7 +231,11 @@ export function normalizeEncounterTemplateCreature(
   const id = normalizeText(creatureId, "creatureId", { required: true });
 
   if (!isObjectRecord(value)) {
-    throw new AppError("Creature payload must be an object.", 400, "INVALID_ENCOUNTER_TEMPLATE_CREATURE");
+    throw new AppError(
+      "Creature payload must be an object.",
+      400,
+      "INVALID_ENCOUNTER_TEMPLATE_CREATURE"
+    );
   }
 
   const name = normalizeText(value.name, "name", { required: true });
@@ -243,7 +254,10 @@ export function normalizeEncounterTemplateCreature(
     value.inheritedCreatureEntry,
     "inheritedCreatureEntry"
   );
-  const temporaryHitPointsSource = normalizeText(value.temporaryHitPointsSource, "temporaryHitPointsSource");
+  const temporaryHitPointsSource = normalizeText(
+    value.temporaryHitPointsSource,
+    "temporaryHitPointsSource"
+  );
   const primalBeastKind = normalizePrimalBeastKind(value.primalBeastKind);
 
   if (!duration) {
@@ -339,19 +353,12 @@ export async function createOwnedEncounterTemplate(options: {
 
   await assertCreatedDmToolWithinLimit({
     countDocuments: countOwnedEncounterTemplates,
-    isCreatedWithinLimit: async (limit) => {
-      const retainedEncounterTemplates = await EncounterTemplate.find({ ownerId: options.ownerId })
-        .sort({ createdAt: 1, _id: 1 })
-        .limit(limit)
-        .select("_id")
-        .lean()
-        .exec();
-
-      return retainedEncounterTemplates.some(
-        (retainedEncounterTemplate) =>
-          retainedEncounterTemplate._id.toString() === encounterTemplate._id.toString()
-      );
-    },
+    isCreatedWithinLimit: (limit) =>
+      isCreatedDocumentRetained(
+        EncounterTemplate.find({ ownerId: options.ownerId }),
+        encounterTemplate._id,
+        limit
+      ),
     kind: "encounterTemplates",
     removeCreated: () =>
       EncounterTemplate.deleteOne({
@@ -441,10 +448,16 @@ export async function removeEncounterTemplateCreature(options: {
 }) {
   const encounterTemplate = await findOwnedEncounterTemplateDocument(options);
   const creatureId = normalizeText(options.creatureId, "creatureId", { required: true });
-  const nextCreatures = encounterTemplate.creatures.filter((creature) => creature.id !== creatureId);
+  const nextCreatures = encounterTemplate.creatures.filter(
+    (creature) => creature.id !== creatureId
+  );
 
   if (nextCreatures.length === encounterTemplate.creatures.length) {
-    throw new AppError("Encounter template creature was not found.", 404, "ENCOUNTER_CREATURE_NOT_FOUND");
+    throw new AppError(
+      "Encounter template creature was not found.",
+      404,
+      "ENCOUNTER_CREATURE_NOT_FOUND"
+    );
   }
 
   encounterTemplate.creatures = nextCreatures;

@@ -1,3 +1,6 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getHitDicePools, spendHitDice } from "../../hitDice";
 import {
   getClassEntry,
@@ -5,20 +8,22 @@ import {
   getCharacterLevel,
   getClassCantripIds,
   getClassLevel
-} from "../../multiclass";
+} from "../../multiclassState";
 import { getCharacterSpellSlotPools, setSlotPoolExpended } from "../../multiclassSpellcasting";
+import {
+  getEldritchInvocationEntryById,
+  getSpellEntryById,
+  type EldritchInvocationEntry,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import {
   FEAT_CATEGORY,
   SPELL_LIST_CLASS,
   CLASS_FEATURE,
   ELDRITCH_INVOCATION,
-  getEldritchInvocationEntryById,
-  getSpellEntryById,
-  type EldritchInvocationEntry,
-  type FEATS,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+  type FEATS
+} from "../../../../codex/entries/enums";
 import {
   getSpellEntriesForClassName,
   warlockFeatures,
@@ -42,7 +47,7 @@ import {
   isCharacterClassRulesEldritchInvocationsEnabled,
   normalizeCharacterClassRulesConfig
 } from "../../customClass";
-import { getFeatDefinitionsByCategory } from "../../feats";
+import { getFeatDefinitionsByCategory } from "../../feats/catalog";
 import {
   type AbilityKey,
   type Character,
@@ -306,25 +311,13 @@ function clampWarlockLevel(level: number): number {
 
 function getWarlockFeatureRow(level: number): WarlockFeatureClassObj | null {
   const normalizedLevel = clampWarlockLevel(level);
-  const matchingRows = warlockFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(warlockFeatures, normalizedLevel);
 }
 
 function getUnlockedWarlockFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = clampWarlockLevel(level);
 
-  return warlockFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(warlockFeatures, normalizedLevel);
 }
 
 const createSelectionId = createWarlockInvocationSelectionId;
@@ -1917,16 +1910,10 @@ export function consumeWarlockPactWeaponAttack(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function getWarlockDerivedStatusEntries(
@@ -2254,16 +2241,10 @@ export function setWarlockGiftOfTheProtectorsBookOfShadowsText(
 
   const warlockState = getWarlockFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        giftOfTheProtectorsBookOfShadowsText: text
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    giftOfTheProtectorsBookOfShadowsText: text
+  });
 }
 
 export function consumeMysticArcanumUse(
@@ -2287,18 +2268,10 @@ export function consumeMysticArcanumUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        mysticArcanumExpendedLevels: [...expendedLevels, spellLevel].sort(
-          (left, right) => left - right
-        )
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    mysticArcanumExpendedLevels: [...expendedLevels, spellLevel].sort((left, right) => left - right)
+  });
 }
 
 export function restoreWarlockMagicalCunningOnLongRest(character: Character): Character {
@@ -2360,16 +2333,10 @@ export function restoreMysticArcanumOnLongRest(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        mysticArcanumExpendedLevels: []
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    mysticArcanumExpendedLevels: []
+  });
 }
 
 export function consumeWarlockStepsOfTheFeyUse(character: Character): Character {
@@ -2479,16 +2446,10 @@ export function advanceWarlockFeaturesForNewRound(character: Character): Charact
   const nextCharacter =
     (warlockState.extraAttacksRemainingThisTurn ?? 0) === 0
       ? character
-      : {
-          ...character,
-          classFeatureState: {
-            ...character.classFeatureState,
-            warlock: {
-              ...warlockState,
-              extraAttacksRemainingThisTurn: 0
-            }
-          }
-        };
+      : replaceClassFeatureState(character, "warlock", {
+          ...warlockState,
+          extraAttacksRemainingThisTurn: 0
+        });
 
   return advanceWarlockCelestialPatronFeaturesForNewRound(nextCharacter);
 }

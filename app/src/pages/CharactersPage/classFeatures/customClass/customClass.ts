@@ -1,8 +1,6 @@
-import { ELDRITCH_INVOCATION } from "../../../../codex/entries";
-import type {
-  Character,
-  CharacterCustomClassFeatureState
-} from "../../../../types";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { ELDRITCH_INVOCATION } from "../../../../codex/entries/enums";
+import type { Character, CharacterCustomClassFeatureState } from "../../../../types";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -14,16 +12,10 @@ import {
   isCharacterClassRulesEldritchInvocationsEnabled
 } from "../../customClass";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable
-} from "../../combat";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import { projectCompiledContributionsToClassFeatureDerivedState } from "../../featureContributions";
 import type { WeaponAction } from "../../gameplay";
-import type {
-  ClassFeatureDerivedState,
-  WeaponAttackConsumptionContext
-} from "../types";
+import type { ClassFeatureDerivedState, WeaponAttackConsumptionContext } from "../types";
 import { collectWarlockInvocationContributionState } from "../warlock/invocations/contributions";
 import {
   activateWarlockGazeOfTwoMindsStatus,
@@ -95,10 +87,10 @@ export function normalizeCustomClassFeatureState(
 export function getCustomClassExtraAttacksRemainingThisTurn(
   character: CustomClassFeatureCharacter
 ): number {
-  return normalizeCustomClassFeatureState(
-    character.classFeatureState?.customClass,
-    character
-  ).extraAttacksRemainingThisTurn ?? 0;
+  return (
+    normalizeCustomClassFeatureState(character.classFeatureState?.customClass, character)
+      .extraAttacksRemainingThisTurn ?? 0
+  );
 }
 
 export function getCustomClassWeaponAttackMultiCount(
@@ -159,16 +151,10 @@ export function consumeCustomClassWeaponAttack(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      customClass: {
-        ...customClassState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "customClass", {
+    ...customClassState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function advanceCustomClassFeaturesForNewRound(character: Character): Character {
@@ -181,16 +167,10 @@ export function advanceCustomClassFeaturesForNewRound(character: Character): Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      customClass: {
-        ...customClassState,
-        extraAttacksRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "customClass", {
+    ...customClassState,
+    extraAttacksRemainingThisTurn: 0
+  });
 }
 
 export function getClassNeutralMechanicsDerivedState(

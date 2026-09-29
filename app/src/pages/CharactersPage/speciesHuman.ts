@@ -1,11 +1,10 @@
+import { extractDescriptionSection } from "./shared/descriptionSections";
 import {
-  FEAT_CATEGORY,
-  FEATS,
-  SPELL_LIST_CLASS,
   getSpeciesEntryByName,
   type SpeciesEntry,
   type SpellDescriptionEntry
 } from "../../codex/entries";
+import { FEAT_CATEGORY, FEATS, SPELL_LIST_CLASS } from "../../codex/entries/enums";
 import {
   ALL_SKILLS,
   TOOL_PROFICIENCY,
@@ -19,12 +18,11 @@ import {
 import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 import {
   createCharacterFeatEntry,
-  getFeatDefinition,
-  getFeatDefinitionsByCategory,
   getMagicInitiateCantripOptions,
   getMagicInitiateLevelOneSpellOptions,
   type FeatDefinition
 } from "./feats";
+import { getFeatDefinition, getFeatDefinitionsByCategory } from "./feats/catalog";
 import { getDefaultCultOfDragonInitiateLanguage } from "./feats/cultOfDragonInitiate";
 import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
 import { getDefaultHarperAgentInstrument } from "./feats/harperAgent";
@@ -61,32 +59,7 @@ function getHumanDescriptionSection(heading: string): SpellDescriptionEntry[] {
   const description = getHumanEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
-
-  if (!description) {
-    return [];
-  }
-
-  const startIndex = description.findIndex((descriptionEntry) =>
-    descriptionEntry.includes(`<strong>${heading}.`)
-  );
-
-  if (startIndex < 0) {
-    return [];
-  }
-
-  const section: string[] = [];
-
-  for (let index = startIndex; index < description.length; index += 1) {
-    const descriptionEntry = description[index]!;
-
-    if (index > startIndex && descriptionEntry.startsWith("<strong>")) {
-      break;
-    }
-
-    section.push(descriptionEntry);
-  }
-
-  return section;
+  return extractDescriptionSection(description ?? [], `<strong>${heading}.`);
 }
 
 function getResourcefulDescription(): SpellDescriptionEntry[] {

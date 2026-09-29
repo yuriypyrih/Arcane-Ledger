@@ -1,10 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  REACTION,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   PROFICIENCY_OVERRIDE_POLICY,
@@ -26,7 +23,7 @@ import type {
 } from "../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -403,16 +400,10 @@ export function consumeRangerFeyWandererFeyReinforcementsUse(character: Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        feyReinforcementsUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    feyReinforcementsUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRangerFeyWandererMistyWandererUse(character: Character): Character {
@@ -428,16 +419,10 @@ export function consumeRangerFeyWandererMistyWandererUse(character: Character): 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        mistyWandererUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    mistyWandererUsesExpended: usesExpended + 1
+  });
 }
 
 export function restoreRangerFeyWandererFeyReinforcementsOnLongRest(
@@ -453,16 +438,10 @@ export function restoreRangerFeyWandererFeyReinforcementsOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        feyReinforcementsUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    feyReinforcementsUsesExpended: 0
+  });
 }
 
 export function restoreRangerFeyWandererMistyWandererOnLongRest(character: Character): Character {
@@ -476,16 +455,10 @@ export function restoreRangerFeyWandererMistyWandererOnLongRest(character: Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...rangerState,
-        mistyWandererUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...rangerState,
+    mistyWandererUsesExpended: 0
+  });
 }
 
 function appendFeyWandererSpellDescription(
@@ -548,16 +521,10 @@ export function setRangerOtherworldlyGlamourSkillSelection(
   const normalizedSelection =
     selection === null ? undefined : normalizeRangerOtherworldlyGlamourSkillSelection(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        otherworldlyGlamourSkill: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    otherworldlyGlamourSkill: normalizedSelection
+  });
 }
 
 export function getRangerFeyWandererOtherworldlyGlamourSkillBonuses(
@@ -614,16 +581,10 @@ export function setRangerFeyWandererGiftSelection(
   const normalizedSelection =
     selection === null ? undefined : normalizeRangerFeyWandererGiftSelection(selection);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      ranger: {
-        ...character.classFeatureState?.ranger,
-        feyWandererGift: normalizedSelection
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "ranger", {
+    ...character.classFeatureState?.ranger,
+    feyWandererGift: normalizedSelection
+  });
 }
 
 function collectRangerFeyWandererContributions(
@@ -736,7 +697,7 @@ function collectRangerFeyWandererContributions(
 
 export const getRangerFeyWandererDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRangerFeyWandererContributions(character)),
+    getCompiledFeatureContributions(character, collectRangerFeyWandererContributions),
     {
       character: character as Character
     }

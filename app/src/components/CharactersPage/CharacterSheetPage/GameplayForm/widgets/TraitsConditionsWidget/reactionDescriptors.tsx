@@ -1,5 +1,5 @@
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclass";
+import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { normalizeSpellSlotsExpended } from "../../../../../../pages/CharactersPage/spellcasting";
@@ -85,12 +85,8 @@ import {
   hasActiveWizardBladesong,
   wizardBladesingerSongOfDefenseReactionId
 } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
-import {
-  FEATS,
-  ABILITY_TYPES,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../../codex/entries";
+import { type ReactionEntry, type SpellEntry } from "../../../../../../codex/entries";
+import { FEATS, ABILITY_TYPES } from "../../../../../../codex/entries/enums";
 import {
   boonOfEnergyResistanceReactionEntryId,
   boonOfSoulDrinkerSiphonLifeReactionEntryId,

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  MAGIC_SCHOOL,
   getSpellEntries,
   type ReactionEntry,
   type SpellEntry
 } from "../../../../../../codex/entries";
+import { MAGIC_SCHOOL } from "../../../../../../codex/entries/enums";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   applySpellCastFeatureEffectsForCharacter,
@@ -186,12 +186,12 @@ export function useReactionDrawerState({
     selectedReactionSpell !== null ? getBeguilingMagicUsesRemainingForCharacter(character) : 0;
   const shouldResolveBardicInspirationUses =
     selectedReactionEntry !== null || selectedReactionSpell !== null;
-  const bardicInspirationUsesRemaining =
-    shouldResolveBardicInspirationUses
-      ? getBardicInspirationUsesRemainingForCharacter(character)
-      : 0;
-  const bardicInspirationUsesTotal =
-    shouldResolveBardicInspirationUses ? getBardicInspirationUsesTotalForCharacter(character) : 0;
+  const bardicInspirationUsesRemaining = shouldResolveBardicInspirationUses
+    ? getBardicInspirationUsesRemainingForCharacter(character)
+    : 0;
+  const bardicInspirationUsesTotal = shouldResolveBardicInspirationUses
+    ? getBardicInspirationUsesTotalForCharacter(character)
+    : 0;
   const warlockStepsOfTheFeyUsesTotal =
     selectedReactionSpell?.id === mistyStepSpellId
       ? getWarlockStepsOfTheFeyUsesTotalForCharacter(character)
@@ -771,9 +771,7 @@ export function useReactionDrawerState({
       };
 
       return applySpellCastFeatureEffectsForCharacter(
-        restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
-          nextCharacterWithSpellDuration
-        ),
+        restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithSpellDuration),
         selectedReactionSpell,
         { includeBardBattleMagic: false }
       );

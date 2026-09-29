@@ -1,11 +1,10 @@
 import { createChannelDivinityRestOptions } from "./channelDivinityRestOptions";
-import { getClassLevel } from "../../../../../pages/CharactersPage/multiclass";
+import { getClassLevel } from "../../../../../pages/CharactersPage/multiclassState";
 import { getSheetSpellSlotTotals } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
 import {
   getCharacterSpellSlotPools,
   recoverSlotPools
 } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
   getArtificerFlashOfGeniusUsesRemaining,
@@ -15,260 +14,89 @@ import {
   restoreArtificerFlashOfGeniusOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
-  getBarbarianIntimidatingPresenceUsesTotal,
-  getBarbarianZealousPresenceUsesTotal,
-  getBarbarianPersistentRageUsesTotal,
-  getBarbarianRageOfTheGodsUsesTotal,
   getBarbarianRageUsesTotal,
-  getBarbarianWarriorOfTheGodsUsesTotal,
   hasBarbarianRelentlessRageFeature,
-  restoreBarbarianIntimidatingPresenceOnLongRest,
-  restoreBarbarianRageOfTheGodsOnLongRest,
-  restoreBarbarianZealousPresenceOnLongRest,
-  restoreBarbarianPersistentRageOnLongRest,
-  restoreBarbarianRageOnLongRest,
   restoreBarbarianRageOnShortRest,
-  restoreBarbarianRelentlessRageOnLongRest,
-  restoreBarbarianRelentlessRageOnShortRest,
-  restoreBarbarianWarriorOfTheGodsOnLongRest
+  restoreBarbarianRelentlessRageOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import {
   restoreBardicInspirationOnShortRest,
   getBardicInspirationUsesTotal,
-  getBlessingOfMoonlightUsesTotal,
-  getBeguilingMagicUsesTotal,
-  getMantleOfMajestyUsesTotal,
   getUnbreakableMajestyUsesTotal,
   applyShortRestToBardFeatures,
-  restoreBlessingOfMoonlightOnLongRest,
-  restoreBeguilingMagicOnLongRest,
-  restoreMantleOfMajestyOnLongRest,
-  restoreUnbreakableMajestyOnLongRest,
-  restoreUnbreakableMajestyOnShortRest,
-  restoreBardicInspirationOnLongRest
+  restoreUnbreakableMajestyOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
-  getClericCoronaOfLightUsesTotal,
   getClericWarPriestUsesTotal,
   getClericWardingFlareUsesTotal,
-  getDivineForeknowledgeUsesTotal,
   hasClericImprovedWardingFlareFeature,
-  hasClericDivineInterventionFeature,
-  restoreClericChannelDivinityOnLongRest,
-  restoreClericCoronaOfLightOnLongRest,
-  restoreClericDivineForeknowledgeOnLongRest,
-  restoreClericDivineInterventionOnLongRest,
-  restoreClericWarPriestOnLongRest,
   restoreClericWarPriestOnShortRest,
-  restoreClericWardingFlareOnLongRest,
   restoreClericWardingFlareOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
-  getFighterBattleMasterKnowYourEnemyUsesTotalForCharacter as getFighterBattleMasterKnowYourEnemyUsesTotal,
   getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
   getFighterGroupRecoveryUsesTotal,
-  getFighterIndomitableUsesTotal,
-  getFighterPsiWarriorBulwarkOfForceUsesTotalForCharacter as getFighterPsiWarriorBulwarkOfForceUsesTotal,
   getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
-  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter as getFighterPsiWarriorTelekineticMasterUsesTotal,
   getFighterPsiWarriorPsiPoweredLeapUsesTotalForCharacter as getFighterPsiWarriorPsiPoweredLeapUsesTotal,
   getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter as getFighterPsiWarriorTelekineticMovementUsesTotal,
   getFighterSecondWindUsesTotal,
-  restoreFighterActionSurgeOnLongRest,
   restoreFighterActionSurgeOnShortRest,
-  restoreFighterBattleMasterKnowYourEnemyOnLongRest,
-  restoreFighterBattleMasterSuperiorityDiceOnLongRest,
   restoreFighterBattleMasterSuperiorityDiceOnShortRest,
-  restoreFighterGroupRecoveryOnLongRest,
   restoreFighterGroupRecoveryOnShortRest,
-  restoreFighterIndomitableOnLongRest,
-  restoreFighterPsiWarriorBulwarkOfForceOnLongRest,
-  restoreFighterPsiWarriorEnergyDiceOnLongRest,
   restoreFighterPsiWarriorEnergyDiceOnShortRest,
-  restoreFighterPsiWarriorTelekineticMasterOnLongRest,
-  restoreFighterPsiWarriorPsiPoweredLeapOnLongRest,
   restoreFighterPsiWarriorPsiPoweredLeapOnShortRest,
-  restoreFighterPsiWarriorTelekineticMovementOnLongRest,
   restoreFighterPsiWarriorTelekineticMovementOnShortRest,
-  restoreFighterSecondWindOnLongRest,
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import {
-  getDruidCosmicOmenUsesTotal,
-  getDruidStarMapGuidingBoltUsesTotal,
-  getDruidMoonlightStepUsesTotal,
-  getDruidNaturalRecoveryUsesTotal,
-  getDruidNatureMagicianUsesTotal,
-  getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
   getDruidWildShapeUsesTotal,
-  restoreDruidCosmicOmenOnLongRest,
-  restoreDruidMoonlightStepOnLongRest,
-  restoreDruidNaturalRecoveryOnLongRest,
-  restoreDruidNatureMagicianOnLongRest,
-  restoreDruidStarMapGuidingBoltOnLongRest,
-  restoreDruidWildResurgenceOnLongRest,
-  restoreAllDruidWildShapeUses,
   restoreOneDruidWildShapeUse
 } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
-import {
-  getElderChampionUsesTotal,
-  getElementalRebukeUsesTotal,
-  getFaithfulSteedUsesTotal,
-  getGloriousDefenseUsesTotal,
-  getHolyNimbusUsesTotal,
-  getLivingLegendUsesTotal,
-  getNobleScionUsesTotal,
-  getAvengingAngelUsesTotal,
-  getPaladinHealingPoolTotal,
-  getPaladinsSmiteUsesTotal,
-  getUndyingSentinelUsesTotal,
-  restorePaladinChannelDivinityOnLongRest,
-  restoreElderChampionOnLongRest,
-  restoreElementalRebukeOnLongRest,
-  restoreFaithfulSteedOnLongRest,
-  restoreGloriousDefenseOnLongRest,
-  restoreHolyNimbusOnLongRest,
-  restoreLivingLegendOnLongRest,
-  restoreNobleScionOnLongRest,
-  restoreAvengingAngelOnLongRest,
-  restorePaladinLayOnHandsOnLongRest,
-  restorePaladinsSmiteOnLongRest,
-  restoreUndyingSentinelOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
+
 import {
   getMonkFocusPointsTotal,
-  getMonkFlurryOfHealingAndHarmUsesTotal,
-  getMonkHandOfUltimateJusticeUsesTotal,
-  getMonkWholenessOfBodyUsesTotal,
-  hasMonkFeature,
-  restoreMonkFlurryOfHealingAndHarmOnLongRest,
-  restoreMonkHandOfUltimateJusticeOnLongRest,
-  restoreMonkFocusPointsOnLongRest,
-  restoreMonkFocusPointsOnShortRest,
-  restoreMonkUncannyMetabolismOnLongRest,
-  restoreMonkWholenessOfBodyOnLongRest
+  restoreMonkFocusPointsOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
+import { getRangerTirelessUsesTotal } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import {
-  getRangerGloomStalkerDreadAmbusherUsesTotal,
-  getRangerFeyReinforcementsUsesTotal,
-  getRangerFavoredEnemyUsesTotal,
-  getRangerMistyWandererUsesTotal,
-  getRangerNaturesVeilUsesTotal,
-  getRangerTirelessUsesTotal,
-  getRangerWinterWalkerChillingRetributionUsesTotal,
-  getRangerWinterWalkerFrozenHauntUsesTotal,
-  getRangerWinterWalkerFortifyingSoulUsesTotal,
-  restoreRangerGloomStalkerDreadAmbusherOnLongRest,
-  restoreRangerFeyReinforcementsOnLongRest,
-  restoreRangerFavoredEnemyOnLongRest,
-  restoreRangerMistyWandererOnLongRest,
-  restoreRangerNaturesVeilOnLongRest,
-  restoreRangerTirelessOnLongRest,
-  restoreRangerWinterWalkerChillingRetributionOnLongRest,
-  restoreRangerWinterWalkerFrozenHauntOnLongRest,
-  restoreRangerWinterWalkerFortifyingSoulOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
-import {
-  getRogueSpellThiefUsesTotal,
   getRogueStrokeOfLuckUsesTotal,
-  restoreRogueSpellThiefOnLongRest,
-  restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import {
   getRogueScionOfTheThreeBloodthirstUsesTotal,
   hasRogueScionOfTheThreeDreadIncarnateFeature,
-  restoreRogueScionOfTheThreeBloodthirstOnShortRest,
-  restoreRogueScionOfTheThreeBloodthirstOnLongRest
+  restoreRogueScionOfTheThreeBloodthirstOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueScionOfTheThree";
 import {
   getRogueSoulknifePsionicDiceTotal,
-  getRogueSoulknifePsychicWhispersUsesTotal,
-  getRogueSoulknifePsychicVeilUsesTotal,
-  getRogueSoulknifeRendMindUsesTotal,
-  restoreAllRogueSoulknifePsionicDice,
-  restoreRogueSoulknifePsychicWhispersOnLongRest,
-  restoreRogueSoulknifePsychicVeilOnLongRest,
-  restoreRogueSoulknifeRendMindOnLongRest,
   restoreRogueSoulknifePsionicDie
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import {
   applySorcerousRestorationOnShortRest,
-  getInnateSorceryUsesTotal,
   getSorcerousRestorationUsesRemaining,
-  getSorcerousRestorationUsesTotal,
-  getSorceryPointsTotal,
-  restoreInnateSorceryOnLongRest,
-  restoreSorcerousRestorationOnLongRest,
-  restoreSorceryPointsOnLongRest
+  getSorcerousRestorationUsesTotal
 } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
-import {
-  getSorcererSubclassClockworkCavalcadeUsesTotal,
-  getSorcererSubclassCrownOfSpellfireUsesTotal,
-  getSorcererSubclassDragonWingsUsesTotal,
-  getSorcererSubclassRestoreBalanceUsesTotal,
-  getSorcererSubclassTamedSurgeUsesTotal,
-  getSorcererSubclassTidesOfChaosUsesTotal,
-  getSorcererSubclassTranceOfOrderUsesTotal,
-  getSorcererSubclassWarpingImplosionUsesTotal,
-  restoreSorcererSubclassFeaturesOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
+
 import {
   applyWarlockCelestialResilienceTemporaryHitPoints,
-  getWarlockBeguilingDefenseUsesTotal,
   getWarlockCelestialResilienceTemporaryHitPoints,
   getWarlockClairvoyantCombatantUsesTotal,
-  getContactPatronUsesTotal,
-  getWarlockDarkOnesOwnLuckUsesTotal,
-  getWarlockHurlThroughHellUsesTotal,
-  getWarlockHealingLightDiceTotal,
-  getWarlockSearingVengeanceUsesTotal,
-  getWarlockStepsOfTheFeyUsesTotal,
-  getWarlockMagicalCunningUsesTotal,
   hasWarlockFeature,
-  restoreWarlockBeguilingDefenseOnLongRest,
-  restoreWarlockClairvoyantCombatantOnLongRest,
   restoreWarlockClairvoyantCombatantOnShortRest,
-  restoreContactPatronOnLongRest,
-  restoreWarlockDarkOnesOwnLuckOnLongRest,
-  restoreWarlockHurlThroughHellOnLongRest,
-  restoreWarlockHealingLightOnLongRest,
-  restoreWarlockSearingVengeanceOnLongRest,
-  restoreMysticArcanumOnLongRest,
-  restoreWarlockPactMagicSpellSlots,
-  restoreWarlockMagicalCunningOnLongRest,
-  restoreWarlockStepsOfTheFeyOnLongRest
+  restoreWarlockPactMagicSpellSlots
 } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
-  getArcaneRecoveryUsesTotal,
   getWizardSignatureSpellIds,
-  restoreArcaneRecoveryOnLongRest,
-  restoreWizardSignatureSpellsOnLongRest,
   restoreWizardSignatureSpellsOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
-import {
-  getWizardBladesongUsesTotal,
-  restoreWizardBladesongOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
-import { restoreWizardAbjurerArcaneWardOnLongRest } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
+
 import {
   getWizardIllusionistIllusorySelfUsesTotal,
-  getWizardIllusionistPhantasmalCreaturesUsesTotal,
-  restoreWizardIllusionistIllusorySelfOnLongRest,
-  restoreWizardIllusionistIllusorySelfOnShortRest,
-  restoreWizardIllusionistPhantasmalCreaturesOnLongRest
+  restoreWizardIllusionistIllusorySelfOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardIllusionist";
-import {
-  getWizardDivinerPortentUsesTotal,
-  restoreWizardDivinerPortentOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
-import {
-  hasWizardEvokerOverchannelFeature,
-  restoreWizardEvokerOverchannelOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEvoker";
-import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   applyBoonOfBountifulHealthTemporaryHitPointsBonus,
   getBoonOfFateImproveFateStateForCharacter,
@@ -282,17 +110,15 @@ import {
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreMageSlayerGuardedMindForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
-import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
+
 import {} from "../../../../../pages/CharactersPage/spellcasting";
 import {
-  applyLongRestToCharacterStatusEntries,
   applyShortRestToCharacterStatusEntries,
   getExhaustionLevel,
   normalizeCharacterStatusEntries,
   setCharacterExhaustionLevel
 } from "../../../../../pages/CharactersPage/statusEntries";
 import {
-  applyLongRestToCharacterCompanions,
   applyShortRestToCharacterCompanions,
   hasFiniteCompanionDuration
 } from "../../../../../pages/CharactersPage/companions";
@@ -302,7 +128,6 @@ import {
 } from "../../../../../pages/CharactersPage/inventoryItems";
 import {
   type ExhaustionLevel,
-  getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
@@ -310,12 +135,7 @@ import {
   getCustomActionRestRecoveryEntries,
   restoreCustomActionChargesForRest
 } from "../../../../../pages/CharactersPage/customActions";
-import {
-  createDefaultDeathSaves,
-  createMagicTemporaryHitPointsAssignment,
-  normalizeMagicTemporaryHitPoints,
-  normalizeTemporaryHitPoints
-} from "../gameplayStateUtils";
+import { createDefaultDeathSaves, normalizeTemporaryHitPoints } from "../gameplayStateUtils";
 
 import type { RestOption } from "./restOptionTypes";
 import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";

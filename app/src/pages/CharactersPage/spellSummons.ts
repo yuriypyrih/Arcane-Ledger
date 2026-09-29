@@ -1,4 +1,5 @@
-import { DURATION, type SpellEntry } from "../../codex/entries";
+import { type SpellEntry } from "../../codex/entries";
+import { DURATION } from "../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,

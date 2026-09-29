@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../../codex/entries";
+import { CLASS_FEATURE } from "../../codex/entries/enums";
 import type { ClassEntry, FeatureClassObj } from "../../codex/entries/types";
 import type { CharacterClassRulesConfig, CharacterCustomClassConfig } from "../../types";
 import { getClassEntryByName } from "../../codex/selectors";

@@ -1,4 +1,8 @@
-import { getClassLevel } from "../../multiclass";
+import {
+  getAppliedAbilityScoreBonus,
+  compareAbilityScoreBonusOrder
+} from "../../shared/abilityBonusMath";
+import { getClassLevel } from "../../multiclassState";
 import type { AbilityKey, Character } from "../../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
@@ -6,12 +10,6 @@ import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds"
 type RangerAbilityModifierCharacter = Partial<
   Pick<Character, "abilities" | "background" | "backgroundChoices" | "feats" | "level">
 >;
-type AbilityScoreBonus = {
-  ability: AbilityKey;
-  value: number;
-  maxScore?: number | null;
-  order?: number;
-};
 
 function normalizeAbilityScore(value: number | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -19,45 +17,6 @@ function normalizeAbilityScore(value: number | undefined): number {
   }
 
   return Math.max(1, Math.floor(value));
-}
-
-function getAppliedAbilityScoreBonus(
-  currentScore: number,
-  bonusValue: number,
-  maxScore: number | null | undefined
-): number {
-  const normalizedValue = Math.floor(bonusValue);
-
-  if (!Number.isFinite(normalizedValue) || normalizedValue === 0) {
-    return 0;
-  }
-
-  if (maxScore === null || maxScore === undefined) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue > 0) {
-    return Math.max(0, Math.min(normalizedValue, maxScore - currentScore));
-  }
-
-  return normalizedValue;
-}
-
-function sortFeatAbilityScoreBonuses(left: AbilityScoreBonus, right: AbilityScoreBonus): number {
-  const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
-  const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
-
-  if (leftHasCap !== rightHasCap) {
-    return leftHasCap ? -1 : 1;
-  }
-
-  if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-    return (
-      (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
-    );
-  }
-
-  return (left.order ?? 0) - (right.order ?? 0);
 }
 
 function getFeatAdjustedAbilityScore(
@@ -77,9 +36,9 @@ function getFeatAdjustedAbilityScore(
     })
   ]
     .filter((bonus) => bonus.ability === ability)
-    .sort(sortFeatAbilityScoreBonuses)
+    .sort(compareAbilityScoreBonusOrder)
     .forEach((bonus) => {
-      total += getAppliedAbilityScoreBonus(total, bonus.value, bonus.maxScore);
+      total += getAppliedAbilityScoreBonus(total, bonus);
     });
 
   return total;

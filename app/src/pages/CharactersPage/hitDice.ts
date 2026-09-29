@@ -1,6 +1,6 @@
 import type { Character } from "../../types";
 import type { CharacterCustomHitDie } from "../../types";
-import { getCharacterClasses, getCharacterLevel } from "./multiclass";
+import { getCharacterClasses, getCharacterLevel } from "./multiclassState";
 import { getClassEntries } from "../../codex/selectors";
 import { areCharacterClassRulesEnforced, getCharacterClassRulesHitDie } from "./customClass";
 

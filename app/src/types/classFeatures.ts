@@ -5,7 +5,7 @@ import type {
   TOOL_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "./proficiencies";
-import type { DAMAGE_TYPE } from "../codex/entries";
+import type { DAMAGE_TYPE } from "../codex/entries/enums";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 

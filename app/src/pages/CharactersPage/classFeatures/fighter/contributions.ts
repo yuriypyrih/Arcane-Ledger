@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -27,10 +27,7 @@ import {
   setFighterWeaponMasterySelections
 } from "./fighter";
 
-function getFeatureActionByKey(
-  actions: FeatureActionCard[],
-  actionKey: string
-) {
+function getFeatureActionByKey(actions: FeatureActionCard[], actionKey: string) {
   return actions.filter((action) => action.key === actionKey);
 }
 
@@ -215,7 +212,7 @@ export function getFighterClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectFighterFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterFeatureContributions),
     {
       character: character as Character
     }

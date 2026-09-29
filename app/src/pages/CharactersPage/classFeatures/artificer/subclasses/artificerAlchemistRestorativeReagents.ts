@@ -1,4 +1,5 @@
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterArtificerFeatureState } from "../../../../../types";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
@@ -44,9 +45,7 @@ export function getArtificerRestorativeReagentsUsesTotal(
     "INT"
   );
 
-  return hasArtificerRestorativeReagentsFeature(character)
-    ? Math.max(1, intelligenceModifier)
-    : 0;
+  return hasArtificerRestorativeReagentsFeature(character) ? Math.max(1, intelligenceModifier) : 0;
 }
 
 export function normalizeArtificerRestorativeReagentsState(
@@ -134,9 +133,7 @@ export function getArtificerRestorativeReagentsAction(
     },
     disabled: usesRemaining <= 0,
     disabledReason:
-      usesRemaining <= 0
-        ? "Restorative Reagents recharges when you finish a Long Rest."
-        : undefined
+      usesRemaining <= 0 ? "Restorative Reagents recharges when you finish a Long Rest." : undefined
   };
 }
 
@@ -154,18 +151,12 @@ export function consumeArtificerRestorativeReagentsUse(character: Character): Ch
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...restorativeReagentsState,
-        restorativeReagentsUsesExpended:
-          (restorativeReagentsState.restorativeReagentsUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...restorativeReagentsState,
+    restorativeReagentsUsesExpended:
+      (restorativeReagentsState.restorativeReagentsUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreArtificerRestorativeReagentsOnLongRest(character: Character): Character {
@@ -183,15 +174,9 @@ export function restoreArtificerRestorativeReagentsOnLongRest(character: Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...restorativeReagentsState,
-        restorativeReagentsUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...restorativeReagentsState,
+    restorativeReagentsUsesExpended: 0
+  });
 }

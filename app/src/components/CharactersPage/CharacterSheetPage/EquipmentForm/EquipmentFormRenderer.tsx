@@ -1,22 +1,172 @@
-import { ENTRY_CATEGORIES } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES } from "../../../../codex/entries/enums";
 import NumberInput from "../../FormInputs/NumberInput";
 import type { EquipmentFormRendererContext } from "./rendererTypes";
 
 export function renderEquipmentForm(context: EquipmentFormRendererContext) {
   const {
-    ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, InventoryTagPill, KeywordReferenceDrawer, MasterChestModal,
-    Minus, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Pencil, Plus, RarityPill, SheetModal, Shield, Toolbox, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
-    adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
-    clsx, currencyAmountDraft, currencyDefinitions, currencyPill, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentCharacter, equipmentRenderGroups, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getInventoryTagPillProps, getItemObjectTagLabel,
-    groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
-    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isMasterChestOpen, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
-    normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, onAdoptCloudCharacter, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, partyMembership, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
-    inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
-    selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
-    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setIsMasterChestOpen, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetActionButton, SheetSurface,
-    sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand, confirmContainerRemoval
+    ActionButton,
+    CellContainer,
+    CircleHelp,
+    CurrencyInlineDisplay,
+    CustomEquipmentEditor,
+    DestructiveConfirmationModal,
+    EquipmentContainerManageModal,
+    EquipmentGuideModal,
+    EquipmentInventoryItemDrawer,
+    EquipmentItemBrowserModal,
+    Hand,
+    InlineToggleButton,
+    InventoryTagPill,
+    KeywordReferenceDrawer,
+    MasterChestModal,
+    Minus,
+    OverlayBody,
+    OverlayCloseButton,
+    OverlayEyebrow,
+    OverlayFooter,
+    OverlayHeader,
+    OverlayHeaderContent,
+    OverlaySummary,
+    OverlayTitle,
+    Pencil,
+    Plus,
+    RarityPill,
+    SheetModal,
+    Shield,
+    Toolbox,
+    WeaponMasteryStatusLabel,
+    X,
+    activeCurrencyDefinition,
+    activeCurrencyKey,
+    adjustCurrencyBalance,
+    canSpendCurrency,
+    carriedWeight,
+    carryingCapacity,
+    className,
+    containerManagementInventoryItems,
+    closeAddModal,
+    closeContainerManagement,
+    closeCustomEquipmentModal,
+    closeInventoryItemDrawer,
+    closeLoadoutDrawer,
+    clsx,
+    currencyAmountDraft,
+    currencyDefinitions,
+    currencyPill,
+    customEditorMode,
+    deleteCustomEquipment,
+    editingInventoryStack,
+    equipmentCharacter,
+    equipmentRenderGroups,
+    formatCodexLabel,
+    formatCodexList,
+    formatEquipmentWeight,
+    formatInventoryStackName,
+    formatOnHandLabel,
+    formatWeaponDamage,
+    formatWeaponProperties,
+    formatWeaponType,
+    formatWeaponWeight,
+    formatWeightValue,
+    getArcaneArmorFeatureTagsForInventoryStack,
+    getArmorTypeSummary,
+    getInventoryItemChargesTagLabel,
+    getInventoryItemConjuredRowTagLabel,
+    getInventoryItemFeatureTagLabels,
+    getInventoryItemStoredSpellRowTagLabel,
+    getInventoryItemTotalWeightValue,
+    getInventoryRowObjectTagLabel,
+    getInventoryTagPillProps,
+    getItemObjectTagLabel,
+    groupedInventoryItems,
+    hasCharacterItemMods,
+    hasDisplayableRarity,
+    inventoryDrawerBodyAfterItem,
+    inventoryDrawerClassName,
+    inventoryDrawerFooter,
+    inventoryDrawerHeaderAction,
+    inventoryDrawerHeaderContent,
+    inventoryObjectCount,
+    inventoryObjectLimitMessage,
+    isAddModalCommitting,
+    isAddModalOpen,
+    isCurrencyDrawerOpen,
+    characterSheetSizeBytes,
+    isCustomEquipmentModalOpen,
+    isEquipmentGuideOpen,
+    isGeneralEquipmentExpanded,
+    isHandEquippableEntry,
+    isMasterChestOpen,
+    isOverCarryingCapacity,
+    isSelectedArmorWorn,
+    isSelectedCustomEntry,
+    isSelectedEntryOnHand,
+    isSelectedFeatureManagedEntry,
+    isSelectedShield,
+    loadoutDrawerBackdropHandlers,
+    managedContainerStack,
+    managingContainerStackId,
+    normalizeCurrencyAmountInput,
+    normalizedCurrencies,
+    openAddModal,
+    openCurrencyModal,
+    openCustomEquipmentCreator,
+    openCustomEquipmentEditor,
+    openInventoryInspectionFromBrowser,
+    openInventoryInspectionFromLoadout,
+    openLoadoutEntryDetails,
+    openWeaponReference,
+    onAdoptCloudCharacter,
+    parentInventoryDrawerBodyAfterItem,
+    parentInventoryDrawerHeaderContent,
+    parentInventoryDrawerTitleId,
+    parentInventoryInspection,
+    parentInventoryRecord,
+    pendingContainerInventoryRemoval,
+    pendingDeleteCustomEquipment,
+    partyMembership,
+    deleteCustomEquipmentBackdropHandlers,
+    removeEquipmentItem,
+    saveContainerManagement,
+    saveCustomEquipment,
+    selectedAdditionalWeaponMasteries,
+    selectedInventoryAdditionalDescription,
+    selectedInventoryDescriptionAdditions,
+    inventoryDrawerTitleId,
+    selectedInventoryInspection,
+    selectedInventoryItemStatus,
+    selectedInventoryModEffects,
+    selectedInventoryRecord,
+    selectedInventoryWeaponHasActiveMastery,
+    selectedInventoryWeaponHasProficiency,
+    selectedLoadoutEntry,
+    selectedLoadoutEntryData,
+    selectedLoadoutItems,
+    selectedLoadoutSummary,
+    selectedWeaponHasActiveMastery,
+    selectedWeaponHasProficiency,
+    selectedWeaponMasteryKeywords,
+    selectedWeaponMasteryLabel,
+    selectedWeaponReference,
+    setActiveCurrencyKey,
+    setCurrencyAmountDraft,
+    setIsCurrencyDrawerOpen,
+    setIsEquipmentGuideOpen,
+    setIsGeneralEquipmentExpanded,
+    setIsMasterChestOpen,
+    setPendingContainerInventoryRemoval,
+    setPendingDeleteCustomEquipmentId,
+    setSelectedWeaponReference,
+    shared,
+    SheetActionButton,
+    SheetSurface,
+    sheetStyles,
+    shouldOfferHandSwap,
+    styles,
+    swapEntryToHand,
+    toggleArmorWorn,
+    toggleEntryOnHand,
+    confirmContainerRemoval
   } = context;
 
   return (
@@ -47,10 +197,7 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
             ) : null}
           </div>
           <div className={styles.loadoutPinnedActions}>
-            <SheetActionButton
-              className={styles.loadoutAddButton}
-              onClick={openAddModal}
-            >
+            <SheetActionButton className={styles.loadoutAddButton} onClick={openAddModal}>
               <Pencil size={16} />
               Edit
             </SheetActionButton>
@@ -115,152 +262,168 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
                 </header>
                 <ul className={styles.equipmentItemList}>
                   {visibleGroupItems.map((entry) =>
-                    entry.kind === "loadout" ? (() => {
-                      const objectTagLabel = getItemObjectTagLabel(entry.item.entry);
-                      const featureTagLabels = entry.item.featureTags ?? [];
+                    entry.kind === "loadout"
+                      ? (() => {
+                          const objectTagLabel = getItemObjectTagLabel(entry.item.entry);
+                          const featureTagLabels = entry.item.featureTags ?? [];
 
-                      return (
-                      <li key={entry.key}>
-                        <SheetSurface
-                          as="button"
-                          type="button"
-                          borderSize="sm"
-                          hoverBorder
-                          className={styles.equipmentItemButton}
-                          onClick={() => openLoadoutEntryDetails(entry.item)}
-                        >
-                          <span className={styles.equipmentItemName}>{entry.item.name}</span>
-                          <span className={styles.equipmentItemTagRow}>
-                            <span className={styles.equipmentItemTagsLeft}>
-                              {entry.item.onHand ? (
-                                <InventoryTagPill type="onHand" />
-                              ) : null}
-                              {entry.item.worn ? (
-                                <InventoryTagPill type="worn" />
-                              ) : null}
-                              {objectTagLabel ? (
-                                <InventoryTagPill type="pack" />
-                              ) : null}
-                              {featureTagLabels.map((tagLabel) => (
-                                <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
-                              ))}
-                            </span>
-                            <span className={styles.equipmentItemTagsRight}>
-                              {"rarity" in entry.item.entry &&
-                              hasDisplayableRarity(entry.item.entry.rarity) ? (
-                                <RarityPill rarity={entry.item.entry.rarity} />
-                              ) : null}
-                              <span className={styles.equipmentItemWeight}>
-                                {formatEquipmentWeight(entry.item.entry.weight)}
-                              </span>
-                            </span>
-                          </span>
-                        </SheetSurface>
-                      </li>
-                      );
-                    })() : (() => {
-                      const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(entry.item.stack);
-                      const chargesTagLabel = getInventoryItemChargesTagLabel(entry.item.stack);
-                      const storedSpellRowTagLabel = getInventoryItemStoredSpellRowTagLabel(
-                        entry.item.stack
-                      );
-                      const objectTagLabel = getInventoryRowObjectTagLabel(
-                        entry.item.stack,
-                        entry.item.item
-                      );
-                      const featureTagLabels = getInventoryItemFeatureTagLabels(entry.item.stack, {
-                        excludeConjured: true
-                      });
-                      const arcaneArmorTagLabels = getArcaneArmorFeatureTagsForInventoryStack(
-                        entry.item.stack,
-                        entry.item.item
-                      );
-                      const spellcastingFocusTagLabels = featureTagLabels.filter(
-                        (tagLabel) => tagLabel.startsWith("Spellcasting Focus")
-                      );
-                      const otherFeatureTagLabels = featureTagLabels.filter(
-                        (tagLabel) => !tagLabel.startsWith("Spellcasting Focus")
-                      );
-                      const isContainerObjectTag = objectTagLabel !== null && objectTagLabel !== "Pack";
+                          return (
+                            <li key={entry.key}>
+                              <SheetSurface
+                                as="button"
+                                type="button"
+                                borderSize="sm"
+                                hoverBorder
+                                className={styles.equipmentItemButton}
+                                onClick={() => openLoadoutEntryDetails(entry.item)}
+                              >
+                                <span className={styles.equipmentItemName}>{entry.item.name}</span>
+                                <span className={styles.equipmentItemTagRow}>
+                                  <span className={styles.equipmentItemTagsLeft}>
+                                    {entry.item.onHand ? <InventoryTagPill type="onHand" /> : null}
+                                    {entry.item.worn ? <InventoryTagPill type="worn" /> : null}
+                                    {objectTagLabel ? <InventoryTagPill type="pack" /> : null}
+                                    {featureTagLabels.map((tagLabel) => (
+                                      <InventoryTagPill
+                                        key={tagLabel}
+                                        {...getInventoryTagPillProps(tagLabel)}
+                                      />
+                                    ))}
+                                  </span>
+                                  <span className={styles.equipmentItemTagsRight}>
+                                    {"rarity" in entry.item.entry &&
+                                    hasDisplayableRarity(entry.item.entry.rarity) ? (
+                                      <RarityPill rarity={entry.item.entry.rarity} />
+                                    ) : null}
+                                    <span className={styles.equipmentItemWeight}>
+                                      {formatEquipmentWeight(entry.item.entry.weight)}
+                                    </span>
+                                  </span>
+                                </span>
+                              </SheetSurface>
+                            </li>
+                          );
+                        })()
+                      : (() => {
+                          const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(
+                            entry.item.stack
+                          );
+                          const chargesTagLabel = getInventoryItemChargesTagLabel(entry.item.stack);
+                          const storedSpellRowTagLabel = getInventoryItemStoredSpellRowTagLabel(
+                            entry.item.stack
+                          );
+                          const objectTagLabel = getInventoryRowObjectTagLabel(
+                            entry.item.stack,
+                            entry.item.item
+                          );
+                          const featureTagLabels = getInventoryItemFeatureTagLabels(
+                            entry.item.stack,
+                            {
+                              excludeConjured: true
+                            }
+                          );
+                          const arcaneArmorTagLabels = getArcaneArmorFeatureTagsForInventoryStack(
+                            entry.item.stack,
+                            entry.item.item
+                          );
+                          const spellcastingFocusTagLabels = featureTagLabels.filter((tagLabel) =>
+                            tagLabel.startsWith("Spellcasting Focus")
+                          );
+                          const otherFeatureTagLabels = featureTagLabels.filter(
+                            (tagLabel) => !tagLabel.startsWith("Spellcasting Focus")
+                          );
+                          const isContainerObjectTag =
+                            objectTagLabel !== null && objectTagLabel !== "Pack";
 
-                      return (
-                      <li key={entry.key}>
-                        <SheetSurface
-                          as="button"
-                          type="button"
-                          borderSize="sm"
-                          hoverBorder
-                          className={styles.equipmentItemButton}
-                          onClick={() => openInventoryInspectionFromLoadout(entry.item)}
-                        >
-                          <span className={styles.equipmentItemName}>
-                            {formatInventoryStackName(entry.item)}
-                          </span>
-                          <span className={styles.equipmentItemTagRow}>
-                            <span className={styles.equipmentItemTagsLeft}>
-                              {entry.item.onHandCount > 0 ? (
-                                <InventoryTagPill
-                                  type="onHand"
-                                  label={formatOnHandLabel(entry.item.onHandCount)}
-                                />
-                              ) : null}
-                              {entry.item.worn ? (
-                                <InventoryTagPill type="worn" />
-                              ) : null}
-                              {isContainerObjectTag ? (
-                                <InventoryTagPill
-                                  type="container"
-                                  expandedText={objectTagLabel}
-                                />
-                              ) : null}
-                              {objectTagLabel === "Pack" ? (
-                                <InventoryTagPill type="pack" />
-                              ) : null}
-                              {arcaneArmorTagLabels.map((tagLabel) => (
-                                <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
-                              ))}
-                              {chargesTagLabel ? (
-                                <InventoryTagPill type="charges" label={chargesTagLabel} />
-                              ) : null}
-                              {entry.item.stack.attuned ? (
-                                <InventoryTagPill type="attuned" />
-                              ) : null}
-                              {spellcastingFocusTagLabels.map((tagLabel) => (
-                                <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
-                              ))}
-                              {otherFeatureTagLabels.map((tagLabel) => (
-                                <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
-                              ))}
-                              {entry.item.stack.customTag ? (
-                                <InventoryTagPill
-                                  type="custom"
-                                  label={entry.item.stack.customTag}
-                                />
-                              ) : null}
-                            </span>
-                            <span className={styles.equipmentItemTagsRight}>
-                              {storedSpellRowTagLabel ? (
-                                <InventoryTagPill type="spell" />
-                              ) : null}
-                              {conjuredRowTagLabel ? (
-                                <InventoryTagPill {...getInventoryTagPillProps(conjuredRowTagLabel)} />
-                              ) : null}
-                              {hasCharacterItemMods(entry.item.stack.mods) &&
-                              !entry.item.stack.mods?.isCustom ? (
-                                <InventoryTagPill type="modded" />
-                              ) : null}
-                              {hasDisplayableRarity(entry.item.item.rarity) ? (
-                                <RarityPill rarity={entry.item.item.rarity} />
-                              ) : null}
-                              <span className={styles.equipmentItemWeight}>
-                                {formatEquipmentWeight(getInventoryItemTotalWeightValue(entry.item.stack))}
-                              </span>
-                            </span>
-                          </span>
-                        </SheetSurface>
-                      </li>
-                      );
-                    })()
+                          return (
+                            <li key={entry.key}>
+                              <SheetSurface
+                                as="button"
+                                type="button"
+                                borderSize="sm"
+                                hoverBorder
+                                className={styles.equipmentItemButton}
+                                onClick={() => openInventoryInspectionFromLoadout(entry.item)}
+                              >
+                                <span className={styles.equipmentItemName}>
+                                  {formatInventoryStackName(entry.item)}
+                                </span>
+                                <span className={styles.equipmentItemTagRow}>
+                                  <span className={styles.equipmentItemTagsLeft}>
+                                    {entry.item.onHandCount > 0 ? (
+                                      <InventoryTagPill
+                                        type="onHand"
+                                        label={formatOnHandLabel(entry.item.onHandCount)}
+                                      />
+                                    ) : null}
+                                    {entry.item.worn ? <InventoryTagPill type="worn" /> : null}
+                                    {isContainerObjectTag ? (
+                                      <InventoryTagPill
+                                        type="container"
+                                        expandedText={objectTagLabel}
+                                      />
+                                    ) : null}
+                                    {objectTagLabel === "Pack" ? (
+                                      <InventoryTagPill type="pack" />
+                                    ) : null}
+                                    {arcaneArmorTagLabels.map((tagLabel) => (
+                                      <InventoryTagPill
+                                        key={tagLabel}
+                                        {...getInventoryTagPillProps(tagLabel)}
+                                      />
+                                    ))}
+                                    {chargesTagLabel ? (
+                                      <InventoryTagPill type="charges" label={chargesTagLabel} />
+                                    ) : null}
+                                    {entry.item.stack.attuned ? (
+                                      <InventoryTagPill type="attuned" />
+                                    ) : null}
+                                    {spellcastingFocusTagLabels.map((tagLabel) => (
+                                      <InventoryTagPill
+                                        key={tagLabel}
+                                        {...getInventoryTagPillProps(tagLabel)}
+                                      />
+                                    ))}
+                                    {otherFeatureTagLabels.map((tagLabel) => (
+                                      <InventoryTagPill
+                                        key={tagLabel}
+                                        {...getInventoryTagPillProps(tagLabel)}
+                                      />
+                                    ))}
+                                    {entry.item.stack.customTag ? (
+                                      <InventoryTagPill
+                                        type="custom"
+                                        label={entry.item.stack.customTag}
+                                      />
+                                    ) : null}
+                                  </span>
+                                  <span className={styles.equipmentItemTagsRight}>
+                                    {storedSpellRowTagLabel ? (
+                                      <InventoryTagPill type="spell" />
+                                    ) : null}
+                                    {conjuredRowTagLabel ? (
+                                      <InventoryTagPill
+                                        {...getInventoryTagPillProps(conjuredRowTagLabel)}
+                                      />
+                                    ) : null}
+                                    {hasCharacterItemMods(entry.item.stack.mods) &&
+                                    !entry.item.stack.mods?.isCustom ? (
+                                      <InventoryTagPill type="modded" />
+                                    ) : null}
+                                    {hasDisplayableRarity(entry.item.item.rarity) ? (
+                                      <RarityPill rarity={entry.item.item.rarity} />
+                                    ) : null}
+                                    <span className={styles.equipmentItemWeight}>
+                                      {formatEquipmentWeight(
+                                        getInventoryItemTotalWeightValue(entry.item.stack)
+                                      )}
+                                    </span>
+                                  </span>
+                                </span>
+                              </SheetSurface>
+                            </li>
+                          );
+                        })()
                   )}
                 </ul>
                 {shouldCollapseGeneral ? (
@@ -456,12 +619,8 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
                   <h3 id="character-loadout-drawer-title" className={sheetStyles.spellDrawerTitle}>
                     {selectedLoadoutEntryData.name}
                   </h3>
-                  {isSelectedEntryOnHand ? (
-                    <InventoryTagPill type="onHand" />
-                  ) : null}
-                  {isSelectedArmorWorn ? (
-                    <InventoryTagPill type="worn" />
-                  ) : null}
+                  {isSelectedEntryOnHand ? <InventoryTagPill type="onHand" /> : null}
+                  {isSelectedArmorWorn ? <InventoryTagPill type="worn" /> : null}
                   {selectedLoadoutEntry.featureTags?.map((tagLabel) => (
                     <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
                   ))}

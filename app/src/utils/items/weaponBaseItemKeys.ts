@@ -1,4 +1,4 @@
-import { WEAPON_BASE } from "../../codex/entries";
+import { WEAPON_BASE } from "../../codex/entries/enums";
 
 export const official2024BackendItemKeyByWeaponBase: Record<WEAPON_BASE, string> = {
   [WEAPON_BASE.CLUB]: "srd-2024_club",

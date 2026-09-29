@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useStore } from "react-redux";
+import { useCharacterSyncSession } from "./useCharacterSyncSession";
+import { getSyncRecordKey, replaceSyncedRecord } from "./characterSyncResult";
 import {
   deleteCharacterSheet,
   getCharacterSheet,
   importCharacterSheets,
   listFullCharacterSheets,
+  listCharacterSheets,
   saveCharacterSheet
 } from "../api/characters";
 import type { CharacterSheetCloudDocument, CharacterSheetRosterDocument } from "../api/characters";
@@ -29,11 +33,14 @@ import {
   loadStoredPortableCharacterSheetSnapshot,
   replaceRawStoredCharacterRecords
 } from "../pages/CharactersPage/portableCharacterSheetStorage";
+import { storeCloudCharacterSheetDocument } from "../pages/CharactersPage/resolvePortableCharacterSheet";
 import {
-  refreshCharacterCloudRoster,
-  storeCloudCharacterSheetDocument
-} from "../pages/CharactersPage/resolvePortableCharacterSheet";
-import { setActiveCharacterSheet, showToast, useAppDispatch, useAppSelector } from "../store";
+  setActiveCharacterSheet,
+  showToast,
+  useAppDispatch,
+  useAppSelector,
+  type RootState
+} from "../store";
 import type { PortableCharacterSheet } from "../types";
 import CharacterSyncConflictModal from "./CharacterSyncConflictModal";
 import {
@@ -89,12 +96,6 @@ function isRetryableDirtyStatus(record: PortableCharacterSheet) {
   );
 }
 
-function getSyncRecordKey(record: PortableCharacterSheet) {
-  const sync = getPortableCharacterSheetSync(record);
-
-  return sync?.clientId ?? `local-${record.identity.localId}`;
-}
-
 function createRosterDocumentFromCloudDocument(
   document: CharacterSheetCloudDocument
 ): CharacterSheetRosterDocument {
@@ -103,11 +104,10 @@ function createRosterDocumentFromCloudDocument(
   return rosterDocument;
 }
 
-async function fetchCloudPortableCharacterSheets(ownerId: string) {
+async function fetchCloudPortableCharacterSheets() {
   const cloudSnapshot = await listFullCharacterSheets({ suppressFailureToast: true });
   const rosterDocuments = cloudSnapshot.characters.map(createRosterDocumentFromCloudDocument);
 
-  saveCharacterRosterCache(ownerId, rosterDocuments);
   return {
     cloudRecords: cloudSnapshot.characters.map((character) =>
       applyCloudDocumentToPortableCharacterSheet(character)
@@ -146,61 +146,6 @@ function getImportCapacity(options: {
     availableSlots: Math.max(0, options.limit - currentUserRecords.length),
     currentCount: currentUserRecords.length
   };
-}
-
-function replaceSyncedRecord(options: {
-  nextRecord: PortableCharacterSheet;
-  ownerId: string;
-  records: PortableCharacterSheet[];
-  sentLocalRevision: number;
-  targetKey: string;
-}) {
-  return options.records.map((record) => {
-    if (getSyncRecordKey(record) !== options.targetKey) {
-      return record;
-    }
-
-    const currentSync = getPortableCharacterSheetSync(record);
-    const nextSync = getPortableCharacterSheetSync(options.nextRecord);
-
-    if (
-      currentSync &&
-      nextSync &&
-      currentSync.localRevision > options.sentLocalRevision &&
-      (nextSync.syncStatus === "conflict" || nextSync.syncStatus === "error")
-    ) {
-      return markPortableCharacterSheetSyncError(
-        record,
-        nextSync.lastSyncError ?? "Unable to sync character sheet.",
-        nextSync.syncStatus
-      );
-    }
-
-    if (
-      currentSync &&
-      nextSync &&
-      currentSync.localRevision > options.sentLocalRevision &&
-      nextSync.syncStatus === "synced"
-    ) {
-      return {
-        ...record,
-        metadata: {
-          ...(record.metadata ?? {}),
-          sheetSizeBytes: record.metadata?.sheetSizeBytes ?? record.summary.sheetSizeBytes ?? 0,
-          sync: {
-            ...currentSync,
-            ownerId: options.ownerId,
-            remoteId: nextSync.remoteId,
-            remoteRevision: nextSync.remoteRevision,
-            syncStatus: "dirty" as const,
-            lastSyncedAt: nextSync.lastSyncedAt
-          }
-        }
-      };
-    }
-
-    return options.nextRecord;
-  });
 }
 
 function getSyncErrorMessage(error: unknown) {
@@ -257,9 +202,13 @@ function captureCharacterSyncError(
   });
 }
 
-async function refreshCharacterCloudRosterBestEffort(ownerId: string) {
+async function refreshCharacterCloudRosterBestEffort(
+  ownerId: string,
+  isCurrentSession: () => boolean
+) {
   try {
-    await refreshCharacterCloudRoster(ownerId);
+    const roster = await listCharacterSheets({ suppressFailureToast: true });
+    if (isCurrentSession()) saveCharacterRosterCache(ownerId, roster.characters);
   } catch {
     // The stale remote id is still handled locally even if roster refresh is unavailable.
   }
@@ -271,16 +220,15 @@ function detachUnavailableCloudSync(record: PortableCharacterSheet, error: unkno
 
 function CharacterSyncBootstrap() {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
+  const createSessionGuard = useCharacterSyncSession();
   const { status, user } = useAppSelector((state) => state.auth);
-  const activeCharacterId = useAppSelector(
-    (state) => state.activeCharacterSheet.activeCharacter?.id ?? null
-  );
   const [claimPrompt, setClaimPrompt] = useState<ClaimPromptState | null>(null);
   const [conflictPrompt, setConflictPrompt] = useState<ConflictPromptState | null>(null);
   const [isClaiming, setIsClaiming] = useState(false);
   const [isResolvingConflict, setIsResolvingConflict] = useState(false);
-  const initializedUserIdRef = useRef<string | null>(null);
-  const initializingUserIdRef = useRef<string | null>(null);
+  const initializedSessionRef = useRef<(() => boolean) | null>(null);
+  const initializingSessionRef = useRef<(() => boolean) | null>(null);
   const syncTimerRef = useRef<number | null>(null);
   const syncPromiseRef = useRef<Promise<void> | null>(null);
 
@@ -294,64 +242,51 @@ function CharacterSyncBootstrap() {
   }, []);
 
   const updateActiveCharacterIfOpen = useCallback(
-    async (record: PortableCharacterSheet) => {
-      if (activeCharacterId !== record.identity.localId) {
+    async (record: PortableCharacterSheet, isCurrentSession: () => boolean) => {
+      const active = store.getState().activeCharacterSheet;
+      if (active.characterId !== record.identity.localId || active.dirty || !isCurrentSession()) {
         return;
       }
 
       const { normalizeCharacter } = await import("../pages/CharactersPage/storage");
-      const character = normalizeCharacter(record);
-
+      // Navigation and unsaved edits can happen while the normalizer is loading.
+      if (!isCurrentSession() || store.getState().activeCharacterSheet !== active) return;
+      const latestRecord = loadStoredPortableCharacterSheetByMatch({
+        localId: record.identity.localId
+      });
+      if (!latestRecord || getPortableCharacterSheetSync(latestRecord)?.syncStatus === "deleting")
+        return;
       dispatch(
         setActiveCharacterSheet({
-          character,
-          characterId: record.identity.localId
+          character: normalizeCharacter(latestRecord),
+          characterId: latestRecord.identity.localId
         })
       );
     },
-    [activeCharacterId, dispatch]
-  );
-
-  const syncActiveCharacterWithStoredRecords = useCallback(
-    async (records: PortableCharacterSheet[]) => {
-      if (activeCharacterId === null) {
-        return;
-      }
-
-      const activeRecord = records.find((record) => record.identity.localId === activeCharacterId);
-
-      if (activeRecord) {
-        await updateActiveCharacterIfOpen(activeRecord);
-        return;
-      }
-
-      dispatch(
-        setActiveCharacterSheet({
-          character: null,
-          characterId: null
-        })
-      );
-    },
-    [activeCharacterId, dispatch, updateActiveCharacterIfOpen]
+    [dispatch, store]
   );
 
   const replaceStoredCharacterRecords = useCallback(
-    async (records: PortableCharacterSheet[]) => {
+    async (records: PortableCharacterSheet[], isCurrentSession: () => boolean) => {
+      if (!isCurrentSession()) return;
       replaceRawStoredCharacterRecords(records);
-      await syncActiveCharacterWithStoredRecords(records);
+      const activeCharacterId = store.getState().activeCharacterSheet.characterId;
+      if (activeCharacterId === null) return;
+      const activeRecord = records.find((record) => record.identity.localId === activeCharacterId);
+      if (activeRecord) {
+        await updateActiveCharacterIfOpen(activeRecord, isCurrentSession);
+      } else if (!store.getState().activeCharacterSheet.dirty) {
+        dispatch(setActiveCharacterSheet({ character: null, characterId: null }));
+      }
     },
-    [syncActiveCharacterWithStoredRecords]
+    [dispatch, store, updateActiveCharacterIfOpen]
   );
 
   const syncDirtyCharacterRecords = useCallback(async () => {
-    if (syncPromiseRef.current) {
-      await syncPromiseRef.current;
-      return;
-    }
-
-    if (status !== "authenticated" || !user) {
-      return;
-    }
+    if (status !== "authenticated" || !user) return;
+    const isCurrentSession = createSessionGuard(user.id);
+    while (syncPromiseRef.current) await syncPromiseRef.current;
+    if (!isCurrentSession()) return;
 
     const syncPromise = (async () => {
       const ownerId = user.id;
@@ -362,14 +297,25 @@ function CharacterSyncBootstrap() {
           !isCharacterSyncLocked(record.identity.localId)
       );
 
-      if (syncableRecords.length === 0) {
+      if (!isCurrentSession() || syncableRecords.length === 0) {
         return;
       }
 
       try {
         let records = await loadSyncableStoredPortableCharacterSheets();
 
-        for (const record of syncableRecords) {
+        for (const candidate of syncableRecords) {
+          if (!isCurrentSession()) return;
+          const record = loadStoredPortableCharacterSheetByMatch({
+            clientId: getPortableCharacterSheetSync(candidate)?.clientId,
+            localId: candidate.identity.localId
+          });
+          if (
+            !record ||
+            !isPortableCharacterSheetOwnedBy(record, ownerId) ||
+            isCharacterSyncLocked(record.identity.localId)
+          )
+            continue;
           const sync = getPortableCharacterSheetSync(record);
 
           if (!sync) {
@@ -396,18 +342,21 @@ function CharacterSyncBootstrap() {
                 await deleteCharacterSheet(sync.remoteId, { suppressFailureToast: true });
               }
 
+              if (!isCurrentSession()) return;
               removeCharacterRosterEntry({
                 clientId: sync.clientId,
                 localId: record.identity.localId,
                 remoteId: sync.remoteId
               });
             } catch (error) {
+              if (!isCurrentSession()) return;
               if (error instanceof ApiOfflineError) {
                 return;
               }
 
               if (isCharacterSheetUnavailableError(error)) {
-                await refreshCharacterCloudRosterBestEffort(ownerId);
+                await refreshCharacterCloudRosterBestEffort(ownerId, isCurrentSession);
+                if (!isCurrentSession()) return;
                 removeCharacterRosterEntry({
                   clientId: sync.clientId,
                   localId: record.identity.localId,
@@ -435,32 +384,27 @@ function CharacterSyncBootstrap() {
                 sentLocalRevision,
                 ownerId
               });
-              await replaceStoredCharacterRecords(records);
+              await replaceStoredCharacterRecords(records, isCurrentSession);
             }
 
             continue;
           }
 
           try {
+            const payload = await createPortableCharacterSheetSyncPayload(record, {
+              includeBaseRevision: Boolean(sync.remoteId),
+              ownerId
+            });
+            if (!isCurrentSession()) return;
             if (sync.remoteId) {
-              const { character } = await saveCharacterSheet(
-                sync.remoteId,
-                await createPortableCharacterSheetSyncPayload(record, {
-                  includeBaseRevision: true,
-                  ownerId
-                }),
-                { suppressFailureToast: true }
-              );
+              const { character } = await saveCharacterSheet(sync.remoteId, payload, {
+                suppressFailureToast: true
+              });
               nextRecord = applyCloudDocumentToPortableCharacterSheet(character);
             } else {
-              const { characters } = await importCharacterSheets(
-                [
-                  await createPortableCharacterSheetSyncPayload(record, {
-                    ownerId
-                  })
-                ],
-                { suppressFailureToast: true }
-              );
+              const { characters } = await importCharacterSheets([payload], {
+                suppressFailureToast: true
+              });
               const importedCharacter = characters[0];
 
               if (!importedCharacter) {
@@ -470,12 +414,14 @@ function CharacterSyncBootstrap() {
               nextRecord = applyCloudDocumentToPortableCharacterSheet(importedCharacter);
             }
           } catch (error) {
+            if (!isCurrentSession()) return;
             if (error instanceof ApiOfflineError) {
               return;
             }
 
             if (isCharacterSheetUnavailableError(error)) {
-              await refreshCharacterCloudRosterBestEffort(ownerId);
+              await refreshCharacterCloudRosterBestEffort(ownerId, isCurrentSession);
+              if (!isCurrentSession()) return;
               nextRecord = detachUnavailableCloudSync(record, error);
             } else {
               const syncStatus =
@@ -497,7 +443,15 @@ function CharacterSyncBootstrap() {
                 syncStatus
               );
 
-              if (syncStatus === "conflict") {
+              const latest = loadStoredPortableCharacterSheetByMatch({
+                clientId: sync.clientId,
+                localId: record.identity.localId
+              });
+              if (
+                syncStatus === "conflict" &&
+                latest &&
+                getPortableCharacterSheetSync(latest)?.syncStatus !== "deleting"
+              ) {
                 dispatchCharacterSyncConflict({
                   clientId: sync.clientId,
                   localId: record.identity.localId,
@@ -515,9 +469,10 @@ function CharacterSyncBootstrap() {
             sentLocalRevision,
             ownerId
           });
-          await replaceStoredCharacterRecords(records);
+          await replaceStoredCharacterRecords(records, isCurrentSession);
         }
       } catch (error) {
+        if (!isCurrentSession()) return;
         captureCharacterSyncError(error, {
           action: "sync-loop"
         });
@@ -533,7 +488,7 @@ function CharacterSyncBootstrap() {
         syncPromiseRef.current = null;
       }
     }
-  }, [replaceStoredCharacterRecords, status, user]);
+  }, [createSessionGuard, replaceStoredCharacterRecords, status, user]);
 
   const queueCloudSync = useCallback(
     (delayMs = cloudSyncDebounceMs) => {
@@ -556,9 +511,13 @@ function CharacterSyncBootstrap() {
       return false;
     }
 
+    const isCurrentSession = createSessionGuard(user.id);
+    if (!isCurrentSession()) return false;
     try {
-      const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
+      const cloudSnapshot = await fetchCloudPortableCharacterSheets();
       const latestLocalSnapshot = await loadSyncableStoredPortableCharacterSheets();
+      if (!isCurrentSession()) return false;
+      saveCharacterRosterCache(user.id, cloudSnapshot.cloudRosterDocuments);
       const records = reconcilePortableCharacterSheetsWithCloudSnapshot({
         ownerId: user.id,
         localRecords: latestLocalSnapshot,
@@ -566,9 +525,10 @@ function CharacterSyncBootstrap() {
         preserveUnownedRecords: true
       });
 
-      await replaceStoredCharacterRecords(records);
+      await replaceStoredCharacterRecords(records, isCurrentSession);
       return true;
     } catch (error) {
+      if (!isCurrentSession()) return false;
       if (!(error instanceof ApiOfflineError)) {
         captureCharacterSyncError(error, {
           action: "refresh",
@@ -578,7 +538,7 @@ function CharacterSyncBootstrap() {
 
       return false;
     }
-  }, [replaceStoredCharacterRecords, status, user]);
+  }, [createSessionGuard, replaceStoredCharacterRecords, status, user]);
 
   const refreshAuthenticatedCharacterCacheAndSyncDirty = useCallback(async () => {
     if (syncPromiseRef.current) {
@@ -595,18 +555,22 @@ function CharacterSyncBootstrap() {
     }
 
     if (
-      initializedUserIdRef.current === user.id ||
-      initializingUserIdRef.current === user.id ||
+      initializedSessionRef.current?.() ||
+      initializingSessionRef.current?.() ||
       claimPrompt?.ownerId === user.id
     ) {
       return;
     }
 
-    initializingUserIdRef.current = user.id;
+    const isCurrentSession = createSessionGuard(user.id);
+    if (!isCurrentSession()) return;
+    initializingSessionRef.current = isCurrentSession;
 
     try {
-      const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
+      const cloudSnapshot = await fetchCloudPortableCharacterSheets();
       const latestLocalSnapshot = await loadSyncableStoredPortableCharacterSheets();
+      if (!isCurrentSession()) return;
+      saveCharacterRosterCache(user.id, cloudSnapshot.cloudRosterDocuments);
       const reconciledLocalSnapshot = reconcilePortableCharacterSheetsWithCloudSnapshot({
         ownerId: user.id,
         localRecords: latestLocalSnapshot,
@@ -624,10 +588,11 @@ function CharacterSyncBootstrap() {
         limit: cloudSnapshot.limit
       });
 
-      initializedUserIdRef.current = user.id;
+      initializedSessionRef.current = isCurrentSession;
 
       if (unclaimedRecords.length > 0) {
-        await replaceStoredCharacterRecords(reconciledLocalSnapshot);
+        await replaceStoredCharacterRecords(reconciledLocalSnapshot, isCurrentSession);
+        if (!isCurrentSession()) return;
         setClaimPrompt({
           ownerId: user.id,
           localSnapshot: reconciledLocalSnapshot,
@@ -642,9 +607,11 @@ function CharacterSyncBootstrap() {
         return;
       }
 
-      await replaceStoredCharacterRecords(reconciledLocalSnapshot);
+      await replaceStoredCharacterRecords(reconciledLocalSnapshot, isCurrentSession);
+      if (!isCurrentSession()) return;
       queueCloudSync(0);
     } catch (error) {
+      if (!isCurrentSession()) return;
       if (!(error instanceof ApiOfflineError)) {
         captureCharacterSyncError(error, {
           action: "initialize",
@@ -658,11 +625,20 @@ function CharacterSyncBootstrap() {
         );
       }
 
-      initializedUserIdRef.current = null;
+      initializedSessionRef.current = null;
     } finally {
-      initializingUserIdRef.current = null;
+      if (initializingSessionRef.current === isCurrentSession)
+        initializingSessionRef.current = null;
     }
-  }, [claimPrompt?.ownerId, dispatch, queueCloudSync, replaceStoredCharacterRecords, status, user]);
+  }, [
+    claimPrompt?.ownerId,
+    createSessionGuard,
+    dispatch,
+    queueCloudSync,
+    replaceStoredCharacterRecords,
+    status,
+    user
+  ]);
 
   const confirmClaimPrompt = useCallback(
     async (selectedRecords: PortableCharacterSheet[]) => {
@@ -670,6 +646,8 @@ function CharacterSyncBootstrap() {
         return;
       }
 
+      const isCurrentSession = createSessionGuard(claimPrompt.ownerId);
+      if (!isCurrentSession()) return;
       setIsClaiming(true);
       setClaimPrompt((currentPrompt) =>
         currentPrompt ? { ...currentPrompt, error: null } : currentPrompt
@@ -682,21 +660,19 @@ function CharacterSyncBootstrap() {
             syncStatus: "dirty"
           })
         );
+        const payloads = await Promise.all(
+          ownedSelectedRecords.map((record) =>
+            createPortableCharacterSheetSyncPayload(record, { ownerId: claimPrompt.ownerId })
+          )
+        );
+        if (!isCurrentSession()) return;
         const importedRecords =
-          ownedSelectedRecords.length > 0
+          payloads.length > 0
             ? (
-                await importCharacterSheets(
-                  await Promise.all(
-                    ownedSelectedRecords.map((record) =>
-                      createPortableCharacterSheetSyncPayload(record, {
-                        ownerId: claimPrompt.ownerId
-                      })
-                    )
-                  ),
-                  { suppressFailureToast: true }
-                )
+                await importCharacterSheets(payloads, { suppressFailureToast: true })
               ).characters.map(applyCloudDocumentToPortableCharacterSheet)
             : [];
+        if (!isCurrentSession()) return;
         const finalRecords = mergeCurrentUserPortableCharacterSheets({
           ownerId: claimPrompt.ownerId,
           localRecords: claimPrompt.localSnapshot,
@@ -730,7 +706,8 @@ function CharacterSyncBootstrap() {
           ...claimPrompt.cloudRosterDocuments,
           ...importedRosterDocuments
         ]);
-        await replaceStoredCharacterRecords(finalRecords);
+        await replaceStoredCharacterRecords(finalRecords, isCurrentSession);
+        if (!isCurrentSession()) return;
         setClaimPrompt(null);
         queueCloudSync(0);
         dispatch(
@@ -743,6 +720,7 @@ function CharacterSyncBootstrap() {
           })
         );
       } catch (error) {
+        if (!isCurrentSession()) return;
         captureCharacterSyncError(error, {
           action: "claim-import",
           syncStatus: "dirty"
@@ -756,10 +734,10 @@ function CharacterSyncBootstrap() {
             : currentPrompt
         );
       } finally {
-        setIsClaiming(false);
+        if (isCurrentSession()) setIsClaiming(false);
       }
     },
-    [claimPrompt, dispatch, queueCloudSync, replaceStoredCharacterRecords]
+    [claimPrompt, createSessionGuard, dispatch, queueCloudSync, replaceStoredCharacterRecords]
   );
 
   const openConflictPrompt = useCallback((detail: CharacterSyncConflictEventDetail) => {
@@ -794,22 +772,26 @@ function CharacterSyncBootstrap() {
       return;
     }
 
+    const isCurrentSession = createSessionGuard(user.id);
+    if (!isCurrentSession()) return;
     setIsResolvingConflict(true);
 
     try {
-      const { character } = await saveCharacterSheet(
-        sync.remoteId,
-        await createPortableCharacterSheetSyncPayload(conflictPrompt.record, {
-          force: true,
-          ownerId: user.id
-        }),
-        { suppressFailureToast: true }
-      );
+      const payload = await createPortableCharacterSheetSyncPayload(conflictPrompt.record, {
+        force: true,
+        ownerId: user.id
+      });
+      if (!isCurrentSession()) return;
+      const { character } = await saveCharacterSheet(sync.remoteId, payload, {
+        suppressFailureToast: true
+      });
+      if (!isCurrentSession()) return;
       const record = storeCloudCharacterSheetDocument(character, {
         localId: conflictPrompt.record.identity.localId
       });
 
-      await updateActiveCharacterIfOpen(record);
+      await updateActiveCharacterIfOpen(record, isCurrentSession);
+      if (!isCurrentSession()) return;
       setConflictPrompt(null);
       queueCloudSync(0);
       dispatch(
@@ -819,6 +801,7 @@ function CharacterSyncBootstrap() {
         })
       );
     } catch (error) {
+      if (!isCurrentSession()) return;
       captureCharacterSyncError(error, {
         action: "conflict-keep-local",
         clientId: sync.clientId,
@@ -830,9 +813,17 @@ function CharacterSyncBootstrap() {
         currentPrompt ? { ...currentPrompt, error: getSyncErrorMessage(error) } : null
       );
     } finally {
-      setIsResolvingConflict(false);
+      if (isCurrentSession()) setIsResolvingConflict(false);
     }
-  }, [conflictPrompt, dispatch, queueCloudSync, status, updateActiveCharacterIfOpen, user]);
+  }, [
+    conflictPrompt,
+    createSessionGuard,
+    dispatch,
+    queueCloudSync,
+    status,
+    updateActiveCharacterIfOpen,
+    user
+  ]);
 
   const keepCloudConflictVersion = useCallback(async () => {
     if (status !== "authenticated" || !user || !conflictPrompt) {
@@ -848,17 +839,21 @@ function CharacterSyncBootstrap() {
       return;
     }
 
+    const isCurrentSession = createSessionGuard(user.id);
+    if (!isCurrentSession()) return;
     setIsResolvingConflict(true);
 
     try {
       const { character } = await getCharacterSheet(sync.remoteId, {
         suppressFailureToast: true
       });
+      if (!isCurrentSession()) return;
       const record = storeCloudCharacterSheetDocument(character, {
         localId: conflictPrompt.record.identity.localId
       });
 
-      await updateActiveCharacterIfOpen(record);
+      await updateActiveCharacterIfOpen(record, isCurrentSession);
+      if (!isCurrentSession()) return;
       setConflictPrompt(null);
       queueCloudSync(0);
       dispatch(
@@ -868,6 +863,7 @@ function CharacterSyncBootstrap() {
         })
       );
     } catch (error) {
+      if (!isCurrentSession()) return;
       captureCharacterSyncError(error, {
         action: "conflict-keep-cloud",
         clientId: sync.clientId,
@@ -879,15 +875,26 @@ function CharacterSyncBootstrap() {
         currentPrompt ? { ...currentPrompt, error: getSyncErrorMessage(error) } : null
       );
     } finally {
-      setIsResolvingConflict(false);
+      if (isCurrentSession()) setIsResolvingConflict(false);
     }
-  }, [conflictPrompt, dispatch, queueCloudSync, status, updateActiveCharacterIfOpen, user]);
+  }, [
+    conflictPrompt,
+    createSessionGuard,
+    dispatch,
+    queueCloudSync,
+    status,
+    updateActiveCharacterIfOpen,
+    user
+  ]);
 
   useEffect(() => {
     if (status !== "authenticated") {
-      initializedUserIdRef.current = null;
-      initializingUserIdRef.current = null;
+      initializedSessionRef.current = null;
+      initializingSessionRef.current = null;
       setClaimPrompt(null);
+      setConflictPrompt(null);
+      setIsClaiming(false);
+      setIsResolvingConflict(false);
       clearSyncTimer();
       return;
     }
@@ -949,7 +956,7 @@ function CharacterSyncBootstrap() {
 
   useEffect(() => {
     function handleOnline() {
-      if (initializedUserIdRef.current === null) {
+      if (!initializedSessionRef.current?.()) {
         void initializeAuthenticatedCharacterCache();
         return;
       }

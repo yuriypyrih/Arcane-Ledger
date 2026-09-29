@@ -1,10 +1,7 @@
-import { getClassLevel } from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  CURRENCY_TYPE,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getClassLevel } from "../../../multiclassState";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, CURRENCY_TYPE } from "../../../../../codex/entries/enums";
 import type {
   Character,
   CharacterArtificerFeatureState,
@@ -15,7 +12,7 @@ import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   getFeatureDescriptionAdditions,
   projectCompiledContributionsToSubclassDerivedFeatureState,
@@ -575,18 +572,12 @@ export function consumeArtificerIlluminatedCartographyUse(character: Character):
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...illuminatedCartographyState,
-        illuminatedCartographyUsesExpended:
-          (illuminatedCartographyState.illuminatedCartographyUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...illuminatedCartographyState,
+    illuminatedCartographyUsesExpended:
+      (illuminatedCartographyState.illuminatedCartographyUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreArtificerIlluminatedCartographyOnLongRest(character: Character): Character {
@@ -604,17 +595,11 @@ export function restoreArtificerIlluminatedCartographyOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...illuminatedCartographyState,
-        illuminatedCartographyUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...illuminatedCartographyState,
+    illuminatedCartographyUsesExpended: 0
+  });
 }
 
 export function consumeArtificerUnerringPathUse(character: Character): Character {
@@ -628,17 +613,11 @@ export function consumeArtificerUnerringPathUse(character: Character): Character
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
   const unerringPathState = normalizeArtificerUnerringPathState(currentArtificerState, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...unerringPathState,
-        unerringPathUsesExpended: (unerringPathState.unerringPathUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...unerringPathState,
+    unerringPathUsesExpended: (unerringPathState.unerringPathUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreArtificerUnerringPathOnLongRest(character: Character): Character {
@@ -653,17 +632,11 @@ export function restoreArtificerUnerringPathOnLongRest(character: Character): Ch
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...unerringPathState,
-        unerringPathUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...unerringPathState,
+    unerringPathUsesExpended: 0
+  });
 }
 
 function getArtificerCartographerSafeHavenDescriptionAdditionsDirect(
@@ -742,7 +715,7 @@ export function getArtificerCartographerFeatureDescriptionAdditions(
   targetKey?: string
 ): SpellDescriptionEntry[][] {
   return getFeatureDescriptionAdditions(
-    compileFeatureContributions(collectArtificerCartographerContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerCartographerContributions),
     target,
     {
       character: character as Character,
@@ -913,7 +886,7 @@ export function collectArtificerCartographerContributions(
 
 export const getArtificerCartographerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectArtificerCartographerContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerCartographerContributions),
     {
       character: character as Character
     }

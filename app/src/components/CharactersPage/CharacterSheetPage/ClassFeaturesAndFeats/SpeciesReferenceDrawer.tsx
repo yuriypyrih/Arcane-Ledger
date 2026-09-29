@@ -1,10 +1,5 @@
-import {
-  TRACKER,
-  type DivinityEntry,
-  type FEATS,
-  type SpeciesEntry,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { type DivinityEntry, type SpeciesEntry, type SpellEntry } from "../../../../codex/entries";
+import { TRACKER, type FEATS } from "../../../../codex/entries/enums";
 import { formatCodexLabel } from "../../../../utils/codex";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";

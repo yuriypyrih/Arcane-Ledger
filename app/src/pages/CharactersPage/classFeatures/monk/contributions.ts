@@ -1,12 +1,9 @@
-import {
-  CLASS_FEATURE,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character, CharacterStatusEntry } from "../../../../types";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   getFeatureDescriptionAdditions,
   projectCompiledContributionsToClassFeatureDerivedState,
@@ -444,7 +441,7 @@ export function getMonkClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectMonkFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectMonkFeatureContributions),
     {
       character: character as Character
     }
@@ -457,7 +454,7 @@ export function getMonkFeatureDescriptionAdditions(
   targetKey?: string
 ): SpellDescriptionEntry[][] {
   return getFeatureDescriptionAdditions(
-    compileFeatureContributions(collectMonkFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectMonkFeatureContributions),
     target,
     {
       character: character as Character,

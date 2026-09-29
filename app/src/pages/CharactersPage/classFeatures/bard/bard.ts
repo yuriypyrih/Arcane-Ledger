@@ -1,12 +1,13 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
-import { hasCharacterClass, getCharacterLevel, getClassLevel } from "../../multiclass";
+import { hasCharacterClass, getCharacterLevel, getClassLevel } from "../../multiclassState";
 import {
   getReactionEntryById,
-  CLASS_FEATURE,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type {
   Character,
   CharacterBardFeatureState,
@@ -279,19 +280,13 @@ export function setBardExpertiseSelections(
   const bardState = getBardFeatureState(character);
   const normalizedSelections = normalizeBardExpertiseSelections(selections);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        expertise: {
-          ...bardState.expertise,
-          [tier]: normalizedSelections
-        }
-      }
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    expertise: {
+      ...bardState.expertise,
+      [tier]: normalizedSelections
     }
-  };
+  });
 }
 
 export function setBardLoreBonusProficiencySelections(
@@ -738,16 +733,10 @@ export function restoreBardicInspirationUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended: currentExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    bardicInspirationUsesExpended: currentExpended - 1
+  });
 }
 
 export function restoreAllBardicInspirationUses(character: Character): Character {
@@ -761,16 +750,10 @@ export function restoreAllBardicInspirationUses(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    bardicInspirationUsesExpended: 0
+  });
 }
 
 export function advanceBardFeaturesForNewRound(character: Character): Character {
@@ -1074,18 +1057,12 @@ export function applySuperiorInspirationOnInitiative(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended:
-          currentRemaining >= 2 ? currentExpended : Math.max(0, effectiveTotal - 2),
-        bardicInspirationTemporaryTotal: effectiveTotal
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    bardicInspirationUsesExpended:
+      currentRemaining >= 2 ? currentExpended : Math.max(0, effectiveTotal - 2),
+    bardicInspirationTemporaryTotal: effectiveTotal
+  });
 }
 
 export function restoreBardicInspirationOnShortRest(character: Character): Character {
@@ -1105,17 +1082,11 @@ export function restoreBardicInspirationOnShortRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended: 0,
-        bardicInspirationTemporaryTotal: undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...bardState,
+    bardicInspirationUsesExpended: 0,
+    bardicInspirationTemporaryTotal: undefined
+  });
 }
 
 export function applyShortRestToBardFeatures(character: Character): Character {
@@ -1135,17 +1106,11 @@ export function applyLongRestToBardFeatures(character: Character): Character {
     );
   }
 
-  const nextCharacter = {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...getBardFeatureState(character),
-        bardicInspirationUsesExpended: 0,
-        bardicInspirationTemporaryTotal: undefined
-      }
-    }
-  };
+  const nextCharacter = replaceClassFeatureState(character, "bard", {
+    ...getBardFeatureState(character),
+    bardicInspirationUsesExpended: 0,
+    bardicInspirationTemporaryTotal: undefined
+  });
 
   return restoreUnbreakableMajestyOnLongRest(
     restoreMantleOfMajestyOnLongRest(
@@ -1161,17 +1126,11 @@ export function restoreBardicInspirationOnLongRest(character: Character): Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...getBardFeatureState(character),
-        bardicInspirationUsesExpended: 0,
-        bardicInspirationTemporaryTotal: undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...getBardFeatureState(character),
+    bardicInspirationUsesExpended: 0,
+    bardicInspirationTemporaryTotal: undefined
+  });
 }
 
 export {

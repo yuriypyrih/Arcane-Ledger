@@ -1,4 +1,13 @@
 import {
+  type ArmorEntry,
+  type EquipmentCost,
+  type ItemEntry,
+  type WeaponDamage,
+  type WeaponDamageAmount,
+  type WeaponEntry,
+  type WeaponRange
+} from "../../codex/entries";
+import {
   ARMOR_TYPES,
   CURRENCY_TYPE,
   DAMAGE_TYPE,
@@ -10,15 +19,8 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
-  WEAPON_TRAINING,
-  type ArmorEntry,
-  type EquipmentCost,
-  type ItemEntry,
-  type WeaponDamage,
-  type WeaponDamageAmount,
-  type WeaponEntry,
-  type WeaponRange
-} from "../../codex/entries";
+  WEAPON_TRAINING
+} from "../../codex/entries/enums";
 import type {
   CharacterCustomArmor,
   CharacterCustomEquipment,
@@ -239,12 +241,14 @@ function normalizeCustomWeapon(
   }
 
   const typeRecord = isObjectRecord(value.type) ? value.type : null;
-  const training = typeRecord && weaponTrainingValues.has(typeRecord.training as WEAPON_TRAINING)
-    ? (typeRecord.training as WEAPON_TRAINING)
-    : WEAPON_TRAINING.SIMPLE;
-  const combat = typeRecord && weaponCombatValues.has(typeRecord.combat as WEAPON_COMBAT_TYPE)
-    ? (typeRecord.combat as WEAPON_COMBAT_TYPE)
-    : WEAPON_COMBAT_TYPE.MELEE;
+  const training =
+    typeRecord && weaponTrainingValues.has(typeRecord.training as WEAPON_TRAINING)
+      ? (typeRecord.training as WEAPON_TRAINING)
+      : WEAPON_TRAINING.SIMPLE;
+  const combat =
+    typeRecord && weaponCombatValues.has(typeRecord.combat as WEAPON_COMBAT_TYPE)
+      ? (typeRecord.combat as WEAPON_COMBAT_TYPE)
+      : WEAPON_COMBAT_TYPE.MELEE;
   const baseWeapon = weaponBaseValues.has(value.baseWeapon as WEAPON_BASE)
     ? (value.baseWeapon as WEAPON_BASE)
     : WEAPON_BASE.DAGGER;
@@ -302,7 +306,12 @@ function normalizeCustomArmor(
     description: normalizeText(value.description),
     armorType,
     armorBase: Math.floor(
-      clampNumber(value.armorBase, armorType === "shield" ? 0 : 1, 30, armorType === "shield" ? 0 : 11)
+      clampNumber(
+        value.armorBase,
+        armorType === "shield" ? 0 : 1,
+        30,
+        armorType === "shield" ? 0 : 11
+      )
     ),
     maxDexModifier,
     shieldBonus: Math.floor(clampNumber(value.shieldBonus, 0, 10, armorType === "shield" ? 2 : 0)),
@@ -387,9 +396,7 @@ export function findCustomEquipmentById(
   return customEquipment.find((entry) => entry.id === customEquipmentId);
 }
 
-export function isResolvedCustomLoadoutEntry(
-  entry: unknown
-): entry is ResolvedCustomLoadoutEntry {
+export function isResolvedCustomLoadoutEntry(entry: unknown): entry is ResolvedCustomLoadoutEntry {
   return isObjectRecord(entry) && entry.source === "custom";
 }
 

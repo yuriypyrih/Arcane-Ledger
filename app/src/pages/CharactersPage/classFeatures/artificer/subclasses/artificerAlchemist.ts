@@ -1,8 +1,8 @@
-import { getClassLevel } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { getClassLevel } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character } from "../../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -125,7 +125,7 @@ export function collectArtificerAlchemistContributions(
 
 export const getArtificerAlchemistDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   return projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectArtificerAlchemistContributions(character)),
+    getCompiledFeatureContributions(character, collectArtificerAlchemistContributions),
     {
       character: character as Character
     }

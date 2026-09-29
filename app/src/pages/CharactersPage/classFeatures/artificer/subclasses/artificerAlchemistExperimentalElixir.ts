@@ -1,6 +1,6 @@
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { getClassLevel } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { getClassLevel } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { Character, CharacterItemMods } from "../../../../../types";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";

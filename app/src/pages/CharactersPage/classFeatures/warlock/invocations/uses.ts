@@ -1,3 +1,4 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 
 export type WarlockExpendedUseKey = keyof Pick<
@@ -64,14 +65,8 @@ export function restoreWarlockExpendedUse(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        [key]: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    [key]: 0
+  });
 }

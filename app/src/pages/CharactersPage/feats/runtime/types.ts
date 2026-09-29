@@ -1,4 +1,5 @@
-import type { FEATS, ReactionEntry, SpellEntry } from "../../../../codex/entries";
+import type { ReactionEntry, SpellEntry } from "../../../../codex/entries";
+import type { FEATS } from "../../../../codex/entries/enums";
 import type {
   AbilityKey,
   Character,

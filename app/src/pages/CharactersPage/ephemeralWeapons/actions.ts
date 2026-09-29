@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "../multiclass";
+import { getCharacterLevel } from "../multiclassState";
 import type { AbilityKey, Character } from "../../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../utils/codex";
 import { getAbilityModifierForCharacter } from "../abilities";

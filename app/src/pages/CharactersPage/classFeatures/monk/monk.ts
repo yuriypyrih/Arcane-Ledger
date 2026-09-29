@@ -1,17 +1,22 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../codex/classes";
+import {
+  getReactionEntryById,
+  type ReactionEntry,
+  type ArmorEntry,
+  type WeaponEntry
+} from "../../../../codex/entries";
 import {
   ARMOR_TYPES,
   CLASS_FEATURE,
   DAMAGE_TYPE,
   DICE,
   ENTRY_CATEGORIES,
-  WEAPON_COMBAT_TYPE,
-  getReactionEntryById,
-  type ReactionEntry,
-  type ArmorEntry,
-  type WeaponEntry
-} from "../../../../codex/entries";
+  WEAPON_COMBAT_TYPE
+} from "../../../../codex/entries/enums";
 import { getArmorEntries, getWeaponEntries } from "../../../../codex/selectors";
 import type { Character, CharacterMonkFeatureState } from "../../../../types";
 import {
@@ -182,25 +187,13 @@ const monkFocusCommonActionBonusPathKeys = new Set([
 
 function getMonkFeatureRow(level: number): MonkFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(monkFeatures, normalizedLevel);
 }
 
 function getUnlockedMonkFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return monkFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(monkFeatures, normalizedLevel);
 }
 
 function getMonkFeatureState(
@@ -992,25 +985,19 @@ export function activateMonkFlurryOfBlows(
   const flurryOfHealingAndHarmUsesExpended =
     monkState.warriorOfMercyFlurryOfHealingAndHarmUsesExpended ?? 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: shadowFlurryActive
-          ? (monkState.focusPointsExpended ?? 0)
-          : (monkState.focusPointsExpended ?? 0) + 1,
-        flurryOfBlowsAttacksRemainingThisTurn:
-          (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) + flurryStrikeCount,
-        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
-        warriorOfMercyFlurryOfHealingAndHarmUsesExpended: shouldUseFlurryOfHealingAndHarm
-          ? flurryOfHealingAndHarmUsesExpended + 1
-          : flurryOfHealingAndHarmUsesExpended,
-        warriorOfMercyFlurryOfHealingAndHarmActive: shouldUseFlurryOfHealingAndHarm
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: shadowFlurryActive
+      ? (monkState.focusPointsExpended ?? 0)
+      : (monkState.focusPointsExpended ?? 0) + 1,
+    flurryOfBlowsAttacksRemainingThisTurn:
+      (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) + flurryStrikeCount,
+    warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
+    warriorOfMercyFlurryOfHealingAndHarmUsesExpended: shouldUseFlurryOfHealingAndHarm
+      ? flurryOfHealingAndHarmUsesExpended + 1
+      : flurryOfHealingAndHarmUsesExpended,
+    warriorOfMercyFlurryOfHealingAndHarmActive: shouldUseFlurryOfHealingAndHarm
+  });
 }
 
 export function applyMonkUncannyMetabolismOnInitiative(character: Character): Character {
@@ -1053,16 +1040,10 @@ export function applyPerfectFocusOnInitiative(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: Math.max(0, totalFocusPoints - targetFocusPoints)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: Math.max(0, totalFocusPoints - targetFocusPoints)
+  });
 }
 
 export function activateMonkSuperiorDefense(character: Character): Character {
@@ -1153,16 +1134,10 @@ export function expendMonkFocusPoint(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: (monkState.focusPointsExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: (monkState.focusPointsExpended ?? 0) + 1
+  });
 }
 
 export function restoreOneMonkFocusPoint(character: Character): Character {
@@ -1177,16 +1152,10 @@ export function restoreOneMonkFocusPoint(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: focusPointsExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: focusPointsExpended - 1
+  });
 }
 
 export function restoreAllMonkFocusPoints(character: Character): Character {
@@ -1211,25 +1180,19 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: 0,
-        flurryOfBlowsAttacksRemainingThisTurn: 0,
-        extraAttacksRemainingThisTurn: 0,
-        warriorOfShadowShadowStepAdvantageActive: false,
-        warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
-        stunningStrikeUsedThisTurn: false,
-        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
-        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
-        warriorOfMercyHandOfHarmUsedThisTurn: false,
-        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    focusPointsExpended: 0,
+    flurryOfBlowsAttacksRemainingThisTurn: 0,
+    extraAttacksRemainingThisTurn: 0,
+    warriorOfShadowShadowStepAdvantageActive: false,
+    warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
+    stunningStrikeUsedThisTurn: false,
+    warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
+    warriorOfMercyHandOfHarmUsedThisTurn: false,
+    warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0
+  });
 }
 
 function deactivateMonkSuperiorDefense(character: Character): Character {
@@ -1276,16 +1239,10 @@ export function restoreMonkUncannyMetabolismOnLongRest(character: Character): Ch
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        uncannyMetabolismUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    uncannyMetabolismUsesExpended: 0
+  });
 }
 
 export function restoreMonkHandOfUltimateJusticeOnLongRest(character: Character): Character {
@@ -1351,33 +1308,25 @@ export function consumeMonkWeaponAttack(
     const flurryAttacksRemaining = monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0;
 
     if (flurryAttacksRemaining > 0) {
-      return consumeShadowStepAdvantage({
-        ...character,
-        classFeatureState: {
-          ...character.classFeatureState,
-          monk: {
-            ...monkState,
-            flurryOfBlowsAttacksRemainingThisTurn: flurryAttacksRemaining - 1
-          }
-        }
-      });
+      return consumeShadowStepAdvantage(
+        replaceClassFeatureState(character, "monk", {
+          ...monkState,
+          flurryOfBlowsAttacksRemainingThisTurn: flurryAttacksRemaining - 1
+        })
+      );
     }
 
     const improvedShadowStepAttacksRemaining =
       monkState.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn ?? 0;
 
     if (improvedShadowStepAttacksRemaining > 0) {
-      return consumeShadowStepAdvantage({
-        ...character,
-        classFeatureState: {
-          ...character.classFeatureState,
-          monk: {
-            ...monkState,
-            warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn:
-              improvedShadowStepAttacksRemaining - 1
-          }
-        }
-      });
+      return consumeShadowStepAdvantage(
+        replaceClassFeatureState(character, "monk", {
+          ...monkState,
+          warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn:
+            improvedShadowStepAttacksRemaining - 1
+        })
+      );
     }
 
     return isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
@@ -1392,16 +1341,12 @@ export function consumeMonkWeaponAttack(
     const extraAttacksRemaining = monkState.extraAttacksRemainingThisTurn ?? 0;
 
     if (extraAttacksRemaining > 0) {
-      return consumeShadowStepAdvantage({
-        ...character,
-        classFeatureState: {
-          ...character.classFeatureState,
-          monk: {
-            ...monkState,
-            extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-          }
-        }
-      });
+      return consumeShadowStepAdvantage(
+        replaceClassFeatureState(character, "monk", {
+          ...monkState,
+          extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+        })
+      );
     }
   }
 
@@ -1481,29 +1426,23 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        flurryOfBlowsAttacksRemainingThisTurn: 0,
-        extraAttacksRemainingThisTurn: 0,
-        warriorOfShadowShadowStepAdvantageActive: false,
-        warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
-        stunningStrikeUsedThisTurn: false,
-        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
-        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
-        warriorOfMercyHandOfHarmUsedThisTurn: false,
-        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
-        warriorOfMercyFlurryOfHealingAndHarmActive: false,
-        superiorDefenseRoundsRemaining: superiorDefenseActive
-          ? 0
-          : Math.max(0, superiorDefenseRoundsRemaining - 1),
-        superiorDefenseUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "monk", {
+    ...monkState,
+    flurryOfBlowsAttacksRemainingThisTurn: 0,
+    extraAttacksRemainingThisTurn: 0,
+    warriorOfShadowShadowStepAdvantageActive: false,
+    warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
+    stunningStrikeUsedThisTurn: false,
+    warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
+    warriorOfMercyHandOfHarmUsedThisTurn: false,
+    warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
+    warriorOfMercyFlurryOfHealingAndHarmActive: false,
+    superiorDefenseRoundsRemaining: superiorDefenseActive
+      ? 0
+      : Math.max(0, superiorDefenseRoundsRemaining - 1),
+    superiorDefenseUsedThisTurn: false
+  });
 }
 
 export function activateMonkHandOfUltimateJustice(character: Character): Character {

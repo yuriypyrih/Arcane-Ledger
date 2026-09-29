@@ -1,10 +1,10 @@
+import { type SpellEntry } from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
   SPELL_LIST_CLASS,
   WEAPON_COMBAT_TYPE,
-  WEAPON_TRAINING,
-  type SpellEntry
-} from "../../../../../codex/entries";
+  WEAPON_TRAINING
+} from "../../../../../codex/entries/enums";
 import type { Character } from "../../../../../types";
 import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
@@ -154,9 +154,7 @@ export function setArtificerArcaneFirearmForCharacter(
   }
 
   if (
-    !getArtificerArcaneFirearmItemOptions(character).some(
-      (option) => option.stackId === stackId
-    )
+    !getArtificerArcaneFirearmItemOptions(character).some((option) => option.stackId === stackId)
   ) {
     return character;
   }

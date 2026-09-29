@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import {
   getAlwaysSpellbookSpellIdsForCharacter,
   getWizardSavantSpellIdsForCharacter,

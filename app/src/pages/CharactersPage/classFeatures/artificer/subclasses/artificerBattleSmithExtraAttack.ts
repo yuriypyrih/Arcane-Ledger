@@ -1,8 +1,6 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import type { Character, CharacterArtificerFeatureState } from "../../../../../types";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable
-} from "../../../combat";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { hasArtificerSubclassFeature } from "./artificerSubclassHelpers";
 
 const battleSmithSubclassId = "artificer-battle-smith";
@@ -83,16 +81,10 @@ export function consumeArtificerBattleSmithWeaponAttack(character: Character): C
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+  });
 }
 
 export function advanceArtificerBattleSmithFeaturesForNewRound(character: Character): Character {
@@ -106,14 +98,8 @@ export function advanceArtificerBattleSmithFeaturesForNewRound(character: Charac
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...artificerState,
-        extraAttacksRemainingThisTurn: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...artificerState,
+    extraAttacksRemainingThisTurn: 0
+  });
 }

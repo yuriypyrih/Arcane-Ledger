@@ -1,9 +1,8 @@
-import { FEATS, type SpellEntry } from "../../../../codex/entries";
+import { type SpellEntry } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import type { AbilityKey } from "../../../../types";
 import type { SpellSourceMap } from "../../classFeatures/types";
-import {
-  emeraldEnclaveFledglingSpeakWithAnimalsSpellId
-} from "./constants";
+import { emeraldEnclaveFledglingSpeakWithAnimalsSpellId } from "./constants";
 import { collectFeatDerivedState } from "./state";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 

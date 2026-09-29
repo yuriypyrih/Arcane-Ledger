@@ -1,9 +1,9 @@
+import { type EldritchInvocationEntry } from "../../../../../codex/entries";
 import {
   ELDRITCH_INVOCATION,
   WEAPON_COMBAT_TYPE,
-  type EldritchInvocationEntry,
   type WEAPON_BASE
-} from "../../../../../codex/entries";
+} from "../../../../../codex/entries/enums";
 import { getWeaponEntries } from "../../../../../codex/selectors";
 import type { Character } from "../../../../../types";
 import { getOfficial2024BackendItemKeyForWeaponBase } from "../../../../../utils/items/weaponBaseItemKeys";
@@ -143,9 +143,7 @@ export function getWarlockPactBladeInvocationOptions({
     .filter(({ entry, item }) => Boolean(item.weapon) && !isConjuredInventoryItem(entry))
     .slice()
     .sort((left, right) =>
-      (left.item.name ?? left.item.key ?? "").localeCompare(
-        right.item.name ?? right.item.key ?? ""
-      )
+      (left.item.name ?? left.item.key ?? "").localeCompare(right.item.name ?? right.item.key ?? "")
     )
     .map(({ entry, item }) => ({
       selectionId: createWarlockInvocationSelectionId(

@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries";
+import { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries/enums";
 import type { FeatDefinition } from "../types";
 
 // Arcana Unleashed. Only ability-score choices have runtime support.

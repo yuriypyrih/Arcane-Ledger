@@ -1,5 +1,6 @@
-import { getCharacterLevel } from "../../multiclass";
-import { FEATS, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { getCharacterLevel } from "../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -14,7 +15,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createChargesCardUsage, createChargesHeaderTag } from "../../classFeatures/cardUsage";
 import type { FeatureActionCard } from "../../classFeatures/types";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
-import { getFeatDefinition } from "..";
+import { getFeatDefinition } from "../catalog";
 import { normalizeCharacterFeats } from "../normalization";
 import {
   boonOfFluidFormsShapechangerActionKey,

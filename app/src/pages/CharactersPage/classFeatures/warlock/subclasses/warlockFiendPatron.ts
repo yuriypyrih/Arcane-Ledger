@@ -1,15 +1,13 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  type SpellDescriptionEntry
-} from "../../../../../codex/entries";
+} from "../../../multiclassState";
+import { type SpellDescriptionEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { warlockFeatures } from "../../../../../codex/classes";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
@@ -22,7 +20,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -211,16 +209,10 @@ export function setWarlockFiendPatronFiendishResilienceDamageTypeSelection(
 
   const warlockState = character.classFeatureState?.warlock ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        fiendishResilienceDamageType: nextDamageType
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    fiendishResilienceDamageType: nextDamageType
+  });
 }
 
 export function getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(
@@ -401,16 +393,10 @@ export function consumeWarlockFiendPatronDarkOnesOwnLuckUse(character: Character
     ? Math.max(0, Math.floor(rawUsesExpended))
     : 0;
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        darkOnesOwnLuckUsesExpended: Math.min(totalUses, usesExpended + 1)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    darkOnesOwnLuckUsesExpended: Math.min(totalUses, usesExpended + 1)
+  });
 }
 
 export function restoreWarlockFiendPatronDarkOnesOwnLuckOnLongRest(
@@ -426,16 +412,10 @@ export function restoreWarlockFiendPatronDarkOnesOwnLuckOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        darkOnesOwnLuckUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    darkOnesOwnLuckUsesExpended: 0
+  });
 }
 
 export function consumeWarlockFiendPatronHurlThroughHellUse(character: Character): Character {
@@ -453,16 +433,10 @@ export function consumeWarlockFiendPatronHurlThroughHellUse(character: Character
       ? Math.max(0, Math.floor(rawUsesExpended))
       : 0;
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        warlock: {
-          ...warlockState,
-          hurlThroughHellUsesExpended: Math.min(totalUses, usesExpended + 1)
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "warlock", {
+      ...warlockState,
+      hurlThroughHellUsesExpended: Math.min(totalUses, usesExpended + 1)
+    });
   }
 
   const pactMagicSlotsRemaining = getWarlockFiendPatronPactMagicSlotsRemaining(character);
@@ -488,16 +462,10 @@ export function restoreWarlockFiendPatronHurlThroughHellOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        hurlThroughHellUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    hurlThroughHellUsesExpended: 0
+  });
 }
 
 export function restoreWarlockFiendPatronFeaturesOnLongRest(character: Character): Character {
@@ -764,7 +732,7 @@ export function collectWarlockFiendPatronContributions(
 
 export const getWarlockFiendPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWarlockFiendPatronContributions(character)),
+    getCompiledFeatureContributions(character, collectWarlockFiendPatronContributions),
     {
       character: character as Character
     }

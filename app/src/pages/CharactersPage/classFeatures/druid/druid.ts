@@ -1,7 +1,9 @@
+import { replaceClassFeatureState } from "../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
-import { getClassLevel } from "../../multiclass";
+import { getClassLevel } from "../../multiclassState";
 import { druidFeatureMap } from "../../../../codex/classes";
-import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
+import { type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type {
   Character,
   DruidCircleOfTheLandChoice,
@@ -406,16 +408,10 @@ export function setDruidPrimalOrderChoice(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
-        primalOrderChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
+    primalOrderChoice
+  });
 }
 
 export function setDruidCircleOfTheLandChoice(
@@ -437,16 +433,10 @@ export function setDruidElementalFuryChoice(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
-        elementalFuryChoice
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
+    elementalFuryChoice
+  });
 }
 
 export function getDruidWildShapeRules(
@@ -649,16 +639,10 @@ export function setDruidWildShapeKnownForms(
     )
     .slice(0, wildShapeRules.knownForms);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...getDruidWildShapeState(character),
-        wildShapeKnownForms: normalizedKnownForms
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...getDruidWildShapeState(character),
+    wildShapeKnownForms: normalizedKnownForms
+  });
 }
 
 export function restoreOneDruidWildShapeUse(character: Character): Character {
@@ -669,16 +653,10 @@ export function restoreOneDruidWildShapeUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...wildShapeState,
-        wildShapeUsesExpended: wildShapeUsesExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...wildShapeState,
+    wildShapeUsesExpended: wildShapeUsesExpended - 1
+  });
 }
 
 export function restoreAllDruidWildShapeUses(character: Character): Character {
@@ -691,16 +669,10 @@ export function restoreAllDruidWildShapeUses(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...wildShapeState,
-        wildShapeUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...wildShapeState,
+    wildShapeUsesExpended: 0
+  });
 }
 
 export function restoreDruidStarMapGuidingBoltOnLongRest(character: Character): Character {
@@ -734,16 +706,10 @@ export function restoreDruidNatureMagicianOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        natureMagicianUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    natureMagicianUsesExpended: 0
+  });
 }
 
 export function restoreDruidNaturalRecoveryOnLongRest(character: Character): Character {
@@ -770,17 +736,11 @@ export function restoreDruidWildResurgenceOnLongRest(character: Character): Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        wildResurgenceSpellSlotRecoveryUsesExpended: 0,
-        wildResurgenceWildShapeRecoveryUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    wildResurgenceSpellSlotRecoveryUsesExpended: 0,
+    wildResurgenceWildShapeRecoveryUsedThisTurn: false
+  });
 }
 
 export function consumeDruidStarMapGuidingBoltUse(character: Character): Character {
@@ -832,16 +792,10 @@ export function markDruidPrimalStrikeUsed(character: Character): Character {
 
   const druidState = getDruidWildShapeState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        primalStrikeUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    primalStrikeUsedThisTurn: true
+  });
 }
 
 export function consumeDruidNaturalRecoveryUse(character: Character): Character {
@@ -1465,17 +1419,11 @@ export function advanceDruidFeaturesForNewRound(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...druidState,
-        primalStrikeUsedThisTurn: false,
-        wildResurgenceWildShapeRecoveryUsedThisTurn: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "druid", {
+    ...druidState,
+    primalStrikeUsedThisTurn: false,
+    wildResurgenceWildShapeRecoveryUsedThisTurn: false
+  });
 }
 
 export function getDruidWildShapeIneligibilityReason(

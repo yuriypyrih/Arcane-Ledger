@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE } from "../../codex/entries";
+import { DAMAGE_TYPE } from "../../codex/entries/enums";
 import {
   CONDITION_NAME,
   CUSTOM_LANGUAGE_PREFIX,

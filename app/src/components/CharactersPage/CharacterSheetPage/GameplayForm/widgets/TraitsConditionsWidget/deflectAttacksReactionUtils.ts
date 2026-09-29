@@ -1,4 +1,4 @@
-import { getClassLevel } from "../../../../../../pages/CharactersPage/multiclass";
+import { getClassLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getMonkMartialArtsDieForCharacter,
@@ -11,7 +11,7 @@ import {
 } from "../../../../../../pages/CharactersPage/shared/formulas";
 import type { Character } from "../../../../../../types";
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
-import type { DICE } from "../../../../../../codex/entries";
+import type { DICE } from "../../../../../../codex/entries/enums";
 
 const deflectAttacksLabel = "Deflect Attacks";
 const reflectedDamageLabel = "Reflected Damage";

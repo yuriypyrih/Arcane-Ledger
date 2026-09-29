@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import { CustomItem, type CustomItemRecord } from "../models/CustomItem.js";
@@ -200,12 +201,12 @@ async function findOwnedCustomItemDocument(options: {
 }
 
 async function listPublicCustomItems() {
-  const customItems = await CustomItem.find({ public: true })
-    .sort({ updatedAt: -1 })
+  const customItems = await CustomItem.find({ public: true }).sort({ updatedAt: -1 }).lean().exec();
+  const ownerIds = [...new Set(customItems.map((customItem) => customItem.ownerId.toString()))];
+  const owners = await User.find({ _id: { $in: ownerIds } })
+    .select("_id nickname")
     .lean()
     .exec();
-  const ownerIds = [...new Set(customItems.map((customItem) => customItem.ownerId.toString()))];
-  const owners = await User.find({ _id: { $in: ownerIds } }).select("_id nickname").lean().exec();
   const ownerNicknameById = new Map(
     owners.map((owner) => [owner._id.toString(), owner.nickname] as const)
   );
@@ -237,7 +238,8 @@ export async function createOwnedCustomItem(options: {
   ownerId: Types.ObjectId;
   ownerRole: UserRole;
 }) {
-  const countOwnedCustomItems = () => CustomItem.countDocuments({ ownerId: options.ownerId }).exec();
+  const countOwnedCustomItems = () =>
+    CustomItem.countDocuments({ ownerId: options.ownerId }).exec();
   const currentCount = await countOwnedCustomItems();
 
   assertDmToolCreationLimit({
@@ -253,18 +255,12 @@ export async function createOwnedCustomItem(options: {
 
   await assertCreatedDmToolWithinLimit({
     countDocuments: countOwnedCustomItems,
-    isCreatedWithinLimit: async (limit) => {
-      const retainedCustomItems = await CustomItem.find({ ownerId: options.ownerId })
-        .sort({ createdAt: 1, _id: 1 })
-        .limit(limit)
-        .select("_id")
-        .lean()
-        .exec();
-
-      return retainedCustomItems.some(
-        (retainedCustomItem) => retainedCustomItem._id.toString() === customItem._id.toString()
-      );
-    },
+    isCreatedWithinLimit: (limit) =>
+      isCreatedDocumentRetained(
+        CustomItem.find({ ownerId: options.ownerId }),
+        customItem._id,
+        limit
+      ),
     kind: "customItems",
     removeCreated: () =>
       CustomItem.deleteOne({

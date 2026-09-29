@@ -2,6 +2,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
+  deleteCharacterSheet,
   listFullCharacterSheets,
   saveCharacterSheet,
   type CharacterSheetCloudDocument
@@ -9,9 +10,16 @@ import {
 import { ApiRequestFailedError } from "../../src/api/client";
 import CharacterSyncBootstrap from "../../src/characterSync/CharacterSyncBootstrap";
 import { clearLocalAuthSession } from "../../src/auth/authSessionLifecycle";
-import { store, setAuthenticatedUser, setActiveCharacterSheet } from "../../src/store";
+import {
+  store,
+  setAuthenticatedUser,
+  setActiveCharacterSheet,
+  commitActiveCharacterSheet
+} from "../../src/store";
+import { markPortableCharacterSheetDeleting } from "../../src/pages/CharactersPage/portableCharacterSheet";
 import { normalizeCharacter } from "../../src/pages/CharactersPage/storage";
 import {
+  loadRawStoredCharacterRecords,
   loadStoredPortableCharacterSheetByMatch,
   replaceRawStoredCharacterRecords
 } from "../../src/pages/CharactersPage/portableCharacterSheetStorage";
@@ -21,11 +29,23 @@ import { portableSheet } from "../fixtures/portable";
 // Only the API boundary controls when a cloud response arrives.
 vi.mock("../../src/api/characters", async (original) => ({
   ...(await original<object>()),
+  deleteCharacterSheet: vi.fn(),
   listFullCharacterSheets: vi.fn(),
   saveCharacterSheet: vi.fn()
 }));
 const save = vi.mocked(saveCharacterSheet);
 const list = vi.mocked(listFullCharacterSheets);
+const remove = vi.mocked(deleteCharacterSheet);
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<T>((accept, refuse) => {
+    resolve = accept;
+    reject = refuse;
+  });
+  return { promise, resolve, reject };
+}
 
 function cloud(hp: number, revision: number): CharacterSheetCloudDocument {
   const sheet = portableSheet();
@@ -70,6 +90,7 @@ function reconnect() {
 beforeEach(async () => {
   clearLocalAuthSession();
   save.mockReset();
+  remove.mockReset();
   list.mockReset().mockResolvedValue({ characters: [cloud(30, 1)], count: 1, limit: 10 });
   store.dispatch(
     setAuthenticatedUser({
@@ -105,15 +126,8 @@ afterEach(() => {
 });
 
 async function uploadWithNewerEdit() {
-  let resolve!: (result: Awaited<ReturnType<typeof saveCharacterSheet>>) => void;
-  let reject!: (error: Error) => void;
-  save.mockImplementationOnce(
-    () =>
-      new Promise((accept, refuse) => {
-        resolve = accept;
-        reject = refuse;
-      })
-  );
+  const pending = deferred<Awaited<ReturnType<typeof saveCharacterSheet>>>();
+  save.mockReturnValueOnce(pending.promise);
   act(() => {
     edit(20);
     reconnect();
@@ -126,7 +140,7 @@ async function uploadWithNewerEdit() {
   act(() => {
     edit(9);
   });
-  return { resolve, reject, localRevision: stored().metadata!.sync!.localRevision };
+  return { ...pending, localRevision: stored().metadata!.sync!.localRevision };
 }
 
 async function expectLocal(hp: number, syncStatus: string, remoteRevision: number) {
@@ -189,4 +203,131 @@ it("preserves local edits on revision conflict and asks for a choice instead of 
   });
   expect(save).toHaveBeenCalledTimes(1);
   await expectLocal(9, "conflict", 1);
+});
+
+it.each(["success", "conflict"] as const)(
+  "ignores a late upload %s after logout without reopening private state",
+  async (outcome) => {
+    const pending = await uploadWithNewerEdit();
+    act(clearLocalAuthSession);
+    await act(async () => {
+      if (outcome === "success") pending.resolve({ character: cloud(20, 2) });
+      else pending.reject(new ApiRequestFailedError("Conflict", { status: 409 }));
+      await vi.dynamicImportSettled();
+    });
+    expect(loadRawStoredCharacterRecords()).toEqual([]);
+    expect(store.getState().activeCharacterSheet.activeCharacter).toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(save).toHaveBeenCalledTimes(1);
+  }
+);
+
+it.each(["success", "failure"] as const)(
+  "preserves a deletion requested while an upload is pending (%s), then completes the delete",
+  async (outcome) => {
+    const pending = await uploadWithNewerEdit();
+    const deletion = deferred<Awaited<ReturnType<typeof deleteCharacterSheet>>>();
+    remove.mockReturnValueOnce(deletion.promise);
+    act(() => {
+      replaceRawStoredCharacterRecords([markPortableCharacterSheetDeleting(stored(), "owner")]);
+      store.dispatch(setActiveCharacterSheet({ character: null, characterId: null }));
+    });
+    await act(async () => {
+      if (outcome === "success") pending.resolve({ character: cloud(20, 2) });
+      else pending.reject(new ApiRequestFailedError("Save unavailable", { status: 503 }));
+    });
+    expect(stored().metadata?.sync?.syncStatus).toBe("deleting");
+    expect(store.getState().activeCharacterSheet.activeCharacter).toBeNull();
+    act(reconnect);
+    await waitFor(() =>
+      expect(remove).toHaveBeenCalledWith("remote", { suppressFailureToast: true })
+    );
+    await act(async () => deletion.resolve({ character: cloud(9, 2) }));
+    expect(loadRawStoredCharacterRecords()).toEqual([]);
+    expect(save).toHaveBeenCalledTimes(1);
+  }
+);
+
+it("does not switch the open sheet back when an upload of another character completes", async () => {
+  const pending = await uploadWithNewerEdit();
+  const other = portableSheet();
+  other.identity.localId = 202;
+  other.vitals.currentHitPoints = 7;
+  act(() => {
+    replaceRawStoredCharacterRecords([stored(), other]);
+    store.dispatch(
+      setActiveCharacterSheet({ character: normalizeCharacter(other), characterId: 202 })
+    );
+  });
+  await act(async () => pending.resolve({ character: cloud(20, 2) }));
+  expect(stored().vitals.currentHitPoints).toBe(9);
+  expect(store.getState().activeCharacterSheet.activeCharacter).toMatchObject({
+    id: 202,
+    currentHitPoints: 7
+  });
+});
+
+it.each(["logout", "account switch", "same-account login"] as const)(
+  "discards an initialization response after %s, including its roster cache",
+  async (transition) => {
+    cleanup();
+    const pending = deferred<Awaited<ReturnType<typeof listFullCharacterSheets>>>();
+    list.mockReset().mockReturnValueOnce(pending.promise);
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <CharacterSyncBootstrap />
+        </Provider>
+      );
+    });
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(1));
+    list.mockResolvedValueOnce({ characters: [], count: 0, limit: 10 });
+    await act(async () => {
+      clearLocalAuthSession();
+      if (transition !== "logout") {
+        store.dispatch(
+          setAuthenticatedUser({
+            id: transition === "same-account login" ? "owner" : "other-owner",
+            email: "other@example.test",
+            nickname: "Other",
+            role: "user",
+            emailVerifiedAt: null,
+            createdAt: null,
+            lastFeedback: null
+          })
+        );
+      }
+    });
+    if (transition !== "logout") await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+    const rosterBeforeResponse = localStorage.getItem("arcane-ledger.character-roster");
+    await act(async () => {
+      pending.resolve({ characters: [cloud(30, 1)], count: 1, limit: 10 });
+      await vi.dynamicImportSettled();
+    });
+    expect(loadRawStoredCharacterRecords()).toEqual([]);
+    expect(store.getState().activeCharacterSheet.activeCharacter).toBeNull();
+    expect(localStorage.getItem("arcane-ledger.character-roster")).toBe(rosterBeforeResponse);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  }
+);
+
+it("preserves an edit still waiting for local persistence when the upload completes", async () => {
+  const pending = await uploadWithNewerEdit();
+  act(() =>
+    store.dispatch(
+      commitActiveCharacterSheet({
+        character: {
+          ...store.getState().activeCharacterSheet.activeCharacter!,
+          currentHitPoints: 4
+        },
+        domains: ["resources"]
+      })
+    )
+  );
+  await act(async () => pending.resolve({ character: cloud(20, 2) }));
+  expect(stored().vitals.currentHitPoints).toBe(9);
+  expect(store.getState().activeCharacterSheet).toMatchObject({
+    dirty: true,
+    activeCharacter: { currentHitPoints: 4 }
+  });
 });

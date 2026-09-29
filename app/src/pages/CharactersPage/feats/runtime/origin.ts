@@ -1,9 +1,5 @@
-import {
-  FEATS,
-  REACTION,
-  type ReactionEntry,
-  type SpellDescriptionEntry
-} from "../../../../codex/entries";
+import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { FEATS, REACTION } from "../../../../codex/entries/enums";
 import type { CharacterFeatEntry } from "../../../../types";
 import type { FeatureActionCard } from "../../classFeatures/types";
 import {
@@ -67,13 +63,9 @@ export function getOriginFeatResourceState(
   featSet: ReadonlySet<FEATS>,
   level: number
 ): OriginFeatResourceState {
-  const luckyPointsTotal = featSet.has(FEATS.LUCKY)
-    ? getFeatProficiencyBonusForLevel(level)
-    : 0;
+  const luckyPointsTotal = featSet.has(FEATS.LUCKY) ? getFeatProficiencyBonusForLevel(level) : 0;
   const luckyPointsExpended = getLuckyPointsExpended(normalizedFeats, luckyPointsTotal);
-  const cultOfDragonInitiateInspiredByFearTotal = featSet.has(
-    FEATS.CULT_OF_THE_DRAGON_INITIATE
-  )
+  const cultOfDragonInitiateInspiredByFearTotal = featSet.has(FEATS.CULT_OF_THE_DRAGON_INITIATE)
     ? 1
     : 0;
   const cultOfDragonInitiateInspiredByFearExpended = normalizedFeats.some(
@@ -81,9 +73,7 @@ export function getOriginFeatResourceState(
       entry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE &&
       entry.cultOfDragonInitiate?.inspiredByFearExpended === true
   );
-  const purpleDragonRookRallyingCryTotal = featSet.has(FEATS.PURPLE_DRAGON_ROOK)
-    ? 1
-    : 0;
+  const purpleDragonRookRallyingCryTotal = featSet.has(FEATS.PURPLE_DRAGON_ROOK) ? 1 : 0;
   const purpleDragonRookRallyingCryExpended = normalizedFeats.some(
     (entry) =>
       entry.feat === FEATS.PURPLE_DRAGON_ROOK &&
@@ -105,15 +95,12 @@ export function getOriginFeatResourceState(
     luckyPointsRemaining: Math.max(0, luckyPointsTotal - luckyPointsExpended),
     luckyPointsTotal,
     cultOfDragonInitiateInspiredByFearRemaining:
-      cultOfDragonInitiateInspiredByFearTotal > 0 &&
-      !cultOfDragonInitiateInspiredByFearExpended
+      cultOfDragonInitiateInspiredByFearTotal > 0 && !cultOfDragonInitiateInspiredByFearExpended
         ? 1
         : 0,
     cultOfDragonInitiateInspiredByFearTotal,
     purpleDragonRookRallyingCryRemaining:
-      purpleDragonRookRallyingCryTotal > 0 && !purpleDragonRookRallyingCryExpended
-        ? 1
-        : 0,
+      purpleDragonRookRallyingCryTotal > 0 && !purpleDragonRookRallyingCryExpended ? 1 : 0,
     purpleDragonRookRallyingCryTotal,
     spellfireSparkSpellfireFlameRemaining: Math.max(
       0,

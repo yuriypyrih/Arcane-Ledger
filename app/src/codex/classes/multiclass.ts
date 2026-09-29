@@ -3,7 +3,7 @@ import {
   ARMOR_PROFICIENCY as Armor,
   TOOL_PROFICIENCY as Tool,
   WEAPON_PROFICIENCY as Weapon
-} from "../../types";
+} from "../../types/proficiencies";
 
 export type CastingProgression = "none" | "full" | "half" | "third" | "pact" | "manual";
 export type MulticlassRules = {

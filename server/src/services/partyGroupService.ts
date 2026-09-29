@@ -1,3 +1,4 @@
+import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import crypto from "node:crypto";
 import { Types } from "mongoose";
 import { getAppConfig } from "../config/env.js";
@@ -619,18 +620,12 @@ export async function createOwnedPartyGroup(options: {
 
       await assertCreatedDmToolWithinLimit({
         countDocuments: countOwnedPartyGroups,
-        isCreatedWithinLimit: async (limit) => {
-          const retainedPartyGroups = await PartyGroup.find({ ownerId: options.ownerId })
-            .sort({ createdAt: 1, _id: 1 })
-            .limit(limit)
-            .select("_id")
-            .lean()
-            .exec();
-
-          return retainedPartyGroups.some(
-            (retainedPartyGroup) => retainedPartyGroup._id.toString() === partyGroup._id.toString()
-          );
-        },
+        isCreatedWithinLimit: (limit) =>
+          isCreatedDocumentRetained(
+            PartyGroup.find({ ownerId: options.ownerId }),
+            partyGroup._id,
+            limit
+          ),
         kind: "partyGroups",
         removeCreated: () =>
           PartyGroup.deleteOne({

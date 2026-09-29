@@ -1,4 +1,5 @@
-import { ARMOR_TYPES, type ArmorEntry } from "../../codex/entries";
+import { type ArmorEntry } from "../../codex/entries";
+import { ARMOR_TYPES } from "../../codex/entries/enums";
 import { getArmorEntries } from "../../codex/selectors";
 import type {
   AbilityKey,

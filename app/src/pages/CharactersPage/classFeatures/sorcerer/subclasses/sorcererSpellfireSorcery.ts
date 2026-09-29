@@ -1,6 +1,10 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { spendClassResource } from "../../shared/resourceState";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { getProgressionRow } from "../../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { sorcererFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -15,7 +19,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -66,11 +70,7 @@ type SpellfireSorceryCharacter = Pick<Character, "className"> &
 
 function getSorcererFeatureRow(level: number | undefined) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-  const matchingRows = sorcererFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
+  return getProgressionRow(sorcererFeatures, normalizedLevel);
 }
 
 function getSorcererSpellfireSorceryPointsTotal(
@@ -97,38 +97,16 @@ function getSorcererSpellfireSorceryPointsRemaining(
 }
 
 function spendSorcererSpellfireSorceryPoints(character: Character, cost: number): Character {
-  const normalizedCost = Math.max(0, Math.floor(cost));
-
-  if (normalizedCost <= 0) {
-    return character;
-  }
-
-  const totalPoints = getSorcererSpellfireSorceryPointsTotal(character);
-  const remainingPoints = getSorcererSpellfireSorceryPointsRemaining(character);
-
-  if (totalPoints <= 0 || remainingPoints < normalizedCost) {
-    return character;
-  }
-
-  const currentExpended = Number(character.classFeatureState?.sorcerer?.sorceryPointsExpended);
-  const nextExpended = Math.max(
-    0,
-    Math.min(
-      totalPoints,
-      (Number.isFinite(currentExpended) ? Math.floor(currentExpended) : 0) + normalizedCost
-    )
+  return spendClassResource(
+    character,
+    {
+      stateKey: "sorcerer",
+      counter: "sorceryPointsExpended",
+      total: getSorcererSpellfireSorceryPointsTotal(character),
+      remaining: getSorcererSpellfireSorceryPointsRemaining(character)
+    },
+    cost
   );
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        sorceryPointsExpended: nextExpended
-      }
-    }
-  };
 }
 
 function getSpellfireFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
@@ -330,16 +308,10 @@ export function activateSorcererSpellfireBurst(character: Character): Character 
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        spellfireBurstUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    spellfireBurstUsedThisTurn: true
+  });
 }
 
 function appendAbsorbSpellsCounterspellDescription(
@@ -452,16 +424,10 @@ export function activateSorcererSpellfireCrownOfSpellfire(character: Character):
       )
     );
 
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        sorcerer: {
-          ...character.classFeatureState?.sorcerer,
-          crownOfSpellfireUsesExpended: nextExpended
-        }
-      }
-    };
+    nextCharacter = replaceClassFeatureState(character, "sorcerer", {
+      ...character.classFeatureState?.sorcerer,
+      crownOfSpellfireUsesExpended: nextExpended
+    });
   } else {
     nextCharacter = spendSorcererSpellfireSorceryPoints(
       character,
@@ -502,16 +468,10 @@ export function restoreSorcererSpellfireCrownOfSpellfireOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      sorcerer: {
-        ...character.classFeatureState?.sorcerer,
-        crownOfSpellfireUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "sorcerer", {
+    ...character.classFeatureState?.sorcerer,
+    crownOfSpellfireUsesExpended: 0
+  });
 }
 
 function createSorcererSpellfireLocalHookContribution(input: {
@@ -634,7 +594,7 @@ export const getSorcererSpellfireSorceryDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectSorcererSpellfireSorceryContributions(character)),
+    getCompiledFeatureContributions(character, collectSorcererSpellfireSorceryContributions),
     {
       character: character as Character
     }

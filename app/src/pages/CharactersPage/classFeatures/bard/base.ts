@@ -1,31 +1,26 @@
-import { hasCharacterClass, getClassLevel } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import {
+  getAppliedAbilityScoreBonus,
+  compareLabeledAbilityScoreBonuses
+} from "../../shared/abilityBonusMath";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import { bardFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, type DICE } from "../../../../codex/entries";
+import { CLASS_FEATURE, type DICE } from "../../../../codex/entries/enums";
 import type { BardFeatureClassObj, Character, CharacterBardFeatureState } from "../../../../types";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime/derivedSelectors";
 
 export function getBardFeatureRow(level: number): BardFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = bardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(bardFeatures, normalizedLevel);
 }
 
 function getUnlockedBardFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return bardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(bardFeatures, normalizedLevel);
 }
 
 export function hasBardFeature(
@@ -50,47 +45,9 @@ function getBardCharismaModifier(
     ...getFeatAbilityScoreBonusesForCharacter(character)
   ]
     .filter((bonus) => bonus.ability === "CHA")
-    .sort((left, right) => {
-      const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
-      const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
-
-      if (leftHasCap !== rightHasCap) {
-        return leftHasCap ? -1 : 1;
-      }
-
-      if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-        return (
-          (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
-        );
-      }
-
-      const leftOrder = left.order ?? 0;
-      const rightOrder = right.order ?? 0;
-
-      if (leftOrder !== rightOrder) {
-        return leftOrder - rightOrder;
-      }
-
-      return left.label.localeCompare(right.label);
-    })
+    .sort(compareLabeledAbilityScoreBonuses)
     .forEach((bonus) => {
-      const value = Math.floor(bonus.value);
-
-      if (!Number.isFinite(value) || value === 0) {
-        return;
-      }
-
-      if (bonus.maxScore === null || bonus.maxScore === undefined) {
-        total += value;
-        return;
-      }
-
-      if (value > 0) {
-        total += Math.max(0, Math.min(value, bonus.maxScore - total));
-        return;
-      }
-
-      total += value;
+      total += getAppliedAbilityScoreBonus(total, bonus);
     });
 
   return Math.floor((total - 10) / 2);
@@ -166,14 +123,8 @@ export function expendBardicInspirationUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...character.classFeatureState?.bard,
-        bardicInspirationUsesExpended: currentExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "bard", {
+    ...character.classFeatureState?.bard,
+    bardicInspirationUsesExpended: currentExpended + 1
+  });
 }

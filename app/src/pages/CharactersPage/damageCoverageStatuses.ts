@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE } from "../../codex/entries";
+import { DAMAGE_TYPE } from "../../codex/entries/enums";
 import type { DamageCoverageStatusValue } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
 
@@ -23,9 +23,7 @@ export function getDamageCoverageStatusOptions(): DamageCoverageStatusValue[] {
   return [...damageCoverageStatusValues];
 }
 
-export function getAllDamageButStatusValue(
-  damageType: DAMAGE_TYPE
-): DamageCoverageStatusValue {
+export function getAllDamageButStatusValue(damageType: DAMAGE_TYPE): DamageCoverageStatusValue {
   return createAllDamageButStatusValue(damageType);
 }
 
@@ -43,9 +41,7 @@ export function normalizeDamageCoverageStatusValue(
     : null;
 }
 
-export function isDamageCoverageStatusValue(
-  value: unknown
-): value is DamageCoverageStatusValue {
+export function isDamageCoverageStatusValue(value: unknown): value is DamageCoverageStatusValue {
   return normalizeDamageCoverageStatusValue(value) !== null;
 }
 

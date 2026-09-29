@@ -1,9 +1,5 @@
-import {
-  CLASS_FEATURE,
-  type ClassEntry,
-  type FeatureClassObj,
-  type SpellEntry
-} from "../../codex/entries";
+import { type ClassEntry, type FeatureClassObj, type SpellEntry } from "../../codex/entries";
+import { CLASS_FEATURE } from "../../codex/entries/enums";
 import type {
   CharacterClassRulesConfig,
   CharacterClassFeatureState,
@@ -136,8 +132,7 @@ export function areSpellcastingRulesEnforcedForCharacter(
   return (
     hasBuiltInSpellcastingForCharacter(className, level, subclassId) &&
     !isCustomClassName(className) &&
-    getCharacterClassRulesConfig({ className, classRules, customClass })
-      .spellcastingRulesEnforced
+    getCharacterClassRulesConfig({ className, classRules, customClass }).spellcastingRulesEnforced
   );
 }
 
@@ -188,13 +183,7 @@ export function getPreparedSpellLimitForCharacter(
   }
 
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return null;
   }
@@ -223,13 +212,7 @@ export function getCantripLimitForCharacter(
   }
 
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return null;
   }
@@ -264,13 +247,7 @@ export function usesPreparedSpellsForCharacter(
   classRules?: CharacterClassRulesConfig
 ): boolean {
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return true;
   }
@@ -289,13 +266,7 @@ export function usesSpellbookForCharacter(
   level = 20
 ): boolean {
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return false;
   }
@@ -321,13 +292,7 @@ export function getCantripSelectionOptionsForCharacter(
   classRules?: CharacterClassRulesConfig
 ): SpellEntry[] {
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) === 0);
   }
@@ -368,13 +333,7 @@ export function getPreparedSpellSelectionOptionsForCharacter(
   classRules?: CharacterClassRulesConfig
 ): SpellEntry[] {
   if (
-    usesFlexibleSpellcastingRulesForCharacter(
-      className,
-      level,
-      subclassId,
-      customClass,
-      classRules
-    )
+    usesFlexibleSpellcastingRulesForCharacter(className, level, subclassId, customClass, classRules)
   ) {
     return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) > 0);
   }

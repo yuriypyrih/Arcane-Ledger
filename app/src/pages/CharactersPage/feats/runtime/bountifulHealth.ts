@@ -4,7 +4,7 @@ import {
   swapTemporaryHitPointsAssignment,
   type TemporaryHitPointsAssignment
 } from "../../shared";
-import { FEATS } from "../../../../codex/entries";
+import { FEATS } from "../../../../codex/entries/enums";
 import { hasFeatForCharacter } from "./state";
 import type { FeatRuntimeCharacter } from "./types";
 
@@ -16,9 +16,7 @@ type TemporaryHitPointsGrantCharacter = Pick<
 > &
   FeatRuntimeCharacter;
 
-export function hasBoonOfBountifulHealthForCharacter(
-  character: FeatRuntimeCharacter
-): boolean {
+export function hasBoonOfBountifulHealthForCharacter(character: FeatRuntimeCharacter): boolean {
   return hasFeatForCharacter(character, FEATS.BOON_OF_BOUNTIFUL_HEALTH);
 }
 

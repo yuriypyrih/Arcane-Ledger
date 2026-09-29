@@ -1,5 +1,5 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, SkillName } from "../../../../../types";
 import { SKILL } from "../../../../../types";
@@ -8,7 +8,7 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -244,7 +244,7 @@ function collectRogueThiefFeatureContributions(
 
 export const getRogueThiefDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectRogueThiefFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectRogueThiefFeatureContributions),
     {
       character: character as Character
     }

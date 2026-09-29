@@ -1,4 +1,4 @@
-import { hasCharacterClass, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
 import type { Character } from "../../../../../types";
 import type { SpellEntry } from "../../../../../codex/entries";
 import type {

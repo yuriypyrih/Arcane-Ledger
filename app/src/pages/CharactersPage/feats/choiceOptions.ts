@@ -1,4 +1,6 @@
-import { DAMAGE_TYPE, SPELL_LIST_CLASS } from "../../../codex/entries";
+import { FEATS } from "../../../codex/entries/enums";
+import { singleAbilityChoices } from "./singleAbilityChoices";
+import { DAMAGE_TYPE, SPELL_LIST_CLASS } from "../../../codex/entries/enums";
 import { SKILL } from "../../../types";
 import { abilityKeys } from "../constants";
 import { getWeaponMasteryOptions } from "../classFeatures/weaponMastery";
@@ -45,9 +47,10 @@ export const boonOfEnergyResistanceDamageTypeOptions = [
 ] as const;
 
 export const feyTouchedAbilityOptions = ["INT", "WIS", "CHA"] as const;
-export const heavilyArmoredAbilityOptions = ["CON", "STR"] as const;
-export const heavyArmorMasterAbilityOptions = ["CON", "STR"] as const;
-export const inspiringLeaderAbilityOptions = ["WIS", "CHA"] as const;
+export const heavilyArmoredAbilityOptions = singleAbilityChoices[FEATS.HEAVILY_ARMORED].abilities;
+export const heavyArmorMasterAbilityOptions =
+  singleAbilityChoices[FEATS.HEAVY_ARMOR_MASTER].abilities;
+export const inspiringLeaderAbilityOptions = singleAbilityChoices[FEATS.INSPIRING_LEADER].abilities;
 
 export const keenMindSkillOptions = [
   SKILL.ARCANA,
@@ -57,12 +60,16 @@ export const keenMindSkillOptions = [
   SKILL.RELIGION
 ] as const;
 
-export const lightlyArmoredAbilityOptions = ["STR", "DEX"] as const;
-export const mageSlayerAbilityOptions = ["STR", "DEX"] as const;
-export const martialWeaponTrainingAbilityOptions = ["STR", "DEX"] as const;
-export const mediumArmorMasterAbilityOptions = ["STR", "DEX"] as const;
-export const moderatelyArmoredAbilityOptions = ["STR", "DEX"] as const;
-export const mountedCombatantAbilityOptions = ["STR", "DEX", "WIS"] as const;
+export const lightlyArmoredAbilityOptions = singleAbilityChoices[FEATS.LIGHTLY_ARMORED].abilities;
+export const mageSlayerAbilityOptions = singleAbilityChoices[FEATS.MAGE_SLAYER].abilities;
+export const martialWeaponTrainingAbilityOptions =
+  singleAbilityChoices[FEATS.MARTIAL_WEAPON_TRAINING].abilities;
+export const mediumArmorMasterAbilityOptions =
+  singleAbilityChoices[FEATS.MEDIUM_ARMOR_MASTER].abilities;
+export const moderatelyArmoredAbilityOptions =
+  singleAbilityChoices[FEATS.MODERATELY_ARMORED].abilities;
+export const mountedCombatantAbilityOptions =
+  singleAbilityChoices[FEATS.MOUNTED_COMBATANT].abilities;
 export const observantAbilityOptions = ["INT", "WIS"] as const;
 
 export const observantSkillOptions = [
@@ -71,19 +78,19 @@ export const observantSkillOptions = [
   SKILL.PERCEPTION
 ] as const;
 
-export const piercerAbilityOptions = ["STR", "DEX"] as const;
-export const poisonerAbilityOptions = ["DEX", "INT"] as const;
-export const polearmMasterAbilityOptions = ["DEX", "STR"] as const;
+export const piercerAbilityOptions = singleAbilityChoices[FEATS.PIERCER].abilities;
+export const poisonerAbilityOptions = singleAbilityChoices[FEATS.POISONER].abilities;
+export const polearmMasterAbilityOptions = singleAbilityChoices[FEATS.POLEARM_MASTER].abilities;
 export const ritualCasterAbilityOptions = ["INT", "WIS", "CHA"] as const;
 export const resilientAbilityOptions = abilityKeys;
-export const sentinelAbilityOptions = ["STR", "DEX"] as const;
+export const sentinelAbilityOptions = singleAbilityChoices[FEATS.SENTINEL].abilities;
 export const shadowTouchedAbilityOptions = ["INT", "WIS", "CHA"] as const;
-export const slasherAbilityOptions = ["STR", "DEX"] as const;
-export const spellSniperAbilityOptions = ["INT", "WIS", "CHA"] as const;
-export const telekineticAbilityOptions = ["INT", "WIS", "CHA"] as const;
-export const telepathicAbilityOptions = ["INT", "WIS", "CHA"] as const;
-export const warCasterAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const slasherAbilityOptions = singleAbilityChoices[FEATS.SLASHER].abilities;
+export const spellSniperAbilityOptions = singleAbilityChoices[FEATS.SPELL_SNIPER].abilities;
+export const telekineticAbilityOptions = singleAbilityChoices[FEATS.TELEKINETIC].abilities;
+export const telepathicAbilityOptions = singleAbilityChoices[FEATS.TELEPATHIC].abilities;
+export const warCasterAbilityOptions = singleAbilityChoices[FEATS.WAR_CASTER].abilities;
 export const skillExpertAbilityOptions = abilityKeys;
-export const speedyAbilityOptions = ["DEX", "CON"] as const;
+export const speedyAbilityOptions = singleAbilityChoices[FEATS.SPEEDY].abilities;
 export const weaponMasterAbilityOptions = ["STR", "DEX"] as const;
 export const weaponMasterMasteryOptions = getWeaponMasteryOptions();

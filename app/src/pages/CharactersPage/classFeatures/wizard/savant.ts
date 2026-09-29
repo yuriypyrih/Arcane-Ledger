@@ -1,5 +1,6 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
-import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../codex/entries";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
+import { type SpellEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import { getPreparedSpellSelectionOptionsForCharacter } from "../../preparedSpellSelection";
 

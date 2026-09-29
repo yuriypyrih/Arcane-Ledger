@@ -7,6 +7,8 @@ import type {
   FeatureDescriptionContributionContext,
   FeatureDescriptionContributionTarget,
   FeatureContributionSpec,
+  FeatureContributionSource,
+  FeatureSpellGrant,
   FeatureFreeCastEntry,
   FeatureSpellCastEffectContext,
   FeatureSpellCastEffectContribution,
@@ -16,6 +18,28 @@ import type {
 
 function sortSpellsByName(spells: SpellEntry[]): SpellEntry[] {
   return spells.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+const compiledByCollector = new WeakMap<
+  object,
+  WeakMap<object, CompiledFeatureContributionState<unknown>>
+>();
+
+/** Reuse active contributions across projections of one immutable character context. */
+export function getCompiledFeatureContributions<TCharacter extends object, TDerivedState = unknown>(
+  character: TCharacter,
+  collect: (character: TCharacter) => FeatureContributionSpec<TDerivedState>[]
+): CompiledFeatureContributionState<TDerivedState> {
+  let snapshots = compiledByCollector.get(collect);
+  if (!snapshots) {
+    snapshots = new WeakMap();
+    compiledByCollector.set(collect, snapshots);
+  }
+  const cached = snapshots.get(character);
+  if (cached) return cached as CompiledFeatureContributionState<TDerivedState>;
+  const compiled = compileFeatureContributions(collect(character));
+  snapshots.set(character, compiled as CompiledFeatureContributionState<unknown>);
+  return compiled;
 }
 
 function appendRecordArrayValues<TValue>(
@@ -47,15 +71,30 @@ function addSpellcastingAbility<TDerivedState>(
   compiled.spellcastingAbilityBySpellId.set(entry.spellId, entry.ability);
 }
 
-function addFreeCastEntry<TDerivedState>(
-  compiled: CompiledFeatureContributionState<TDerivedState>,
-  entry: FeatureFreeCastEntry | null
-) {
-  if (!entry) {
-    return;
-  }
+function resolveFreeCastEntry(
+  source: FeatureContributionSource,
+  grant: FeatureSpellGrant
+): FeatureFreeCastEntry | null {
+  return grant.freeCast
+    ? {
+        ...grant.freeCast,
+        sourceId: grant.freeCast.sourceId ?? source.id,
+        entryId: grant.freeCast.entryId ?? source.entryId,
+        spellId: grant.freeCast.spellId ?? grant.spell.id
+      }
+    : null;
+}
 
-  compiled.freeCastEntries.push(entry);
+/** Resource derivation can inspect grants before the complete collection is ready to compile. */
+export function collectFeatureFreeCastEntries<TDerivedState>(
+  contributions: FeatureContributionSpec<TDerivedState>[]
+): FeatureFreeCastEntry[] {
+  return contributions.flatMap((contribution) =>
+    (contribution.spellGrants ?? []).flatMap((grant) => {
+      const entry = resolveFreeCastEntry(contribution.source, grant);
+      return entry ? [entry] : [];
+    })
+  );
 }
 
 export function createEmptyCompiledFeatureContributionState<TDerivedState = unknown>(
@@ -219,14 +258,8 @@ export function compileFeatureContributions<TDerivedState = unknown>(
           : null
       );
 
-      if (grant.freeCast) {
-        addFreeCastEntry(compiled, {
-          ...grant.freeCast,
-          sourceId: grant.freeCast.sourceId ?? contribution.source.id,
-          entryId: grant.freeCast.entryId ?? contribution.source.entryId,
-          spellId: grant.freeCast.spellId ?? grant.spell.id
-        });
-      }
+      const freeCastEntry = resolveFreeCastEntry(contribution.source, grant);
+      if (freeCastEntry) compiled.freeCastEntries.push(freeCastEntry);
     });
   });
 
@@ -285,10 +318,7 @@ export function getFeatureFreeCastState(
     return null;
   }
 
-  const usesTotal = entries.reduce(
-    (total, entry) => total + (entry.usesTotal ?? 1),
-    0
-  );
+  const usesTotal = entries.reduce((total, entry) => total + (entry.usesTotal ?? 1), 0);
   const usesRemaining = entries.reduce(
     (total, entry) =>
       total +
@@ -303,21 +333,44 @@ export function getFeatureFreeCastState(
   };
 }
 
-function matchesDescriptionContribution(
-  contribution: FeatureDescriptionContribution,
-  target: FeatureDescriptionContributionTarget,
-  targetKey?: string
-): boolean {
-  if (contribution.target !== target) {
-    return false;
+type DescriptionIndex = Map<
+  FeatureDescriptionContributionTarget,
+  {
+    all: FeatureDescriptionContribution[];
+    byKey: Map<string, FeatureDescriptionContribution[]>;
   }
+>;
+const descriptionIndexes = new WeakMap<FeatureDescriptionContribution[], DescriptionIndex>();
 
-  return (
-    !targetKey ||
-    !contribution.targetKey ||
-    contribution.targetKey === targetKey ||
-    contribution.targetPredicateId === targetKey
-  );
+function getDescriptionCandidates(
+  descriptions: FeatureDescriptionContribution[],
+  target: FeatureDescriptionContributionTarget,
+  key?: string
+) {
+  let index = descriptionIndexes.get(descriptions);
+  if (!index) {
+    index = new Map();
+    for (const description of descriptions) {
+      let group = index.get(description.target);
+      if (!group) {
+        group = { all: [], byKey: new Map() };
+        index.set(description.target, group);
+      }
+      group.all.push(description);
+    }
+    descriptionIndexes.set(descriptions, index);
+  }
+  const group = index.get(target);
+  if (!group) return [];
+  if (!key) return group.all;
+  let matches = group.byKey.get(key);
+  if (!matches) {
+    matches = group.all.filter(
+      (entry) => !entry.targetKey || entry.targetKey === key || entry.targetPredicateId === key
+    );
+    group.byKey.set(key, matches);
+  }
+  return matches;
 }
 
 export function getFeatureDescriptionAdditions<TDerivedState = unknown>(
@@ -327,39 +380,35 @@ export function getFeatureDescriptionAdditions<TDerivedState = unknown>(
     targetKey?: string;
   } = {}
 ) {
-  return compiled.descriptionAdditions.flatMap((contribution) => {
-    if (!matchesDescriptionContribution(contribution, target, context.targetKey)) {
-      return [];
+  return getDescriptionCandidates(compiled.descriptionAdditions, target, context.targetKey).flatMap(
+    (contribution) => {
+      const generatedAdditions =
+        contribution.getDescriptionAdditions?.({
+          ...context,
+          targetKey: context.targetKey ?? contribution.targetKey
+        }) ?? [];
+      const staticAddition =
+        contribution.descriptionEntries && contribution.descriptionEntries.length > 0
+          ? [
+              contribution.sourceLabel
+                ? createSourcedDescriptionEntries(
+                    contribution.sourceLabel,
+                    contribution.descriptionEntries
+                  )
+                : contribution.descriptionEntries
+            ]
+          : [];
+
+      return [...staticAddition, ...generatedAdditions];
     }
-
-    const generatedAdditions =
-      contribution.getDescriptionAdditions?.({
-        ...context,
-        targetKey: context.targetKey ?? contribution.targetKey
-      }) ?? [];
-    const staticAddition =
-      contribution.descriptionEntries && contribution.descriptionEntries.length > 0
-        ? [
-            contribution.sourceLabel
-              ? createSourcedDescriptionEntries(
-                  contribution.sourceLabel,
-                  contribution.descriptionEntries
-                )
-              : contribution.descriptionEntries
-          ]
-        : [];
-
-    return [...staticAddition, ...generatedAdditions];
-  });
+  );
 }
 
 export function getFeatureSpellDamageBonuses(
   compiled: Pick<CompiledFeatureContributionState, "spellDamageBonuses">,
   context: FeatureSpellDamageBonusContext
 ) {
-  return compiled.spellDamageBonuses.flatMap((contribution) =>
-    contribution.getBonuses(context)
-  );
+  return compiled.spellDamageBonuses.flatMap((contribution) => contribution.getBonuses(context));
 }
 
 export function applyFeatureSpellCastEffects(

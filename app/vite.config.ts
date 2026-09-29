@@ -22,7 +22,9 @@ function buildVersionPlugin(): Plugin {
 
 export default defineConfig({
   define: {
-    __ARCANE_LEDGER_BUILD_ID__: JSON.stringify(buildId)
+    __ARCANE_LEDGER_BUILD_ID__: JSON.stringify(buildId),
+    // Drop SDK diagnostic logging while retaining error reporting and breadcrumbs.
+    __SENTRY_DEBUG__: false
   },
   server: {
     host: "0.0.0.0",

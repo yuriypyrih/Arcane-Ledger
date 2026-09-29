@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE } from "../../../../codex/entries";
+import { DAMAGE_TYPE } from "../../../../codex/entries/enums";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -55,9 +55,7 @@ function getTashasOtherworldlyGuisePlaneFromOptions(
     : "upper-planes";
 }
 
-function getTashasOtherworldlyGuiseStatusSourceId(
-  plane: TashasOtherworldlyGuisePlane
-): string {
+function getTashasOtherworldlyGuiseStatusSourceId(plane: TashasOtherworldlyGuisePlane): string {
   return plane === "lower-planes"
     ? tashasOtherworldlyGuiseLowerPlanesStatusSourceId
     : tashasOtherworldlyGuiseUpperPlanesStatusSourceId;
@@ -76,9 +74,7 @@ function getTashasOtherworldlyGuisePlaneFromSourceId(
   }
 }
 
-function getTashasOtherworldlyGuisePlaneLabel(
-  plane: TashasOtherworldlyGuisePlane
-): string {
+function getTashasOtherworldlyGuisePlaneLabel(plane: TashasOtherworldlyGuisePlane): string {
   return plane === "lower-planes"
     ? tashasOtherworldlyGuiseLowerPlanesLabel
     : tashasOtherworldlyGuiseUpperPlanesLabel;
@@ -149,9 +145,7 @@ function createLinkedTashasOtherworldlyGuiseStatusEntry(
   };
 }
 
-function getTashasOtherworldlyGuiseImmunityValues(
-  plane: TashasOtherworldlyGuisePlane
-): Array<{
+function getTashasOtherworldlyGuiseImmunityValues(plane: TashasOtherworldlyGuisePlane): Array<{
   value: CharacterStatusEntry["value"];
   description: string;
 }> {
@@ -252,9 +246,7 @@ export function getTashasOtherworldlyGuiseSpellcastingAbilityForWeapon(
   return getSpellcastingAbilityForCharacterSpell(character, tashasOtherworldlyGuiseSpellId);
 }
 
-function getTashasOtherworldlyGuiseStatusOptions(
-  context: SpellImplementationStatusOptionsContext
-) {
+function getTashasOtherworldlyGuiseStatusOptions(context: SpellImplementationStatusOptionsContext) {
   return {
     sourceId: getTashasOtherworldlyGuiseStatusSourceId(
       getTashasOtherworldlyGuisePlaneFromOptions(context)

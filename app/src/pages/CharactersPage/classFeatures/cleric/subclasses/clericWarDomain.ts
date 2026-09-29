@@ -1,5 +1,7 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
-import { CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -17,7 +19,7 @@ import {
   startRoundTrackerTurn
 } from "../../../combat";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -364,16 +366,10 @@ export function advanceClericWarPriestForNewRound(character: Character): Charact
 
   const rawClericState = character.classFeatureState?.cleric ?? {};
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...rawClericState,
-        warPriestBonusAttackAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...rawClericState,
+    warPriestBonusAttackAvailable: false
+  });
 }
 
 function restoreClericWarPriestUses(character: Character): Character {
@@ -390,17 +386,11 @@ function restoreClericWarPriestUses(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...rawClericState,
-        warPriestUsesExpended: 0,
-        warPriestBonusAttackAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "cleric", {
+    ...rawClericState,
+    warPriestUsesExpended: 0,
+    warPriestBonusAttackAvailable: false
+  });
 }
 
 export function restoreClericWarPriestOnShortRest(character: Character): Character {
@@ -525,7 +515,7 @@ export function collectClericWarDomainContributions(
 
 export const getClericWarDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectClericWarDomainContributions(character)),
+    getCompiledFeatureContributions(character, collectClericWarDomainContributions),
     {
       character: character as Character
     }

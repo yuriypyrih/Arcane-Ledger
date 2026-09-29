@@ -10,6 +10,7 @@ import {
 } from "../../src/store";
 import {
   selectGameplayCharacter,
+  selectSkillsCharacter,
   selectStatsCharacter,
   selectSpellcastingCharacter
 } from "../../src/pages/CharactersPage/CharacterSheetPage/selectors";
@@ -36,6 +37,7 @@ it("propagates isolated resource, profile and spell edits without changing unrel
     </Provider>
   );
   const character = store.getState().activeCharacterSheet.activeCharacter!;
+  const originalSkills = selectSkillsCharacter(store.getState());
   act(() => {
     store.dispatch(
       commitActiveCharacterSheet({
@@ -44,6 +46,7 @@ it("propagates isolated resource, profile and spell edits without changing unrel
       })
     );
   });
+  expect(selectSkillsCharacter(store.getState())).toBe(originalSkills);
   expect(screen.getByLabelText("Health")).toHaveTextContent("12");
   expect(screen.getByLabelText("Strength modifier")).toHaveTextContent("3");
   expect(screen.getByLabelText("Spent slots")).toHaveTextContent("0");
@@ -56,6 +59,8 @@ it("propagates isolated resource, profile and spell edits without changing unrel
       })
     );
   });
+  const updatedSkills = selectSkillsCharacter(store.getState());
+  expect(updatedSkills).not.toBe(originalSkills);
   expect(screen.getByLabelText("Strength modifier")).toHaveTextContent("5");
   expect(screen.getByLabelText("Health")).toHaveTextContent("12");
   expect(screen.getByLabelText("Spent slots")).toHaveTextContent("0");
@@ -68,6 +73,7 @@ it("propagates isolated resource, profile and spell edits without changing unrel
       })
     );
   });
+  expect(selectSkillsCharacter(store.getState())).toBe(updatedSkills);
   expect(screen.getByLabelText("Spent slots")).toHaveTextContent("1");
   expect(screen.getByLabelText("Health")).toHaveTextContent("12");
   expect(screen.getByLabelText("Strength modifier")).toHaveTextContent("5");

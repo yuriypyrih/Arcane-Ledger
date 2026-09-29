@@ -1,17 +1,17 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import {
   hasCharacterClass,
   getCharacterLevel,
   getClassLevel,
   getClassSubclassId
-} from "../../../multiclass";
+} from "../../../multiclassState";
 import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
   getReactionEntryById,
   getSpellEntryByName,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import {
   psiWarriorBulwarkOfForceDescription,
   psiWarriorPsionicStrikeDescription,
@@ -31,7 +31,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -500,17 +500,11 @@ export function expendFighterPsiWarriorEnergyDie(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorEnergyDiceExpended: diceExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorEnergyDiceExpended: diceExpended + 1
+  });
 }
 
 export function consumeFighterPsiWarriorPsionicStrike(character: Character): Character {
@@ -669,17 +663,11 @@ export function restoreFighterPsiWarriorEnergyDie(character: Character): Charact
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorEnergyDiceExpended: diceExpended - 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorEnergyDiceExpended: diceExpended - 1
+  });
 }
 
 export function restoreAllFighterPsiWarriorEnergyDice(character: Character): Character {
@@ -696,17 +684,11 @@ export function restoreAllFighterPsiWarriorEnergyDice(character: Character): Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorEnergyDiceExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorEnergyDiceExpended: 0
+  });
 }
 
 export function activateFighterPsiWarriorTelekineticMovement(character: Character): Character {
@@ -720,17 +702,11 @@ export function activateFighterPsiWarriorTelekineticMovement(character: Characte
     const fighterState = getPsiWarriorStateRecord(character.classFeatureState?.fighter);
     const normalizedState = normalizeFighterPsiWarriorFeatureState(fighterState, character);
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...normalizedState,
-          psiWarriorTelekineticMovementUsesExpended: 1
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "fighter", {
+      ...fighterState,
+      ...normalizedState,
+      psiWarriorTelekineticMovementUsesExpended: 1
+    });
   }
 
   return getFighterPsiWarriorEnergyDiceRemaining(character) > 0
@@ -749,17 +725,13 @@ export function activateFighterPsiWarriorPsiPoweredLeap(character: Character): C
     const fighterState = getPsiWarriorStateRecord(character.classFeatureState?.fighter);
     const normalizedState = normalizeFighterPsiWarriorFeatureState(fighterState, character);
 
-    return applyFighterPsiWarriorPsiPoweredLeapStatus({
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...normalizedState,
-          psiWarriorPsiPoweredLeapUsesExpended: 1
-        }
-      }
-    });
+    return applyFighterPsiWarriorPsiPoweredLeapStatus(
+      replaceClassFeatureState(character, "fighter", {
+        ...fighterState,
+        ...normalizedState,
+        psiWarriorPsiPoweredLeapUsesExpended: 1
+      })
+    );
   }
 
   if (getFighterPsiWarriorEnergyDiceRemaining(character) <= 0) {
@@ -780,17 +752,13 @@ export function activateFighterPsiWarriorBulwarkOfForce(character: Character): C
     const fighterState = getPsiWarriorStateRecord(character.classFeatureState?.fighter);
     const normalizedState = normalizeFighterPsiWarriorFeatureState(fighterState, character);
 
-    return applyFighterPsiWarriorBulwarkOfForceStatus({
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...normalizedState,
-          psiWarriorBulwarkOfForceUsesExpended: 1
-        }
-      }
-    });
+    return applyFighterPsiWarriorBulwarkOfForceStatus(
+      replaceClassFeatureState(character, "fighter", {
+        ...fighterState,
+        ...normalizedState,
+        psiWarriorBulwarkOfForceUsesExpended: 1
+      })
+    );
   }
 
   if (getFighterPsiWarriorEnergyDiceRemaining(character) <= 0) {
@@ -812,18 +780,14 @@ export function activateFighterPsiWarriorTelekineticMasterSpellCast(
   const normalizedState = normalizeFighterPsiWarriorFeatureState(fighterState, character);
 
   if (usesRemaining > 0) {
-    return applyFighterPsiWarriorTelekineticMasterStatus({
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...normalizedState,
-          psiWarriorTelekineticMasterUsesExpended: 1,
-          psiWarriorTelekineticMasterBonusAttackAvailable: true
-        }
-      }
-    });
+    return applyFighterPsiWarriorTelekineticMasterStatus(
+      replaceClassFeatureState(character, "fighter", {
+        ...fighterState,
+        ...normalizedState,
+        psiWarriorTelekineticMasterUsesExpended: 1,
+        psiWarriorTelekineticMasterBonusAttackAvailable: true
+      })
+    );
   }
 
   if (getFighterPsiWarriorEnergyDiceRemaining(character) <= 0) {
@@ -860,17 +824,11 @@ export function consumeFighterPsiWarriorTelekineticMasterBonusAttack(
   const fighterState = getPsiWarriorStateRecord(character.classFeatureState?.fighter);
   const normalizedState = normalizeFighterPsiWarriorFeatureState(fighterState, character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorTelekineticMasterBonusAttackAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorTelekineticMasterBonusAttackAvailable: false
+  });
 }
 
 export function restoreFighterPsiWarriorTelekineticMasterOnLongRest(
@@ -892,18 +850,12 @@ export function restoreFighterPsiWarriorTelekineticMasterOnLongRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorTelekineticMasterUsesExpended: 0,
-        psiWarriorTelekineticMasterBonusAttackAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorTelekineticMasterUsesExpended: 0,
+    psiWarriorTelekineticMasterBonusAttackAvailable: false
+  });
 }
 
 export function restoreFighterPsiWarriorTelekineticMovementOnShortRest(
@@ -922,17 +874,11 @@ export function restoreFighterPsiWarriorTelekineticMovementOnShortRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorTelekineticMovementUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorTelekineticMovementUsesExpended: 0
+  });
 }
 
 export function restoreFighterPsiWarriorPsiPoweredLeapOnShortRest(character: Character): Character {
@@ -949,17 +895,11 @@ export function restoreFighterPsiWarriorPsiPoweredLeapOnShortRest(character: Cha
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorPsiPoweredLeapUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorPsiPoweredLeapUsesExpended: 0
+  });
 }
 
 export function restoreFighterPsiWarriorTelekineticMovementOnLongRest(
@@ -986,17 +926,11 @@ export function restoreFighterPsiWarriorBulwarkOfForceOnLongRest(character: Char
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorBulwarkOfForceUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorBulwarkOfForceUsesExpended: 0
+  });
 }
 
 export function restoreFighterPsiWarriorEnergyDiceOnShortRest(character: Character): Character {
@@ -1026,18 +960,12 @@ export function advanceFighterPsiWarriorFeaturesForNewRound(character: Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        ...normalizedState,
-        psiWarriorPsionicStrikeUsedThisTurn: false,
-        psiWarriorTelekineticMasterBonusAttackAvailable: telekineticMasterBonusAttackAvailable
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "fighter", {
+    ...fighterState,
+    ...normalizedState,
+    psiWarriorPsionicStrikeUsedThisTurn: false,
+    psiWarriorTelekineticMasterBonusAttackAvailable: telekineticMasterBonusAttackAvailable
+  });
 }
 
 function getFighterPsiWarriorTelekineticMovementAction(
@@ -1376,7 +1304,7 @@ export function collectFighterPsiWarriorContributions(
 
 export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectFighterPsiWarriorContributions(character)),
+    getCompiledFeatureContributions(character, collectFighterPsiWarriorContributions),
     {
       character: character as Character
     }

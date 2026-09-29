@@ -1,11 +1,10 @@
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclass";
+import { replaceClassFeatureState } from "../shared/resourceState";
+import { getProgressionRow } from "../../../../codex/progression";
+import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
 import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  WEAPON_COMBAT_TYPE,
-  getReactionEntryById,
-  type ReactionEntry
-} from "../../../../codex/entries";
+import { getReactionEntryById, type ReactionEntry } from "../../../../codex/entries";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -213,25 +212,13 @@ function dedupe<T>(values: T[]): T[] {
 
 function getRogueFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = rogueFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
+  return getProgressionRow(rogueFeatures, normalizedLevel);
 }
 
 function getUnlockedRogueFeatures(level: number): Set<CLASS_FEATURE> {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
 
-  return rogueFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
+  return getUnlockedProgressionFeatures(rogueFeatures, normalizedLevel);
 }
 
 export function hasRogueFeature(
@@ -905,25 +892,19 @@ export function setRogueExpertiseSelections(
   const level1Selections = rogueState.expertise?.level1 ?? [];
   const level6Selections = rogueState.expertise?.level6 ?? [];
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        expertise: {
-          level1:
-            tier === "level1"
-              ? normalizedSelections.filter((skill) => !level6Selections.includes(skill))
-              : level1Selections,
-          level6:
-            tier === "level6"
-              ? normalizedSelections.filter((skill) => !level1Selections.includes(skill))
-              : level6Selections
-        }
-      }
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    expertise: {
+      level1:
+        tier === "level1"
+          ? normalizedSelections.filter((skill) => !level6Selections.includes(skill))
+          : level1Selections,
+      level6:
+        tier === "level6"
+          ? normalizedSelections.filter((skill) => !level1Selections.includes(skill))
+          : level6Selections
     }
-  };
+  });
 }
 
 export function getRogueThievesCantLanguageSelection(
@@ -946,16 +927,10 @@ export function setRogueThievesCantLanguageSelection(
 
   const rogueState = getRogueFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        thievesCantLanguage: selection ?? undefined
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    thievesCantLanguage: selection ?? undefined
+  });
 }
 
 export function getRogueWeaponMasterySelectionCount(
@@ -986,16 +961,10 @@ export function setRogueWeaponMasterySelections(
 
   const rogueState = getRogueFeatureState(character);
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        weaponMasteries: normalizeRogueWeaponMasteries(selections)
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    weaponMasteries: normalizeRogueWeaponMasteries(selections)
+  });
 }
 
 export function getRogueWeaponProficiencyEntries(
@@ -1079,16 +1048,10 @@ export function activateRogueSneakAttack(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        sneakAttackUsedThisTurn: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    sneakAttackUsedThisTurn: true
+  });
 }
 
 export function activateRogueSteadyAim(character: Character): Character {
@@ -1102,17 +1065,11 @@ export function activateRogueSteadyAim(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        steadyAimActive: true,
-        steadyAimAttackAdvantageAvailable: true
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    steadyAimActive: true,
+    steadyAimAttackAdvantageAvailable: true
+  });
 }
 
 export function consumeRogueWeaponAttack(
@@ -1176,16 +1133,10 @@ export function consumeRogueStrokeOfLuckUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        strokeOfLuckUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    strokeOfLuckUsesExpended: usesExpended + 1
+  });
 }
 
 export function consumeRogueSpellThiefUse(character: Character): Character {
@@ -1200,16 +1151,10 @@ export function consumeRogueSpellThiefUse(character: Character): Character {
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        spellThiefUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    spellThiefUsesExpended: usesExpended + 1
+  });
 }
 
 export function advanceRogueFeaturesForNewRound(character: Character): Character {
@@ -1232,19 +1177,13 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        bloodthirstMeleeAttacksRemainingThisTurn: 0,
-        sneakAttackUsedThisTurn: false,
-        steadyAimActive: false,
-        steadyAimAttackAdvantageAvailable: false
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    bloodthirstMeleeAttacksRemainingThisTurn: 0,
+    sneakAttackUsedThisTurn: false,
+    steadyAimActive: false,
+    steadyAimAttackAdvantageAvailable: false
+  });
 }
 
 export function restoreRogueStrokeOfLuckOnShortRest(character: Character): Character {
@@ -1258,16 +1197,10 @@ export function restoreRogueStrokeOfLuckOnShortRest(character: Character): Chara
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        strokeOfLuckUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    strokeOfLuckUsesExpended: 0
+  });
 }
 
 export function restoreRogueStrokeOfLuckOnLongRest(character: Character): Character {
@@ -1285,16 +1218,10 @@ export function restoreRogueSpellThiefOnLongRest(character: Character): Characte
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      rogue: {
-        ...rogueState,
-        spellThiefUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "rogue", {
+    ...rogueState,
+    spellThiefUsesExpended: 0
+  });
 }
 
 export function applyShortRestToRogueFeatures(character: Character): Character {

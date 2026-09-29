@@ -1,9 +1,6 @@
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { replaceClassFeatureState } from "../../shared/resourceState";
+import { type SpellDescriptionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
@@ -227,9 +224,7 @@ export function getArtificerConjuredCauldronAction(
     },
     disabled: usesRemaining <= 0,
     disabledReason:
-      usesRemaining <= 0
-        ? "Conjured Cauldron recharges when you finish a Long Rest."
-        : undefined
+      usesRemaining <= 0 ? "Conjured Cauldron recharges when you finish a Long Rest." : undefined
   };
 }
 
@@ -247,18 +242,11 @@ export function consumeArtificerConjuredCauldronUse(character: Character): Chara
     character
   );
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...conjuredCauldronState,
-        conjuredCauldronUsesExpended:
-          (conjuredCauldronState.conjuredCauldronUsesExpended ?? 0) + 1
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...conjuredCauldronState,
+    conjuredCauldronUsesExpended: (conjuredCauldronState.conjuredCauldronUsesExpended ?? 0) + 1
+  });
 }
 
 export function restoreArtificerConjuredCauldronOnLongRest(character: Character): Character {
@@ -276,15 +264,9 @@ export function restoreArtificerConjuredCauldronOnLongRest(character: Character)
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      artificer: {
-        ...currentArtificerState,
-        ...conjuredCauldronState,
-        conjuredCauldronUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "artificer", {
+    ...currentArtificerState,
+    ...conjuredCauldronState,
+    conjuredCauldronUsesExpended: 0
+  });
 }

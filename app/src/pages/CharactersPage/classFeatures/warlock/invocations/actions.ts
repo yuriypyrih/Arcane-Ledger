@@ -1,4 +1,5 @@
-import { ELDRITCH_INVOCATION, getEldritchInvocationEntryById } from "../../../../../codex/entries";
+import { getEldritchInvocationEntryById } from "../../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,

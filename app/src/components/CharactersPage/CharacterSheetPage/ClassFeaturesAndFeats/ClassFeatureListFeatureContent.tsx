@@ -1,4 +1,4 @@
-import type { DAMAGE_TYPE } from "../../../../codex/entries";
+import type { DAMAGE_TYPE } from "../../../../codex/entries/enums";
 import type { LANGUAGE_PROFICIENCY, SkillName } from "../../../../types";
 import SelectInput from "../../FormInputs/SelectInput";
 import type { ClassFeatureContentContext } from "./types";
@@ -207,9 +207,7 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
             onChange={updateArtificerReplicateMagicItemPlanSelection}
             armorReplicationGroups={getArtificerImprovedArmorerArmorReplicationPlanGroups()}
             armorReplicationSelection={getArtificerImprovedArmorerArmorReplicationPlanSelection()}
-            onArmorReplicationChange={
-              updateArtificerImprovedArmorerArmorReplicationPlanSelection
-            }
+            onArmorReplicationChange={updateArtificerImprovedArmorerArmorReplicationPlanSelection}
           />
         </>
       ) : featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE &&
@@ -484,10 +482,7 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
                   : `${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`}
               </span>
             </div>
-            <SheetActionButton
-              disabled={!isUnlocked}
-              onClick={onOpenEldritchInvocationEditor}
-            >
+            <SheetActionButton disabled={!isUnlocked} onClick={onOpenEldritchInvocationEditor}>
               <Pencil size={16} />
               Edit
             </SheetActionButton>
@@ -551,10 +546,7 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
                   : "Unavailable"}
               </span>
             </div>
-            <SheetActionButton
-              disabled={!isUnlocked}
-              onClick={() => setIsWildShapeModalOpen(true)}
-            >
+            <SheetActionButton disabled={!isUnlocked} onClick={() => setIsWildShapeModalOpen(true)}>
               {druidWildShapeKnownForms.length > 0 ? <Pencil size={16} /> : <Plus size={16} />}
               {druidWildShapeKnownForms.length > 0 ? "Edit" : "Choose"}
             </SheetActionButton>

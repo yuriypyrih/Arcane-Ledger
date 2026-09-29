@@ -1,4 +1,5 @@
-import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
+import { type SpellEntry } from "../../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL } from "../../../../../codex/entries/enums";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import {

@@ -1,5 +1,5 @@
 import type { Character, CharacterInventoryItem } from "../../../types";
-import { getCharacterClasses } from "../../../pages/CharactersPage/multiclass";
+import { getCharacterClasses } from "../../../pages/CharactersPage/multiclassState";
 import { hasSpellcastingForCharacter } from "../../../pages/CharactersPage/spellcastingAvailability";
 import {
   CharacterProfileForm,

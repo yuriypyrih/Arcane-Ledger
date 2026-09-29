@@ -1,13 +1,14 @@
+import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { type SpellEntry } from "../../../../../codex/entries";
 import {
   ABILITY_TYPES,
   CLASS_FEATURE,
   DAMAGE_TYPE,
   MAGIC_SCHOOL,
-  SPELL_LIST_CLASS,
-  type SpellEntry
-} from "../../../../../codex/entries";
+  SPELL_LIST_CLASS
+} from "../../../../../codex/entries/enums";
 import { warlockFeatures } from "../../../../../codex/classes";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
@@ -21,7 +22,7 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -299,16 +300,10 @@ function spendWarlockGreatOldOnePatronClairvoyantCombatantResource(
     const totalUses = getWarlockGreatOldOnePatronClairvoyantCombatantUsesTotal(character);
     const usesExpended = warlockState.clairvoyantCombatantUsesExpended ?? 0;
 
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        warlock: {
-          ...warlockState,
-          clairvoyantCombatantUsesExpended: Math.min(totalUses, usesExpended + 1)
-        }
-      }
-    };
+    return replaceClassFeatureState(character, "warlock", {
+      ...warlockState,
+      clairvoyantCombatantUsesExpended: Math.min(totalUses, usesExpended + 1)
+    });
   }
 
   const pactMagicSlotsRemaining = getWarlockGreatOldOnePatronPactMagicSlotsRemaining(character);
@@ -334,16 +329,10 @@ export function restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest(
     return character;
   }
 
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      warlock: {
-        ...warlockState,
-        clairvoyantCombatantUsesExpended: 0
-      }
-    }
-  };
+  return replaceClassFeatureState(character, "warlock", {
+    ...warlockState,
+    clairvoyantCombatantUsesExpended: 0
+  });
 }
 
 export function restoreWarlockGreatOldOnePatronClairvoyantCombatantOnLongRest(
@@ -647,7 +636,7 @@ export const getWarlockGreatOldOnePatronDerivedFeatureState: SubclassRuntimeReso
   character
 ) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWarlockGreatOldOnePatronContributions(character)),
+    getCompiledFeatureContributions(character, collectWarlockGreatOldOnePatronContributions),
     {
       character: character as Character
     }

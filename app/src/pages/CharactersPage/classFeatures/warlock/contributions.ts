@@ -1,7 +1,7 @@
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE } from "../../../../codex/entries/enums";
 import type { Character } from "../../../../types";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createClassContributionSource,
   projectCompiledContributionsToClassFeatureDerivedState,
   type FeatureContributionSpec
@@ -53,8 +53,7 @@ function createWarlockEldritchInvocationsContribution(
     weaponActionTransforms: [
       {
         id: "warlock-eldritch-invocations-pact-blade-weapon-transform",
-        transform: (_character, action) =>
-          getWarlockWeaponAction(character, action as WeaponAction)
+        transform: (_character, action) => getWarlockWeaponAction(character, action as WeaponAction)
       }
     ]
   };
@@ -170,7 +169,7 @@ export function getWarlockClassFeatureDerivedState(
   character: CollectedClassFeatureCharacter
 ): ClassFeatureDerivedState {
   return projectCompiledContributionsToClassFeatureDerivedState(
-    compileFeatureContributions(collectWarlockFeatureContributions(character)),
+    getCompiledFeatureContributions(character, collectWarlockFeatureContributions),
     {
       character: character as Character
     }

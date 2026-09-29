@@ -1,4 +1,4 @@
-import { getClassLevel } from "./multiclass";
+import { getClassLevel } from "./multiclassState";
 import type { Character, MonsterListItem, MonsterRecord } from "../../types";
 import {
   getMonsterImageUrl,

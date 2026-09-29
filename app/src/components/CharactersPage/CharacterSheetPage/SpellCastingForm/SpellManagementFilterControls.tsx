@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import type { MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../../../codex/entries";
+import type { MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../../../codex/entries/enums";
 import { formatCodexLabel } from "../../../../utils/codex";
 import SelectInput from "../../FormInputs/SelectInput";
 import SearchField from "../../../SearchField";

@@ -150,3 +150,29 @@ export async function assertCreatedDmToolWithinLimit(options: {
     role: options.role
   });
 }
+
+// Callers supply the owner-filtered query; retention ordering stays identical across tools.
+type RetentionQuery = {
+  sort(order: { createdAt: 1; _id: 1 }): {
+    limit(limit: number): {
+      select(fields: string): {
+        lean(): {
+          exec(): Promise<Array<{ _id: { toString(): string } }>>;
+        };
+      };
+    };
+  };
+};
+export async function isCreatedDocumentRetained(
+  query: RetentionQuery,
+  createdId: { toString(): string },
+  limit: number
+): Promise<boolean> {
+  const retained = await query
+    .sort({ createdAt: 1, _id: 1 })
+    .limit(limit)
+    .select("_id")
+    .lean()
+    .exec();
+  return retained.some((document) => document._id.toString() === createdId.toString());
+}

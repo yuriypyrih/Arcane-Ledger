@@ -1,15 +1,17 @@
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclass";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import {
+  getSpellEntryByName,
+  type ReactionEntry,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
   REACTION,
-  getSpellEntryByName,
-  type ReactionEntry,
-  MAGIC_SCHOOL,
-  type SpellDescriptionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
+  MAGIC_SCHOOL
+} from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   STATUS_DURATION_KIND,
@@ -24,7 +26,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  compileFeatureContributions,
+  getCompiledFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
@@ -509,7 +511,7 @@ export function collectWizardAbjurerContributions(
 
 export const getWizardAbjurerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   projectCompiledContributionsToSubclassDerivedFeatureState(
-    compileFeatureContributions(collectWizardAbjurerContributions(character)),
+    getCompiledFeatureContributions(character, collectWizardAbjurerContributions),
     {
       character: character as Character
     }

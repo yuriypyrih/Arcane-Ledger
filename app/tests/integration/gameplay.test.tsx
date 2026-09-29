@@ -11,6 +11,9 @@ import { store } from "../../src/store";
 import HitPointsWidget from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/HitPointsWidget";
 import CampButton from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/CampButton";
 import HeroicInspirationWidget from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/HeroicInspirationWidget";
+import ClassResourceWidgets from "../../src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ClassResourceWidgets";
+import { normalizeCharacter } from "../../src/pages/CharactersPage/storage";
+import { createPortableCharacterSheet } from "../../src/pages/CharactersPage/portableCharacterSheet";
 import { normalizeCustomClassConfig } from "../../src/pages/CharactersPage/customClass";
 
 function GameplayHarness({ initial }: { initial: Character }) {
@@ -131,4 +134,52 @@ describe("sheet gameplay interactions with real rules", () => {
     expect(screen.getByLabelText("Saved health")).toHaveTextContent("30");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+});
+
+it("keeps multiclass resource pools independent through exhaustion, recovery, and save/load", async () => {
+  function ResourcesHarness() {
+    const [character, setCharacter] = useState(() =>
+      multiclassFixture([
+        { className: "Monk", level: 2 },
+        { className: "Sorcerer", level: 3 }
+      ])
+    );
+    return (
+      <>
+        <ClassResourceWidgets character={character} onPersistCharacter={setCharacter} />
+        <button
+          onClick={() => setCharacter(normalizeCharacter(createPortableCharacterSheet(character))!)}
+        >
+          Reload resources
+        </button>
+      </>
+    );
+  }
+  const user = userEvent.setup();
+  render(
+    <Provider store={store}>
+      <ResourcesHarness />
+    </Provider>
+  );
+  await user.click(screen.getByRole("button", { name: "2/2 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "Use 1 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "1/2 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "Use 1 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "0/2 Focus Points" }));
+  expect(screen.getByRole("button", { name: "Use 1 Focus Points" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "3/3 Sorcery Points" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Close Focus Points resource management" }));
+  await user.click(screen.getByRole("button", { name: "Reload resources" }));
+  await user.click(screen.getByRole("button", { name: "0/2 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "Reset 1 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "1/2 Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "Reset all Focus Points" }));
+  await user.click(screen.getByRole("button", { name: "2/2 Focus Points" }));
+  expect(screen.getByRole("button", { name: "Reset 1 Focus Points" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Reset all Focus Points" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Close Focus Points resource management" }));
+  await user.click(screen.getByRole("button", { name: "3/3 Sorcery Points" }));
+  await user.click(screen.getByRole("button", { name: "Use 1 Sorcery Points" }));
+  expect(screen.getByRole("button", { name: "2/2 Focus Points" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "2/3 Sorcery Points" })).toBeInTheDocument();
 });

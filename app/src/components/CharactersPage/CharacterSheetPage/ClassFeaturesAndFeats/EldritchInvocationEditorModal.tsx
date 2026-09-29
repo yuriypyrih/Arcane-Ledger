@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
-import { ELDRITCH_INVOCATION } from "../../../../codex/entries";
+import { ELDRITCH_INVOCATION } from "../../../../codex/entries/enums";
 import {
   getWarlockEldritchInvocationLimitForCharacter,
   getWarlockInvocationBlockingSelectionNamesForCharacter,
@@ -73,17 +73,22 @@ function groupInvocationOptionsByInvocationId(
   return groupsByInvocationId;
 }
 
-function getLessonsFeatEntriesBySelectionId(character: Character): Record<string, CharacterFeatEntry> {
-  return (character.feats ?? []).reduce<Record<string, CharacterFeatEntry>>((entriesBySelectionId, entry) => {
-    if (
-      entry.source.type === "eldritch-invocation" &&
-      entry.source.invocation === ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES
-    ) {
-      entriesBySelectionId[entry.source.selectionId] = entry;
-    }
+function getLessonsFeatEntriesBySelectionId(
+  character: Character
+): Record<string, CharacterFeatEntry> {
+  return (character.feats ?? []).reduce<Record<string, CharacterFeatEntry>>(
+    (entriesBySelectionId, entry) => {
+      if (
+        entry.source.type === "eldritch-invocation" &&
+        entry.source.invocation === ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES
+      ) {
+        entriesBySelectionId[entry.source.selectionId] = entry;
+      }
 
-    return entriesBySelectionId;
-  }, {});
+      return entriesBySelectionId;
+    },
+    {}
+  );
 }
 
 function getInvocationOptionGroupsForTab(
@@ -220,28 +225,31 @@ function EldritchInvocationEditorModal({
     [invocationDraftIds, invocationLimit, invocationOptions, invocationOptionsById]
   );
 
-  const removeInvocation = useCallback((selectionId: string) => {
-    const blockingSelections = getWarlockInvocationBlockingSelectionNamesForCharacter(
-      selectionId,
-      invocationDraftIds
-    );
+  const removeInvocation = useCallback(
+    (selectionId: string) => {
+      const blockingSelections = getWarlockInvocationBlockingSelectionNamesForCharacter(
+        selectionId,
+        invocationDraftIds
+      );
 
-    if (blockingSelections.length > 0) {
-      return;
-    }
-
-    setInvocationDraftIds((current) =>
-      current.filter((currentSelectionId) => currentSelectionId !== selectionId)
-    );
-    setLessonsFeatEntriesBySelectionId((current) => {
-      if (!(selectionId in current)) {
-        return current;
+      if (blockingSelections.length > 0) {
+        return;
       }
 
-      const { [selectionId]: _removedEntry, ...nextEntries } = current;
-      return nextEntries;
-    });
-  }, [invocationDraftIds]);
+      setInvocationDraftIds((current) =>
+        current.filter((currentSelectionId) => currentSelectionId !== selectionId)
+      );
+      setLessonsFeatEntriesBySelectionId((current) => {
+        if (!(selectionId in current)) {
+          return current;
+        }
+
+        const { [selectionId]: _removedEntry, ...nextEntries } = current;
+        return nextEntries;
+      });
+    },
+    [invocationDraftIds]
+  );
 
   return (
     <SheetModal

@@ -1,30 +1,15 @@
 import type { Character } from "../../../types";
-import {
-  getCombatActionsForCharacter,
-  type GameplayActionDefinition
-} from "../combatActions";
+import { getCombatActionsForCharacter, type GameplayActionDefinition } from "../combatActions";
 import { collectActiveClassFeatureState } from "../classFeatures/modules";
-import {
-  getFeatureActionsForCharacter,
-  type FeatureActionCard
-} from "../classFeatures";
+import { getFeatureActionsForCharacter, type FeatureActionCard } from "../classFeatures";
 import {
   getSubclassDerivedFeatureState,
   type SubclassDerivedFeatureState
 } from "../classFeatures/subclasses";
 import type { ClassFeatureDerivedState } from "../classFeatures/types";
-import {
-  collectFeatDerivedState,
-  type FeatDerivedState
-} from "../feats/runtime";
-import {
-  getWeaponActionsForCharacter,
-  type WeaponAction
-} from "../gameplay";
-import {
-  getEquipmentRuntimeForCharacter,
-  type EquipmentRuntime
-} from "./equipmentRuntime";
+import { collectFeatDerivedState, type FeatDerivedState } from "../feats/runtime";
+import { getWeaponActionsForCharacter, type WeaponAction } from "../gameplay";
+import { getEquipmentRuntimeForCharacter, type EquipmentRuntime } from "./equipmentRuntime";
 import {
   getCharacterCustomEffectRuntime,
   type CharacterCustomEffectRuntime
@@ -34,10 +19,7 @@ import {
   type CharacterSpellcastingRuntime,
   type SpellcastingRuntimeOptions
 } from "./spellcastingRuntime";
-import {
-  getStatusRuntimeForCharacter,
-  type CharacterStatusRuntime
-} from "./statusRuntime";
+import { getStatusRuntimeForCharacter, type CharacterStatusRuntime } from "./statusRuntime";
 import {
   getProficiencyRuntimeForCharacter,
   type CharacterProficiencyRuntime
@@ -47,7 +29,7 @@ import {
   type CharacterCombatSummaryRuntime
 } from "./combatSummaryRuntime";
 import {
-  createCharacterSpellEntryTransformer,
+  getCharacterSpellEntryTransformer,
   type CharacterSpellEntryTransformer
 } from "./spellEntryTransformer";
 
@@ -55,10 +37,7 @@ export type FeatureGameplayActionDefinition = Extract<
   GameplayActionDefinition,
   { kind: "feature" }
 >;
-export type WeaponGameplayActionDefinition = Extract<
-  GameplayActionDefinition,
-  { kind: "weapon" }
->;
+export type WeaponGameplayActionDefinition = Extract<GameplayActionDefinition, { kind: "weapon" }>;
 
 export type CharacterRuntime = {
   readonly character: Character;
@@ -165,12 +144,7 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
 
   get spellEntryTransformer(): CharacterSpellEntryTransformer {
     if (!this.spellEntryTransformerSnapshot) {
-      this.spellEntryTransformerSnapshot = createCharacterSpellEntryTransformer({
-        character: this.character,
-        classFeatures: this.classFeatures,
-        subclassFeatures: this.subclassFeatures,
-        feats: this.feats
-      });
+      this.spellEntryTransformerSnapshot = getCharacterSpellEntryTransformer(this.character);
     }
 
     return this.spellEntryTransformerSnapshot;
