@@ -297,5 +297,251 @@ export const wizardSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.TRACKED
       })
     ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#wizard_xphb,state:sub_necromancer_au=b1
+    id: "wizard-necromancer",
+    name: "Necromancer",
+    className: "Wizard",
+    tagline: "Study Life, Death, and Undeath",
+    summary:
+      "Necromancers study the forces that animate living and undead creatures. Secrets recorded in their spellbooks grant them growing influence over death, though their purposes need not be evil.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.NECROMANCY_SAVANT, {
+        description: createSchoolSavantDescription("Necromancy"),
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.NECROMANCY_SPELLBOOK,
+        {
+          description: [
+            "<strong>Necrotic Resistance.</strong> Gain <link:Resistance>Resistance</link> to Necrotic damage.",
+            "<strong>Undead Familiar.</strong> Add <spell:Find Familiar>Find Familiar</spell> to your spellbook. When casting it, you may choose a Skeleton or Zombie instead of its normal forms. A normal form can be Undead. During your Attack action, forgo one attack to let the familiar use its Reaction to make an attack.",
+            "<strong>Undead Vitality.</strong> When spending a slot to cast a Necromancy spell, you may heal an Undead you can see within 60 feet for Hit Points equal to the slot's level plus your Wizard level."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.GRAVE_POWER, {
+        description: [
+          "While holding your spellbook, gain these benefits.",
+          "<strong>Grave Resilience.</strong> Using Arcane Recovery reduces your <link:Exhaustion>Exhaustion</link> by one level, if you have any.",
+          "<strong>Overwhelming Necrosis.</strong> Damage from your Wizard spells and features ignores <link:Resistance>Resistance</link> to Necrotic damage."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.UNDEAD_THRALLS, {
+        description: [
+          "<spell:Animate Dead>Animate Dead</spell> is always prepared, and you may cast it once without a slot, recovering that casting after a <link:long-rest>Long Rest</link>. Each time you start casting it, you may increase its effective spell level by 1.",
+          "While holding your spellbook, you also gain these benefits.",
+          "<strong>Undead Fortitude.</strong> An Undead created or summoned by your Necromancy spell gains current and maximum Hit Points equal to your <link:Intelligence>Intelligence</link> modifier plus half your Wizard level, rounded down.",
+          "<strong>Withering Strike.</strong> When an Undead you control within 60 feet hits a creature with an attack roll, add Necrotic damage equal to your <link:Intelligence>Intelligence</link> modifier, minimum 1."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.HARVEST_UNDEAD, {
+        description: [
+          "Immediately after damage makes you Bloodied without reducing you to 0 Hit Points, you may use a Reaction to set a controlled Undead you can see to 0 Hit Points. You then regain Hit Points equal to your Wizard level."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.DEATHS_MASTER, {
+        description: [
+          "While holding your spellbook, gain these benefits.",
+          "<strong>Bolster Undead.</strong> As a Bonus Action, choose any number of Undead within 60 feet that you created or summoned using a Necromancy spell. Give each <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Wizard level. Recover this Bonus Action after a <link:long-rest>Long Rest</link>.",
+          "<strong>Extinguish Undead.</strong> When an Undead you can see falls to 0 Hit Points, you may make it explode. Roll d6s equal to half its unexpended Hit Dice, rounded up, minimum <strong>1d6</strong>. Every creature in a 10-foot <link:Emanation>Emanation</link> from it makes a <link:Dexterity>Dexterity</link> saving throw. Failure: Necrotic damage equal to the roll and no Reactions until its next turn starts. Success: half damage only. If the exploding Undead is not under your control, you must spend a Reaction and a level 5+ spell slot."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#wizard_xphb,state:sub_transmuter_au=b1
+    id: "wizard-transmuter",
+    name: "Transmuter",
+    className: "Wizard",
+    tagline: "Reshape Matter and Energy",
+    summary:
+      "Transmuters study how magic alters matter and energy. Their discoveries support inventive experiments, changed forms, and transformations of the world around them.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.TRANSMUTATION_SAVANT,
+        {
+          description: createSchoolSavantDescription("Transmutation"),
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.TRANSMUTERS_STONE, {
+        description: [
+          "After a <link:long-rest>Long Rest</link>, you may create a Tiny magic stone that lasts until you create another. You can use it as a Wizard Spellcasting Focus. Its bearer gains <link:Constitution>Constitution</link> saving throw proficiency and one benefit chosen when you create it. Casting a Transmutation spell with a slot lets you change the chosen benefit.",
+          "<strong>Darkvision.</strong> Give its bearer <link:Darkvision>Darkvision</link> to 60 feet, or extend existing <link:Darkvision>Darkvision</link> by 60 feet.",
+          "<strong>Resistance.</strong> Choose Acid, Cold, Fire, Lightning, Poison, or Thunder each time you select this benefit; its bearer resists that damage type.",
+          "<strong>Speed.</strong> Increase its bearer's Speed by 10 feet."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WONDROUS_ALTERATION, {
+        description: [
+          "<spell:Alter Self>Alter Self</spell> is always prepared. Cast it once without a slot, recovering this free casting after a <link:long-rest>Long Rest</link>. While affected, its options grant these additional benefits.",
+          "<strong>Aquatic Adaptation.</strong> While underwater, you may Dash as a Bonus Action.",
+          "<strong>Change Appearance.</strong> Gain <link:Advantage>Advantage</link> on <link:Charisma>Charisma</link> (Deception) checks.",
+          "<strong>Natural Weapons.</strong> The growth deals <strong>2d6</strong> damage of its associated type. Also gain <link:Advantage>Advantage</link> on <link:Constitution>Constitution</link> saving throws to maintain <link:Concentration>Concentration</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        CLASS_FEATURE.EMPOWERED_TRANSMUTATION,
+        {
+          description: [
+            "When spending a slot to cast a Transmutation spell that neither makes an attack roll nor requires a saving throw, such as <spell:Fly>Fly</spell> or <spell:Magic Weapon>Magic Weapon</spell>, you may increase its effective spell level by 1.",
+            "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a <link:long-rest>Long Rest</link>."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.POTENT_STONE, {
+        description: [
+          "Your Transmuter's Stone can carry up to two benefits. Only <link:Resistance>Resistance</link> may be selected twice, and those selections must use different damage types. Casting a Transmutation spell with a slot lets you change either or both benefits.",
+          "Add these options to the stone's existing choices.",
+          "<strong>Mighty Build.</strong> Its bearer has <link:Advantage>Advantage</link> on <link:Strength>Strength</link> saving throws and counts as one size larger for carrying capacity.",
+          "<strong>Tremorsense.</strong> Its bearer gains <link:Tremorsense>Tremorsense</link> to 30 feet."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.SHAPE_SHIFTER, {
+        description: [
+          "<spell:Polymorph>Polymorph</spell> is always prepared. Cast it once without a slot, recovering this free casting after a <link:long-rest>Long Rest</link>.",
+          "When targeting yourself, you may modify the spell with the benefits below. You can make this modification once per <link:long-rest>Long Rest</link>.",
+          "<strong>Game Statistics.</strong> Besides what Polymorph normally retains, keep your memories, ability to communicate, <link:Intelligence>Intelligence</link>, <link:Wisdom>Wisdom</link>, <link:Charisma>Charisma</link>, proficiencies, class features, and feats.",
+          "<strong>Transmute Spells.</strong> In the new form, you may cast Transmutation spells whose Material components have no specified cost and are not consumed. No other spells can be cast while transformed."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.MASTER_TRANSMUTER, {
+        description: [
+          "While carrying your Transmuter's Stone, use a Magic action to expend its stored power for one option below. It then crumbles to dust, unless you spend a level 7+ spell slot as part of that action to preserve it.",
+          "<strong>Major Transformation.</strong> Transform a nonmagical object that fits a 10-foot Cube or eight connected 5-foot Cubes into another nonmagical object of similar size and mass, worth no more than the original. Handling it for 10 minutes completes the transformation.",
+          "<strong>Panacea.</strong> Touch a creature as part of the Magic action. It regains half its maximum Hit Points, rounded down. End all magical contagions and curses affecting it, including Attunement to a cursed item, and remove <link:Poisoned>Poisoned</link> and <link:Petrified>Petrified</link>.",
+          "<strong>Restore Life.</strong> Cast <spell:Raise Dead>Raise Dead</spell> without a spell slot, replacing its required Material components with the stone.",
+          "<strong>Restore Youth.</strong> Touch a willing creature as part of the Magic action. Remove all its <link:Exhaustion>Exhaustion</link> levels and permanently make it appear <strong>3d10</strong> years younger, but no younger than young adulthood."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#wizard_xphb,state:sub_enchanter_au=b1
+    id: "wizard-enchanter",
+    name: "Enchanter",
+    className: "Wizard",
+    tagline: "Influence Minds and Memories",
+    summary:
+      "Enchanters use magic to captivate and influence minds. Some seek reconciliation or restraint, while others pursue power through persuasion and control.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.ENCHANTING_CONVERSATIONALIST,
+        {
+          description: [
+            "Gain proficiency in Deception, Intimidation, or Persuasion. Add your <link:Intelligence>Intelligence</link> modifier, with a minimum bonus of +1, to ability checks using the chosen skill."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ENCHANTMENT_SAVANT, {
+        description: createSchoolSavantDescription("Enchantment"),
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HYPNOTIC_PRESENCE, {
+        description: [
+          "As a Magic action, choose a creature you can see within 10 feet that can see or hear you. It makes a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes it <link:Charmed>Charmed</link> for 1 minute, with <link:Incapacitated>Incapacitated</link> and Speed 0 while <link:Charmed>Charmed</link> this way. The effect ends early if it moves more than 10 feet from you, can neither see nor hear you, or takes damage.",
+          "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a <link:long-rest>Long Rest</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.SPLIT_ENCHANTMENT, {
+        description: [
+          "When spending a slot to cast an Enchantment spell that can target an additional creature at a higher slot level, such as <spell:Charm Person>Charm Person</spell>, you may increase the spell's effective level by 1.",
+          "Uses equal your <link:Intelligence>Intelligence</link> modifier. Recover all uses after a <link:long-rest>Long Rest</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.INSTINCTIVE_CHARM, {
+        description: [
+          "When a creature you can see within 30 feet hits you with an attack roll, use a Reaction to require a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes the attack miss you. If another creature other than the attacker is within the attack's range, redirect the same attack roll to it; choose the new target if several qualify.",
+          "Recover this Reaction after a <link:long-rest>Long Rest</link> or by casting an Enchantment spell with a spell slot."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.ALTER_MEMORIES, {
+        description: [
+          "When you spend a slot to cast an Enchantment spell that causes <link:Charmed>Charmed</link>, choose one target that will remain unaware you <link:Charmed>Charmed</link> it.",
+          "Once before that spell ends, you may use a Magic action to require an <link:Intelligence>Intelligence</link> saving throw from the chosen target against your spell save DC. On a failure, erase up to 1 + your <link:Intelligence>Intelligence</link> modifier hours of its memories (minimum capacity 1 hour). You may erase less time, and cannot erase more time than the spell's duration."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#wizard_xphb,state:sub_conjurer_au=b1
+    id: "wizard-conjurer",
+    name: "Conjurer",
+    className: "Wizard",
+    tagline: "Cross Distances and Summon Allies",
+    summary:
+      "Conjurers study magic that transports creatures and calls allies into being. Their spells make distance and physical boundaries easier to overcome.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.BENIGN_TRANSPOSITION,
+        {
+          description: [
+            "As a Bonus Action, teleport up to 30 feet to an unoccupied space you can see. Alternatively, choose a space in range occupied by a willing Medium or smaller creature and teleport to swap places.",
+            "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one; recover all uses after a <link:long-rest>Long Rest</link>."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CONJURATION_SAVANT, {
+        description: createSchoolSavantDescription("Conjuration"),
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        CLASS_FEATURE.DISTANT_TRANSPOSITION,
+        {
+          description: [
+            "Benign Transposition reaches 60 feet. You may also spend a level 3+ spell slot without an action to restore one use."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.DURABLE_SUMMONS, {
+        description: [
+          "When a Conjuration spell cast with a slot creates or summons a creature, it gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to twice your Wizard level on appearing. While those <link:Temporary Hit Points>Temporary Hit Points</link> remain, it resists all damage types except Force, Necrotic, Psychic, and Radiant."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_10,
+        CLASS_FEATURE.FOCUSED_CONJURATION,
+        {
+          description: [
+            "Damage cannot end your <link:Concentration>Concentration</link> on a Conjuration spell."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SPLINTERED_SUMMONS, {
+        description: [
+          "When you spend a slot to cast a Conjuration spell that summons a spirit with statistics in the spell description, such as <spell:Summon Aberration>Summon Aberration</spell>, you may summon two of the same kind instead. They follow the spell's statistics and rules, appear in different unoccupied spaces within range that you choose, and each has half the usual current and maximum Hit Points. Losing <link:Concentration>Concentration</link> dismisses both.",
+          "Recover this modification after a <link:long-rest>Long Rest</link>, or spend a level 5+ slot without an action to restore it."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
   }
 ];

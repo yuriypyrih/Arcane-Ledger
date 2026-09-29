@@ -1,3 +1,4 @@
+import { arcaneShotOptionsDescription } from "./fighterArcaneArcher";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type {
   FeatureMapEntry,
@@ -321,6 +322,76 @@ export const fighterSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.TELEKINETIC_MASTER, {
         description: [...psiWarriorTelekineticMasterDescription],
         trackingState: TRACKER.TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#fighter_xphb,state:sub_arcane%20archer_au=b1
+    id: "fighter-arcane-archer",
+    name: "Arcane Archer",
+    className: "Fighter",
+    tagline: "Infuse Ranged Attacks with Magic",
+    summary:
+      "Arcane Archers combine magical study with ranged weapon training. Their art began with elven archery and now enhances many kinds of ammunition and adventuring tools.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_ARCHER_LORE, {
+        description: [
+          "<strong>Cantrip.</strong> Learn <spell:Druidcraft>Druidcraft</spell> or <spell:Prestidigitation>Prestidigitation</spell>, using <link:Intelligence>Intelligence</link> for spellcasting.",
+          "<strong>Skills.</strong> Gain Arcana and Nature proficiency. For each one you already have, choose another skill available to a level-1 Fighter instead."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_SHOT, {
+        description: [
+          "<strong>Options Known.</strong> Learn two Arcane Shot options. Add another at Fighter levels 7, 10, 15, and 18. Whenever you learn a new option, you may also replace one known option with a different one.",
+          "<strong>Using a Shot.</strong> Once per turn, apply an option to a ranged attack with a weapon that has the Ammunition property. Choose when the attack hits and damages a creature, except for options that replace the attack roll.",
+          "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a Short or <link:long-rest>Long Rest</link>.",
+          "<strong>Arcane Shot Die.</strong> Start with a <strong>d6</strong>; use a <strong>d8</strong> at Fighter level 10, a <strong>d10</strong> at level 15, and a <strong>d12</strong> at level 18.",
+          "<strong>Saving Throw DC.</strong> 8 + your <link:Intelligence>Intelligence</link> modifier + your <link:Proficiency Bonus>Proficiency Bonus</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_SHOT_OPTIONS, {
+        description: arcaneShotOptionsDescription,
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.CURVING_SHOT, {
+        description: [
+          "Immediately after missing with a ranged attack roll using an Ammunition weapon, you may use a Bonus Action to attack a different creature you can see within the weapon's range and within 60 feet of the original target. Roll a new attack for the ricochet."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.MAGICAL_AMMUNITION, {
+        description: [
+          "Use a Magic action to enchant one piece of nonmagical ammunition and fire it at a visible solid surface within weapon range. It attaches where it hits and activates one effect below. A Magic action removes it and ends its effect early; it is destroyed when the effect ends.",
+          "Recover this use after a Short or <link:long-rest>Long Rest</link>, or spend a Second Wind use without an action to restore it.",
+          "<strong>Darkening Ammunition.</strong> For 1 minute, magical shadows fill a 15-foot <link:Emanation>Emanation</link> from the ammunition, extinguishing nonmagical flames. Creatures in it have −5 to <link:Wisdom>Wisdom</link> (Perception) checks and <link:Passive Perception>Passive Perception</link>.",
+          "<strong>Unlocking Ammunition.</strong> A magical burst affects a 15-foot <link:Emanation>Emanation</link>, with a knocking sound audible to 300 feet. Objects held shut by nonmagical locks, stuck, or barred become unlocked, unstuck, or unbarred. Only one lock on each object opens.",
+          "<strong>Vine Ammunition.</strong> A climbable vine grows 120 feet from the ammunition and withers after 10 minutes."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.EVER_READY_SHOT, {
+        description: [
+          "When rolling <link:Initiative>Initiative</link>, you may recover one spent Arcane Shot use."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_15,
+        CLASS_FEATURE.INDOMITABLE_TELEPORT,
+        {
+          description: [
+            "After using Indomitable and succeeding on the saving throw, you may teleport up to 60 feet to an unoccupied space you can see."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.MASTERFUL_SHOTS, {
+        description: [
+          "When a creature you can see misses you with an attack roll, use a Reaction to move up to half your Speed away from it without provoking Opportunity Attacks. As part of that Reaction, you may then make a ranged weapon attack roll against it if it is within range."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   }

@@ -22,6 +22,10 @@ management, and flexible enough for homebrew-heavy campaigns.
 - **Compendium browsing**: search and inspect spells, items, monsters, classes, species,
   backgrounds, rules, feats, divinities, and other reference material through reusable drawers and
   detail pages.
+- **AU and RHW feats**: 40 feats from Arcana Unleashed and Ravenloft: The Horrors Within
+  support references, prerequisites, and selection. Their 18 ability-score increases are tracked;
+  other benefits remain reference-only. Dark Gifts are Origin feats with a dedicated compendium
+  subset filter. The Ravenloft campaign prerequisite is informational.
 - **GM tools and prep tray**: build campaigns, organize party groups, prepare encounter templates,
   attach session notes, tune player visibility, and run live encounters with initiative and round
   tracking.

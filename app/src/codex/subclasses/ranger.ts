@@ -347,5 +347,63 @@ export const rangerSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.SEMI_TRACKED
       })
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#ranger_xphb,state:sub_hollow%20warden_rhw=b1
+    id: "ranger-hollow-warden",
+    name: "Hollow Warden",
+    className: "Ranger",
+    tagline: "Become an Ancient Wild Terror",
+    summary:
+      "Hollow Wardens draw strength from the horrors of ancient wilderness. They take monstrous forms to guard untamed coasts, mountains, and other wild places.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.HOLLOW_WARDEN_SPELLS,
+        {
+          description: [
+            "These spells are always prepared once you reach the listed Ranger level.",
+            "<strong>Level 3.</strong> <spell:Wrathful Smite>Wrathful Smite</spell>",
+            "<strong>Level 5.</strong> <spell:Alter Self>Alter Self</spell>",
+            "<strong>Level 9.</strong> <spell:Phantom Steed>Phantom Steed</spell>",
+            "<strong>Level 13.</strong> <spell:Dominate Beast>Dominate Beast</spell>",
+            "<strong>Level 17.</strong> <spell:Steel Wind Strike>Steel Wind Strike</spell>"
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WRATH_OF_THE_WILD, {
+        description: [
+          "As a Bonus Action, spend one Favored Enemy use to take on a monstrous form. The transformation lasts 1 minute, ending sooner if you become <link:Incapacitated>Incapacitated</link>, die, or dismiss it without an action. While transformed, gain these benefits.",
+          "<strong>Ancient Armor.</strong> Gain +1 to <link:Armor Class>Armor Class</link>, increasing to +2 at Ranger level 11.",
+          "<strong>Prowling Retribution.</strong> Immediately after a creature you can see within 5 feet damages you or an ally, you can make an Opportunity Attack against it.",
+          "<strong>Unnerving Aura.</strong> When you transform and at the start of each later turn, your chosen creatures within a 10-foot <link:Emanation>Emanation</link> make <link:Wisdom>Wisdom</link> saving throws against your spell save DC. A failure causes <link:Frightened>Frightened</link> until your next turn starts."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.HUNGERING_MIGHT, {
+        description: [
+          "Add your <link:Wisdom>Wisdom</link> modifier to <link:Constitution>Constitution</link> saving throws, with a minimum bonus of +1.",
+          "Once per turn while transformed with Wrath of the Wild, if you are Bloodied when you hit a creature with an attack roll, restore Hit Points equal to <strong>1d10</strong> plus your <link:Wisdom>Wisdom</link> modifier."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_11, CLASS_FEATURE.ROT_AND_VIOLENCE, {
+        description: [
+          "While Wrath of the Wild is active, gain these additional benefits.",
+          "<strong>Menacing Aura.</strong> A creature that fails its Unnerving Aura save also cannot regain Hit Points or take Reactions until your next turn starts.",
+          "<strong>Strangling Roots.</strong> When a weapon attack roll hits a creature, you may apply Sap or Slow alongside a different mastery property you are using with that weapon."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.ANCIENT_MIGHT, {
+        description: [
+          "<strong>Ominous Strikes.</strong> An attack roll that hits a <link:Frightened>Frightened</link> creature deals extra damage equal to your <link:Wisdom>Wisdom</link> modifier.",
+          "<strong>Persistent Wrath.</strong> While Wrath of the Wild is active, if you would fall to 0 Hit Points without dying outright, you may instead set your Hit Points to twice your Ranger level. Recover this use after a <link:long-rest>Long Rest</link>, or spend a level 4+ spell slot without an action to restore it.",
+          "<strong>Timeless.</strong> You are immune to <link:Exhaustion>Exhaustion</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
   }
 ];

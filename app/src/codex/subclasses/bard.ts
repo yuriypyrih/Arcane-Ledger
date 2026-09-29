@@ -286,5 +286,65 @@ export const bardSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.TRACKED
       })
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#bard_xphb,state:sub_spirits_rhw=b1
+    id: "bard-college-of-spirits",
+    name: "College of Spirits",
+    className: "Bard",
+    tagline: "Channel Restless Spirits",
+    summary:
+      "College of Spirits Bards invite the dead to lend their knowledge and power. These unpredictable allies can protect companions or bring misfortune to enemies.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CHANNELER, {
+        description: [
+          "<strong>Guiding Whispers.</strong> You learn <spell:Guidance>Guidance</spell> and can cast it with a range of 60 feet.",
+          "<strong>Spiritual Focus.</strong> You receive a Gaming Set (playing cards) and proficiency with it. For Bard spells, you can use those cards, an Arcane Focus (crystal or orb), a Candle, or an Ink Pen as your Spellcasting Focus."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPIRITS_FROM_BEYOND, {
+        description: [
+          "When you use a Bonus Action to give someone a Bardic Inspiration die, you can also channel a random spirit: roll your Bardic Inspiration die on the list below. A spirit stays channeled until you unleash it or finish a Short or <link:long-rest>Long Rest</link>.",
+          "<strong>Controlled Channeling.</strong> As a Bonus Action, spend a Bardic Inspiration use to choose a spirit instead of rolling. Its number cannot exceed the maximum roll of your Bardic Inspiration die.",
+          "<strong>Unleashing a Spirit.</strong> Take a Magic action and choose a creature you can see within 30 feet as the target of one channeled spirit. Use your Bard spell save DC for any saving throw.",
+          "<strong>1 — Beloved.</strong> Restore Hit Points to the target equal to one Bardic Inspiration die roll plus your <link:Charisma>Charisma</link> modifier.",
+          "<strong>2 — Sharpshooter.</strong> Deal Force damage to the target equal to one Bardic Inspiration die roll plus your <link:Charisma>Charisma</link> modifier.",
+          "<strong>3 — Avenger.</strong> Until your next turn ends, a creature that hits the target with a melee attack roll takes Force damage equal to one Bardic Inspiration die roll.",
+          "<strong>4 — Renegade.</strong> The target can immediately use its Reaction to teleport up to 30 feet to an unoccupied space it can see.",
+          "<strong>5 — Fortune Teller.</strong> Give the target <link:Advantage>Advantage</link> on D20 Tests until your next turn starts.",
+          "<strong>6 — Wayfarer.</strong> Give the target <link:Temporary Hit Points>Temporary Hit Points</link> equal to one Bardic Inspiration die roll plus your Bard level. Its Speed increases by 10 feet while any of these <link:Temporary Hit Points>Temporary Hit Points</link> remain.",
+          "<strong>7 — Trickster.</strong> The target makes a <link:Wisdom>Wisdom</link> saving throw. Failure: Psychic damage equal to two Bardic Inspiration die rolls and <link:Charmed>Charmed</link> until your next turn starts. Success: half damage, without the condition.",
+          "<strong>8 — Shade.</strong> The target becomes <link:Invisible>Invisible</link> until its next turn ends, or until it makes an attack roll, deals damage, or casts a spell. When this invisibility ends, every creature in a 5-foot <link:Emanation>Emanation</link> from the target makes a <link:Constitution>Constitution</link> saving throw, taking Necrotic damage equal to two Bardic Inspiration die rolls on a failure.",
+          "<strong>9 — Arsonist.</strong> The target makes a <link:Dexterity>Dexterity</link> saving throw. Deal Fire damage equal to four Bardic Inspiration die rolls on a failure, or half on a success.",
+          "<strong>10 — Coward.</strong> The target and your chosen creatures in a 30-foot <link:Emanation>Emanation</link> from it make <link:Wisdom>Wisdom</link> saving throws. A failure causes <link:Frightened>Frightened</link> until your next turn starts; while <link:Frightened>Frightened</link> this way, a creature has half Speed (round down) and can take an action or a Bonus Action, but not both.",
+          "<strong>11 — Brute.</strong> Your chosen creatures in a 30-foot <link:Emanation>Emanation</link> from the target make <link:Strength>Strength</link> saving throws. Failure: Thunder damage equal to three Bardic Inspiration die rolls and <link:Prone>Prone</link>. Success: half damage, without the condition.",
+          "<strong>12 — Priest.</strong> Restore Hit Points to the target equal to two Bardic Inspiration die rolls and end one condition you choose: <link:Blinded>Blinded</link>, <link:Charmed>Charmed</link>, <link:Deafened>Deafened</link>, <link:Paralyzed>Paralyzed</link>, <link:Poisoned>Poisoned</link>, or <link:Stunned>Stunned</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        CLASS_FEATURE.EMPOWERED_CHANNELING,
+        {
+          description: [
+            "<strong>Power from Beyond.</strong> Once per turn, when you spend a spell slot to cast a Bard spell that damages or heals, roll <strong>1d6</strong>. Add the result to one damage roll or to the total Hit Points restored by the spell.",
+            "<strong>Spiritual Manifestation.</strong> <spell:Spirit Guardians>Spirit Guardians</spell> is always prepared for you. You can cast it once without a slot, recovering this free casting after a <link:long-rest>Long Rest</link>.",
+            "When you cast Spirit Guardians, you can also give yourself and allies within its <link:Emanation>Emanation</link> Half Cover. Once you make this modification, you must finish a Short or <link:long-rest>Long Rest</link> before using it again."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
+        CLASS_FEATURE.MYSTICAL_CONNECTION,
+        {
+          description: [
+            "When rolling for Spirits from Beyond, roll twice and choose either result. If the rolls match, you may choose any outcome from the list instead."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      )
+    ]
   }
 ];

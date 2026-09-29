@@ -1,4 +1,5 @@
 import { epicBoonFeatDefinitions } from "./epicBoon";
+import { auFeatDefinitions } from "./au";
 import { fightingStyleFeatDefinitions } from "./fightingStyle";
 import {
   frhofEpicBoonFeatDefinitions,
@@ -7,6 +8,7 @@ import {
 } from "./frhof";
 import { generalFeatDefinitions } from "./general";
 import { originFeatDefinitions } from "./origin";
+import { rhwFeatDefinitions } from "./rhw";
 import type { FeatDefinition } from "../types";
 
 export const featDefinitions: FeatDefinition[] = [
@@ -16,5 +18,7 @@ export const featDefinitions: FeatDefinition[] = [
   ...frhofGeneralFeatDefinitions,
   ...fightingStyleFeatDefinitions,
   ...epicBoonFeatDefinitions,
-  ...frhofEpicBoonFeatDefinitions
+  ...frhofEpicBoonFeatDefinitions,
+  ...auFeatDefinitions,
+  ...rhwFeatDefinitions
 ];

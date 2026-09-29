@@ -1,3 +1,4 @@
+import type { FeatCategoryFilter } from "../CharactersPage/feats/filters";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -22,7 +23,6 @@ import {
 } from "../../utils/codex";
 import {
   ENTRY_CATEGORIES,
-  FEAT_CATEGORY,
   SPELL_LIST_CLASS,
   type MAGIC_SCHOOL,
   type SpellEntry
@@ -563,7 +563,7 @@ function CodexPage() {
     [searchParams, setSearchParams]
   );
   const handleFeatCategoryFilterChange = useCallback(
-    (value: FEAT_CATEGORY | null) => {
+    (value: FeatCategoryFilter | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, FEAT_CATEGORY_PARAM, value);
       clearSearchForSelectionChange(nextSearchParams);

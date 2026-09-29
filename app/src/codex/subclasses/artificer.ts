@@ -522,5 +522,103 @@ export const artificerSubclassEntries: SubclassEntry[] = [
         )
       )
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#artificer_efa,state:sub_reanimator_rhw=b1
+    id: "artificer-reanimator",
+    name: "Reanimator",
+    className: "Artificer",
+    tagline: "Reassemble Corpses and Raise the Dead",
+    summary:
+      "Reanimators combine necromancy with unsettling scientific experiments. They assemble servants from corpses and use their discoveries to manipulate life and death.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.REANIMATOR_SPELLS,
+        createDescription(
+          [
+            "The following spells are always prepared for you once you reach the indicated Artificer level.",
+            "<strong>Level 3.</strong> <spell:False Life>False Life</spell>, <spell:Spare the Dying>Spare the Dying</spell>, <spell:Witch Bolt>Witch Bolt</spell>",
+            "<strong>Level 5.</strong> <spell:Blindness/Deafness>Blindness/Deafness</spell>, <spell:Enhance Ability>Enhance Ability</spell>",
+            "<strong>Level 9.</strong> <spell:Animate Dead>Animate Dead</spell>, <spell:Lightning Bolt>Lightning Bolt</spell>",
+            "<strong>Level 13.</strong> <spell:Blight>Blight</spell>, <spell:Death Ward>Death Ward</spell>",
+            "<strong>Level 17.</strong> <spell:Antilife Shell>Antilife Shell</spell>, <spell:Raise Dead>Raise Dead</spell>"
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.REANIMATORS_SKILL_SET,
+        createDescription(
+          [
+            "<strong>Jolt to Life.</strong> When casting <spell:Spare the Dying>Spare the Dying</spell>, you can revive the target with electricity. It regains Hit Points equal to your Artificer level. Each creature you choose within a 10-foot Emanation from the target makes a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>2d4</strong> <link:Lightning>Lightning</link> damage on a failure or half as much on a success.",
+            "You can modify the spell this way a number of times equal to your <link:Intelligence>Intelligence</link> modifier. All uses return after a <link:long-rest>Long Rest</link>. The damage becomes <strong>3d4</strong> at Artificer level 11 and <strong>4d4</strong> at level 17.",
+            "<strong>Reanimator's Tools.</strong> You gain proficiency with Alchemist's Supplies. If already proficient, choose a different type of Artisan's Tools and gain proficiency with it."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.REANIMATED_COMPANION,
+        createDescription(
+          [
+            "Using Tinker's Tools or another type of Artisan's Tools with which you are proficient, take a Magic action to create a Reanimated Companion in an unoccupied space within 5 feet of you. You choose its appearance without changing its game statistics.",
+            "The companion obeys you and is Friendly toward you and your allies. It remains until you finish a <link:long-rest>Long Rest</link> or dismiss it with a Magic action; either ending leaves a harmless pile of viscera. If you die, it instead drops to 0 Hit Points and dies, triggering Death Burst.",
+            "After creating a companion, you must finish a Long Rest or expend a spell slot to create another. Only one can exist at a time, and you cannot create a companion while yours is present.",
+            "<strong>The Companion in Combat.</strong> The companion acts during your turn, moving and using its Reaction independently. It takes the Dodge action unless you spend a Bonus Action to command a different action. While you have the <link:Incapacitated>Incapacitated</link> condition, it acts independently and can choose actions other than Dodge."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_5,
+        CLASS_FEATURE.STRANGE_MODIFICATIONS,
+        createDescription(
+          [
+            "Choose one of the following modifications each time you create a Reanimated Companion.",
+            "<strong>Arcane Conduit.</strong> You can cast spells from the companion's space while using your own senses. Also, once per turn, if your companion is within 120 feet when you cast an Evocation or Necromancy Artificer spell and deal damage, add your <link:Intelligence>Intelligence</link> modifier to one damage roll of that spell.",
+            "<strong>Ferocity.</strong> The companion's Dreadful Swipe uses a <strong>1d6</strong> damage die."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_9,
+        CLASS_FEATURE.IMPROVED_REANIMATION,
+        createDescription(
+          [
+            "Your Reanimated Companion's Death Burst damage increases to <strong>4d4</strong>. The companion's <link:Necrotic>Necrotic</link> damage ignores <link:Resistance>Resistance</link>."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_9,
+        CLASS_FEATURE.MACABRE_MODIFICATIONS,
+        createDescription(
+          [
+            "Each new Reanimated Companion gains two Strange Modifications instead of one. The following options join the existing choices.",
+            "<strong>Bloated.</strong> The companion becomes Large. A Large or smaller creature hit by its Dreadful Swipe is pushed up to 10 feet away from it. Add your <link:Intelligence>Intelligence</link> modifier to the companion's Death Burst damage.",
+            "<strong>Gaunt.</strong> The companion's <link:Speed>Speed</link> becomes 45 feet, and it gains an equal Climb Speed. It can climb difficult surfaces and ceilings without an ability check. Any creature you choose that starts its turn within a 10-foot Emanation from the companion must make a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC. On a failure, it is <link:Frightened>Frightened</link> until the start of its next turn.",
+            "<strong>Moist.</strong> The companion gains a Swim Speed equal to its Speed and can pass through spaces as narrow as 1 inch without spending extra movement. When an attacker within 10 feet hits the companion with an attack roll, that attacker takes <link:Acid>Acid</link> damage equal to your Intelligence modifier."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_15,
+        CLASS_FEATURE.REFINED_REANIMATION,
+        createDescription(
+          [
+            "<strong>Facilitated Revival.</strong> You can cast <spell:Raise Dead>Raise Dead</spell> once without spending a spell slot or providing Material components. Use Tinker's Tools or another type of Artisan's Tools with which you are proficient as your Spellcasting Focus. You regain this use after a <link:long-rest>Long Rest</link>.",
+            "<strong>Life Transfer.</strong> When you or your Reanimated Companion takes damage, you can use a Reaction to regain Hit Points equal to the companion's current Hit Points. The companion then drops to 0 Hit Points and dies, triggering Death Burst.",
+            "<strong>Superior Modifications.</strong> Each new Reanimated Companion gains three Strange Modifications."
+          ],
+          TRACKER.NOT_TRACKED
+        )
+      )
+    ]
   }
 ];

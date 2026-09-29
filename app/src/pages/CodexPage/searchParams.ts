@@ -1,7 +1,6 @@
 import {
   BACKGROUND_SOURCE_VALUES,
   ENTRY_CATEGORIES,
-  FEAT_CATEGORY,
   MAGIC_SCHOOL,
   SPECIES_SOURCE_VALUES,
   SPELL_LIST_CLASS,
@@ -18,6 +17,10 @@ import {
   FEAT_SOURCE_VALUES,
   type FeatSource
 } from "../CharactersPage/feats/source";
+import {
+  FEAT_CATEGORY_FILTER_VALUES,
+  type FeatCategoryFilter
+} from "../CharactersPage/feats/filters";
 import {
   DEFAULT_ITEM_BROWSER_TAB,
   type ItemArmorType,
@@ -84,7 +87,7 @@ const ITEM_TABS = new Set<ItemBrowserTab>(["all", "weapons", "armor", "gear"]);
 const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
-const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
+const FEAT_CATEGORIES = new Set<FeatCategoryFilter>(FEAT_CATEGORY_FILTER_VALUES);
 const FEAT_SOURCES = new Set<FeatSource>(FEAT_SOURCE_VALUES);
 const BACKGROUND_SOURCES = new Set<BackgroundSource>(BACKGROUND_SOURCE_VALUES);
 const SPECIES_SOURCES = new Set<SpeciesSource>(SPECIES_SOURCE_VALUES);
@@ -112,7 +115,7 @@ export type ParsedCodexSearchState = {
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
   itemOrdering: ItemOrdering;
-  featCategoryFilter: FEAT_CATEGORY | null;
+  featCategoryFilter: FeatCategoryFilter | null;
   featSourceFilter: FeatSource | null;
   backgroundSourceFilter: BackgroundSource | null;
   speciesSourceFilter: SpeciesSource | null;

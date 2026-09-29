@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "../multiclass";
+import { getCharacterClasses, getCharacterLevel } from "../multiclass";
 import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../../types";
 import { getAbilityScoresForCharacter } from "../abilities";
 import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
@@ -13,7 +13,7 @@ import {
   getToolLevelFromEntries,
   getWeaponLevelFromEntries
 } from "../proficiency";
-import { isSpellcastingClass } from "../spellcasting";
+import { hasClassFeatureForCharacter, isSpellcastingClass } from "../spellcasting";
 
 export type FeatEligibilityResult = {
   isEligible: boolean;
@@ -212,12 +212,20 @@ function isFeatRequirementMet(
   }
 
   if (requirement.type === "spellcasting-or-pact-magic") {
-    return isSpellcastingClass(
-      character.className,
-      getCharacterLevel(character),
-      character.subclassId,
-      character.customClass,
-      character.classRules
+    return getCharacterClasses(character).some((entry) =>
+      isSpellcastingClass(
+        entry.className,
+        entry.level,
+        entry.subclassId,
+        entry.customClass,
+        entry.classRules
+      )
+    );
+  }
+
+  if (requirement.type === "class-feature") {
+    return getCharacterClasses(character).some((entry) =>
+      hasClassFeatureForCharacter(entry.className, entry.level, requirement.feature)
     );
   }
 
@@ -249,6 +257,10 @@ function formatFeatRequirementLabel(requirement: FeatRequirement): string {
 
   if (requirement.type === "feat") {
     return `${formatCodexLabel(requirement.feat)} feat`;
+  }
+
+  if (requirement.type === "class-feature") {
+    return `${formatCodexLabel(requirement.feature)} feature`;
   }
 
   return requirement.requirements.map(formatFeatRequirementLabel).join(" or ");

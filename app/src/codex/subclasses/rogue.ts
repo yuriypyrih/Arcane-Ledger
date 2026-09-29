@@ -307,5 +307,75 @@ export const rogueSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.TRACKED
       })
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#rogue_xphb,state:sub_phantom_rhw=b1
+    id: "rogue-phantom",
+    name: "Phantom",
+    className: "Rogue",
+    tagline: "Borrow Power from Departed Souls",
+    summary:
+      "Phantoms move between the worlds of the living and the dead. They gather knowledge from spirits, wield deathly energy, and pass through obstacles like ghosts.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.WAILS_FROM_THE_GRAVE,
+        {
+          description: [
+            "Immediately after dealing Sneak Attack damage on your turn, choose a second creature you can see within 30 feet of the first. Roll half your Sneak Attack dice, rounded up; the second creature takes that much Necrotic damage.",
+            "You have uses equal to your <link:Dexterity>Dexterity</link> modifier, with a minimum of one. Recover all uses after a <link:long-rest>Long Rest</link>."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.WHISPERS_OF_THE_DEAD,
+        {
+          description: [
+            "After finishing a Short or <link:long-rest>Long Rest</link>, choose a skill or tool proficiency you do not have and gain it. Choosing a different proficiency with this feature replaces the previous one."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_9,
+        CLASS_FEATURE.TOKENS_OF_THE_DEPARTED,
+        {
+          description: [
+            "Gain two soul trinkets. Each is a Tiny object whose appearance is chosen by the DM or rolled on the Trinkets table. A trinket more than 30 feet from you immediately teleports onto your person.",
+            "<strong>Death's Knell.</strong> When you deal Sneak Attack damage on your turn, destroy one trinket to immediately use Wails from the Grave without spending a use.",
+            "<strong>Life Essence.</strong> Having at least one soul trinket gives you <link:Advantage>Advantage</link> on Death Saving Throws and <link:Constitution>Constitution</link> saving throws.",
+            "<strong>Spirit Query.</strong> As a Magic action, destroy a trinket and cast <spell:Augury>Augury</spell> without components, using <link:Constitution>Constitution</link> for spellcasting. If you know the creature associated with the trinket, you may instead ask its spirit one question. It appears and answers concisely in a language it knew in life.",
+            "<strong>Gaining Trinkets.</strong> When a creature you can see within 30 feet dies, you may use a Reaction to create a trinket on your person from its spirit. Your maximum is two trinkets, increasing to three at Rogue level 13 and four at level 17. Creating one at your maximum destroys and replaces an existing trinket.",
+            "After a <link:long-rest>Long Rest</link>, if you have fewer than two soul trinkets, gain enough to bring your total to two."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_9, CLASS_FEATURE.VOICE_OF_DEATH, {
+        description: [
+          "Cast <spell:Speak with Dead>Speak with Dead</spell> once without a slot or components, using <link:Dexterity>Dexterity</link> for spellcasting. Recover this casting after a Short or <link:long-rest>Long Rest</link>.",
+          "When casting the spell, you may target a soul trinket instead of a corpse, speaking with the spirit associated with it."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_13, CLASS_FEATURE.GHOST_WALK, {
+        description: [
+          "Use a Bonus Action to become spectral for 10 minutes; you can end the form without an action. Recover the use after a <link:long-rest>Long Rest</link>, or destroy a soul trinket without an action to restore it.",
+          "<strong>Flight.</strong> Gain a Fly Speed of 10 feet and the ability to hover.",
+          "<strong>Hazy Form.</strong> Attack rolls against you have <link:Disadvantage>Disadvantage</link>.",
+          "<strong>Incorporeal Movement.</strong> Move through creatures and objects as Difficult Terrain. Ending your turn inside one deals <strong>1d10</strong> Force damage to you."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.DEATHS_FRIEND, {
+        description: [
+          "<strong>Death's Lament.</strong> Wails from the Grave can deal its Necrotic damage to both the original creature and the second target.",
+          "<strong>Draw of Death.</strong> When you roll <link:Initiative>Initiative</link> with no soul trinkets, gain one."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
   }
 ];

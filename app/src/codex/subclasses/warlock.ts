@@ -1,3 +1,7 @@
+import {
+  vestigeCompanionStatisticsDescription,
+  getVestigeDomainSpellDescriptions
+} from "./warlockVestige";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type {
   FeatureMapEntry,
@@ -276,6 +280,108 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "In addition, the first time each turn the Aberration hits a creature under the effect of your <spell:Hex>Hex</spell>, the Aberration deals extra <link:Psychic>Psychic</link> damage to the target equal to the bonus damage of that spell."
         ],
         trackingState: TRACKER.SEMI_TRACKED
+      })
+    ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#warlock_xphb,state:sub_undead_rhw=b1
+    id: "warlock-undead-patron",
+    name: "Undead Patron",
+    className: "Warlock",
+    tagline: "Draw Strength from Undeath",
+    summary:
+      "An Undead patron might be a lich, vampire, or another being that escaped mortality. It offers forbidden knowledge and power in exchange for service among the living.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.FORM_OF_DREAD, {
+        description: [
+          "Use a Bonus Action to transform for 1 minute. The form ends early if you become <link:Incapacitated>Incapacitated</link> or dismiss it without an action. You can transform a number of times equal to your <link:Charisma>Charisma</link> modifier, minimum one, recovering all uses after a <link:long-rest>Long Rest</link>.",
+          "<strong>Facsimile of Life.</strong> Gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d10</strong> plus your Warlock level.",
+          "<strong>Fearless Form.</strong> While transformed, you are immune to <link:Frightened>Frightened</link>. Becoming transformed also ends that condition on you.",
+          "<strong>Frightful Avatar.</strong> Once per turn when an attack roll hits a creature, you may require a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes it <link:Frightened>Frightened</link> until your next turn ends."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.UNDEAD_SPELLS, {
+        description: [
+          "These spells are always prepared once you reach the listed Warlock level.",
+          "<strong>Level 3.</strong> <spell:Bane>Bane</spell>, <spell:Blindness/Deafness>Blindness/Deafness</spell>, <spell:Phantasmal Force>Phantasmal Force</spell>, <spell:Ray of Sickness>Ray of Sickness</spell>",
+          "<strong>Level 5.</strong> <spell:Speak with Dead>Speak with Dead</spell>, <spell:Summon Undead>Summon Undead</spell>",
+          "<strong>Level 7.</strong> <spell:Greater Invisibility>Greater Invisibility</spell>, <spell:Phantasmal Killer>Phantasmal Killer</spell>",
+          "<strong>Level 9.</strong> <spell:Antilife Shell>Antilife Shell</spell>, <spell:Cloudkill>Cloudkill</spell>"
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.GRAVE_TOUCHED, {
+        description: [
+          "<strong>Arcane Necrosis.</strong> Your attacks, Warlock spells, and Warlock features ignore <link:Resistance>Resistance</link> to Necrotic damage. Once per turn when you cast a damaging spell, you may change its damage type to Necrotic.",
+          "<strong>Dreaded Necrosis.</strong> Once per turn while Form of Dread is active, when an attack roll hits a creature and deals Necrotic damage, roll one extra damage die for that Necrotic damage.",
+          "<strong>Undead Endurance.</strong> Dehydration, malnutrition, and suffocation cannot give you <link:Exhaustion>Exhaustion</link>. You do not need sleep and cannot be put to sleep by magic."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.NECROTIC_HUSK, {
+        description: [
+          "<strong>Necrotic Resilience.</strong> Gain <link:Resistance>Resistance</link> to Necrotic damage, improving to <link:Immunity>Immunity</link> while Form of Dread is active.",
+          "<strong>Unholy Resuscitation.</strong> If you fall to 0 Hit Points without dying outright, you may unleash an eruption. Your chosen creatures in a 30-foot <link:Emanation>Emanation</link> make <link:Constitution>Constitution</link> saving throws against your spell save DC. Deal Necrotic damage equal to <strong>2d10</strong> plus your <link:Charisma>Charisma</link> modifier on a failure, or half on a success. Then set your Hit Points to twice your Warlock level and gain one <link:Exhaustion>Exhaustion</link> level. Recover this benefit after a Short or <link:long-rest>Long Rest</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SUPERIOR_DREAD, {
+        description: [
+          "Form of Dread grants these additional benefits while active.",
+          "<strong>Dread Resistance.</strong> Gain <link:Resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage.",
+          "<strong>Ghostly Flight.</strong> Gain a Fly Speed equal to your Speed and the ability to hover. Treat creatures and objects as Difficult Terrain when passing through them; ending your turn inside one deals <strong>1d10</strong> Force damage to you.",
+          "<strong>Profane Casting.</strong> Your Conjuration and Necromancy Warlock spells need no Verbal or Somatic components, and no Material components unless they are costly or consumed."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#warlock_xphb,state:sub_vestige_au=b1
+    id: "warlock-vestige-patron",
+    name: "Vestige Patron",
+    className: "Warlock",
+    tagline: "Restore a Forgotten God",
+    summary:
+      "A Vestige patron is a fading god whose worshippers have abandoned it. It shares its remaining strength with a Warlock who can help it regain influence.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.VESTIGE_COMPANION, {
+        description: [
+          "Your patron manifests as a Small Vestige Companion. Choose Celestial, Fiend, or Undead when you gain this feature and give it a supernatural appearance of your choice. It is Friendly to you and your allies, follows your commands, and vanishes if you die.",
+          "<strong>Combat.</strong> The vestige acts during your turn and moves and uses Reactions independently. It Dodges unless you use a Bonus Action to command an action. You may also forgo one attack during your Attack action to command Vestige's Strike. While you are <link:Incapacitated>Incapacitated</link>, it acts independently and can choose actions other than Dodge.",
+          "<strong>Disappearance.</strong> At 0 Hit Points, the vestige disappears. Perform a 1-minute ceremony to bring it back at full Hit Points in an unoccupied space within 5 feet. A Magic action can dismiss it to a pocket dimension; another Magic action returns it to an unoccupied space within 30 feet. It leaves worn and carried objects behind when disappearing at 0 Hit Points or entering the pocket dimension.",
+          "<strong>New Form.</strong> After a <link:long-rest>Long Rest</link>, you may summon the vestige in a new form within 5 feet, choosing its appearance and creature type again. If already present, it changes form instead.",
+          ...vestigeCompanionStatisticsDescription
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.VESTIGE_SPELLS, {
+        description: [
+          "Choose the Life, Light, Trickery, or War Cleric domain. Its Domain Spells count as Warlock spells for you and become always prepared when your Warlock level reaches the corresponding Cleric level. The eligible spell lists are shown below.",
+          ...getVestigeDomainSpellDescriptions()
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.VESTIGE_POWER, {
+        description: [
+          "The companion recovers Divine Power when you finish a Short or <link:long-rest>Long Rest</link> or use Magical Cunning. While within 30 feet of it, you share its damage Resistances."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.VESTIGE_RECOVERY, {
+        description: [
+          "When your companion would fall to 0 Hit Points, you may use a Reaction and spend a Pact Magic slot to restore it to its Hit Point maximum instead. It then teleports to an unoccupied space you can see within 30 feet of itself. After using this feature, finish a <link:long-rest>Long Rest</link> before using it again."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SEMBLANCE_OF_LIFE, {
+        description: [
+          "As a Magic action while your companion is within 90 feet, transform it for 1 hour. A Celestial becomes the spirit from <spell:Summon Celestial>Summon Celestial</spell>, a Fiend uses <spell:Summon Fiend>Summon Fiend</spell>, and an Undead uses <spell:Summon Undead>Summon Undead</spell>. Use a spell level equal to half your Warlock level, rounded down, maximum 9.",
+          "Replace its statistics with that spirit form, but keep its personality, Divine Power Bonus Action, Hit Points, and Hit Dice. Give it <link:Temporary Hit Points>Temporary Hit Points</link> equal to the spirit form's Hit Points. These <link:Temporary Hit Points>Temporary Hit Points</link> vanish after 1 hour; losing all of them ends the transformation early.",
+          "Recover this feature after a <link:long-rest>Long Rest</link>."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   }

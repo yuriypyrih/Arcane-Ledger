@@ -354,5 +354,111 @@ export const clericSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.TRACKED
       })
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#cleric_xphb,state:sub_grave_rhw=b1
+    id: "cleric-grave-domain",
+    name: "Grave Domain",
+    className: "Cleric",
+    tagline: "Guard the Boundary of Life and Death",
+    summary:
+      "Grave Domain Clerics guide departed souls, oppose undeath, and delay death when their divine calling demands it.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GRAVE_DOMAIN_SPELLS, {
+        description: [
+          "These spells are always prepared once you reach the listed Cleric level.",
+          "<strong>Level 3.</strong> <spell:Detect Evil and Good>Detect Evil and Good</spell>, <spell:False Life>False Life</spell>, <spell:Gentle Repose>Gentle Repose</spell>, <spell:Ray of Enfeeblement>Ray of Enfeeblement</spell>, <spell:Spare the Dying>Spare the Dying</spell>",
+          "<strong>Level 5.</strong> <spell:Revivify>Revivify</spell>, <spell:Vampiric Touch>Vampiric Touch</spell>",
+          "<strong>Level 7.</strong> <spell:Blight>Blight</spell>, <spell:Death Ward>Death Ward</spell>",
+          "<strong>Level 9.</strong> <spell:Dispel Evil and Good>Dispel Evil and Good</spell>, <spell:Raise Dead>Raise Dead</spell>"
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CIRCLE_OF_MORTALITY, {
+        description: [
+          "<strong>Pull of Death.</strong> Once per turn, when a spell you cast or an attack roll you hit with damages a creature below its Hit Point maximum, deal an extra <strong>1d4</strong> Necrotic damage to it. This becomes <strong>1d6</strong> at Cleric level 11.",
+          "<strong>Return to Life.</strong> You can cast <spell:Spare the Dying>Spare the Dying</spell> as a Bonus Action. When a spell or Channel Divinity restores Hit Points to a creature at 0 Hit Points, use the maximum result for each healing die instead of rolling it."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PATH_TO_THE_GRAVE, {
+        description: [
+          "As a Bonus Action, present your Holy Symbol and spend one Channel Divinity use to curse a creature you can see within 30 feet. Until your next turn starts, it has <link:Disadvantage>Disadvantage</link> on attack rolls and saving throws.",
+          "When you or an ally you can see hits the cursed creature with an attack roll, you can end the curse without an action. That attack deals extra Necrotic or Radiant damage, your choice, equal to your Cleric level."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        CLASS_FEATURE.SENTINEL_AT_DEATHS_DOOR,
+        {
+          description: [
+            "When an attack roll hits you, or hits a Bloodied creature you can see within 60 feet, use a Reaction to halve the damage (round down). If the attack was a Critical Hit, cancel its critical-hit effects.",
+            "You have uses equal to your <link:Wisdom>Wisdom</link> modifier, with a minimum of one. Recover all uses after a <link:long-rest>Long Rest</link>."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.DIVINE_REAPER, {
+        description: [
+          "<strong>Enhanced Necromancy.</strong> When casting a Necromancy spell of level 5 or lower that targets one creature, or any spell from your Grave Domain Spells table, you can spend one Channel Divinity use to include a second creature within range. Supply any costly or consumed Material components separately for each target.",
+          "<strong>Keeper of Souls.</strong> When an enemy within 60 feet dies, restore Hit Points equal to twice your Cleric level to yourself or a creature you can see within 60 feet. You cannot use this while <link:Incapacitated>Incapacitated</link>. Recover the use after a Short or <link:long-rest>Long Rest</link>, or spend a level 6+ spell slot without an action to restore it."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#cleric_xphb,state:sub_arcana_au=b1
+    id: "cleric-arcana-domain",
+    name: "Arcana Domain",
+    className: "Cleric",
+    tagline: "Share the Gift of Divine Magic",
+    summary:
+      "Arcana Domain Clerics treat magical knowledge as a divine gift to be shared. Their gods reveal secrets that strengthen and reshape spellcasting.",
+    features: [
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
+        CLASS_FEATURE.ARCANA_DOMAIN_SPELLS,
+        {
+          description: [
+            "These spells are always prepared once you reach the listed Cleric level.",
+            "<strong>Level 3.</strong> <spell:Detect Magic>Detect Magic</spell>, <spell:Magic Missile>Magic Missile</spell>, <spell:Magic Weapon>Magic Weapon</spell>, <spell:Arcanist's Magic Aura>Nystul's Magic Aura</spell>",
+            "<strong>Level 5.</strong> <spell:Counterspell>Counterspell</spell>, <spell:Dispel Magic>Dispel Magic</spell>",
+            "<strong>Level 7.</strong> <spell:Arcane Eye>Arcane Eye</spell>, <spell:Secret Chest>Leomund's Secret Chest</spell>",
+            "<strong>Level 9.</strong> <spell:Bigby's Hand>Bigby's Hand</spell>, <spell:Teleportation Circle>Teleportation Circle</spell>"
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MODIFY_MAGIC, {
+        description: [
+          "When casting a spell, you may spend one Channel Divinity use to apply one of these modifications, requiring no action.",
+          "<strong>Fortifying Spell.</strong> Give one spell target <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>2d8</strong> plus your Cleric level.",
+          "<strong>Tenacious Spell.</strong> If a spell you cast requires a saving throw and a creature you can see succeeds, roll <strong>1d6</strong> and subtract it from that target's first saving throw against the spell."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STUDENT_OF_ARCANA, {
+        description: [
+          "<strong>Magical Knowledge.</strong> Gain proficiency in Arcana or another skill available to a level-1 Cleric.",
+          "<strong>Cantrips.</strong> Learn two Wizard cantrips of your choice. Each time you gain a Cleric level, you may replace one of them with another Wizard cantrip."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.DISPELLING_RECOVERY, {
+        description: [
+          "Immediately after spending a spell slot to cast a spell that restores Hit Points or ends a condition on a creature, you may cast <spell:Dispel Magic>Dispel Magic</spell> without a slot as part of the same action, Bonus Action, or Reaction.",
+          "After using this feature, finish a Short or <link:long-rest>Long Rest</link> to recover it. Alternatively, spend one Channel Divinity use to restore it without taking an action."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.MAGICAL_MASTERY, {
+        description: [
+          "Learn four Wizard spells: one each of levels 6, 7, 8, and 9. They are always prepared. Each time you gain a Cleric level, you may replace one with a Wizard spell of the same spell level."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
   }
 ];

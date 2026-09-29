@@ -30,6 +30,10 @@ import {
   FEAT_SOURCE_VALUES,
   type FeatSource
 } from "../../../pages/CharactersPage/feats/source";
+import {
+  FEAT_CATEGORY_FILTER_VALUES,
+  type FeatCategoryFilter
+} from "../../../pages/CharactersPage/feats/filters";
 import type {
   ItemArmorType,
   ItemAttackType,
@@ -67,7 +71,7 @@ type CodexFiltersProps = {
   itemSourceFilter: string | null;
   backgroundSourceFilter: BackgroundSource | null;
   speciesSourceFilter: SpeciesSource | null;
-  featCategoryFilter: FEAT_CATEGORY | null;
+  featCategoryFilter: FeatCategoryFilter | null;
   featSourceFilter: FeatSource | null;
   itemFilterOptions: ItemFilterOptions | null;
   onQueryChange: (value: string) => void;
@@ -90,7 +94,7 @@ type CodexFiltersProps = {
   onItemSourceFilterChange: (value: string | null) => void;
   onBackgroundSourceFilterChange: (value: BackgroundSource | null) => void;
   onSpeciesSourceFilterChange: (value: SpeciesSource | null) => void;
-  onFeatCategoryFilterChange: (value: FEAT_CATEGORY | null) => void;
+  onFeatCategoryFilterChange: (value: FeatCategoryFilter | null) => void;
   onFeatSourceFilterChange: (value: FeatSource | null) => void;
 };
 
@@ -128,12 +132,7 @@ function formatSpellLevelOptionLabel(level: number | null): string {
 
 const spellClassOptions = Object.values(SPELL_LIST_CLASS);
 const spellSchoolOptions = Object.values(MAGIC_SCHOOL);
-const featCategoryOptions = [
-  FEAT_CATEGORY.ORIGIN,
-  FEAT_CATEGORY.GENERAL,
-  FEAT_CATEGORY.FIGHTING_STYLE,
-  FEAT_CATEGORY.EPIC_BOON
-];
+const featCategoryOptions = FEAT_CATEGORY_FILTER_VALUES;
 
 const categoryIcons: Partial<Record<CodexFilterCategory, LucideIcon>> = {
   [ENTRY_CATEGORIES.BACKGROUNDS]: ScrollText,
@@ -145,7 +144,7 @@ const categoryIcons: Partial<Record<CodexFilterCategory, LucideIcon>> = {
   [ENTRY_CATEGORIES.SPELLS]: Sparkles
 };
 
-function formatFeatCategoryOptionLabel(category: FEAT_CATEGORY): string {
+function formatFeatCategoryOptionLabel(category: FeatCategoryFilter): string {
   return category === FEAT_CATEGORY.EPIC_BOON ? "Boon" : formatEnumLabel(category);
 }
 
@@ -381,7 +380,7 @@ function CodexFilters({
               value={featCategoryFilter ?? "ALL"}
               onChange={(event) =>
                 onFeatCategoryFilterChange(
-                  event.target.value === "ALL" ? null : (event.target.value as FEAT_CATEGORY)
+                  event.target.value === "ALL" ? null : (event.target.value as FeatCategoryFilter)
                 )
               }
             >

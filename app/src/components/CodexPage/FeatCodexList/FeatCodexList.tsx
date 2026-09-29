@@ -14,7 +14,6 @@ import {
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
   FEATS,
-  FEAT_CATEGORY,
   TRACKER,
   type DivinityEntry,
   type SpellEntry
@@ -25,6 +24,10 @@ import {
   getFeatSource
 } from "../../../pages/CharactersPage/feats";
 import type { FeatSource } from "../../../pages/CharactersPage/feats/source";
+import {
+  matchesFeatCategoryFilter,
+  type FeatCategoryFilter
+} from "../../../pages/CharactersPage/feats/filters";
 import {
   resolveKeywordReference,
   type ResolvedKeywordReference
@@ -39,7 +42,7 @@ type SelectedFeatReference = {
 
 type FeatCodexListProps = {
   query: string;
-  featCategoryFilter: FEAT_CATEGORY | null;
+  featCategoryFilter: FeatCategoryFilter | null;
   featSourceFilter: FeatSource | null;
 };
 
@@ -56,19 +59,12 @@ function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCode
   );
   const normalizedQuery = query.trim().toLowerCase();
   const visibleFeatDefinitions = useMemo(() => {
-    const filteredFeatDefinitions =
-      normalizedQuery.length === 0
-        ? featDefinitions.filter(
-            (definition) =>
-              (featCategoryFilter === null || definition.category === featCategoryFilter) &&
-              (featSourceFilter === null || getFeatSource(definition) === featSourceFilter)
-          )
-        : featDefinitions.filter(
-            (definition) =>
-              (featCategoryFilter === null || definition.category === featCategoryFilter) &&
-              (featSourceFilter === null || getFeatSource(definition) === featSourceFilter) &&
-              definition.label.toLowerCase().includes(normalizedQuery)
-          );
+    const filteredFeatDefinitions = featDefinitions.filter(
+      (definition) =>
+        matchesFeatCategoryFilter(definition, featCategoryFilter) &&
+        (featSourceFilter === null || getFeatSource(definition) === featSourceFilter) &&
+        definition.label.toLowerCase().includes(normalizedQuery)
+    );
 
     return [...filteredFeatDefinitions].sort((left, right) =>
       left.label.localeCompare(right.label)

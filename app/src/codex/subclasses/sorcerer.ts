@@ -354,5 +354,54 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
         trackingState: TRACKER.SEMI_TRACKED
       })
     ]
+  },
+  {
+    // RHW reference: https://5e.tools/classes.html#sorcerer_xphb,state:sub_shadow_rhw=b1
+    id: "sorcerer-shadow-sorcery",
+    name: "Shadow Sorcery",
+    className: "Sorcerer",
+    tagline: "Command Supernatural Darkness",
+    summary:
+      "Shadow Sorcerers inherit or acquire power from the Shadowfell and other places of supernatural darkness. Their magic binds shadow, misfortune, and undeath.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SHADOW_SPELLS, {
+        description: [
+          "These spells are always prepared once you reach the listed Sorcerer level.",
+          "<strong>Level 3.</strong> <spell:Bane>Bane</spell>, <spell:Darkness>Darkness</spell>, <spell:Inflict Wounds>Inflict Wounds</spell>, <spell:Pass Without Trace>Pass Without Trace</spell>",
+          "<strong>Level 5.</strong> <spell:Hunger of Hadar>Hunger of Hadar</spell>, <spell:Nondetection>Nondetection</spell>",
+          "<strong>Level 7.</strong> <spell:Greater Invisibility>Greater Invisibility</spell>, <spell:Phantasmal Killer>Phantasmal Killer</spell>",
+          "<strong>Level 9.</strong> <spell:Contagion>Contagion</spell>, <spell:Creation>Creation</spell>"
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.POWER_OF_SHADOW, {
+        description: [
+          "<strong>Eyes of the Dark.</strong> Gain <link:Darkvision>Darkvision</link> to 120 feet and <link:Blindsight>Blindsight</link> to 10 feet. You can see normally through Darkness created by your own spells.",
+          "<strong>Strength of the Grave.</strong> If you would fall to 0 Hit Points without dying outright, you can attempt a <link:Charisma>Charisma</link> saving throw with DC 5 plus the damage taken. On a success, your Hit Points instead become your Sorcerer level plus your <link:Charisma>Charisma</link> modifier. After succeeding, you must finish a <link:long-rest>Long Rest</link> before using this benefit again."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.BEASTS_OF_ILL_OMEN, {
+        description: [
+          "Spend 3 Sorcery Points to cast <spell:Summon Beast>Summon Beast</spell> as a Bonus Action without a slot, preparation, or Material components. It appears as a shadow beast. Enemies within 5 feet of it have <link:Disadvantage>Disadvantage</link> on saving throws against your spells.",
+          "Whenever you cast Summon Beast, you may remove its <link:Concentration>Concentration</link> requirement. Doing so changes its duration to 1 minute, and casting it again ends the earlier spell."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SHADOW_WALK, {
+        description: [
+          "While in Dim Light or Darkness, use a Bonus Action to teleport up to 120 feet to an unoccupied space you can see that is also in Dim Light or Darkness."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.UMBRAL_FORM, {
+        description: [
+          "When activating Innate Sorcery, you can also become shadowy. The form lasts while Innate Sorcery remains active, and you may end it without an action. Recover the use after a <link:long-rest>Long Rest</link>, or spend 6 Sorcery Points without an action to restore it.",
+          "<strong>Incorporeal Movement.</strong> Treat creatures and objects as Difficult Terrain when passing through them. Ending your turn inside one deals <strong>1d10</strong> Force damage to you.",
+          "<strong>Shadow Resilience.</strong> Gain <link:Resistance>Resistance</link> to every damage type except Force and Radiant."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      })
+    ]
   }
 ];

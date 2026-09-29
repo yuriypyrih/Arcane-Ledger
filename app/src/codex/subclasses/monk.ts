@@ -1,3 +1,4 @@
+import { mysticArtsSpellcastingDescription, mysticArtsFocusDescription } from "./monkMysticArts";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type {
   FeatureMapEntry,
@@ -233,6 +234,51 @@ export const monkSubclassEntries: SubclassEntry[] = [
         ],
         trackingState: TRACKER.TRACKED
       })
+    ]
+  },
+  {
+    // AU reference: https://5e.tools/classes.html#monk_xphb,state:sub_mystic%20arts_au=b1
+    id: "monk-warrior-of-the-mystic-arts",
+    name: "Warrior of the Mystic Arts",
+    className: "Monk",
+    tagline: "Unite Spellcraft and Martial Discipline",
+    summary:
+      "Warriors of the Mystic Arts combine spells with martial training, using disciplined focus to sustain both their magical and physical abilities.",
+    features: [
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPELLCASTING, {
+        description: mysticArtsSpellcastingDescription,
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        CLASS_FEATURE.MYSTIC_FIGHTING_STYLE,
+        {
+          description: [
+            "During your Attack action on your turn, you may replace one Unarmed Strike with a Sorcerer cantrip whose casting time is an action."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MYSTIC_FOCUS, {
+        description: mysticArtsFocusDescription,
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_11, CLASS_FEATURE.FOCUSED_STRIKE, {
+        description: [
+          "Using Stunning Strike gives the target <link:Disadvantage>Disadvantage</link> on saving throws against your spells until your next turn starts, whether it passes or fails the Stunning Strike save."
+        ],
+        trackingState: TRACKER.NOT_TRACKED
+      }),
+      createSubclassFeatureRow(
+        SUBCLASS_FEATURE_LEVELS.LEVEL_17,
+        CLASS_FEATURE.IMPROVED_MYSTIC_FIGHTING_STYLE,
+        {
+          description: [
+            "When using Flurry of Blows, you may replace two Unarmed Strikes with a level-1 or level-2 Sorcerer spell whose casting time is an action. Cast it as part of the same Bonus Action as Flurry of Blows."
+          ],
+          trackingState: TRACKER.NOT_TRACKED
+        }
+      )
     ]
   }
 ];

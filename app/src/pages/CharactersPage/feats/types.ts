@@ -7,7 +7,7 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../types";
-import type { FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries";
+import type { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries";
 import type { TOOL_PROFICIENCY } from "../../../types";
 import type { FeatSource } from "./source";
 
@@ -15,6 +15,7 @@ export type FeatDefinition = Omit<FeatureMapEntry, "trackingState" | "trackingMe
   feat: FEATS;
   label: string;
   category: FEAT_CATEGORY;
+  tags?: "dark-gift"[];
   source?: FeatSource;
   page?: number;
   prerequisite?: string;
@@ -70,6 +71,10 @@ export type FeatRequirement =
   | {
       type: "feat";
       feat: FEATS;
+    }
+  | {
+      type: "class-feature";
+      feature: CLASS_FEATURE;
     }
   | {
       type: "any";

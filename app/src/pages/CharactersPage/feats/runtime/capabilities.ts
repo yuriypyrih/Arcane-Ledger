@@ -445,5 +445,165 @@ export const featRuntimeCapabilityMatrix = {
   [FEATS.ZHENTARIM_TACTICS]: {
     feat: FEATS.ZHENTARIM_TACTICS,
     capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ABERRANT_ANATOMY]: {
+    feat: FEATS.ABERRANT_ANATOMY,
+    capabilities: []
+  },
+  [FEATS.ABJURATION_ADEPT]: {
+    feat: FEATS.ABJURATION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ARCANE_ARTIST]: {
+    feat: FEATS.ARCANE_ARTIST,
+    capabilities: []
+  },
+  [FEATS.ARCANE_ELOQUENCE]: {
+    feat: FEATS.ARCANE_ELOQUENCE,
+    capabilities: []
+  },
+  [FEATS.ARCANE_INFILTRATOR]: {
+    feat: FEATS.ARCANE_INFILTRATOR,
+    capabilities: []
+  },
+  [FEATS.ARCANE_OMENS]: {
+    feat: FEATS.ARCANE_OMENS,
+    capabilities: []
+  },
+  [FEATS.ARCANE_OVERLOAD]: {
+    feat: FEATS.ARCANE_OVERLOAD,
+    capabilities: []
+  },
+  [FEATS.ARCANE_SAFEGUARD]: {
+    feat: FEATS.ARCANE_SAFEGUARD,
+    capabilities: []
+  },
+  [FEATS.ARCANE_UNDERTAKER]: {
+    feat: FEATS.ARCANE_UNDERTAKER,
+    capabilities: []
+  },
+  [FEATS.ARCANE_WARRIOR]: {
+    feat: FEATS.ARCANE_WARRIOR,
+    capabilities: []
+  },
+  [FEATS.BOON_OF_ERUPTING_SPELLPOWER]: {
+    feat: FEATS.BOON_OF_ERUPTING_SPELLPOWER,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_MAGIC_SCHOOL_MASTERY]: {
+    feat: FEATS.BOON_OF_MAGIC_SCHOOL_MASTERY,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_THE_IRON_MIND]: {
+    feat: FEATS.BOON_OF_THE_IRON_MIND,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.CONJURATION_ADEPT]: {
+    feat: FEATS.CONJURATION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.DIVINATION_ADEPT]: {
+    feat: FEATS.DIVINATION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ECHOING_SOUL]: {
+    feat: FEATS.ECHOING_SOUL,
+    capabilities: []
+  },
+  [FEATS.ELEMENTAL_FAMILIAR]: {
+    feat: FEATS.ELEMENTAL_FAMILIAR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ENCHANTMENT_ADEPT]: {
+    feat: FEATS.ENCHANTMENT_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.EVOCATION_ADEPT]: {
+    feat: FEATS.EVOCATION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.FAMILIAR_FRIEND]: {
+    feat: FEATS.FAMILIAR_FRIEND,
+    capabilities: []
+  },
+  [FEATS.GATHERED_WHISPERS]: {
+    feat: FEATS.GATHERED_WHISPERS,
+    capabilities: []
+  },
+  [FEATS.ILLUSION_ADEPT]: {
+    feat: FEATS.ILLUSION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.LIVING_SHADOW]: {
+    feat: FEATS.LIVING_SHADOW,
+    capabilities: []
+  },
+  [FEATS.MAGIC_CONNOISSEUR]: {
+    feat: FEATS.MAGIC_CONNOISSEUR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.MIST_WALKER]: {
+    feat: FEATS.MIST_WALKER,
+    capabilities: []
+  },
+  [FEATS.NECROMANCY_ADEPT]: {
+    feat: FEATS.NECROMANCY_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.OTHERWORLDLY_FAMILIAR]: {
+    feat: FEATS.OTHERWORLDLY_FAMILIAR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.PORTAL_JUMPER]: {
+    feat: FEATS.PORTAL_JUMPER,
+    capabilities: []
+  },
+  [FEATS.SECOND_SKIN]: {
+    feat: FEATS.SECOND_SKIN,
+    capabilities: []
+  },
+  [FEATS.SHARP_EYE]: {
+    feat: FEATS.SHARP_EYE,
+    capabilities: []
+  },
+  [FEATS.SOOTHING_FAMILIAR]: {
+    feat: FEATS.SOOTHING_FAMILIAR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.SPELL_RESISTANT]: {
+    feat: FEATS.SPELL_RESISTANT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.SPELL_SUBTERFUGE]: {
+    feat: FEATS.SPELL_SUBTERFUGE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.SURVIVOR]: {
+    feat: FEATS.SURVIVOR,
+    capabilities: []
+  },
+  [FEATS.SYMBIOTIC_BEING]: {
+    feat: FEATS.SYMBIOTIC_BEING,
+    capabilities: []
+  },
+  [FEATS.TOUCH_OF_DEATH]: {
+    feat: FEATS.TOUCH_OF_DEATH,
+    capabilities: []
+  },
+  [FEATS.TRANSMUTATION_ADEPT]: {
+    feat: FEATS.TRANSMUTATION_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.TRANSMUTED_ANATOMY]: {
+    feat: FEATS.TRANSMUTED_ANATOMY,
+    capabilities: []
+  },
+  [FEATS.WARLIKE_FAMILIAR]: {
+    feat: FEATS.WARLIKE_FAMILIAR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.WATCHERS]: {
+    feat: FEATS.WATCHERS,
+    capabilities: []
   }
 } as const satisfies Record<FEATS, FeatRuntimeCapabilityDescriptor>;
