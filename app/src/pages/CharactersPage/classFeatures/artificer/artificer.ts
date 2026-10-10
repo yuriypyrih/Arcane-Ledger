@@ -8,6 +8,12 @@ import {
 } from "./subclasses/artificerReanimatorCompanion";
 export * from "./subclasses/artificerReanimatorSkillSet";
 export * from "./subclasses/artificerReanimatorCompanion";
+export * from "./subclasses/artificerReanimatorStatBlock";
+export * from "./subclasses/artificerReanimatorRefinedReanimation";
+import {
+  normalizeArtificerFacilitatedRevivalState,
+  restoreArtificerFacilitatedRevivalOnLongRest
+} from "./subclasses/artificerReanimatorRefinedReanimation";
 
 import { getClassLevel } from "../../multiclassState";
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
@@ -324,6 +330,7 @@ export function normalizeArtificerFeatureState(
   return {
     ...normalizeArtificerReanimatorSkillSetState(value, character),
     ...normalizeArtificerReanimatedCompanionState(value, character),
+    ...normalizeArtificerFacilitatedRevivalState(value, character),
     ...normalizeArtificerTinkersMagicState(value, character),
     ...normalizeArtificerFlashOfGeniusState(value, character),
     ...normalizeArtificerReplicateMagicItemPlanState(value, character),
@@ -419,6 +426,7 @@ export function applyLongRestToArtificerFeatures(character: Character): Characte
   let nextCharacter = restoreArtificerTinkersMagicOnLongRest(character);
   nextCharacter = restoreArtificerJoltToLifeOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerReanimatedCompanionOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerFacilitatedRevivalOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerEldritchCannonOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerFlashOfGeniusOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerMagicItemTinkerDrainOnLongRest(nextCharacter);

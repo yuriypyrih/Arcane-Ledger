@@ -74,17 +74,17 @@ function getPrimaryCommonActionPathState(
   return {
     id: "primary",
     economyType: action.economyType,
+    // Action restrictions disable execution without emptying the economy badge.
     shapeState:
       disabledReason === null
         ? shapeState
         : {
-            isAvailable: false,
-            multiCount: 0,
+            ...shapeState,
             isUsable: false,
             disabledReason
           },
-    additionalUseCount: disabledReason === null ? additionalUseCount : 0,
-    totalUseCount: disabledReason === null ? getTotalUseCount(shapeState, additionalUseCount) : 0,
+    additionalUseCount,
+    totalUseCount: getTotalUseCount(shapeState, additionalUseCount),
     disabledReason: disabledReason ?? shapeState.disabledReason
   };
 }
@@ -166,13 +166,12 @@ function getSecondaryCommonActionPathState(
       disabledReason === null
         ? shapeState
         : {
-            isAvailable: false,
-            multiCount: 0,
+            ...shapeState,
             isUsable: false,
             disabledReason
           },
-    additionalUseCount: disabledReason === null ? additionalUseCount : 0,
-    totalUseCount: disabledReason === null ? getTotalUseCount(shapeState, additionalUseCount) : 0,
+    additionalUseCount,
+    totalUseCount: getTotalUseCount(shapeState, additionalUseCount),
     disabledReason: disabledReason ?? shapeState.disabledReason
   };
 }

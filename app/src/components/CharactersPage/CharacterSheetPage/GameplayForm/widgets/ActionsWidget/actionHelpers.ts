@@ -7,6 +7,7 @@ import {
   getClassSubclassId,
   getClassLevel
 } from "../../../../../../pages/CharactersPage/multiclassState";
+import { getArtificerFacilitatedRevivalSpellEntry } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import type { Character, AbilityKey } from "../../../../../../types";
 import { type SpellEntry, type WeaponEntry } from "../../../../../../codex/entries";
 import { ACTION_TYPE, CLASS_FEATURE, SPELL_COMPONENT } from "../../../../../../codex/entries/enums";
@@ -195,6 +196,10 @@ export function getFixedSpellEntryForExecute(
 
   if (execute.effectKind === "shadow-arts-darkness") {
     return createShadowArtsDarknessSpellEntry(character, transformedSpell);
+  }
+
+  if (execute.effectKind === "facilitated-revival") {
+    return getArtificerFacilitatedRevivalSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "conjured-cauldron") {

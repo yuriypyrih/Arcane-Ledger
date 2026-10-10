@@ -293,6 +293,7 @@ export type CharacterArtificerFeatureState = {
   extraAttacksRemainingThisTurn?: number;
   reanimatorJoltToLifeUsesExpended?: number;
   reanimatorCompanionUsesExpended?: number;
+  facilitatedRevivalUsesExpended?: number;
   battleSmithArcaneJoltUsesExpended?: number;
   battleSmithArcaneJoltUsedThisTurn?: boolean;
   conjuredCauldronUsesExpended?: number;

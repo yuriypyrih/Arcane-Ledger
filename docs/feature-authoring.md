@@ -165,6 +165,29 @@ spell formulas, and reference text. Preserve lazy snapshots and full normalizati
 an equivalent targeted transition is demonstrated. Nothing in this pass adds an asynchronous load
 before casting, equipping, or sheet recalculation.
 
+## Embedded companion templates
+
+Reanimator's stat block lives in `codex/subclasses/artificerReanimatorCompanion.ts`.
+Its subclass runtime resolves Artificer level, Intelligence, total-level proficiency, and the
+shared spell attack/save modifiers before passing the block to `SummonDefinitionPanel`.
+The panel's optional `createDefaultMonster` creates a snapshot when the player opens a new
+definition. Normal stat-block replacement and edits remain available; creation preserves those
+edits. Resetting this embedded block calculates a fresh local copy without fetching a monster.
+The companion description copies the action's base text and sourced additions, including the
+full Strange Modifications text from Artificer level 5 and the unlocked Improved Reanimation,
+Macabre Modifications, and Refined Reanimation descriptions, as editable plain text. Modification
+choices remain descriptive; the player can edit the stat block to reflect their choices. New or
+reset default blocks use 4d4 Death Burst damage and ignore Necrotic Resistance at Artificer level 9.
+Previously saved blocks remain snapshots, preserving manual edits.
+
+Refined Reanimation grants Facilitated Revival through the fixed-spell action flow at level 15,
+including before Raise Dead becomes always prepared at level 17. This casting removes Material
+components, consumes its own persisted charge only when cast, and has an explicit Long Rest
+recovery option. Life Transfer uses the existing reaction drawer: select a living Reanimated
+Companion, heal from its current HP up to the character's effective maximum, and mark that
+companion dead at 0 HP. The companion remains listed, its own Death Burst text is shown for
+resolution, and a dead companion does not prevent creating a replacement.
+
 ## Verification when adding content
 
 Follow the test-scope agreement in [AGENTS.md](../AGENTS.md). Use the existing tests routinely;

@@ -24,7 +24,10 @@ import styles from "../ActionsWidget.module.css";
 import ExperimentalElixirActionFooter from "../forms/ExperimentalElixirActionFooter";
 import ArtificerEldritchCannonActionFooter from "../forms/ArtificerEldritchCannonActionFooter";
 import SummonDefinitionPanel from "../../../../SpellCastingForm/SummonDefinitionPanel";
-import { reanimatedCompanionDefinitionConfig } from "../../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import {
+  getArtificerReanimatedCompanionStatBlock,
+  reanimatedCompanionDefinitionConfig
+} from "../../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import ArtificerReanimatedCompanionActionFooter from "../forms/ArtificerReanimatedCompanionActionFooter";
 import ArtificerSteelDefenderActionFooter from "../forms/ArtificerSteelDefenderActionFooter";
 import ArtificerArcaneFirearmActionFooter from "../forms/ArtificerArcaneFirearmActionFooter";
@@ -422,12 +425,16 @@ export const artificerFormAdapters = {
         <SummonDefinitionPanel
           character={character}
           config={reanimatedCompanionDefinitionConfig}
+          createDefaultMonster={() => getArtificerReanimatedCompanionStatBlock(character)}
           definitions={selectedReanimatedCompanionDefinitions}
           disabled={selectedReanimatedCompanionDefinitions.length >= 1 || selectedAction.disabled}
           onDefinitionsChange={setSelectedReanimatedCompanionDefinitions}
           spell={{
             name: selectedAction.name,
-            description: selectedAction.drawer.description ?? []
+            description: [
+              ...(selectedAction.drawer.description ?? []),
+              ...(selectedAction.drawer.descriptionAdditions ?? []).flat()
+            ]
           }}
           sourceKind="feature"
         />

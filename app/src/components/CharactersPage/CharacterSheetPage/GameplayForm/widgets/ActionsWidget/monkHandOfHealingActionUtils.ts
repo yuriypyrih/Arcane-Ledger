@@ -60,18 +60,17 @@ function getPrimaryHandOfHealingActionPathState(
   return {
     id: "primary",
     economyType: action.economyType,
+    // Focus availability controls execution, not the action economy badge.
     shapeState:
       disabledReason === null
         ? shapeState
         : {
-            isAvailable: false,
-            multiCount: 0,
+            ...shapeState,
             isUsable: false,
             disabledReason
           },
-    additionalUseCount: disabledReason === null ? shapeState.multiCount : 0,
-    totalUseCount:
-      disabledReason === null ? getTotalUseCount(shapeState, shapeState.multiCount) : 0,
+    additionalUseCount: shapeState.multiCount,
+    totalUseCount: getTotalUseCount(shapeState, shapeState.multiCount),
     disabledReason
   };
 }

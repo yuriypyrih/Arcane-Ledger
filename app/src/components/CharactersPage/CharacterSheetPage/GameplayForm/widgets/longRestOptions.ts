@@ -86,6 +86,9 @@ import {
   getArtificerJoltToLifeUsesTotal,
   getArtificerJoltToLifeUsesRemaining,
   restoreArtificerJoltToLifeOnLongRest,
+  getArtificerFacilitatedRevivalUsesTotal,
+  getArtificerFacilitatedRevivalUsesRemaining,
+  restoreArtificerFacilitatedRevivalOnLongRest,
   getArtificerReanimatedCompanionUsesTotal,
   getArtificerReanimatedCompanionUsesRemaining,
   restoreArtificerReanimatedCompanionOnLongRest,
@@ -1385,6 +1388,23 @@ export function createLongRestOptions(character: Character): RestOption[] {
             apply: (currentCharacter: Character) =>
               restoreArtificerJoltToLifeOnLongRest(currentCharacter)
           } satisfies RestOption
+        ]
+      : []),
+    ...(getArtificerFacilitatedRevivalUsesTotal(character) > 0
+      ? [
+          {
+            id: "restore-artificer-facilitated-revival",
+            label: "Restore Facilitated Revival",
+            charges: {
+              current: getArtificerFacilitatedRevivalUsesRemaining(character),
+              total: getArtificerFacilitatedRevivalUsesTotal(character)
+            },
+            disabled:
+              getArtificerFacilitatedRevivalUsesRemaining(character) >=
+              getArtificerFacilitatedRevivalUsesTotal(character),
+            apply: (currentCharacter: Character) =>
+              restoreArtificerFacilitatedRevivalOnLongRest(currentCharacter)
+          }
         ]
       : []),
     ...(getArtificerReanimatedCompanionUsesTotal(character) > 0

@@ -7,6 +7,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { CHARACTER_COMPANION_LIMIT, normalizeCharacterCompanions } from "../../../companions";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
 import { normalizeSpellSlotsExpended } from "../../../spellSlots";
@@ -32,6 +33,16 @@ export const reanimatedCompanionDefinitionConfig: SpellSummonDefinitionConfig = 
   defaultType: "Undead",
   defaultDuration: { kind: STATUS_DURATION_KIND.LONG_REST }
 };
+
+export function getLivingArtificerReanimatedCompanions(
+  character: Partial<Pick<Character, "companions">>
+): CharacterCompanion[] {
+  return (character.companions ?? []).filter(
+    (companion) =>
+      companion.source === reanimatedCompanionName &&
+      (companion.currentHitPoints > 0 || (companion.deathSaves?.failures ?? 0) < 3)
+  );
+}
 
 export function normalizeArtificerReanimatedCompanionState(
   value: unknown,
@@ -75,9 +86,7 @@ export function getArtificerReanimatedCompanionAction(
   character: SubclassRuntimeCharacter
 ): FeatureActionCard | null {
   if (!hasArtificerReanimatorFeature(character)) return null;
-  const hasCompanion = (character.companions ?? []).some(
-    (companion) => companion.source === reanimatedCompanionName
-  );
+  const hasCompanion = getLivingArtificerReanimatedCompanions(character).length > 0;
   const usesRemaining = getArtificerReanimatedCompanionUsesRemaining(character);
   const slotTotals = getSheetSpellSlotTotals(character);
   const slotExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, slotTotals);
@@ -98,6 +107,19 @@ export function getArtificerReanimatedCompanionAction(
     character,
     CLASS_FEATURE.REANIMATED_COMPANION
   );
+  const descriptionAdditions = [
+    CLASS_FEATURE.STRANGE_MODIFICATIONS,
+    CLASS_FEATURE.IMPROVED_REANIMATION,
+    CLASS_FEATURE.MACABRE_MODIFICATIONS,
+    CLASS_FEATURE.REFINED_REANIMATION
+  ].flatMap((feature) => {
+    const entries = createFeatureSourcedDescriptionEntries(
+      character,
+      feature,
+      getFeatureDescriptionForCharacter(character, feature)
+    );
+    return entries.length ? [entries] : [];
+  });
   return {
     key: artificerReanimatedCompanionActionKey,
     name: reanimatedCompanionName,
@@ -125,10 +147,12 @@ export function getArtificerReanimatedCompanionAction(
     disabled: Boolean(disabledReason),
     disabledReason,
     description,
+    descriptionAdditions,
     drawer: {
       kind: "custom-form",
       eyebrow: "Reanimator",
       description,
+      descriptionAdditions,
       formKind: "artificer-reanimated-companion",
       blockedReason: disabledReason
     },

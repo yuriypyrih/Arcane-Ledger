@@ -41,6 +41,7 @@ export type SpellFormulaCell = {
   label: string;
   content: string;
   breakdown?: string;
+  saveDc?: number;
 };
 
 export type SpellAttackRollFormula = {
@@ -242,7 +243,8 @@ export function getSpellSaveFormulaCell(
   return {
     label: "Spell DC Formula",
     content: `${saveLabel} ${dc} = ${formulaCell.value}`,
-    breakdown: formulaCell.breakdown
+    breakdown: formulaCell.breakdown,
+    saveDc: dc
   };
 }
 

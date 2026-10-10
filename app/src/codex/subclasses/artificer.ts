@@ -9,13 +9,18 @@ const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_15: 15
 } as const;
 
+const reanimatorModificationsTrackingMessage =
+  "the options are only injected into the description of the companion. The user needs to manually edit the text and leave the desired option and then track it by themselves going forward";
+
 function createDescription(
   description: string[],
-  trackingState: TRACKER = TRACKER.NOT_TRACKED
+  trackingState: TRACKER = TRACKER.NOT_TRACKED,
+  trackingMessage?: string
 ): FeatureMapEntry {
   return {
     description,
-    trackingState
+    trackingState,
+    ...(trackingMessage ? { trackingMessage } : {})
   };
 }
 
@@ -563,7 +568,8 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "<strong>Arcane Conduit.</strong> You can cast spells from the companion's space while using your own senses. Also, once per turn, if your companion is within 120 feet when you cast an Evocation or Necromancy Artificer spell and deal damage, add your <link:Intelligence>Intelligence</link> modifier to one damage roll of that spell.",
             "<strong>Ferocity.</strong> The companion's Dreadful Swipe uses a <strong>1d6</strong> damage die."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.SEMI_TRACKED,
+          reanimatorModificationsTrackingMessage
         )
       ),
       createSubclassFeatureRow(
@@ -573,7 +579,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
           [
             "Your Reanimated Companion's Death Burst damage increases to <strong>4d4</strong>. The companion's <link:Necrotic>Necrotic</link> damage ignores <link:Resistance>Resistance</link>."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.TRACKED
         )
       ),
       createSubclassFeatureRow(
@@ -586,7 +592,8 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "<strong>Gaunt.</strong> The companion's <link:Speed>Speed</link> becomes 45 feet, and it gains an equal Climb Speed. It can climb difficult surfaces and ceilings without an ability check. Any creature you choose that starts its turn within a 10-foot Emanation from the companion must make a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC. On a failure, it is <link:Frightened>Frightened</link> until the start of its next turn.",
             "<strong>Moist.</strong> The companion gains a Swim Speed equal to its Speed and can pass through spaces as narrow as 1 inch without spending extra movement. When an attacker within 10 feet hits the companion with an attack roll, that attacker takes <link:Acid>Acid</link> damage equal to your Intelligence modifier."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.SEMI_TRACKED,
+          reanimatorModificationsTrackingMessage
         )
       ),
       createSubclassFeatureRow(
@@ -598,7 +605,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "<strong>Life Transfer.</strong> When you or your Reanimated Companion takes damage, you can use a Reaction to regain Hit Points equal to the companion's current Hit Points. The companion then drops to 0 Hit Points and dies, triggering Death Burst.",
             "<strong>Superior Modifications.</strong> Each new Reanimated Companion gains three Strange Modifications."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.TRACKED
         )
       )
     ]

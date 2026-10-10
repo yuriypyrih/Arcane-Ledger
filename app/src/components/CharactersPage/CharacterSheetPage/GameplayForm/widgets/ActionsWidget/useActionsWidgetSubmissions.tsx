@@ -29,6 +29,7 @@ import {
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
   consumeArtificerConjuredCauldronUseForCharacter,
+  consumeArtificerFacilitatedRevivalUseForCharacter,
   consumeArtificerIlluminatedCartographyUseForCharacter,
   consumeArtificerRestorativeReagentsUseForCharacter,
   consumeArtificerUnerringPathUseForCharacter,
@@ -863,6 +864,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacter = consumeArtificerIlluminatedCartographyUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "unerring-path") {
         nextCharacter = consumeArtificerUnerringPathUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "facilitated-revival") {
+        nextCharacter = consumeArtificerFacilitatedRevivalUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "conjured-cauldron") {
         nextCharacter = consumeArtificerConjuredCauldronUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "genie-magic") {

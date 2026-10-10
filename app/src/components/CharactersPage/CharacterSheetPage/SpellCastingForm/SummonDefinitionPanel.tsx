@@ -1,10 +1,11 @@
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { SpellEntry } from "../../../../codex/entries";
-import type { Character, CharacterCompanion } from "../../../../types";
+import type { Character, CharacterCompanion, MonsterRecord } from "../../../../types";
 import { getCompanionStatusLabel } from "../../../../pages/CharactersPage/companions";
 import type { SpellSummonDefinitionConfig } from "../../../../pages/CharactersPage/spellSummons";
 import { flattenSpellDescriptionLines } from "../../../../utils/codex/spellDescription";
+import { getMonsterHitPoints, getMonsterTypeName } from "../../../../utils/monsters";
 import ActionButton from "../../../ActionButton";
 import CreatureEditorModal from "../CompanionsSection/CreatureEditorModal";
 import CreatureCard from "../CompanionsSection/CreatureCard";
@@ -19,6 +20,7 @@ import styles from "./CharacterSpellDrawer.module.css";
 type SummonDefinitionPanelProps = {
   character: Character;
   config: SpellSummonDefinitionConfig;
+  createDefaultMonster?: () => MonsterRecord;
   definitions: CharacterCompanion[];
   disabled?: boolean;
   disabledReason?: string | null;
@@ -30,7 +32,8 @@ type SummonDefinitionPanelProps = {
 function createSummonInitialDraft(
   spellName: string,
   spellDescription: SpellEntry["description"],
-  config: SpellSummonDefinitionConfig
+  config: SpellSummonDefinitionConfig,
+  monster?: MonsterRecord
 ): CompanionDraft {
   const durationDraft = config.defaultDuration
     ? getManualStatusDurationDraft(config.defaultDuration)
@@ -44,17 +47,27 @@ function createSummonInitialDraft(
     : {};
 
   return createEmptyCompanionDraft({
-    description: flattenSpellDescriptionLines(spellDescription).join("\n\n"),
+    description: flattenSpellDescriptionLines(spellDescription)
+      .map((line) => line.replace(/<\/?(?:link|spell)(?::[^>]+)?>/g, ""))
+      .join("\n\n"),
     ...durationDefaults,
     separateInitiative: config.defaultSeparateInitiative === true,
     source: spellName,
-    type: config.defaultType ?? ""
+    type: config.defaultType ?? (monster ? getMonsterTypeName(monster) : null) ?? "",
+    ...(monster
+      ? {
+          name: monster.name,
+          maxHitPoints: String(Math.max(1, getMonsterHitPoints(monster) ?? 1)),
+          inheritedCreatureEntry: monster
+        }
+      : {})
   });
 }
 
 function SummonDefinitionPanel({
   character,
   config,
+  createDefaultMonster,
   definitions,
   disabled = false,
   disabledReason = null,
@@ -63,16 +76,24 @@ function SummonDefinitionPanel({
   sourceKind = "spell"
 }: SummonDefinitionPanelProps) {
   const [editingDefinitionIndex, setEditingDefinitionIndex] = useState<number | "new" | null>(null);
-  const initialDraft = useMemo(
-    () => createSummonInitialDraft(spell.name, spell.description, config),
-    [config, spell.description, spell.name]
-  );
+  const [initialDraft, setInitialDraft] = useState<CompanionDraft>();
   const activeDefinition =
     typeof editingDefinitionIndex === "number"
       ? (definitions[editingDefinitionIndex] ?? null)
       : null;
   const buttonLabel =
-    definitions.length > 0 ? "Add additional summon" : "Choose an eligible stat block yourself";
+    definitions.length > 0
+      ? "Add additional summon"
+      : createDefaultMonster
+        ? `Define ${spell.name}`
+        : "Choose an eligible stat block yourself";
+
+  function handleAddDefinition() {
+    setInitialDraft(
+      createSummonInitialDraft(spell.name, spell.description, config, createDefaultMonster?.())
+    );
+    setEditingDefinitionIndex("new");
+  }
 
   function handleSaveDefinition(nextDefinition: CharacterCompanion) {
     if (typeof editingDefinitionIndex === "number") {
@@ -120,7 +141,7 @@ function SummonDefinitionPanel({
           icon={<Search size={16} aria-hidden="true" />}
           disabled={disabled}
           title={disabledReason ?? undefined}
-          onClick={() => setEditingDefinitionIndex("new")}
+          onClick={handleAddDefinition}
         >
           {buttonLabel}
         </ActionButton>

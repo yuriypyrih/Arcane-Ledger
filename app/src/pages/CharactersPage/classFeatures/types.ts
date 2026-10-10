@@ -228,6 +228,7 @@ export type FeatureActionSpellEffectKind =
   | "ascendant-step"
   | "armor-of-shadows"
   | "conjured-cauldron"
+  | "facilitated-revival"
   | "contact-patron"
   | "divine-intervention"
   | "faithful-steed"

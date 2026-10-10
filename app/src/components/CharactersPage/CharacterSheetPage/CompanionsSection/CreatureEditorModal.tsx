@@ -33,6 +33,8 @@ import {
   isBeastMasterCharacter
 } from "../../../../pages/CharactersPage/beastMasterCompanions";
 import { createCharacterCompanionId } from "../../../../pages/CharactersPage/companions";
+import { reanimatedCompanionMonsterKey } from "../../../../codex/subclasses/artificerReanimatorCompanion";
+import { getArtificerReanimatedCompanionStatBlock } from "../../../../pages/CharactersPage/classFeatures/artificer/subclasses/artificerReanimatorStatBlock";
 import {
   getPrimalBeastKindFromKey,
   getPrimalBeastTemplateByKey,
@@ -630,7 +632,17 @@ function CreatureEditorModal({
       return;
     }
 
-    if (!isOnline) {
+    if (key === reanimatedCompanionMonsterKey && !character) {
+      setMonsterNotice("Open the companion's character sheet to reset its calculated stat block.");
+      return;
+    }
+
+    const embeddedMonster =
+      key === reanimatedCompanionMonsterKey && character
+        ? getArtificerReanimatedCompanionStatBlock(character)
+        : null;
+
+    if (!embeddedMonster && !isOnline) {
       setMonsterNotice("Server Unavailable");
       return;
     }
@@ -639,7 +651,7 @@ function CreatureEditorModal({
     setMonsterNotice(null);
 
     try {
-      const monster = await fetchMonsterByKey(key);
+      const monster = embeddedMonster ?? (await fetchMonsterByKey(key));
 
       setDraft((currentDraft) => ({
         ...currentDraft,

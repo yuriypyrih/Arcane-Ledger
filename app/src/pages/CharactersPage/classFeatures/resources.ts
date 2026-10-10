@@ -8,6 +8,7 @@ import {
   artificerArmorerPerfectedArmorGuardianReactionEntryId,
   consumeArtificerArmorerPerfectedArmorGuardianUse,
   consumeArtificerConjuredCauldronUse,
+  consumeArtificerFacilitatedRevivalUse,
   consumeArtificerFlashOfGeniusUse,
   consumeArtificerIlluminatedCartographyUse,
   consumeArtificerUnerringPathUse,
@@ -326,6 +327,10 @@ export function consumeArtificerIlluminatedCartographyUseForCharacter(
 
 export function consumeArtificerUnerringPathUseForCharacter(character: Character): Character {
   return consumeArtificerUnerringPathUse(character);
+}
+
+export function consumeArtificerFacilitatedRevivalUseForCharacter(character: Character): Character {
+  return consumeArtificerFacilitatedRevivalUse(character);
 }
 
 export function consumeArtificerConjuredCauldronUseForCharacter(character: Character): Character {

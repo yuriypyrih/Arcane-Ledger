@@ -1,3 +1,7 @@
+import {
+  artificerLifeTransferReactionEntryId,
+  getArtificerLifeTransferCompanions
+} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { useEffect, useMemo, useState } from "react";
 import {
   getSpellEntries,
@@ -139,6 +143,7 @@ export function useReactionDrawerState({
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
   const [selectedEldritchCannonCompanionId, setSelectedEldritchCannonCompanionId] = useState("");
+  const [selectedLifeTransferCompanionId, setSelectedLifeTransferCompanionId] = useState("");
   const selectedReactionEntryId = selectedReactionEntry?.id ?? null;
   const isSpellThiefReactionSelected =
     selectedReactionEntryId === rogueArcaneTricksterSpellThiefReactionId;
@@ -365,6 +370,7 @@ export function useReactionDrawerState({
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
     setSelectedEldritchCannonCompanionId("");
+    setSelectedLifeTransferCompanionId("");
     setSelectedStatusEntryId(null);
   }
 
@@ -417,6 +423,7 @@ export function useReactionDrawerState({
         selectedBranchesOfTheTreeDcFormulaFact,
         selectedCosmicOmenSelection,
         selectedEldritchCannonCompanionId,
+        selectedLifeTransferCompanionId,
         selectedRangerHunterSuperiorHuntersDefenseDamageType,
         selectedReactionEntry,
         selectedSongOfDefenseDamageReduction,
@@ -424,6 +431,7 @@ export function useReactionDrawerState({
         selectedSpellThiefSpell,
         selectedSpellThiefSpellId,
         setSelectedEldritchCannonCompanionId,
+        setSelectedLifeTransferCompanionId,
         setSelectedSongOfDefenseSpellSlotLevel,
         setSelectedSpellThiefSpellId,
         setSpellThiefSearchQuery,
@@ -522,6 +530,15 @@ export function useReactionDrawerState({
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
   }, [isSpellThiefReactionSelected]);
+  useEffect(() => {
+    const companions =
+      selectedReactionEntryId === artificerLifeTransferReactionEntryId
+        ? getArtificerLifeTransferCompanions(character)
+        : [];
+    if (!companions.some((companion) => companion.id === selectedLifeTransferCompanionId)) {
+      setSelectedLifeTransferCompanionId(companions[0]?.id ?? "");
+    }
+  }, [character, selectedReactionEntryId, selectedLifeTransferCompanionId]);
   useEffect(() => {
     if (!isEldritchCannonDetonateReactionSelected) {
       setSelectedEldritchCannonCompanionId("");
@@ -832,6 +849,7 @@ export function useReactionDrawerState({
     selectedReactionDescriptor?.footerActionName && reactionDescriptorContext ? (
       <ReactionRollFooter
         actionName={selectedReactionDescriptor.footerActionName}
+        reactionAvailable={selectedReactionShapeAvailable}
         disabled={selectedReactionActionWarning !== null}
         onTakeReaction={takeReactionWithRoll}
       />

@@ -1,3 +1,4 @@
+import { artificerLifeTransferReaction } from "./artificerLifeTransferReaction";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
@@ -167,6 +168,7 @@ export type ReactionDescriptorContext = {
   selectedBranchesOfTheTreeDcFormulaFact: FeatureActionFact | null;
   selectedCosmicOmenSelection: DruidCosmicOmenSelection;
   selectedEldritchCannonCompanionId: string;
+  selectedLifeTransferCompanionId: string;
   selectedRangerHunterSuperiorHuntersDefenseDamageType: string | null;
   selectedReactionEntry: ReactionEntry;
   selectedSongOfDefenseDamageReduction: number;
@@ -174,6 +176,7 @@ export type ReactionDescriptorContext = {
   selectedSpellThiefSpell: SpellEntry | null;
   selectedSpellThiefSpellId: string;
   setSelectedEldritchCannonCompanionId: Dispatch<SetStateAction<string>>;
+  setSelectedLifeTransferCompanionId: Dispatch<SetStateAction<string>>;
   setSelectedSongOfDefenseSpellSlotLevel: Dispatch<SetStateAction<number>>;
   setSelectedSpellThiefSpellId: Dispatch<SetStateAction<string>>;
   setSpellThiefSearchQuery: Dispatch<SetStateAction<string>>;
@@ -740,6 +743,7 @@ const descriptors: ReactionDescriptor[] = [
     apply: consumeArtificerArmorerPerfectedArmorGuardianUseForCharacter,
     skipReactionWhenUnchanged: true
   },
+  artificerLifeTransferReaction,
   {
     id: artificerExplosiveCannonDetonateReactionEntryId,
     getSelectionWarning: (context) => {

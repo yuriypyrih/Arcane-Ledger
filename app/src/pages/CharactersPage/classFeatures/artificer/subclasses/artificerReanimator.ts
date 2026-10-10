@@ -16,6 +16,11 @@ import {
   transformArtificerReanimatorSpellEntry
 } from "./artificerReanimatorSkillSet";
 
+import {
+  getArtificerFacilitatedRevivalAction,
+  getArtificerLifeTransferReactionEntries
+} from "./artificerReanimatorRefinedReanimation";
+
 export { reanimatorSubclassId } from "./artificerReanimatorSkillSet";
 
 const reanimatorSpellIdsByLevel = {
@@ -31,6 +36,7 @@ export function collectArtificerReanimatorContributions(
 ): FeatureContributionSpec[] {
   if (!hasArtificerReanimatorFeature(character)) return [];
   const companionAction = getArtificerReanimatedCompanionAction(character);
+  const revivalAction = getArtificerFacilitatedRevivalAction(character);
   return [
     {
       source: createSubclassContributionSource({
@@ -64,6 +70,15 @@ export function collectArtificerReanimatorContributions(
         entryId: CLASS_FEATURE.REANIMATED_COMPANION
       }),
       actions: companionAction ? [companionAction] : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${reanimatorSubclassId}-refined-reanimation`,
+        label: "Refined Reanimation",
+        entryId: CLASS_FEATURE.REFINED_REANIMATION
+      }),
+      actions: revivalAction ? [revivalAction] : [],
+      reactions: getArtificerLifeTransferReactionEntries(character)
     }
   ];
 }

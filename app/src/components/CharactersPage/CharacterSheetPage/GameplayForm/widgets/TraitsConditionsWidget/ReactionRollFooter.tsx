@@ -6,11 +6,17 @@ import styles from "./ReactionRollFooter.module.css";
 
 type ReactionRollFooterProps = {
   actionName: string;
+  reactionAvailable: boolean;
   disabled: boolean;
   onTakeReaction: () => void;
 };
 
-function ReactionRollFooter({ actionName, disabled, onTakeReaction }: ReactionRollFooterProps) {
+function ReactionRollFooter({
+  actionName,
+  reactionAvailable,
+  disabled,
+  onTakeReaction
+}: ReactionRollFooterProps) {
   return (
     <div className={styles.footerActions}>
       <ActionButton
@@ -21,7 +27,7 @@ function ReactionRollFooter({ actionName, disabled, onTakeReaction }: ReactionRo
         trailingBadge={
           <ActionShape
             shape="reaction"
-            isSelected={!disabled}
+            isSelected={reactionAvailable}
             className={styles.actionShape}
             aria-label="Reaction action state"
           />

@@ -43,7 +43,7 @@ export default function ArtificerReanimatedCompanionActionFooter({
   const warning =
     disabledReason ??
     (!definition?.inheritedCreatureEntry
-      ? "Choose a stat block before creating your companion."
+      ? "Define your companion before creating it."
       : requiresSlot && !selectedSlot
         ? "No spell slots available."
         : null);
