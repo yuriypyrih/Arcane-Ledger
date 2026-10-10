@@ -291,6 +291,8 @@ export type ArtificerArmorerArmorModel = "dreadnaught" | "guardian" | "infiltrat
 
 export type CharacterArtificerFeatureState = {
   extraAttacksRemainingThisTurn?: number;
+  reanimatorJoltToLifeUsesExpended?: number;
+  reanimatorCompanionUsesExpended?: number;
   battleSmithArcaneJoltUsesExpended?: number;
   battleSmithArcaneJoltUsedThisTurn?: boolean;
   conjuredCauldronUsesExpended?: number;

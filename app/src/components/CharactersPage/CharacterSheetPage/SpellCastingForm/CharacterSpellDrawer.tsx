@@ -17,6 +17,7 @@ import SegmentedChoiceControl, {
 } from "../../../SegmentedChoiceControl";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
+import { useReanimatorSpellOption } from "./useReanimatorSpellOption";
 import SummonDefinitionPanel from "./SummonDefinitionPanel";
 import {
   KeywordTooltip,
@@ -101,6 +102,7 @@ export type CharacterSpellDrawerActionOptions = {
   useTamedSurge?: boolean;
   useTelekineticMaster?: boolean;
   useRadiantSoul?: boolean;
+  useJoltToLife?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
   useGoliathAncestry?: boolean;
@@ -507,13 +509,12 @@ function CharacterSpellDrawer({
       }),
     [activeSpellImplementationOptionValues, spellImplementationCastOptions]
   );
-  const allActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(() => {
-    if (spellImplementationActionOptions.length === 0) {
-      return actionOptions;
-    }
-
-    return [...spellImplementationActionOptions, ...actionOptions];
-  }, [actionOptions, spellImplementationActionOptions]);
+  const reanimatorOption = useReanimatorSpellOption(character, spell, mode === "standard");
+  const allActionOptions: CharacterSpellDrawerActionOption[] = [
+    ...spellImplementationActionOptions,
+    ...actionOptions,
+    ...(reanimatorOption ? [reanimatorOption] : [])
+  ];
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const isQuickRitualSelected = allActionOptions.some(
     (option) => option.id === "quick-ritual" && option.checked
@@ -635,6 +636,7 @@ function CharacterSpellDrawer({
     useTelekineticMaster: allActionOptions.some(
       (option) => option.id === "telekinetic-master" && option.checked
     ),
+    useJoltToLife: reanimatorOption?.checked === true,
     useRadiantSoul: allActionOptions.some(
       (option) => option.id === "radiant-soul" && option.checked
     ),

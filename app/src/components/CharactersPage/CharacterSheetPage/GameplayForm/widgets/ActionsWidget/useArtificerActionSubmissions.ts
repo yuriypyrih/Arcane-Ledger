@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { captureAppError } from "../../../../../../lib/sentry";
-import type { Character, ItemRecord } from "../../../../../../types";
+import type { Character, CharacterCompanion, ItemRecord } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import {
@@ -13,6 +13,8 @@ import {
   artificerEldritchCannonActionKey,
   artificerExperimentalElixirActionKey,
   artificerReplicateMagicItemActionKey,
+  artificerReanimatedCompanionActionKey,
+  createArtificerReanimatedCompanionForCharacter,
   artificerSteelDefenderActionKey,
   artificerTinkersMagicActionKey,
   artificerTransmuteMagicItemActionKey,
@@ -65,6 +67,7 @@ export function useArtificerActionSubmissions({
   const [isReplicateMagicItemSubmitting, setIsReplicateMagicItemSubmitting] = useState(false);
   const [isArcaneFirearmSubmitting, setIsArcaneFirearmSubmitting] = useState(false);
   const [isEldritchCannonSubmitting, setIsEldritchCannonSubmitting] = useState(false);
+  const [isReanimatedCompanionSubmitting, setIsReanimatedCompanionSubmitting] = useState(false);
   const [isSteelDefenderSubmitting, setIsSteelDefenderSubmitting] = useState(false);
   const [isExperimentalElixirSubmitting, setIsExperimentalElixirSubmitting] = useState(false);
   const [isArtificerMagicItemTinkerSubmitting, setIsArtificerMagicItemTinkerSubmitting] =
@@ -272,6 +275,37 @@ export function useArtificerActionSubmissions({
     }
   }
 
+  async function submitArtificerReanimatedCompanion(
+    definition: CharacterCompanion,
+    spellSlotLevel: number | null
+  ) {
+    if (
+      !isSelectedFeatureAction(
+        selectedAction,
+        selectedFeatureAction,
+        artificerReanimatedCompanionActionKey
+      )
+    )
+      return;
+    setIsReanimatedCompanionSubmitting(true);
+    try {
+      const didApply = applySelectedFeatureAction((preparedCharacter) =>
+        createArtificerReanimatedCompanionForCharacter(
+          preparedCharacter,
+          definition,
+          spellSlotLevel
+        )
+      );
+      if (!didApply) throw new Error("Reanimated Companion could not be created.");
+      closeActionDrawer();
+    } catch (error) {
+      captureAppError(error, { area: "gameplay-actions", action: "reanimated-companion" });
+      throw error;
+    } finally {
+      setIsReanimatedCompanionSubmitting(false);
+    }
+  }
+
   async function submitArtificerSteelDefender(spellSlotLevel: number | null) {
     if (
       !isSelectedFeatureAction(
@@ -465,6 +499,7 @@ export function useArtificerActionSubmissions({
     isEldritchCannonSubmitting,
     isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
+    isReanimatedCompanionSubmitting,
     isSteelDefenderSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerArcaneFirearm,
@@ -473,6 +508,7 @@ export function useArtificerActionSubmissions({
     submitArtificerEldritchCannon,
     submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
+    submitArtificerReanimatedCompanion,
     submitArtificerSteelDefender,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem

@@ -83,6 +83,12 @@ import {
   restoreArtificerEldritchCannonOnLongRest,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
+  getArtificerJoltToLifeUsesTotal,
+  getArtificerJoltToLifeUsesRemaining,
+  restoreArtificerJoltToLifeOnLongRest,
+  getArtificerReanimatedCompanionUsesTotal,
+  getArtificerReanimatedCompanionUsesRemaining,
+  restoreArtificerReanimatedCompanionOnLongRest,
   restoreArtificerArcaneJoltOnLongRest,
   restoreArtificerIlluminatedCartographyOnLongRest,
   restoreArtificerRestorativeReagentsOnLongRest,
@@ -1361,6 +1367,40 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerFlashOfGeniusUsesRemaining >= artificerFlashOfGeniusUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerFlashOfGeniusOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(getArtificerJoltToLifeUsesTotal(character) > 0
+      ? [
+          {
+            id: "restore-artificer-jolt-to-life",
+            label: "Restore Jolt to Life",
+            charges: {
+              current: getArtificerJoltToLifeUsesRemaining(character),
+              total: getArtificerJoltToLifeUsesTotal(character)
+            },
+            disabled:
+              getArtificerJoltToLifeUsesRemaining(character) >=
+              getArtificerJoltToLifeUsesTotal(character),
+            apply: (currentCharacter: Character) =>
+              restoreArtificerJoltToLifeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(getArtificerReanimatedCompanionUsesTotal(character) > 0
+      ? [
+          {
+            id: "restore-artificer-reanimated-companion",
+            label: "Restore Reanimated Companion",
+            charges: {
+              current: getArtificerReanimatedCompanionUsesRemaining(character),
+              total: getArtificerReanimatedCompanionUsesTotal(character)
+            },
+            disabled:
+              getArtificerReanimatedCompanionUsesRemaining(character) >=
+              getArtificerReanimatedCompanionUsesTotal(character),
+            apply: (currentCharacter: Character) =>
+              restoreArtificerReanimatedCompanionOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

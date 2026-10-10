@@ -25,11 +25,11 @@ function capturePreferencesSyncError(error: unknown, action: string) {
 }
 
 function PreferencesSyncBootstrap() {
-  const { status, user } = useAppSelector((state) => state.auth);
+  const { status, user, sessionVerified } = useAppSelector((state) => state.auth);
   const userId = user?.id ?? null;
 
   useEffect(() => {
-    if (status !== "authenticated" || !userId) {
+    if (status !== "authenticated" || !userId || !sessionVerified) {
       configureRemotePreferencesSave(null);
       return undefined;
     }
@@ -64,7 +64,7 @@ function PreferencesSyncBootstrap() {
       abortController.abort();
       configureRemotePreferencesSave(null);
     };
-  }, [status, userId]);
+  }, [status, userId, sessionVerified]);
 
   return null;
 }

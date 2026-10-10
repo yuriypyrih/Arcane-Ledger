@@ -23,6 +23,7 @@ export type CastSelectedSpellOptions = {
   useTamedSurge?: boolean;
   useTelekineticMaster?: boolean;
   useRadiantSoul?: boolean;
+  useJoltToLife?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
   useGenasiLineage?: boolean;

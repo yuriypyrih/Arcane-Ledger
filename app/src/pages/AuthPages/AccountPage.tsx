@@ -51,6 +51,8 @@ function AccountPage() {
 
     try {
       await logout({ suppressFailureToast: true });
+    } catch {
+      // Local logout remains authoritative when the server cannot clear its cookie.
     } finally {
       clearLocalAuthSession();
       setLoggingOut(false);

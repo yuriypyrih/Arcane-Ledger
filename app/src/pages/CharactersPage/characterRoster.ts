@@ -16,6 +16,7 @@ export type CharacterRosterEntry = {
   id: number;
   background: string;
   className: string;
+  primaryClassName?: string;
   clientId?: string;
   hasLocalSheet: boolean;
   level: number;
@@ -136,6 +137,7 @@ function createRosterEntryFromPortableSheet(record: PortableCharacterSheet): Cha
     id: record.summary.localId,
     background: normalizeString(record.summary.background, "Unknown"),
     className: normalizeString(record.summary.className, "Unknown"),
+    primaryClassName: record.progression.className,
     ...(sync?.clientId ? { clientId: sync.clientId } : {}),
     hasLocalSheet: true,
     level: readPositiveInteger(record.summary.level) ?? 1,
@@ -204,6 +206,7 @@ function createRosterEntryFromCloudDocument(
     id: localId,
     background: normalizeString(document.summary.background, "Unknown"),
     className: normalizeString(document.summary.className, "Unknown"),
+    primaryClassName: document.primaryClassName,
     clientId: document.clientId,
     hasLocalSheet: Boolean(matchingLocalEntry),
     level: readPositiveInteger(document.summary.level) ?? 1,

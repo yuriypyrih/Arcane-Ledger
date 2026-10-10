@@ -7,6 +7,7 @@ import { handleExpiredAuthSession } from "../auth/authSessionLifecycle";
 export type ApiRequestOptions = {
   signal?: AbortSignal;
   suppressFailureToast?: boolean;
+  handleAuthSessionFailure?: boolean;
 };
 
 export type ApiErrorBody = {
@@ -146,18 +147,55 @@ async function readApiError(response: Response): Promise<ApiErrorBody | null> {
   }
 }
 
+async function waitForSessionVerification(signal?: AbortSignal) {
+  const initialAuth = store.getState().auth;
+  if (initialAuth.status !== "authenticated" || initialAuth.sessionVerified) return;
+
+  // On an online reload, let the initial session check finish before page loaders run.
+  // Otherwise they would fail immediately and could stay empty despite a valid session.
+  await new Promise<void>((resolve, reject) => {
+    function finish(error?: Error) {
+      unsubscribe();
+      signal?.removeEventListener("abort", handleAbort);
+      if (error) reject(error);
+      else resolve();
+    }
+    function handleAbort() {
+      finish(new DOMException("Request aborted.", "AbortError"));
+    }
+    function checkSession() {
+      const auth = store.getState().auth;
+      if (signal?.aborted || auth.user?.id !== initialAuth.user?.id) {
+        handleAbort();
+      } else if (auth.sessionVerified || !auth.loading) {
+        finish();
+      }
+    }
+    const unsubscribe = store.subscribe(checkSession);
+    signal?.addEventListener("abort", handleAbort, { once: true });
+    checkSession();
+  });
+}
+
 async function apiRequest<T>(
   path: string,
   requestInit: RequestInit,
   options?: ApiRequestOptions
 ): Promise<T> {
   const apiBaseUrl = getApiBaseUrl();
+  const normalizedPath = path.replace(/^\//, "");
+  const isSessionRequest = ["auth/me", "auth/login", "auth/logout"].includes(normalizedPath);
 
   if (!apiBaseUrl || isBrowserOffline()) {
     throw new ApiOfflineError();
   }
 
-  const normalizedPath = path.replace(/^\//, "");
+  if (!isSessionRequest) await waitForSessionVerification(options?.signal);
+  const auth = store.getState().auth;
+  if (auth.status === "authenticated" && !auth.sessionVerified && !isSessionRequest) {
+    throw new ApiOfflineError();
+  }
+
   const requestUrl = new URL(normalizedPath, apiBaseUrl).toString();
 
   let response: Response;
@@ -189,7 +227,7 @@ async function apiRequest<T>(
     const errorMessage =
       apiError?.error?.message ?? `API request failed with status ${response.status}`;
 
-    if (shouldHandleAuthSessionFailure(errorCode)) {
+    if (options?.handleAuthSessionFailure !== false && shouldHandleAuthSessionFailure(errorCode)) {
       handleExpiredAuthSession();
     } else {
       notifyApiRequestFailed(options);

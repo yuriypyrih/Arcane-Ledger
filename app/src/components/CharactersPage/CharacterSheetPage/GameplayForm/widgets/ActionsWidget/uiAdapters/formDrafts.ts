@@ -17,6 +17,7 @@ const formDrafts = {
     selectedExperimentalElixirSpellSlotLevel: null
   }),
   "artificer-eldritch-cannon": () => ({ selectedArtificerEldritchCannonSpellSlotLevel: null }),
+  "artificer-reanimated-companion": () => ({ selectedReanimatedCompanionDefinitions: [] }),
   "artificer-steel-defender": () => ({ selectedArtificerSteelDefenderSpellSlotLevel: null }),
   "wild-resurgence": () => ({
     selectedWildResurgenceMode: null,
@@ -48,6 +49,7 @@ export function createActionFormDraftState() {
     ...formDrafts["artificer-experimental-elixir"](),
     ...formDrafts["artificer-eldritch-cannon"](),
     ...formDrafts["artificer-steel-defender"](),
+    ...formDrafts["artificer-reanimated-companion"](),
     ...formDrafts["wild-resurgence"](),
     ...formDrafts["nature-magician"](),
     ...formDrafts["lay-on-hands"](),

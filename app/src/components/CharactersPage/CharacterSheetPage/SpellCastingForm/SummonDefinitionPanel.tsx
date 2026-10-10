@@ -23,7 +23,8 @@ type SummonDefinitionPanelProps = {
   disabled?: boolean;
   disabledReason?: string | null;
   onDefinitionsChange: (definitions: CharacterCompanion[]) => void;
-  spell: SpellEntry;
+  spell: Pick<SpellEntry, "name" | "description">;
+  sourceKind?: "spell" | "feature";
 };
 
 function createSummonInitialDraft(
@@ -58,11 +59,10 @@ function SummonDefinitionPanel({
   disabled = false,
   disabledReason = null,
   onDefinitionsChange,
-  spell
+  spell,
+  sourceKind = "spell"
 }: SummonDefinitionPanelProps) {
-  const [editingDefinitionIndex, setEditingDefinitionIndex] = useState<number | "new" | null>(
-    null
-  );
+  const [editingDefinitionIndex, setEditingDefinitionIndex] = useState<number | "new" | null>(null);
   const initialDraft = useMemo(
     () => createSummonInitialDraft(spell.name, spell.description, config),
     [config, spell.description, spell.name]
@@ -145,7 +145,8 @@ function SummonDefinitionPanel({
             deleteConfirmLabel: "Delete",
             deleteMessage: (currentSummon) => (
               <>
-                This will remove <strong>{currentSummon.name}</strong> from this spell cast.
+                This will remove <strong>{currentSummon.name}</strong> from this{" "}
+                {sourceKind === "spell" ? "spell cast" : "action"}.
               </>
             ),
             deleteTitle: "Delete summon?",
@@ -154,7 +155,10 @@ function SummonDefinitionPanel({
             noStatBlockText: "No stat block selected.",
             previewBadgeLabel: "Monster Preview",
             saveButton: "Update Summon",
-            summary: "Define the companion this spell will create when cast.",
+            summary:
+              sourceKind === "spell"
+                ? "Define the companion this spell will create when cast."
+                : "Define the companion this action will create.",
             useMonsterButton: "Use Monster"
           }}
           onClose={() => setEditingDefinitionIndex(null)}

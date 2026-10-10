@@ -168,6 +168,7 @@ export type FeatureActionFormKind =
   | "artificer-drain-magic-item"
   | "artificer-eldritch-cannon"
   | "artificer-experimental-elixir"
+  | "artificer-reanimated-companion"
   | "artificer-steel-defender"
   | "artificer-transmute-magic-item"
   | "arcane-recovery"

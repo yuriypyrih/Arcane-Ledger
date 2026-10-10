@@ -2,6 +2,7 @@ export { useAppDispatch, useAppSelector } from "./hooks";
 export { store, type AppDispatch, type RootState } from "./store";
 export {
   clearAuthSession,
+  restoreOfflineAuthUser,
   setAuthError,
   setAuthenticatedUser,
   setAuthLoading,

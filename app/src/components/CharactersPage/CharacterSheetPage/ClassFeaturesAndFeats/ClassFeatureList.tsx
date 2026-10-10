@@ -596,7 +596,8 @@ function ClassFeatureList({
             isArtificerReplicateMagicItemPlanSelectionInputRequired();
           const isArtificerToolsOfTheTradeSelectionRequired =
             isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE &&
+            (featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE ||
+              featureRow.feature === CLASS_FEATURE.REANIMATORS_SKILL_SET) &&
             character.className === "Artificer" &&
             isArtificerToolsOfTheTradeInputRequired();
           const isInputRequired =

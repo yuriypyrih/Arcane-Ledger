@@ -33,6 +33,7 @@ type CharacterSheetCloudDocument = {
   localId?: number;
   schemaVersion: 2 | 3;
   revision: number;
+  primaryClassName?: string;
   summary: CharacterSheetDocument["summary"];
   sheet: Record<string, unknown>;
   avatar: CharacterAvatarResponse | null;
@@ -92,6 +93,14 @@ function getDocumentId(document: Pick<CharacterSheetCloudSource, "_id" | "id">) 
   return document.id ?? document._id?.toString() ?? "";
 }
 
+function getPrimaryClassName(sheet: unknown): string | undefined {
+  if (!sheet || typeof sheet !== "object" || !("progression" in sheet)) return undefined;
+  const progression = sheet.progression;
+  if (!progression || typeof progression !== "object" || !("className" in progression))
+    return undefined;
+  return typeof progression.className === "string" ? progression.className : undefined;
+}
+
 export function toCloudRecord(document: CharacterSheetCloudSource): CharacterSheetCloudDocument {
   return {
     id: getDocumentId(document),
@@ -100,6 +109,7 @@ export function toCloudRecord(document: CharacterSheetCloudSource): CharacterShe
     ...(document.localId ? { localId: document.localId } : {}),
     schemaVersion: document.schemaVersion,
     revision: document.revision,
+    primaryClassName: getPrimaryClassName(document.sheet),
     summary: document.summary,
     sheet: document.sheet,
     avatar: toAvatarResponse(document.avatar),
@@ -119,6 +129,7 @@ export function toCloudRosterRecord(
     ...(document.localId ? { localId: document.localId } : {}),
     schemaVersion: document.schemaVersion,
     revision: document.revision,
+    primaryClassName: getPrimaryClassName(document.sheet),
     summary: document.summary,
     avatar: toAvatarResponse(document.avatar),
     backgroundTexture: toBackgroundTextureResponse(document.backgroundTexture),

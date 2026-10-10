@@ -1,3 +1,7 @@
+import {
+  consumeArtificerJoltToLifeUse,
+  spareTheDyingSpellId
+} from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../types";
@@ -362,6 +366,8 @@ export function castSelectedSpellWithContext(
   }
 
   if (spellLevel === 0) {
+    const useJoltToLife =
+      options?.useJoltToLife === true && selectedSpell.id === spareTheDyingSpellId;
     if (roundTrackerResource) {
       onPersistCharacter((currentCharacter) => {
         if (!canAddSelectedSummonCompanions(currentCharacter)) {
@@ -379,8 +385,13 @@ export function castSelectedSpellWithContext(
         const nextCharacterWithSpellOptions = useBlessingOfMoonlight
           ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
           : nextCharacterWithBeguilingMagic;
+        const nextCharacterWithJoltToLife = useJoltToLife
+          ? consumeArtificerJoltToLifeUse(nextCharacterWithSpellOptions)
+          : nextCharacterWithSpellOptions;
+        if (useJoltToLife && nextCharacterWithJoltToLife === nextCharacterWithSpellOptions)
+          return currentCharacter;
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithSpellOptions,
+          character: nextCharacterWithJoltToLife,
           spell: selectedSpell,
           spellSlotLevel: null,
           sourceSpellSlotLevel: null,
@@ -450,8 +461,13 @@ export function castSelectedSpellWithContext(
         const nextCharacterWithSpellOptions = useBlessingOfMoonlight
           ? consumeBlessingOfMoonlightUseForCharacter(nextCharacter)
           : nextCharacter;
+        const nextCharacterWithJoltToLife = useJoltToLife
+          ? consumeArtificerJoltToLifeUse(nextCharacterWithSpellOptions)
+          : nextCharacterWithSpellOptions;
+        if (useJoltToLife && nextCharacterWithJoltToLife === nextCharacterWithSpellOptions)
+          return currentCharacter;
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithSpellOptions,
+          character: nextCharacterWithJoltToLife,
           spell: selectedSpell,
           spellSlotLevel: null,
           sourceSpellSlotLevel: null,

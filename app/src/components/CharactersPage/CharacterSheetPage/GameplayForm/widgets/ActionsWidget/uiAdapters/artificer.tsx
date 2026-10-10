@@ -23,6 +23,9 @@ import ActionButton from "../../../../../../ActionButton";
 import styles from "../ActionsWidget.module.css";
 import ExperimentalElixirActionFooter from "../forms/ExperimentalElixirActionFooter";
 import ArtificerEldritchCannonActionFooter from "../forms/ArtificerEldritchCannonActionFooter";
+import SummonDefinitionPanel from "../../../../SpellCastingForm/SummonDefinitionPanel";
+import { reanimatedCompanionDefinitionConfig } from "../../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import ArtificerReanimatedCompanionActionFooter from "../forms/ArtificerReanimatedCompanionActionFooter";
 import ArtificerSteelDefenderActionFooter from "../forms/ArtificerSteelDefenderActionFooter";
 import ArtificerArcaneFirearmActionFooter from "../forms/ArtificerArcaneFirearmActionFooter";
 
@@ -406,5 +409,56 @@ export const artificerFormAdapters = {
     footer: renderArtificerChargeMagicItemFooter
   },
   "artificer-transmute-magic-item": { body: renderArtificerChargeMagicItemBody },
+  "artificer-reanimated-companion": {
+    body: (context) => {
+      const {
+        character,
+        selectedAction,
+        selectedReanimatedCompanionDefinitions,
+        setSelectedReanimatedCompanionDefinitions
+      } = context;
+      if (!selectedAction || selectedAction.kind !== "feature") return undefined;
+      return (
+        <SummonDefinitionPanel
+          character={character}
+          config={reanimatedCompanionDefinitionConfig}
+          definitions={selectedReanimatedCompanionDefinitions}
+          disabled={selectedReanimatedCompanionDefinitions.length >= 1 || selectedAction.disabled}
+          onDefinitionsChange={setSelectedReanimatedCompanionDefinitions}
+          spell={{
+            name: selectedAction.name,
+            description: selectedAction.drawer.description ?? []
+          }}
+          sourceKind="feature"
+        />
+      );
+    },
+    footer: (context) => {
+      const {
+        character,
+        selectedAction,
+        selectedReanimatedCompanionDefinitions,
+        isReanimatedCompanionSubmitting,
+        selectedFeatureActionPrimaryDisabledReason,
+        selectedActionEconomyShapeState,
+        selectedFeaturePrimaryLabel,
+        submitArtificerReanimatedCompanion
+      } = context;
+      if (!selectedAction) return undefined;
+      return (
+        <ArtificerReanimatedCompanionActionFooter
+          character={character}
+          definitions={selectedReanimatedCompanionDefinitions}
+          isSubmitting={isReanimatedCompanionSubmitting}
+          disabledReason={selectedFeatureActionPrimaryDisabledReason}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          onCreate={submitArtificerReanimatedCompanion}
+        />
+      );
+    }
+  },
   "artificer-steel-defender": { footer: renderArtificerSteelDefenderFooter }
 } satisfies Partial<Record<ActionFormKind, ActionFormAdapter>>;

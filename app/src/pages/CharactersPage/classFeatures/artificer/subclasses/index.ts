@@ -22,7 +22,13 @@ import {
   getArtificerCartographerDerivedFeatureState
 } from "./artificerCartographer";
 
+import {
+  reanimatorSubclassId,
+  getArtificerReanimatorDerivedFeatureState
+} from "./artificerReanimator";
+
 const artificerSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [reanimatorSubclassId]: getArtificerReanimatorDerivedFeatureState,
   [alchemistSubclassId]: getArtificerAlchemistDerivedFeatureState,
   [armorerSubclassId]: getArtificerArmorerDerivedFeatureState,
   [artilleristSubclassId]: getArtificerArtilleristDerivedFeatureState,

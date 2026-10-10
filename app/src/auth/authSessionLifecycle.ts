@@ -1,6 +1,7 @@
 import { clearAuthSession, setActiveCharacterSheet, showToast, store } from "../store";
 import { clearCharacterRosterCache } from "../pages/CharactersPage/characterRoster";
 import { clearRawStoredCharacters } from "../pages/CharactersPage/portableCharacterSheetStorage";
+import { forgetAuthUser } from "./authSessionStorage";
 
 const AUTH_SESSION_MARKER_KEY = "arcane-ledger:auth-session";
 export const AUTH_SESSION_EXPIRED_EVENT = "arcane-ledger:auth-session-expired";
@@ -26,6 +27,7 @@ export function markAuthSessionActive() {
 }
 
 export function clearAuthSessionMarker() {
+  forgetAuthUser();
   try {
     getLocalStorage()?.removeItem(AUTH_SESSION_MARKER_KEY);
   } catch {

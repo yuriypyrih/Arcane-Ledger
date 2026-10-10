@@ -130,6 +130,10 @@ import { type ChannelDivinityOptionRow } from "../../../channelDivinityUtils";
 
 import type { ActionsWidgetSubmissionContext } from "./types";
 
+import {
+  consumeArtificerJoltToLifeUse,
+  spareTheDyingSpellId
+} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { useArtificerActionSubmissions } from "./useArtificerActionSubmissions";
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
@@ -208,6 +212,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     isEldritchCannonSubmitting,
     isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
+    isReanimatedCompanionSubmitting,
     isSteelDefenderSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerArcaneFirearm,
@@ -216,6 +221,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     submitArtificerEldritchCannon,
     submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
+    submitArtificerReanimatedCompanion,
     submitArtificerSteelDefender,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem
@@ -742,6 +748,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     roundTrackerResourceOverride?: "action" | "bonusAction" | "reaction" | null;
     spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
+    useJoltToLife?: boolean;
     useElementalSmite?: boolean;
     elementalSmiteOption?: string | null;
     useGoliathAncestry?: boolean;
@@ -939,8 +946,15 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         : fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot
           ? slotLevel
           : null;
+      const useJoltToLife =
+        options?.useJoltToLife === true && fixedSpellEntry.id === spareTheDyingSpellId;
+      const nextCharacterWithJoltToLife = useJoltToLife
+        ? consumeArtificerJoltToLifeUse(nextCharacterWithFeatureStatus)
+        : nextCharacterWithFeatureStatus;
+      if (useJoltToLife && nextCharacterWithJoltToLife === nextCharacterWithFeatureStatus)
+        return currentCharacter;
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithFeatureStatus,
+        character: nextCharacterWithJoltToLife,
         spell: fixedSpellEntry,
         spellSlotLevel: slotLevel,
         sourceSpellSlotLevel,
@@ -1242,6 +1256,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     isEldritchCannonSubmitting,
     isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
+    isReanimatedCompanionSubmitting,
     isSteelDefenderSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerArcaneFirearm,
@@ -1250,6 +1265,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     submitArtificerEldritchCannon,
     submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
+    submitArtificerReanimatedCompanion,
     submitArtificerSteelDefender,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem,

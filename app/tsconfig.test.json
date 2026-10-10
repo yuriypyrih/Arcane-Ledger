@@ -10,6 +10,9 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "src/vite-env.d.ts",
-    "vite.e2e.config.ts"
+    "vite.e2e.config.ts",
+    "e2e-update",
+    "playwright.update.config.ts",
+    "pwa.config.ts"
   ]
 }

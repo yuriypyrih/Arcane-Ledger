@@ -28,9 +28,9 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix app
       - run: npm ci --prefix server
-      - name: Install browser
+      - name: Install browsers
         working-directory: app
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox webkit
         env:
           PLAYWRIGHT_BROWSERS_PATH: ../.cache/playwright
       - run: npm run lint
@@ -39,6 +39,7 @@ jobs:
       - run: npm --prefix app run build
       - run: npm --prefix server run build
       - run: npm run test:e2e
+      - run: npm run test:updates
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

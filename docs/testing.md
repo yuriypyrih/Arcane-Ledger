@@ -189,8 +189,8 @@ wiring, persistence and visible results.
 - Use fake timers for persistence races. Use user-facing roles/labels and observable completion in
   browser tests, not CSS class names or fixed sleeps. Random dice totals should be controlled or checked
   against valid bounds rather than asserted as a particular random result.
-- Browser service workers are disabled for deterministic journeys. PWA installation/update/offline
-  cache behavior needs a separate production-build suite and is not covered by these tests.
+- Browser service workers are disabled for deterministic journeys. Those journeys do not
+  cover PWA updates. The separate production-build update suite below enables real service workers.
 
 ## Maintaining and extending tests
 
@@ -215,7 +215,7 @@ coverage. A high line count is not evidence of correct gameplay. Remaining areas
 subclass/feat combinations, claim/import and force-resolution races across accounts,
 Master Chest process crashes between document writes, GM encounter flows,
 real email/image upload services, other browser engines, visual snapshots,
-service-worker update/install edge cases, and exhaustive dice/spell-effect execution paths.
+physical-device installed-PWA lifecycle behavior, and exhaustive dice/spell-effect execution paths.
 
 ### Concurrent writes and recovery
 
@@ -324,3 +324,68 @@ with `--offline`. That mode allows the real service worker, waits for its contro
 browser, reloads the saved sheet, checks ability/armor persistence, and casts a spell offline.
 Requests to external hosts are blocked; API calls use a synthetic guest response. This is a local
 Chromium production check, not coverage of every browser's PWA installation/update lifecycle.
+
+## Application update journeys
+
+`npm run test:updates` runs focused Playwright journeys against disposable local static servers,
+without accounts, API calls, or databases. Install its browser engines with:
+
+```sh
+cd app
+PLAYWRIGHT_BROWSERS_PATH=../.cache/playwright npx playwright install chromium firefox webkit
+cd ..
+npm run test:updates
+```
+
+The suite builds small React entry points importing the real update coordinator and update panel.
+It generates the workers using the same `app/pwa.config.ts` factory as the production app. Synthetic
+releases A, B, and C are served from temporary directories and removed afterward. A frozen copy of
+`appUpdate.ts` from commit `054f3bb6` represents the deployed legacy updater; its production registration
+helper and waiting-worker behavior remain intact. It verifies entry into the fixed release after the
+legacy worker has finished installing, then a further update through the fixed coordinator. The old
+JavaScript already running on a user's device cannot acquire the fix until that first transition.
+
+Scenarios cover installation longer than the old five-second timeout, repeated acceptance, failed
+precache requests, offline failure/recovery, already downloaded updates, activation timeout, unrelated controller
+events, multiple tabs,
+superseding releases, a version marker without matching worker assets, stale HTML after activation,
+blocked session storage, browsers without service workers or with registration disabled, and stale-asset recovery with and without
+a newer release. Navigation
+counts measure document requests, not `history.replaceState` URL cleanup. A synthetic pending draft
+is flushed on pagehide and checked after the update; existing sheet persistence tests cover the real
+character serialization and delayed HP lifecycle. These fixtures do not exercise every full-app route.
+
+Chromium, Firefox, and mobile-emulated WebKit run the same cases. WebKit emulation is not proof of
+physical iOS home-screen suspension/resumption behavior; that remains a device smoke check. Failure
+traces and screenshots are written under `app/test-results/updates/`. Use
+`npm --prefix app run test:updates -- --project=chromium` for a narrower run.
+
+The updater owns registration and navigation directly. It asks the worker for the build identity
+embedded in a versioned import script, waits for that exact worker to be activated and controlling,
+then performs one navigation. A transient asset failure may recover the current build only after
+a fresh network shell confirms that build; its receipt remains to prevent repeated same-build reloads.
+The navigation carries a target-build receipt in its query parameters; startup removes it only when
+the running build matches. Loading the wrong build produces a recovery
+message and blocks another navigation to the same target. This also works without session storage.
+A 45-second attempt deadline produces an explicit retry state and never authorizes a reload.
+If the browser refuses navigation and the old document remains, a ten-second watchdog restores
+the retry button without starting another navigation. A tab updated by another tab's worker activation waits for its own user's acceptance before navigating.
+Browsers without service workers verify a fresh HTML build marker before attempting navigation.
+
+Playwright WebKit currently rejects offline update navigation with an internal browser error, even
+when installation and control have succeeded. Its offline case explicitly requires the watchdog
+to restore a retry state without another automatic navigation, then verifies success after
+reconnection. Chromium completes that same update while offline. This is an engine-specific
+verification boundary, not a claim that all Safari offline navigations succeed.
+
+Firefox is included in the suite and CI configuration, but neither the existing nor
+a freshly downloaded Firefox binary launched successfully on this Mac: Playwright timed out during
+startup with macOS sandbox-extension and software-renderer errors, before loading any test page.
+That local Firefox run is unverified, not a passing result.
+
+Verification on October 5, 2026: all 15 update cases passed in Chromium and mobile-emulated WebKit
+(30 journeys, including the explicit WebKit offline failure/reconnection case). The existing suites
+passed 464 frontend tests, 50 backend tests, and 158 desktop/mobile browser journeys with one existing
+skip. The production/offline sheet check passed for single-class and multiclass fixtures with no
+page errors. Lint, test type checks, and both application builds were also checked. These results do
+not remove the Firefox startup and physical-iOS verification limits above.

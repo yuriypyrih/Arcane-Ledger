@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 import { reloadForAppUpdate, useAppUpdateState } from "../../lib/appUpdate";
@@ -14,7 +14,17 @@ export function AppUpdateRequiredPanel({
   titleId
 }: AppUpdateRequiredPanelProps) {
   const reloadButtonRef = useRef<HTMLButtonElement | null>(null);
-  const [isReloading, setIsReloading] = useState(false);
+  const updateState = useAppUpdateState();
+  const isReloading = updateState.phase === "preparing" || updateState.phase === "activating";
+  const copy =
+    updateState.error ??
+    (updateState.phase === "activating"
+      ? "Applying the update. Keep this window open."
+      : isReloading
+        ? "Downloading the update. Keep this window open."
+        : updateState.reason === "asset-load-failure"
+          ? "Some app files could not be loaded. Check your connection and try updating."
+          : "An update is available. Update to continue.");
 
   useEffect(() => {
     reloadButtonRef.current?.focus();
@@ -25,10 +35,7 @@ export function AppUpdateRequiredPanel({
       return;
     }
 
-    setIsReloading(true);
-    void reloadForAppUpdate().catch(() => {
-      setIsReloading(false);
-    });
+    void reloadForAppUpdate();
   }
 
   return (
@@ -41,9 +48,11 @@ export function AppUpdateRequiredPanel({
       >
         <Sparkles className={styles.icon} aria-hidden="true" />
         <h1 id={titleId} className={styles.title}>
-          Arcane Ledger updated
+          Arcane Ledger update
         </h1>
-        <p className={styles.copy}>A newer version is ready. Reload to continue.</p>
+        <p className={styles.copy} role="status">
+          {copy}
+        </p>
         <button
           ref={reloadButtonRef}
           className={styles.reloadButton}
@@ -57,7 +66,9 @@ export function AppUpdateRequiredPanel({
           ) : (
             <RefreshCw className={styles.buttonIcon} aria-hidden="true" />
           )}
-          <span>{isReloading ? "Loading" : "Reload"}</span>
+          <span>
+            {isReloading ? "Updating" : updateState.phase === "failed" ? "Try again" : "Update"}
+          </span>
         </button>
       </section>
     </main>

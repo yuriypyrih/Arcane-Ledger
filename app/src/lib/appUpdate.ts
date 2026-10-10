@@ -1,10 +1,23 @@
 import { useSyncExternalStore } from "react";
-import { registerSW } from "virtual:pwa-register";
+import {
+  abortable,
+  activateAppWorker,
+  prepareAppWorker,
+  readWorkerBuildId
+} from "./appUpdateServiceWorker";
+import {
+  clearAppUpdateNavigation,
+  createAppUpdateNavigation,
+  navigateToAppUpdate,
+  readAppUpdateNavigation
+} from "./appUpdateNavigation";
 
 export type AppUpdateReason = "asset-load-failure" | "build-version" | "service-worker";
 
 export type AppUpdateState = {
   detectedAt: number | null;
+  phase: "available" | "preparing" | "activating" | "failed";
+  error?: string;
   latestBuildId?: string;
   reason: AppUpdateReason | null;
   updateRequired: boolean;
@@ -17,15 +30,11 @@ const BUILD_VERSION_PREFIX = "arcane-ledger-build:";
 const LIFECYCLE_CHECK_COOLDOWN_MS = 60_000;
 const LIFECYCLE_CHECK_DEBOUNCE_MS = 750;
 const VERSION_CHECK_TIMEOUT_MS = 8_000;
-const SERVICE_WORKER_WAITING_TIMEOUT_MS = 5_000;
-const SERVICE_WORKER_UPDATE_TIMEOUT_MS = 6_000;
-const SERVICE_WORKER_ACTIVATION_TIMEOUT_MS = 4_000;
-const UPDATE_RELOAD_NAVIGATION_FALLBACK_MS = 750;
-const STALE_ASSET_FAILURE_STORAGE_KEY =
-  `arcane-ledger.update.asset-load-failure.${__ARCANE_LEDGER_BUILD_ID__}`;
+const UPDATE_TIMEOUT_MS = 45_000;
 
 const initialState: AppUpdateState = {
   detectedAt: null,
+  phase: "available",
   reason: null,
   updateRequired: false
 };
@@ -33,8 +42,10 @@ const initialState: AppUpdateState = {
 const listeners = new Set<() => void>();
 
 let state = initialState;
-let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
-let serviceWorkerRegistration: ServiceWorkerRegistration | undefined;
+let registrationPromise: Promise<ServiceWorkerRegistration> | undefined;
+const watchedRegistrations = new WeakSet<ServiceWorkerRegistration>();
+const watchedWorkers = new WeakSet<ServiceWorker>();
+let updateAttempt: Promise<void> | null = null;
 let isLifecycleInitialized = false;
 let isVersionCheckRunning = false;
 let lifecycleCheckTimerId: number | null = null;
@@ -59,11 +70,10 @@ function emitUpdateState() {
 }
 
 function setUpdateRequired(reason: AppUpdateReason, latestBuildId?: string) {
-  if (state.updateRequired) {
-    return;
-  }
+  if (state.updateRequired) return;
 
   state = {
+    phase: "available",
     detectedAt: Date.now(),
     latestBuildId,
     reason,
@@ -117,23 +127,6 @@ function normalizeBuildVersionText(text: string) {
 function resetPendingMismatch() {
   pendingMismatchBuildId = null;
   pendingMismatchCount = 0;
-}
-
-function settleWithTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutValue: T) {
-  return new Promise<T>((resolve) => {
-    const timeoutId = window.setTimeout(() => resolve(timeoutValue), timeoutMs);
-
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      () => {
-        window.clearTimeout(timeoutId);
-        resolve(timeoutValue);
-      }
-    );
-  });
 }
 
 function recordPendingMismatch(latestBuildId: string) {
@@ -259,23 +252,88 @@ function handleVisibilityChange() {
   }
 }
 
-export function initializeAppUpdateLifecycle() {
-  if (isLifecycleInitialized || typeof window === "undefined") {
-    return;
-  }
+function updateState(patch: Partial<AppUpdateState>) {
+  state = { ...state, ...patch };
+  emitUpdateState();
+}
 
+async function inspectWorker(worker: ServiceWorker | null) {
+  if (!worker || !["installed", "activated"].includes(worker.state)) return;
+  const buildId = await readWorkerBuildId(worker, new AbortController().signal);
+  if (buildId && buildId !== __ARCANE_LEDGER_BUILD_ID__) {
+    setUpdateRequired("service-worker", buildId);
+  }
+}
+
+function watchRegistration(registration: ServiceWorkerRegistration) {
+  if (watchedRegistrations.has(registration)) return;
+  watchedRegistrations.add(registration);
+  const watch = () => {
+    const worker = registration.installing ?? registration.waiting;
+    if (worker && !watchedWorkers.has(worker)) {
+      watchedWorkers.add(worker);
+      worker.addEventListener("statechange", () => {
+        void inspectWorker(worker);
+      });
+      void inspectWorker(worker);
+    }
+  };
+  registration.addEventListener("updatefound", watch);
+  watch();
+  void inspectWorker(navigator.serviceWorker.controller);
+}
+
+function registerAppWorker() {
+  if (!registrationPromise) {
+    registrationPromise = navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none"
+    });
+    void registrationPromise.then(watchRegistration).catch(() => {
+      registrationPromise = undefined;
+    });
+  }
+  return registrationPromise;
+}
+
+export function initializeAppUpdateLifecycle() {
+  if (isLifecycleInitialized || typeof window === "undefined") return;
   isLifecycleInitialized = true;
 
-  updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      setUpdateRequired("service-worker");
-    },
-    onRegisteredSW(_swScriptUrl, registration) {
-      serviceWorkerRegistration = registration;
+  const url = new URL(window.location.href);
+  const previous = readAppUpdateNavigation(url);
+  if (previous) {
+    if (previous.targetBuildId === __ARCANE_LEDGER_BUILD_ID__) {
+      // A same-build asset recovery keeps its receipt, so a second asset failure
+      // cannot offer an endless sequence of successful-looking reloads.
+      if (previous.fromBuildId !== previous.targetBuildId) {
+        window.history.replaceState(window.history.state, "", clearAppUpdateNavigation(url));
+      }
+    } else {
+      setUpdateRequired("build-version", previous.targetBuildId);
+      updateState({
+        phase: "failed",
+        error: "The new version did not load. Try again, or close and reopen the app."
+      });
     }
-  });
+  }
 
+  if (!import.meta.env.DEV && navigator.serviceWorker) {
+    void registerAppWorker();
+    // Existing registrations are available even while register() waits for a slow
+    // installation. Never make the Update button depend on that callback alone.
+    void navigator.serviceWorker
+      .getRegistration("/")
+      .then((registration) => {
+        if (registration) watchRegistration(registration);
+      })
+      .catch(() => {});
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      // A different tab can activate a worker. Prompt here, but do not reload this
+      // tab without its user's acceptance and the usual persistence lifecycle.
+      void inspectWorker(navigator.serviceWorker.controller);
+    });
+  }
   scheduleLifecycleVersionCheck("boot");
   window.addEventListener("focus", () => scheduleLifecycleVersionCheck("focus"));
   window.addEventListener("online", () => scheduleLifecycleVersionCheck("online"));
@@ -283,165 +341,117 @@ export function initializeAppUpdateLifecycle() {
 }
 
 export function markAssetLoadFailureUpdateRequired() {
-  if (typeof sessionStorage !== "undefined") {
-    try {
-      sessionStorage.setItem(STALE_ASSET_FAILURE_STORAGE_KEY, String(Date.now()));
-    } catch {
-      // Session storage is only used to guard repeated stale-asset handling.
-    }
-  }
-
   setUpdateRequired("asset-load-failure");
 }
 
-function waitForInstallingWorker(
-  worker: ServiceWorker,
-  resolve: (waitingWorker: ServiceWorker | null) => void
-) {
-  if (worker.state === "installed") {
-    resolve(worker);
-    return;
+async function prepareNetworkNavigation(signal: AbortSignal, allowCurrentBuild = false) {
+  // Browsers without a worker must also demonstrate that a new shell exists.
+  const response = await fetch(`/index.html?update-check=${Date.now()}`, {
+    cache: "no-store",
+    signal
+  });
+  if (!response.ok) throw new Error("The update could not be downloaded. Please try again.");
+  const document = new DOMParser().parseFromString(await response.text(), "text/html");
+  const buildId = document
+    .querySelector('meta[name="arcane-ledger-build"]')
+    ?.getAttribute("content");
+  if (!buildId || (!allowCurrentBuild && buildId === __ARCANE_LEDGER_BUILD_ID__)) {
+    throw new Error("The new version is not ready yet. Please try again shortly.");
   }
-
-  if (worker.state === "redundant") {
-    resolve(null);
-    return;
-  }
-
-  const handleStateChange = () => {
-    if (worker.state === "installed") {
-      worker.removeEventListener("statechange", handleStateChange);
-      resolve(worker);
-      return;
-    }
-
-    if (worker.state === "redundant") {
-      worker.removeEventListener("statechange", handleStateChange);
-      resolve(null);
-    }
-  };
-
-  worker.addEventListener("statechange", handleStateChange);
+  return buildId;
 }
 
-async function waitForWaitingServiceWorker(registration: ServiceWorkerRegistration) {
-  if (registration.waiting) {
-    return registration.waiting;
-  }
-
-  return new Promise<ServiceWorker | null>((resolve) => {
-    const timeoutId = window.setTimeout(() => resolve(null), SERVICE_WORKER_WAITING_TIMEOUT_MS);
-
-    const resolveOnce = (waitingWorker: ServiceWorker | null) => {
-      window.clearTimeout(timeoutId);
-      resolve(waitingWorker);
-    };
-
-    if (registration.installing) {
-      waitForInstallingWorker(registration.installing, resolveOnce);
-      return;
-    }
-
-    registration.addEventListener(
-      "updatefound",
-      () => {
-        if (registration.installing) {
-          waitForInstallingWorker(registration.installing, resolveOnce);
-          return;
+async function performAppUpdate() {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
+  updateState({ phase: "preparing", error: undefined });
+  try {
+    let targetBuildId: string;
+    if (navigator.serviceWorker) {
+      let registration = await abortable(
+        navigator.serviceWorker.getRegistration("/"),
+        controller.signal
+      );
+      if (!registration) {
+        try {
+          registration = await abortable(registerAppWorker(), controller.signal);
+        } catch (error) {
+          if (controller.signal.aborted || navigator.serviceWorker.controller) throw error;
+          // Registration may be disabled by browser policy even when the API is
+          // present. Only an uncontrolled page without a registration can use
+          // the verified network-shell path.
         }
-
-        resolveOnce(null);
-      },
-      { once: true }
-    );
-  });
-}
-
-async function waitForServiceWorkerActivation(worker: ServiceWorker) {
-  if (worker.state === "activated" || worker.state === "redundant") {
-    return;
-  }
-
-  await new Promise<void>((resolve) => {
-    const handleStateChange = () => {
-      if (worker.state === "activated" || worker.state === "redundant") {
-        worker.removeEventListener("statechange", handleStateChange);
-        resolve();
       }
-    };
-
-    worker.addEventListener("statechange", handleStateChange);
-  });
-}
-
-function reloadCurrentPageForAppUpdate() {
-  window.location.reload();
-  window.setTimeout(() => {
-    window.location.replace(window.location.href);
-  }, UPDATE_RELOAD_NAVIGATION_FALLBACK_MS);
-}
-
-async function requestWaitingServiceWorkerActivation(waitingWorker?: ServiceWorker) {
-  if (!updateSW) {
-    return;
-  }
-
-  await settleWithTimeout(updateSW(false), SERVICE_WORKER_ACTIVATION_TIMEOUT_MS, undefined);
-
-  if (waitingWorker) {
-    await settleWithTimeout(
-      waitForServiceWorkerActivation(waitingWorker),
-      SERVICE_WORKER_ACTIVATION_TIMEOUT_MS,
-      undefined
-    );
-  }
-}
-
-async function activateWaitingServiceWorker() {
-  if (!updateSW || !serviceWorkerRegistration) {
-    return;
-  }
-
-  try {
-    const registration = await settleWithTimeout(
-      serviceWorkerRegistration.update(),
-      SERVICE_WORKER_UPDATE_TIMEOUT_MS,
-      undefined
-    );
-
-    if (!registration) {
-      return;
-    }
-
-    const waitingWorker = await waitForWaitingServiceWorker(registration);
-
-    if (!waitingWorker) {
-      return;
-    }
-
-    await requestWaitingServiceWorkerActivation(waitingWorker);
-  } catch {
-    // A stale page should still navigate even when the activation signal fails.
-  }
-}
-
-export async function reloadForAppUpdate() {
-  if (hasReloadNavigationStarted) {
-    return;
-  }
-
-  hasReloadNavigationStarted = true;
-
-  try {
-    if (updateSW && state.reason === "service-worker") {
-      await requestWaitingServiceWorkerActivation(serviceWorkerRegistration?.waiting ?? undefined);
+      if (registration) {
+        watchRegistration(registration);
+        const prepared = await prepareAppWorker(
+          registration,
+          __ARCANE_LEDGER_BUILD_ID__,
+          controller.signal,
+          state.reason === "asset-load-failure"
+            ? async () => {
+                try {
+                  return (
+                    (await prepareNetworkNavigation(controller.signal, true)) ===
+                    __ARCANE_LEDGER_BUILD_ID__
+                  );
+                } catch {
+                  return false;
+                }
+              }
+            : undefined
+        );
+        updateState({ phase: "activating", latestBuildId: prepared.buildId });
+        await activateAppWorker(registration, prepared.worker, controller.signal);
+        targetBuildId = prepared.buildId;
+      } else {
+        targetBuildId = await prepareNetworkNavigation(
+          controller.signal,
+          state.reason === "asset-load-failure"
+        );
+      }
     } else {
-      await activateWaitingServiceWorker();
+      targetBuildId = await prepareNetworkNavigation(
+        controller.signal,
+        state.reason === "asset-load-failure"
+      );
     }
-
-    reloadCurrentPageForAppUpdate();
+    if (controller.signal.aborted)
+      throw new Error("The update could not finish. Please try again.");
+    const destination = createAppUpdateNavigation(
+      new URL(window.location.href),
+      __ARCANE_LEDGER_BUILD_ID__,
+      targetBuildId
+    );
+    hasReloadNavigationStarted = true;
+    // Exactly one navigation after control is confirmed. The next boot validates
+    // the receipt against the build that actually started.
+    navigateToAppUpdate(destination, () => {
+      hasReloadNavigationStarted = false;
+      updateState({
+        phase: "failed",
+        error: "The updated app could not be opened. Check your connection and try again."
+      });
+    });
   } catch (error) {
     hasReloadNavigationStarted = false;
-    throw error;
+    updateState({
+      phase: "failed",
+      error:
+        error instanceof Error ? error.message : "The update could not finish. Please try again."
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+    controller.abort();
   }
+}
+
+export function reloadForAppUpdate(): Promise<void> {
+  if (hasReloadNavigationStarted) return Promise.resolve();
+  if (!updateAttempt) {
+    updateAttempt = performAppUpdate().finally(() => {
+      updateAttempt = null;
+    });
+  }
+  return updateAttempt;
 }

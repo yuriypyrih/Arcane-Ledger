@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { SpellEntry } from "../../../../../../codex/entries";
-import type { AbilityKey, Character, MonsterRecord } from "../../../../../../types";
+import type {
+  AbilityKey,
+  Character,
+  CharacterCompanion,
+  MonsterRecord
+} from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import type { RoundTrackerResource } from "../../../../../../pages/CharactersPage/combat";
@@ -85,6 +90,7 @@ export type ActionsWidgetUiState = {
   selectedExperimentalElixirSpellSlotLevel: number | null;
   selectedArtificerEldritchCannonSpellSlotLevel: number | null;
   selectedArtificerSteelDefenderSpellSlotLevel: number | null;
+  selectedReanimatedCompanionDefinitions: CharacterCompanion[];
   selectedBeastMasterReviveSpellSlotLevel: number | null;
   selectedWildCompanionSpellSlotLevel: number;
   selectedWildResurgenceMode: WildResurgenceMode | null;
@@ -243,6 +249,7 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
     | "setSelectedExperimentalElixirOptionKey"
     | "setSelectedExperimentalElixirSpellSlotLevel"
     | "setSelectedArtificerEldritchCannonSpellSlotLevel"
+    | "setSelectedReanimatedCompanionDefinitions"
     | "setSelectedArtificerSteelDefenderSpellSlotLevel"
     | "setSelectedNatureMagicianSpellSlotLevel"
     | "setSelectedWildResurgenceMode"

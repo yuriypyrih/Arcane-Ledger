@@ -526,7 +526,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Blight>Blight</spell>, <spell:Death Ward>Death Ward</spell>",
             "<strong>Level 17.</strong> <spell:Antilife Shell>Antilife Shell</spell>, <spell:Raise Dead>Raise Dead</spell>"
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.TRACKED
         )
       ),
       createSubclassFeatureRow(
@@ -538,7 +538,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "You can modify the spell this way a number of times equal to your <link:Intelligence>Intelligence</link> modifier. All uses return after a <link:long-rest>Long Rest</link>. The damage becomes <strong>3d4</strong> at Artificer level 11 and <strong>4d4</strong> at level 17.",
             "<strong>Reanimator's Tools.</strong> You gain proficiency with Alchemist's Supplies. If already proficient, choose a different type of Artisan's Tools and gain proficiency with it."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.TRACKED
         )
       ),
       createSubclassFeatureRow(
@@ -551,7 +551,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
             "After creating a companion, you must finish a Long Rest or expend a spell slot to create another. Only one can exist at a time, and you cannot create a companion while yours is present.",
             "<strong>The Companion in Combat.</strong> The companion acts during your turn, moving and using its Reaction independently. It takes the Dodge action unless you spend a Bonus Action to command a different action. While you have the <link:Incapacitated>Incapacitated</link> condition, it acts independently and can choose actions other than Dodge."
           ],
-          TRACKER.NOT_TRACKED
+          TRACKER.TRACKED
         )
       ),
       createSubclassFeatureRow(

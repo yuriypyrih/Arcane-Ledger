@@ -248,6 +248,10 @@ export function useActionsWidgetUiState(
         dispatch,
         "selectedArtificerEldritchCannonSpellSlotLevel"
       ),
+      setSelectedReanimatedCompanionDefinitions: createFieldSetter(
+        dispatch,
+        "selectedReanimatedCompanionDefinitions"
+      ),
       setSelectedArtificerSteelDefenderSpellSlotLevel: createFieldSetter(
         dispatch,
         "selectedArtificerSteelDefenderSpellSlotLevel"

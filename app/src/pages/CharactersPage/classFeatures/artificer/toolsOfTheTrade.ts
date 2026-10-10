@@ -49,6 +49,11 @@ type ArtificerToolsOfTheTradeConfig = {
 
 const toolsOfTheTradeConfigs: ArtificerToolsOfTheTradeConfig[] = [
   {
+    subclassId: "artificer-reanimator",
+    source: "Reanimator: Reanimator's Skill Set",
+    defaultTools: [TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES]
+  },
+  {
     subclassId: alchemistSubclassId,
     source: alchemistToolsOfTheTradeSource,
     defaultTools: alchemistToolsOfTheTradeDefaults

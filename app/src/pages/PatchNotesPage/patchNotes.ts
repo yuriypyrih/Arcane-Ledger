@@ -9,7 +9,7 @@ export type PatchNote = {
 
 export const patchNotes: PatchNote[] = [
   {
-    version: "v1.0.2",
+    version: "v1.1.0",
     title: "Multiclass expansion",
     date: "2026-09-25",
     description: [

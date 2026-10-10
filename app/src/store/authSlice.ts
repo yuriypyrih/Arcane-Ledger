@@ -4,6 +4,7 @@ import type { AuthStatus, AuthUser } from "../types/auth";
 export type AuthState = {
   status: AuthStatus;
   user: AuthUser | null;
+  sessionVerified: boolean;
   loading: boolean;
   error: string | null;
 };
@@ -11,6 +12,7 @@ export type AuthState = {
 const initialState: AuthState = {
   status: "unknown",
   user: null,
+  sessionVerified: false,
   loading: false,
   error: null
 };
@@ -28,17 +30,27 @@ const authSlice = createSlice({
     setAuthenticatedUser(state, action: PayloadAction<AuthUser>) {
       state.status = "authenticated";
       state.user = action.payload;
+      state.sessionVerified = true;
+      state.loading = false;
+      state.error = null;
+    },
+    restoreOfflineAuthUser(state, action: PayloadAction<AuthUser>) {
+      state.status = "authenticated";
+      state.user = action.payload;
+      state.sessionVerified = false;
       state.loading = false;
       state.error = null;
     },
     setGuestSession(state) {
       state.status = "guest";
       state.user = null;
+      state.sessionVerified = false;
       state.loading = false;
     },
     clearAuthSession(state) {
       state.status = "guest";
       state.user = null;
+      state.sessionVerified = false;
       state.loading = false;
       state.error = null;
     }
@@ -47,6 +59,7 @@ const authSlice = createSlice({
 
 export const {
   clearAuthSession,
+  restoreOfflineAuthUser,
   setAuthError,
   setAuthenticatedUser,
   setAuthLoading,

@@ -2365,6 +2365,7 @@ function SpellCastingForm({
     useTamedSurge?: boolean;
     useTelekineticMaster?: boolean;
     useRadiantSoul?: boolean;
+    useJoltToLife?: boolean;
     useOverchannel?: boolean;
     useBoonOfSpellRecall?: boolean;
     useBoonOfRevelry?: boolean;

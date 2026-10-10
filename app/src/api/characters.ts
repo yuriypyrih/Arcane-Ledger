@@ -13,6 +13,7 @@ export type CharacterSheetCloudDocument = {
   localId?: number;
   schemaVersion: 2 | 3;
   revision: number;
+  primaryClassName?: string;
   summary: PortableCharacterSheetSummary;
   avatar: CharacterAvatarMetadata | null;
   backgroundTexture: CharacterBackgroundTextureMetadata | null;

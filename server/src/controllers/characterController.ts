@@ -716,7 +716,7 @@ export const listCharacterSheets = asyncHandler(
       deletedAt: null
     })
       .select(
-        "_id ownerId clientId localId schemaVersion revision summary avatar backgroundTexture createdAt updatedAt"
+        "_id ownerId clientId localId schemaVersion revision summary sheet.progression.className avatar backgroundTexture createdAt updatedAt"
       )
       .sort({ updatedAt: -1 })
       .lean()

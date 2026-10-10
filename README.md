@@ -49,6 +49,14 @@ actions, statuses, companions, and equipment flow from shared codex/runtime modu
 character state. The backend keeps durable account and campaign data in MongoDB and exposes the app's
 server-backed workflows under one versioned API surface.
 
+After a successful online session check or login, the app remembers the account on that device.
+Reopening offline preserves that account and locally saved character sheets; edits remain local
+until connectivity returns. The app retries session verification on reconnect, focus, and periodically
+while visible after a failed check. Cloud operations resume after the cookie session is verified.
+Explicit logout (including offline logout) and confirmed session expiry clear the remembered account.
+Server-only features still require a connection. Existing installations need to open online once
+after this update to remember their account for subsequent offline launches.
+
 Architecture guides:
 
 - [Concurrent Master Chest transactions](docs/master-chest-transactions.md)

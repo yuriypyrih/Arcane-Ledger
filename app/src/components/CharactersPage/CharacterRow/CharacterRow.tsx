@@ -51,7 +51,9 @@ function CharacterRow({
   return (
     <CharacterRowBase
       avatarUrl={character.avatarUrl}
-      className={character.className}
+      className={
+        character.primaryClassName ?? character.className.split(" / ")[0].replace(/\s+\d+$/, "")
+      }
       level={character.level}
       linkAriaLabel={`View ${character.name}`}
       linkTo={`/characters/${character.id}`}

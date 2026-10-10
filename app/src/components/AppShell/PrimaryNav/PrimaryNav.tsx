@@ -180,7 +180,7 @@ function PrimaryNav({
   });
   const liveEncounterTrackerCampaignId = liveEncounterTrackerMatch?.params.campaignId ?? null;
   const isLazyLoading = useIsLazyLoading();
-  const { status, user } = useAppSelector((state) => state.auth);
+  const { status, user, sessionVerified } = useAppSelector((state) => state.auth);
   const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
   const isActiveSheetDirty = useAppSelector((state) => state.activeCharacterSheet.dirty);
   const liveEncounterTrackerSaveStatus = useAppSelector((state) =>
@@ -188,7 +188,8 @@ function PrimaryNav({
       ? state.dmTools.liveEncounterTrackerSaveStatusByCampaignId[liveEncounterTrackerCampaignId]
       : undefined
   );
-  const isOnline = useOnlineStatus();
+  const browserOnline = useOnlineStatus();
+  const isOnline = browserOnline && (status !== "authenticated" || sessionVerified);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const isAuthenticated = status === "authenticated" && Boolean(user);
