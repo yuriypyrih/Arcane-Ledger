@@ -1,4 +1,9 @@
 import { getClassLevel } from "../../../../../pages/CharactersPage/multiclassState";
+import {
+  applyUnholyResuscitation,
+  isUnholyResuscitationAvailable,
+  isUnholyResuscitationRelevant
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockNecroticHusk";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { Character } from "../../../../../types";
 import d20Icon from "../../../../../assets/svg/d20.svg";
@@ -37,6 +42,12 @@ import {
   type LifeAndDeathLedgerHeaderItem
 } from "../../../../../pages/CharactersPage/classFeatures/lifeAndDeathLedger";
 import { orderDescriptionAdditionSections } from "../../../../../pages/CharactersPage/actionModalDescriptions";
+import {
+  applyRangerPersistentWrath,
+  getRangerPersistentWrathFallbackSlot,
+  isRangerPersistentWrathAvailable,
+  isRangerPersistentWrathRelevant
+} from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerPersistentWrath";
 import ActionButton from "../../../../ActionButton";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import {
@@ -58,6 +69,11 @@ import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import LifeAndDeathGiftOfProtectorsEditor from "./LifeAndDeathGiftOfProtectorsEditor";
 import { classResourcePersistOptions } from "./persistOptions";
 import styles from "./LifeAndDeathLedgerModal.module.css";
+import {
+  applyShadowStrengthOfTheGrave,
+  isShadowStrengthOfTheGraveAvailable,
+  isShadowStrengthOfTheGraveRelevant
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowSorcery";
 
 type LifeAndDeathLedgerModalProps = {
   character: Character;
@@ -113,6 +129,13 @@ function LifeAndDeathLedgerModal({
   const relentlessRageRelevant = isLifeAndDeathRelentlessRageRelevant(character);
   const relentlessRageAvailable = isLifeAndDeathRelentlessRageAvailable(character);
   const undyingSentinelAvailable = isLifeAndDeathUndyingSentinelAvailable(character);
+  const persistentWrathRelevant = isRangerPersistentWrathRelevant(character);
+  const persistentWrathAvailable = isRangerPersistentWrathAvailable(character);
+  const persistentWrathFallbackSlot = getRangerPersistentWrathFallbackSlot(character);
+  const strengthOfTheGraveRelevant = isShadowStrengthOfTheGraveRelevant(character);
+  const strengthOfTheGraveAvailable = isShadowStrengthOfTheGraveAvailable(character);
+  const unholyResuscitationRelevant = isUnholyResuscitationRelevant(character);
+  const unholyResuscitationAvailable = isUnholyResuscitationAvailable(character);
   const hasSearingVengeance = hasLifeAndDeathSearingVengeanceFeature(character);
   const searingVengeanceAvailable = isLifeAndDeathSearingVengeanceAvailable(character);
   const hasGiftOfTheProtectors = hasLifeAndDeathGiftOfTheProtectorsFeature(character);
@@ -214,6 +237,24 @@ function LifeAndDeathLedgerModal({
     onClose();
   }
 
+  function usePersistentWrath() {
+    onPersistCharacter(applyRangerPersistentWrath, classResourcePersistOptions);
+    onClose();
+  }
+
+  function useStrengthOfTheGrave() {
+    onPersistCharacter(applyShadowStrengthOfTheGrave, classResourcePersistOptions);
+    onClose();
+  }
+
+  function useUnholyResuscitation() {
+    onPersistCharacter(applyUnholyResuscitation, {
+      domains: ["resources", "features", "statuses"],
+      normalize: "targeted"
+    });
+    onClose();
+  }
+
   function useSearingVengeance() {
     onPersistCharacter(
       (currentCharacter) => applyLifeAndDeathSearingVengeanceForCharacter(currentCharacter),
@@ -247,6 +288,40 @@ function LifeAndDeathLedgerModal({
   }
 
   const footerActions = [
+    ...(unholyResuscitationRelevant
+      ? [
+          {
+            key: "unholy-resuscitation",
+            label: "Use Unholy Resuscitation",
+            onClick: useUnholyResuscitation,
+            disabled: !unholyResuscitationAvailable
+          }
+        ]
+      : []),
+    ...(strengthOfTheGraveRelevant
+      ? [
+          {
+            key: "strength-of-the-grave",
+            label: "Use Strength of the Grave",
+            onClick: useStrengthOfTheGrave,
+            disabled: !strengthOfTheGraveAvailable
+          }
+        ]
+      : []),
+    ...(persistentWrathRelevant
+      ? [
+          {
+            key: "persistent-wrath",
+            label: persistentWrathFallbackSlot
+              ? `Use Persistent Wrath (Level ${persistentWrathFallbackSlot.level} ${
+                  character.multiclass ? persistentWrathFallbackSlot.pool.label : "Spell Slot"
+                })`
+              : "Use Persistent Wrath",
+            onClick: usePersistentWrath,
+            disabled: !persistentWrathAvailable
+          }
+        ]
+      : []),
     ...(undyingSentinelAvailable
       ? [
           {

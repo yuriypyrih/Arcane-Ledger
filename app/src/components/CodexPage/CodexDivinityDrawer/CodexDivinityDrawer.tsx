@@ -1,6 +1,5 @@
 import { useNestedReferences } from "../useNestedReferences";
 import { NestedReferenceDrawers } from "../NestedReferenceDrawers";
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
 import ActionShape, { getActionShapeForCastingTime } from "../../ActionShape";
 import CellContainer from "../../CellContainer/CellContainer";
@@ -22,10 +21,9 @@ import {
   overlayClassNames
 } from "../../Overlay";
 import { getClericResolvedDivinityDisplay } from "../../../pages/CharactersPage/classFeatures/cleric/cleric";
-import type {
-  FeatureActionIcon,
-  FeatureActionResource
-} from "../../../pages/CharactersPage/classFeatures";
+import type { FeatureActionResource } from "../../../pages/CharactersPage/classFeatures";
+import { createHeaderTagsFromResources } from "../../../pages/CharactersPage/classFeatures/cardUsage";
+import FeatureActionHeaderTags from "../../CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
 
 import type { Character } from "../../../types";
 import {
@@ -34,9 +32,6 @@ import {
   formatDivinityValue,
   formatSpellCastingTime
 } from "../../../utils/codex";
-import animaIcon from "../../../assets/svg/anima.svg";
-import pyromancyIcon from "../../../assets/svg/pyromancy.svg";
-import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./CodexDivinityDrawer.module.css";
 
 type CodexDivinityDrawerProps = {
@@ -50,93 +45,6 @@ type CodexDivinityDrawerProps = {
   backdropClassName?: string;
   stacked?: boolean;
 };
-
-function renderUsesIcon(icon?: FeatureActionIcon) {
-  if (icon === "anima") {
-    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  if (icon === "brain") {
-    return <Brain size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "sparkles") {
-    return <Sparkles size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "flame") {
-    return <Flame size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "paw") {
-    return <PawPrint size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "pyromancy") {
-    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  return null;
-}
-
-function renderHeaderResource(resource: FeatureActionResource, key: string) {
-  if (resource.kind === "tracker" && resource.icon) {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-        <span className={styles.resourceBadgeValue}>
-          <span>{resource.cost ?? resource.current}</span>
-          {renderUsesIcon(resource.icon)}
-          <span>out of</span>
-          <span>{`${resource.current}/${resource.total}`}</span>
-          {renderUsesIcon(resource.icon)}
-        </span>
-      </span>
-    );
-  }
-
-  if (resource.kind === "tracker") {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        Charges
-        <span className={sheetStyles.shortRestDots}>
-          {Array.from({ length: resource.total }, (_, dotIndex) => (
-            <span
-              key={`${key}-dot-${dotIndex}`}
-              className={[
-                sheetStyles.shortRestDot,
-                dotIndex < resource.current ? sheetStyles.shortRestDotActive : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            />
-          ))}
-        </span>
-        {resource.supplementary ? (
-          <span className={styles.resourceBadgeSupplementary}>{resource.supplementary}</span>
-        ) : null}
-      </span>
-    );
-  }
-
-  return (
-    <span key={key} className={styles.resourceBadge}>
-      <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-      <span className={styles.resourceBadgeValue}>
-        <span>{resource.value}</span>
-        {renderUsesIcon(resource.icon)}
-      </span>
-    </span>
-  );
-}
 
 function getDivinityValueCell(
   damage: ReturnType<typeof getClericResolvedDivinityDisplay>["damage"],
@@ -237,9 +145,10 @@ function CodexDivinityDrawer({
           <div className={styles.headerAside}>
             {resources.length > 0 ? (
               <div className={styles.resourceBadgeRow}>
-                {resources.map((resource, index) =>
-                  renderHeaderResource(resource, `${divinity.id}-resource-${index}`)
-                )}
+                <FeatureActionHeaderTags
+                  tags={createHeaderTagsFromResources(resources)}
+                  tagKeyPrefix={`${divinity.id}-resource`}
+                />
               </div>
             ) : null}
             <OverlayCloseButton label="Close divinity details" onClick={onClose} />

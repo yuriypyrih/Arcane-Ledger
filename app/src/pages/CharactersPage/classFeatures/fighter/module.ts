@@ -19,6 +19,11 @@ import {
 } from "./fighter";
 import { getFighterClassFeatureDerivedState } from "./contributions";
 import type { ClassFeatureModule } from "../types";
+import {
+  activateMagicalAmmunition,
+  magicalAmmunitionActionKey,
+  restoreMagicalAmmunition
+} from "./subclasses/fighterMagicalAmmunition";
 
 export const fighterFeatureModule: ClassFeatureModule<"fighter"> = {
   className: "Fighter",
@@ -26,6 +31,10 @@ export const fighterFeatureModule: ClassFeatureModule<"fighter"> = {
   normalizeState: normalizeFighterFeatureState,
   collectDerived: getFighterClassFeatureDerivedState,
   handleAction(character, actionKey) {
+    if (actionKey === magicalAmmunitionActionKey) {
+      return activateMagicalAmmunition(character);
+    }
+
     if (actionKey === fighterActionSurgeActionKey) {
       return activateFighterActionSurge(character);
     }
@@ -52,7 +61,8 @@ export const fighterFeatureModule: ClassFeatureModule<"fighter"> = {
 
     return null;
   },
-  applyShortRest: applyShortRestToFighterFeatures,
-  applyLongRest: applyLongRestToFighterFeatures,
+  applyShortRest: (character) =>
+    restoreMagicalAmmunition(applyShortRestToFighterFeatures(character)),
+  applyLongRest: (character) => restoreMagicalAmmunition(applyLongRestToFighterFeatures(character)),
   advanceRound: advanceFighterFeaturesForNewRound
 };

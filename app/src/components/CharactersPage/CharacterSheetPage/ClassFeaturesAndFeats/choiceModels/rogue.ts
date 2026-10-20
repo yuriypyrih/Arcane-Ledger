@@ -7,6 +7,7 @@ import {
   setRogueThievesCantLanguageSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import { skillsOptions } from "../../../../../pages/CharactersPage/proficiency";
+import { getRoguePhantomWhispersProficiency } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantom";
 import type {
   LANGUAGE_PROFICIENCY,
   RogueScionOfTheThreeDreadAllegianceChoice,
@@ -115,6 +116,7 @@ export function createRogueFeatureChoiceModel({
   }
 
   return {
+    isRoguePhantomWhispersInputRequired: () => !getRoguePhantomWhispersProficiency(character),
     getAvailableRogueExpertiseSkills,
     getAvailableRogueThievesCantLanguages,
     getRogueExpertiseSelections,

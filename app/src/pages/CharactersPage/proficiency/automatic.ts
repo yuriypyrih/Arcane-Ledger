@@ -693,8 +693,32 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     options?.backgroundChoices,
     normalizedSelectedClassTools
   );
+  const automaticSkillEntries = [
+    ...getAutomaticSkillEntries(
+      className,
+      species,
+      background,
+      options?.backgroundChoices,
+      normalizedSelectedClassSkills,
+      options?.speciesChoices
+    ),
+    ...multiclassSkills
+  ];
   const featureCollections = getFeatureProficiencyCollectionsForCharacter(className, {
     ...options,
+    // Replacement grants must see current origin/class choices, including on the first update.
+    skillProficiencies: mergeProficiencyEntries([
+      ...(options?.skillProficiencies ?? []).filter(
+        (entry) =>
+          entry.source !== PROFICIENCY_SOURCE.BACKGROUND &&
+          entry.source !== PROFICIENCY_SOURCE.SPECIES &&
+          !(
+            entry.source === PROFICIENCY_SOURCE.CLASS &&
+            getClassProficiencyProfile((entry.sourceStr ?? "").replace(/ \(multiclass\)$/, ""))
+          )
+      ),
+      ...automaticSkillEntries
+    ]),
     toolProficiencies: mergeProficiencyEntries([
       ...(options?.toolProficiencies ?? []),
       ...automaticToolEntries
@@ -703,15 +727,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
 
   return {
     skillProficiencies: mergeProficiencyEntries([
-      ...getAutomaticSkillEntries(
-        className,
-        species,
-        background,
-        options?.backgroundChoices,
-        normalizedSelectedClassSkills,
-        options?.speciesChoices
-      ),
-      ...multiclassSkills,
+      ...automaticSkillEntries,
       ...featureCollections.skillProficiencies
     ]),
     savingThrowProficiencies: mergeProficiencyEntries([

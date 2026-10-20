@@ -17,6 +17,7 @@ export type CharacterSheetSectionProfilerId =
   | "gameplay-round-tracker"
   | "gameplay-sorcery"
   | "gameplay-soulknife-psionic-dice"
+  | "gameplay-soul-trinkets"
   | "gameplay-superiority-dice"
   | "gameplay-traits-conditions"
   | "gameplay-wild-shape"

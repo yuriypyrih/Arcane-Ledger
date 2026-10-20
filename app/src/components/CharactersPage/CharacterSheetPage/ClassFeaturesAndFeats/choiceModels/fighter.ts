@@ -1,3 +1,4 @@
+import { getArcaneShotOptionIds } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneShot";
 import {
   fighterBanneretKnightlyEnvoySkillOptions,
   getFighterBattleMasterManeuverSelectionCountForCharacter,
@@ -8,6 +9,7 @@ import {
   setFighterBanneretKnightlyEnvoySkillSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { LANGUAGE_PROFICIENCY, SkillName } from "../../../../../types";
+import { getArcaneArcherLoreChoices } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneArcher";
 import { getSourceChoiceLanguageOptions, getSourceChoiceSkillOptions } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
 
@@ -77,6 +79,11 @@ export function createFighterFeatureChoiceModel({
   }
 
   return {
+    isArcaneShotOptionsInputRequired: () => getArcaneShotOptionIds(character).some((id) => !id),
+    isArcaneArcherLoreInputRequired: () => {
+      const choices = getArcaneArcherLoreChoices(character);
+      return !choices.cantripId || choices.skills.some((choice) => !choice.skill);
+    },
     getAvailableFighterBanneretKnightlyEnvoyLanguages,
     getAvailableFighterBanneretKnightlyEnvoySkills,
     getFighterBanneretKnightlyEnvoyLanguageSelection,

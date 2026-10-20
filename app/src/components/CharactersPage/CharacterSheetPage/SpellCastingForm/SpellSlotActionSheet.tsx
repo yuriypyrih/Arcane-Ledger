@@ -1,7 +1,10 @@
+import type { Ref } from "react";
 import ResourceManagementModal from "../ResourceManagementModal";
+import type { ReactNode } from "react";
 
 type SpellSlotActionSheetProps = {
   slotLevel: number;
+  poolLabel?: string;
   totalSlots: number;
   expendedSlots: number;
   onClose: () => void;
@@ -11,10 +14,14 @@ type SpellSlotActionSheetProps = {
   onIncreaseMaximum?: () => void;
   onDecreaseMaximum?: () => void;
   maximumSlotLimit?: number;
+  nestedInDrawer?: boolean;
+  panelRef?: Ref<HTMLElement>;
+  children?: ReactNode;
 };
 
 function SpellSlotActionSheet({
   slotLevel,
+  poolLabel,
   totalSlots,
   expendedSlots,
   onClose,
@@ -23,7 +30,10 @@ function SpellSlotActionSheet({
   onResetAll,
   onIncreaseMaximum,
   onDecreaseMaximum,
-  maximumSlotLimit
+  maximumSlotLimit,
+  nestedInDrawer,
+  panelRef,
+  children
 }: SpellSlotActionSheetProps) {
   const remainingSlots = Math.max(0, totalSlots - expendedSlots);
   const hasSlots = totalSlots > 0;
@@ -33,8 +43,10 @@ function SpellSlotActionSheet({
 
   return (
     <ResourceManagementModal
+      nestedInDrawer={nestedInDrawer}
+      panelRef={panelRef}
       titleId="spell-slot-actions-title"
-      title={`Level ${slotLevel} Spell Slots ${remainingSlots}/${totalSlots}`}
+      title={`${poolLabel ? `${poolLabel} · ` : ""}Level ${slotLevel} Spell Slots ${remainingSlots}/${totalSlots}`}
       closeLabel={`Close level ${slotLevel} spell slot management`}
       onClose={onClose}
       columnCount={supportsMaximumManagement ? 3 : undefined}
@@ -80,7 +92,9 @@ function SpellSlotActionSheet({
             ]
           : [])
       ]}
-    />
+    >
+      {children}
+    </ResourceManagementModal>
   );
 }
 

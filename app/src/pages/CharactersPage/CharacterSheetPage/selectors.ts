@@ -110,6 +110,7 @@ export const selectGameplayCharacter = createCharacterFieldsSelector(
     "equipment",
     "inventoryItems",
     "customEquipment",
+    "customActions",
     "classFeatureState",
     "spellSlotsExpended",
     "preparedSpellIds",
@@ -224,6 +225,7 @@ export const selectFeaturesCharacter = createCharacterFieldsSelector(
     "cantripIds",
     "spellbookSpellIds",
     "preparedSpellIds",
+    "customSpellSnapshots",
     "feats"
   ],
   ["profile", "features", "spells", "statuses", "inventory", "proficiencies"]
@@ -231,7 +233,7 @@ export const selectFeaturesCharacter = createCharacterFieldsSelector(
 
 export const selectCompanionsCharacter = createCharacterFieldsSelector(
   ["id", "className", "subclassId", "level", "abilities", "companions"],
-  ["profile", "companions"]
+  ["profile", "companions", "statuses"]
 );
 
 export const selectEquipmentCharacter = createCharacterFieldsSelector(
@@ -261,6 +263,7 @@ export const selectEquipmentCharacter = createCharacterFieldsSelector(
 export const selectSpellcastingCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "hitDiceRemaining",
     "species",
     "speciesChoices",
     "speciesFeatureState",
@@ -279,6 +282,7 @@ export const selectSpellcastingCharacter = createCharacterFieldsSelector(
     "cantripIds",
     "spellbookSpellIds",
     "preparedSpellIds",
+    "customSpellSnapshots",
     "spellSlotsExpended",
     "feats"
   ],

@@ -1,3 +1,11 @@
+import { createArcaneArcherRestOptions } from "./arcaneArcherRestOptions";
+import { createClericDomainRestOptions } from "./clericDomainRestOptions";
+import {
+  getUnholyResuscitationUsesRemaining,
+  hasNecroticHusk,
+  restoreUnholyResuscitationOnRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockNecroticHusk";
+import { createBardSpiritsRestOptions } from "./bardSpiritsRestOptions";
 import { createChannelDivinityRestOptions } from "./channelDivinityRestOptions";
 import { getClassLevel } from "../../../../../pages/CharactersPage/multiclassState";
 import { getSheetSpellSlotTotals } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
@@ -23,7 +31,6 @@ import {
   restoreBardicInspirationOnShortRest,
   getBardicInspirationUsesTotal,
   getUnbreakableMajestyUsesTotal,
-  applyShortRestToBardFeatures,
   restoreUnbreakableMajestyOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
@@ -72,6 +79,10 @@ import {
   getRogueSoulknifePsionicDiceTotal,
   restoreRogueSoulknifePsionicDie
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
+import {
+  hasPhantomVoiceOfDeath,
+  restorePhantomVoiceOfDeathOnRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
 import {
   applySorcerousRestorationOnShortRest,
   getSorcerousRestorationUsesRemaining,
@@ -211,6 +222,17 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "short");
 
   return [
+    ...(hasNecroticHusk(character)
+      ? [
+          {
+            id: "restore-unholy-resuscitation",
+            label: "Restore Unholy Resuscitation",
+            charges: { current: getUnholyResuscitationUsesRemaining(character), total: 1 },
+            apply: restoreUnholyResuscitationOnRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...createBardSpiritsRestOptions(character, "short"),
     {
       id: "reset-round-tracker",
       label: "Reset round tracker",
@@ -459,7 +481,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
           {
             id: "restore-bardic-inspiration",
             label: "Restore all Bardic dice",
-            apply: (currentCharacter: Character) => applyShortRestToBardFeatures(currentCharacter)
+            apply: (currentCharacter: Character) =>
+              restoreBardicInspirationOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -563,6 +586,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
         ]
       : []),
     ...createChannelDivinityRestOptions(character, "short"),
+    ...createArcaneArcherRestOptions(character),
+    ...createClericDomainRestOptions(character, "short"),
     ...(improvedWardingFlareShortRestAvailable && wardingFlareUsesTotal > 0
       ? [
           {
@@ -611,6 +636,15 @@ export function createShortRestOptions(character: Character): RestOption[] {
             label: "Restore Stroke of Luck",
             apply: (currentCharacter: Character) =>
               restoreRogueStrokeOfLuckOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasPhantomVoiceOfDeath(character)
+      ? [
+          {
+            id: "restore-rogue-phantom-voice-of-death",
+            label: "Restore Voice of Death",
+            apply: restorePhantomVoiceOfDeathOnRest
           } satisfies RestOption
         ]
       : []),

@@ -251,7 +251,7 @@ export function getSorcererClockworkTranceOfOrderUsesTotal(
   return hasSorcererClockworkTranceOfOrderFeature(character) ? tranceOfOrderUsesTotal : 0;
 }
 
-function getSorcererClockworkTranceOfOrderUsesRemaining(
+export function getSorcererClockworkTranceOfOrderUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
 ): number {
@@ -270,7 +270,7 @@ export function getSorcererClockworkCavalcadeUsesTotal(
   return hasSorcererClockworkCavalcadeFeature(character) ? clockworkCavalcadeUsesTotal : 0;
 }
 
-function getSorcererClockworkCavalcadeUsesRemaining(
+export function getSorcererClockworkCavalcadeUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
 ): number {

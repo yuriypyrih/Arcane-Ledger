@@ -302,3 +302,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+.resourceBadgeButton {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.resourceBadgeButton:hover {
+  filter: brightness(0.96);
+}
+
+.resourceBadgeButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}

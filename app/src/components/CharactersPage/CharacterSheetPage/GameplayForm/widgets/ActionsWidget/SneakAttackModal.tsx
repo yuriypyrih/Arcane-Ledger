@@ -23,6 +23,7 @@ import styles from "./SneakAttackModal.module.css";
 export type SneakAttackActionSelection = {
   effectKeys: RogueSneakAttackEffectKey[];
   useRendMind: boolean;
+  useWailsFromTheGrave: boolean;
 };
 
 type SneakAttackActionBodyProps = {

@@ -83,7 +83,19 @@ import {
   wildMagicSorcerySubclassId
 } from "./sorcererWildMagicSorcery";
 
+import {
+  getSorcererShadowSorceryDerivedFeatureState,
+  restoreShadowStrengthOfTheGraveOnLongRest,
+  shadowSorcerySubclassId
+} from "./sorcererShadowSorcery";
+import {
+  activateShadowWalk,
+  restoreUmbralFormOnLongRest,
+  shadowWalkActionKey
+} from "./sorcererShadowForm";
+
 const sorcererSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [shadowSorcerySubclassId]: getSorcererShadowSorceryDerivedFeatureState,
   [aberrantSorcerySubclassId]: getSorcererAberrantSorceryDerivedFeatureState,
   [clockworkSorcerySubclassId]: getSorcererClockworkSorceryDerivedFeatureState,
   [draconicSorcerySubclassId]: getSorcererDraconicSorceryDerivedFeatureState,
@@ -121,6 +133,13 @@ export function activateSorcererSubclassFeatureAction(
 ): Character | null {
   if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return null;
+  }
+
+  if (
+    getClassSubclassId(character, "Sorcerer") === shadowSorcerySubclassId &&
+    actionKey === shadowWalkActionKey
+  ) {
+    return activateShadowWalk(character);
   }
 
   if (
@@ -494,6 +513,10 @@ export function restoreSorcererSubclassFeaturesOnLongRest(character: Character):
 
   if (getClassSubclassId(character, "Sorcerer") === clockworkSorcerySubclassId) {
     return restoreSorcererClockworkFeaturesOnLongRest(character);
+  }
+
+  if (getClassSubclassId(character, "Sorcerer") === shadowSorcerySubclassId) {
+    return restoreUmbralFormOnLongRest(restoreShadowStrengthOfTheGraveOnLongRest(character));
   }
 
   if (getClassSubclassId(character, "Sorcerer") === draconicSorcerySubclassId) {

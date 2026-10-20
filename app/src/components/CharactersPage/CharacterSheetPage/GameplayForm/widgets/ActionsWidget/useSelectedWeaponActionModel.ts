@@ -1,3 +1,7 @@
+import {
+  getPullOfDeathBonus,
+  canUsePullOfDeath
+} from "../../../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericGraveDomain";
 import { useMemo } from "react";
 import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
@@ -93,6 +97,7 @@ type UseSelectedWeaponActionModelArgs = {
   nextRollCriticalHitOverride: boolean;
   isDreadfulStrikeSelected: boolean;
   isColossusSlayerSelected: boolean;
+  isPullOfDeathSelected: boolean;
   isEmpoweredStrikesSelected: boolean;
   isEldritchSmiteSelected: boolean;
   isGoliathAncestryStrikeSelected: boolean;
@@ -117,6 +122,7 @@ export function useSelectedWeaponActionModel({
   nextRollCriticalHitOverride,
   isDreadfulStrikeSelected,
   isColossusSlayerSelected,
+  isPullOfDeathSelected,
   isEmpoweredStrikesSelected,
   isEldritchSmiteSelected,
   isGoliathAncestryStrikeSelected,
@@ -292,6 +298,19 @@ export function useSelectedWeaponActionModel({
     () => getRangerHunterColossusSlayerOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponPullOfDeathState = useMemo(() => {
+    const damageBonus = selectedWeaponAction ? getPullOfDeathBonus(character) : null;
+    return damageBonus
+      ? {
+          damageBonus,
+          disabled: !canUsePullOfDeath(character),
+          disabledReason: canUsePullOfDeath(character)
+            ? undefined
+            : "Pull of Death has already been used this turn."
+        }
+      : null;
+  }, [character, selectedWeaponAction]);
+  const selectedWeaponPullOfDeathToggleDisabled = selectedWeaponPullOfDeathState?.disabled ?? false;
   const selectedWeaponHordeBreakerState = useMemo(
     () => getRangerHunterHordeBreakerOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
@@ -560,6 +579,16 @@ export function useSelectedWeaponActionModel({
         selectedWeaponColossusSlayerState.damageBonus
       );
     }
+    if (
+      isPullOfDeathSelected &&
+      selectedWeaponPullOfDeathState &&
+      !selectedWeaponPullOfDeathToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponPullOfDeathState.damageBonus
+      );
+    }
 
     if (
       isPolarStrikesSelected &&
@@ -669,6 +698,7 @@ export function useSelectedWeaponActionModel({
     character,
     isDreadfulStrikeSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
     isGoliathAncestryStrikeSelected,
@@ -689,7 +719,9 @@ export function useSelectedWeaponActionModel({
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponPullOfDeathToggleDisabled,
     selectedWeaponGoliathAncestryState,
     selectedWeaponGoliathAncestryToggleDisabled,
     selectedWeaponEmpoweredStrikesState,
@@ -776,6 +808,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponDreadAmbusherState,
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponGoliathAncestryState,
@@ -795,6 +828,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponPullOfDeathToggleDisabled,
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponGoliathAncestryToggleDisabled,

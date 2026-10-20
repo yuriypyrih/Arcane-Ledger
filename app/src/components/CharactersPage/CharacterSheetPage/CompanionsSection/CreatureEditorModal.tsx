@@ -1,4 +1,4 @@
-import { Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
 import {
@@ -36,6 +36,11 @@ import { createCharacterCompanionId } from "../../../../pages/CharactersPage/com
 import { reanimatedCompanionMonsterKey } from "../../../../codex/subclasses/artificerReanimatorCompanion";
 import { getArtificerReanimatedCompanionStatBlock } from "../../../../pages/CharactersPage/classFeatures/artificer/subclasses/artificerReanimatorStatBlock";
 import {
+  vestigeCompanionForms,
+  vestigeCompanionMonsterKey
+} from "../../../../codex/subclasses/warlockVestigeCompanion";
+import { getWarlockVestigeCompanionStatBlock } from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockVestigePatron";
+import {
   getPrimalBeastKindFromKey,
   getPrimalBeastTemplateByKey,
   isPrimalBeastMonsterType,
@@ -51,7 +56,6 @@ import {
   getMonsterKey,
   getMonsterListItemKey,
   getMonsterTypeName,
-  isDeprecatedMonsterRecord,
   primeMonsterEntryCache
 } from "../../../../utils/monsters";
 import type {
@@ -68,6 +72,11 @@ import {
   companionDurationTypeOptions,
   createManualStatusDuration
 } from "../GameplayForm/widgets/TraitsConditionsWidget/manualStatusDuration";
+import {
+  baseCompanionStatBlockId,
+  getCompanionStatBlocks
+} from "../../../../pages/CharactersPage/companionStatBlocks";
+import CompanionStatBlockCard from "./CompanionStatBlockCard";
 import CreatureStatBlockEditorModal from "./CreatureStatBlockEditorModal";
 import {
   companionMonsterTypeOptions,
@@ -76,7 +85,6 @@ import {
   createDraftFromCompanion,
   createEmptyCompanionDraft,
   getExtraTypeOptions,
-  getMonsterSourceLabel,
   type CompanionDraft
 } from "./companionUtils";
 import MonsterBrowserModal from "./MonsterBrowserModal";
@@ -121,6 +129,7 @@ type CreatureEditorLabels = {
 
 type CreatureEditorModalProps = {
   allowPrimalBeasts?: boolean;
+  allowAdditionalStatBlocks?: boolean;
   character?: Character;
   creature: CharacterCompanion | null;
   creatures: CharacterCompanion[];
@@ -197,6 +206,7 @@ function isMonsterRecord(value: MonsterListItem | MonsterRecord): value is Monst
 
 function CreatureEditorModal({
   allowPrimalBeasts = false,
+  allowAdditionalStatBlocks = false,
   character,
   creature,
   creatures,
@@ -253,7 +263,8 @@ function CreatureEditorModal({
   const [previewStatus, setPreviewStatus] = useState<CodexStatus>("ready");
   const [pendingSelectKey, setPendingSelectKey] = useState<string | null>(null);
   const [monsterNotice, setMonsterNotice] = useState<string | null>(null);
-  const [isStatBlockEditorOpen, setIsStatBlockEditorOpen] = useState(false);
+  const [editedStatBlockId, setEditedStatBlockId] = useState<string | null>(null);
+  const [inspectedStatBlock, setInspectedStatBlock] = useState<MonsterRecord | null>(null);
   const [isResettingStatBlock, setIsResettingStatBlock] = useState(false);
   const [editorError, setEditorError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -294,7 +305,9 @@ function CreatureEditorModal({
     ordering: monsterOrdering
   });
   const primalBeastItems = useMemo(() => {
-    const items = allowPrimalBeasts ? getPrimalBeastBrowserItems(monsterQuery, monsterOrdering) : [];
+    const items = allowPrimalBeasts
+      ? getPrimalBeastBrowserItems(monsterQuery, monsterOrdering)
+      : [];
 
     return filterMonsterListItemsByChallengeRating(items, monsterChallengeRatingFilter);
   }, [allowPrimalBeasts, monsterChallengeRatingFilter, monsterOrdering, monsterQuery]);
@@ -344,11 +357,11 @@ function CreatureEditorModal({
     isSaving ||
     isDeleting ||
     isResettingStatBlock;
-  const selectedStatBlockIsPrimalBeast = draft.primalBeastKind !== null;
-  const canModifySelectedStatBlock =
-    draft.inheritedCreatureEntry !== null &&
-    !selectedStatBlockIsPrimalBeast &&
-    !isDeprecatedMonsterRecord(draft.inheritedCreatureEntry);
+  const statBlocks = getCompanionStatBlocks({
+    ...draft,
+    inheritedCreatureEntry: draft.inheritedCreatureEntry ?? undefined
+  });
+  const editedStatBlock = statBlocks.find((block) => block.id === editedStatBlockId);
 
   useEffect(() => {
     setDraft(
@@ -356,7 +369,7 @@ function CreatureEditorModal({
     );
     setShowValidation(false);
     setMonsterNotice(null);
-    setIsStatBlockEditorOpen(false);
+    setEditedStatBlockId(null);
     setEditorError(null);
   }, [creature, initialDraft]);
 
@@ -536,10 +549,21 @@ function CreatureEditorModal({
     key: Key,
     value: CompanionDraft[Key]
   ) {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      [key]: value
-    }));
+    setDraft((currentDraft) => {
+      const form = key === "type" ? vestigeCompanionForms.find((form) => form === value) : null;
+      const updateVestigeTemplate =
+        form &&
+        character &&
+        currentDraft.inheritedCreatureEntry?.key === vestigeCompanionMonsterKey &&
+        !currentDraft.inheritedCreatureEntryModified;
+      return {
+        ...currentDraft,
+        [key]: value,
+        ...(updateVestigeTemplate
+          ? { inheritedCreatureEntry: getWarlockVestigeCompanionStatBlock(character, form) }
+          : {})
+      };
+    });
     setEditorError(null);
   }
 
@@ -567,22 +591,34 @@ function CreatureEditorModal({
         ...currentCache,
         [getMonsterKey(resolvedMonster)]: resolvedMonster
       }));
-      setDraft((currentDraft) => ({
-        ...currentDraft,
-        name: resolvedMonster.name,
-        type:
-          preserveTypeOnMonsterSelect && currentDraft.type.trim().length > 0
-            ? currentDraft.type
-            : primalBeastKind
-              ? PRIMAL_BEAST_MONSTER_TYPE
-              : typeName
-                ? typeName
-                : currentDraft.type,
-        maxHitPoints: String(hitPoints),
-        primalBeastKind,
-        inheritedCreatureEntry: resolvedMonster,
-        inheritedCreatureEntryModified: false
-      }));
+      const blockId = createCharacterCompanionId();
+      setDraft((currentDraft) =>
+        allowAdditionalStatBlocks &&
+        (currentDraft.inheritedCreatureEntry || currentDraft.additionalStatBlocks.length > 0)
+          ? {
+              ...currentDraft,
+              additionalStatBlocks: [
+                ...currentDraft.additionalStatBlocks,
+                { id: blockId, monster: resolvedMonster }
+              ]
+            }
+          : {
+              ...currentDraft,
+              name: resolvedMonster.name,
+              type:
+                preserveTypeOnMonsterSelect && currentDraft.type.trim().length > 0
+                  ? currentDraft.type
+                  : primalBeastKind
+                    ? PRIMAL_BEAST_MONSTER_TYPE
+                    : typeName
+                      ? typeName
+                      : currentDraft.type,
+              maxHitPoints: String(hitPoints),
+              primalBeastKind,
+              inheritedCreatureEntry: resolvedMonster,
+              inheritedCreatureEntryModified: false
+            }
+      );
       setIsMonsterBrowserOpen(false);
       setPreviewKey(null);
       setMonsterNotice(null);
@@ -598,41 +634,68 @@ function CreatureEditorModal({
     }
   }
 
-  function handleClearMonsterSelection() {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      inheritedCreatureEntry: null,
-      primalBeastKind: null,
-      inheritedCreatureEntryModified: false
-    }));
+  function handleClearMonsterSelection(id: string) {
+    setDraft((currentDraft) =>
+      id === baseCompanionStatBlockId
+        ? {
+            ...currentDraft,
+            inheritedCreatureEntry: null,
+            primalBeastKind: null,
+            inheritedCreatureEntryModified: false
+          }
+        : {
+            ...currentDraft,
+            additionalStatBlocks: currentDraft.additionalStatBlocks.filter(
+              (block) => block.id !== id
+            )
+          }
+    );
     setMonsterNotice(null);
     setEditorError(null);
   }
 
+  function updateStatBlock(id: string, monster: MonsterRecord, modified: boolean) {
+    setDraft((currentDraft) =>
+      id === baseCompanionStatBlockId
+        ? {
+            ...currentDraft,
+            inheritedCreatureEntry: monster,
+            inheritedCreatureEntryModified: modified
+          }
+        : {
+            ...currentDraft,
+            additionalStatBlocks: currentDraft.additionalStatBlocks.map((block) =>
+              block.id === id ? { ...block, monster, modified } : block
+            )
+          }
+    );
+  }
+
   function handleSaveStatBlock(monster: MonsterRecord) {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      inheritedCreatureEntry: monster,
-      inheritedCreatureEntryModified: true
-    }));
+    if (!editedStatBlockId) return;
+    updateStatBlock(editedStatBlockId, monster, true);
     setMonsterCache((currentCache) => ({
       ...currentCache,
       [getMonsterKey(monster)]: monster
     }));
     primeMonsterEntryCache(monster);
-    setIsStatBlockEditorOpen(false);
+    setEditedStatBlockId(null);
     setMonsterNotice(null);
     setEditorError(null);
   }
 
-  async function handleResetStatBlock() {
-    const key = draft.inheritedCreatureEntry ? getMonsterKey(draft.inheritedCreatureEntry) : null;
+  async function handleResetStatBlock(id: string) {
+    const block = statBlocks.find((entry) => entry.id === id);
+    const key = block ? getMonsterKey(block.monster) : null;
 
     if (!key || isResettingStatBlock) {
       return;
     }
 
-    if (key === reanimatedCompanionMonsterKey && !character) {
+    if (
+      (key === reanimatedCompanionMonsterKey || key === vestigeCompanionMonsterKey) &&
+      !character
+    ) {
       setMonsterNotice("Open the companion's character sheet to reset its calculated stat block.");
       return;
     }
@@ -640,7 +703,12 @@ function CreatureEditorModal({
     const embeddedMonster =
       key === reanimatedCompanionMonsterKey && character
         ? getArtificerReanimatedCompanionStatBlock(character)
-        : null;
+        : key === vestigeCompanionMonsterKey && character
+          ? getWarlockVestigeCompanionStatBlock(
+              character,
+              vestigeCompanionForms.find((form) => form === draft.type) ?? "Celestial"
+            )
+          : null;
 
     if (!embeddedMonster && !isOnline) {
       setMonsterNotice("Server Unavailable");
@@ -653,11 +721,7 @@ function CreatureEditorModal({
     try {
       const monster = embeddedMonster ?? (await fetchMonsterByKey(key));
 
-      setDraft((currentDraft) => ({
-        ...currentDraft,
-        inheritedCreatureEntry: monster,
-        inheritedCreatureEntryModified: false
-      }));
+      updateStatBlock(id, monster, false);
       setMonsterCache((currentCache) => ({
         ...currentCache,
         [getMonsterKey(monster)]: monster
@@ -707,6 +771,10 @@ function CreatureEditorModal({
         ? { temporaryHitPointsSource: creature.temporaryHitPointsSource }
         : {}),
       ...(creature?.deathSaves ? { deathSaves: creature.deathSaves } : {}),
+      ...(creature?.semblanceOfLife ? { semblanceOfLife: creature.semblanceOfLife } : {}),
+      ...(draft.additionalStatBlocks.length > 0
+        ? { additionalStatBlocks: draft.additionalStatBlocks }
+        : {}),
       ...(isBeastMasterPrimalBeast ? { role: beastMasterCompanionRole } : {}),
       ...(draft.primalBeastKind ? { primalBeastKind: draft.primalBeastKind } : {}),
       ...(draft.inheritedCreatureEntry
@@ -792,79 +860,26 @@ function CreatureEditorModal({
                 disabled={isSaving || isDeleting || isResettingStatBlock}
                 onClick={() => setIsMonsterBrowserOpen(true)}
               >
-                {labels.browseButton}
+                {allowAdditionalStatBlocks && statBlocks.length > 0
+                  ? "Add Stat Block"
+                  : labels.browseButton}
               </ActionButton>
             </div>
 
-            {draft.inheritedCreatureEntry ? (
-              <div className={styles.selectedMonsterCard}>
-                <div>
-                  <h5 className={styles.selectedMonsterTitle}>
-                    {draft.inheritedCreatureEntry.name}
-                  </h5>
-                  <p className={styles.selectedMonsterMeta}>
-                    {getMonsterTypeName(draft.inheritedCreatureEntry) || "Unknown type"} ·{" "}
-                    {getMonsterSourceLabel(draft.inheritedCreatureEntry)}
-                    {draft.inheritedCreatureEntryModified ? " - Modified" : ""}
-                  </p>
-                </div>
-                <div className={styles.selectedMonsterActions}>
-                  <button
-                    type="button"
-                    className={styles.secondaryButton}
-                    disabled={isSaving || isDeleting || isResettingStatBlock}
-                    onClick={() =>
-                      setPreviewKey(
-                        draft.inheritedCreatureEntry
-                          ? getMonsterKey(draft.inheritedCreatureEntry)
-                          : null
-                      )
-                    }
-                  >
-                    Preview
-                  </button>
-                  {canModifySelectedStatBlock ? (
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled={isSaving || isDeleting || isResettingStatBlock}
-                      onClick={() => setIsStatBlockEditorOpen(true)}
-                    >
-                      <Pencil size={16} aria-hidden="true" />
-                      Modify
-                    </button>
-                  ) : selectedStatBlockIsPrimalBeast ? (
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled
-                      title="Primal Beast stat blocks are dynamic and cannot be modified yet."
-                    >
-                      <Pencil size={16} aria-hidden="true" />
-                      Modify
-                    </button>
-                  ) : null}
-                  {draft.inheritedCreatureEntryModified && canModifySelectedStatBlock ? (
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled={isSaving || isDeleting || isResettingStatBlock}
-                      onClick={() => void handleResetStatBlock()}
-                    >
-                      <RotateCcw size={16} aria-hidden="true" />
-                      {isResettingStatBlock ? "Resetting..." : "Reset"}
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={styles.removeButtonText}
-                    disabled={isSaving || isDeleting || isResettingStatBlock}
-                    onClick={handleClearMonsterSelection}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
+            {statBlocks.length > 0 ? (
+              statBlocks.map((block) => (
+                <CompanionStatBlockCard
+                  key={block.id}
+                  block={block}
+                  disabled={isSaving || isDeleting || isResettingStatBlock}
+                  dynamic={block.id === baseCompanionStatBlockId && draft.primalBeastKind !== null}
+                  resetting={isResettingStatBlock}
+                  onPreview={() => setInspectedStatBlock(block.monster)}
+                  onModify={() => setEditedStatBlockId(block.id)}
+                  onReset={() => void handleResetStatBlock(block.id)}
+                  onRemove={() => handleClearMonsterSelection(block.id)}
+                />
+              ))
             ) : (
               <p className={shared.emptyText}>{labels.noStatBlockText}</p>
             )}
@@ -1009,7 +1024,7 @@ function CreatureEditorModal({
           totalPages={totalPages}
           query={monsterQuery}
           searchResetSignal={monsterSearchResetSignal}
-          selectedMonsterKey={selectedMonsterKey}
+          selectedMonsterKey={allowAdditionalStatBlocks ? null : selectedMonsterKey}
           monsterTypeFilter={monsterTypeFilter}
           monsterSourceFilter={monsterSourceFilter}
           monsterChallengeRatingFilter={monsterChallengeRatingFilter}
@@ -1074,10 +1089,21 @@ function CreatureEditorModal({
         />
       ) : null}
 
-      {isStatBlockEditorOpen && draft.inheritedCreatureEntry && canModifySelectedStatBlock ? (
+      {inspectedStatBlock ? (
+        <MonsterEntryDrawer
+          monster={inspectedStatBlock}
+          status="ready"
+          onClose={() => setInspectedStatBlock(null)}
+          badgeLabel={labels.previewBadgeLabel}
+          backdropClassName={styles.previewBackdrop}
+          drawerClassName={styles.previewDrawer}
+        />
+      ) : null}
+
+      {editedStatBlock ? (
         <CreatureStatBlockEditorModal
-          monster={draft.inheritedCreatureEntry}
-          onClose={() => setIsStatBlockEditorOpen(false)}
+          monster={editedStatBlock.monster}
+          onClose={() => setEditedStatBlockId(null)}
           onSave={handleSaveStatBlock}
         />
       ) : null}

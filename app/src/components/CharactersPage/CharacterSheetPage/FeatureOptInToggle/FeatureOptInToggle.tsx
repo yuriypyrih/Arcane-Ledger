@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { ActionButtonType } from "../../../ActionButton";
+import ActionShape, { type ActionShapeType } from "../../../ActionShape";
 import Checkbox from "../../FormInputs/Checkbox";
 import FeatureUsageLabel from "../FeatureUsageLabel";
 import { renderFeatureUsageIcon } from "../featureUsageIcons";
@@ -41,6 +42,8 @@ type FeatureOptInToggleProps = {
   disabled?: boolean;
   title?: string;
   usage?: FeatureActionCardUsage;
+  actionShape?: ActionShapeType;
+  actionShapeAvailable?: boolean;
   application?: FeatureOptInToggleApplication;
   usageKey?: string;
   metaItems?: FeatureOptInToggleMetaItem[];
@@ -79,6 +82,8 @@ function FeatureOptInToggle({
   disabled = false,
   title,
   usage,
+  actionShape,
+  actionShapeAvailable = true,
   application,
   usageKey,
   metaItems = [],
@@ -109,6 +114,17 @@ function FeatureOptInToggle({
           actionType={checkboxActionType}
         />
         <span>{label}</span>
+        {actionShape ? (
+          <span className={styles.metaGroup}>
+            <span className={styles.metaDivider}>|</span>
+            <ActionShape
+              shape={actionShape}
+              isSelected={actionShapeAvailable}
+              size="small"
+              aria-label={actionShape === "bonusAction" ? "Bonus Action" : undefined}
+            />
+          </span>
+        ) : null}
         {usage ? (
           <span className={styles.metaGroup}>
             <span className={styles.metaDivider}>|</span>

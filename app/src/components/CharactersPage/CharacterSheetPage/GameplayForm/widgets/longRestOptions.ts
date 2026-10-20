@@ -1,3 +1,57 @@
+import { createArcaneArcherRestOptions } from "./arcaneArcherRestOptions";
+import { createClericDomainRestOptions } from "./clericDomainRestOptions";
+import {
+  getSemblanceOfLifeUsesRemaining,
+  hasSemblanceOfLife,
+  restoreSemblanceOfLifeOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockSemblanceOfLife";
+import {
+  getVestigeRecoveryUsesRemaining,
+  hasVestigeRecovery,
+  restoreVestigeRecoveryOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockVestigeRecovery";
+import {
+  getUnholyResuscitationUsesRemaining,
+  hasNecroticHusk,
+  restoreUnholyResuscitationOnRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockNecroticHusk";
+import {
+  getFormOfDreadUsesRemaining,
+  getFormOfDreadUsesTotal,
+  restoreFormOfDreadOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockUndeadPatron";
+import {
+  getUmbralFormUsesRemaining,
+  hasUmbralForm,
+  restoreUmbralFormOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowForm";
+import {
+  getShadowStrengthOfTheGraveUsesRemaining,
+  hasSorcererPowerOfShadow,
+  restoreShadowStrengthOfTheGraveOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowSorcery";
+import {
+  hasPhantomTokens,
+  restorePhantomSoulTrinketsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
+import {
+  getRoguePhantomWailsUsesTotal,
+  restoreRoguePhantomWailsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantom";
+import {
+  hasPhantomVoiceOfDeath,
+  restorePhantomVoiceOfDeathOnRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
+import {
+  hasPhantomGhostWalk,
+  restorePhantomGhostWalkOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomGhostWalk";
+import {
+  getRangerPersistentWrathUsesRemaining,
+  hasRangerPersistentWrath,
+  restoreRangerPersistentWrathOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerPersistentWrath";
+import { createBardSpiritsRestOptions } from "./bardSpiritsRestOptions";
 import { createChannelDivinityRestOptions } from "./channelDivinityRestOptions";
 import { getSheetSpellSlotTotals } from "../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { restoreHitDice } from "../../../../../pages/CharactersPage/hitDice";
@@ -659,6 +713,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "long");
 
   return [
+    ...createBardSpiritsRestOptions(character, "long"),
     ...(exhaustionLevel !== null
       ? [
           {
@@ -2001,6 +2056,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(hasRangerPersistentWrath(character)
+      ? [
+          {
+            id: "restore-persistent-wrath",
+            label: "Restore Persistent Wrath",
+            charges: { current: getRangerPersistentWrathUsesRemaining(character), total: 1 },
+            apply: restoreRangerPersistentWrathOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
     ...(rangerFeyReinforcementsUsesTotal > 0
       ? [
           {
@@ -2090,12 +2155,32 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(hasSorcererPowerOfShadow(character)
+      ? [
+          {
+            id: "restore-strength-of-the-grave",
+            label: "Restore Strength of the Grave",
+            charges: { current: getShadowStrengthOfTheGraveUsesRemaining(character), total: 1 },
+            apply: restoreShadowStrengthOfTheGraveOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
     ...(innateSorceryUsesTotal > 0
       ? [
           {
             id: "restore-innate-sorcery",
             label: "Restore Innate Sorcery",
             apply: (currentCharacter: Character) => restoreInnateSorceryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasUmbralForm(character)
+      ? [
+          {
+            id: "restore-umbral-form",
+            label: "Restore Umbral Form",
+            charges: { current: getUmbralFormUsesRemaining(character), total: 1 },
+            apply: restoreUmbralFormOnLongRest
           } satisfies RestOption
         ]
       : []),
@@ -2259,6 +2344,47 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(hasSemblanceOfLife(character)
+      ? [{
+          id: "restore-semblance-of-life",
+          label: "Restore Semblance of Life",
+          charges: { current: getSemblanceOfLifeUsesRemaining(character), total: 1 },
+          apply: restoreSemblanceOfLifeOnLongRest
+        } satisfies RestOption]
+      : []),
+    ...(hasVestigeRecovery(character)
+      ? [
+          {
+            id: "restore-vestige-recovery",
+            label: "Restore Vestige Recovery",
+            charges: { current: getVestigeRecoveryUsesRemaining(character), total: 1 },
+            apply: restoreVestigeRecoveryOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(getFormOfDreadUsesTotal(character) > 0
+      ? [
+          {
+            id: "restore-form-of-dread",
+            label: "Restore Form of Dread",
+            charges: {
+              current: getFormOfDreadUsesRemaining(character),
+              total: getFormOfDreadUsesTotal(character)
+            },
+            apply: restoreFormOfDreadOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasNecroticHusk(character)
+      ? [
+          {
+            id: "restore-unholy-resuscitation",
+            label: "Restore Unholy Resuscitation",
+            charges: { current: getUnholyResuscitationUsesRemaining(character), total: 1 },
+            apply: restoreUnholyResuscitationOnRest
+          } satisfies RestOption
+        ]
+      : []),
     ...(beguilingDefenseUsesTotal > 0
       ? [
           {
@@ -2419,6 +2545,42 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(getRoguePhantomWailsUsesTotal(character) > 0
+      ? [
+          {
+            id: "restore-rogue-phantom-wails",
+            label: "Restore Wails from the Grave",
+            apply: restoreRoguePhantomWailsOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasPhantomTokens(character)
+      ? [
+          {
+            id: "restore-rogue-phantom-soul-trinkets",
+            label: "Restore Soul Trinkets to at least 2",
+            apply: restorePhantomSoulTrinketsOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasPhantomVoiceOfDeath(character)
+      ? [
+          {
+            id: "restore-rogue-phantom-voice-of-death",
+            label: "Restore Voice of Death",
+            apply: restorePhantomVoiceOfDeathOnRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasPhantomGhostWalk(character)
+      ? [
+          {
+            id: "restore-rogue-phantom-ghost-walk",
+            label: "Restore Ghost Walk",
+            apply: restorePhantomGhostWalkOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
     ...(rogueSoulknifePsychicWhispersUsesTotal > 0
       ? [
           {
@@ -2510,6 +2672,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
         ]
       : []),
     ...createChannelDivinityRestOptions(character, "long"),
+    ...createArcaneArcherRestOptions(character),
+    ...createClericDomainRestOptions(character, "long"),
     ...(wardingFlareUsesTotal > 0
       ? [
           {

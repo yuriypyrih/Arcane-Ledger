@@ -29,6 +29,7 @@ import {
   resolveCharacterStatusEntries
 } from "./statusEntries";
 import { reconcileCharacterStatusConsequences } from "./traits";
+import { counterResource } from "./resourceManagement";
 
 export const CUSTOM_ACTION_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 export const CUSTOM_ACTION_DESCRIPTION_MAX_LENGTH = 1000;
@@ -331,6 +332,32 @@ function createCustomActionDescription(action: CharacterCustomAction): SpellDesc
   return action.description ? [action.description] : [];
 }
 
+function getCustomActionResource(action: CharacterCustomAction) {
+  const read = (character: Character) => {
+    const current = normalizeCharacterCustomActions(character.customActions).find(
+      (entry) => entry.id === action.id
+    );
+    return current ? getCustomActionChargeStateForCharacter(character, current) : null;
+  };
+  return counterResource(
+    `custom-action:${action.id}:charges`,
+    action.name,
+    (character) => read(character)?.max ?? 0,
+    (character) => read(character)?.current ?? 0,
+    (character, expended) => ({
+      ...character,
+      customActions: character.customActions.map((entry) =>
+        entry.id === action.id && entry.charges
+          ? {
+              ...entry,
+              charges: { ...entry.charges, current: (read(character)?.max ?? 0) - expended }
+            }
+          : entry
+      )
+    })
+  );
+}
+
 export function getCustomActionCardsForCharacter(character: Character): FeatureActionCard[] {
   return normalizeCharacterCustomActions(character.customActions).map((action) => {
     const disabledReason = getCustomActionDisabledReason(character, action);
@@ -348,7 +375,9 @@ export function getCustomActionCardsForCharacter(character: Character): FeatureA
       consumesEconomyOnActivate: true,
       usesRemaining: charges?.current,
       usesTotal: charges?.max,
-      cardUsage: charges ? createChargesCardUsage(charges.current, charges.max) : undefined,
+      cardUsage: charges
+        ? createChargesCardUsage(charges.current, charges.max, getCustomActionResource(action))
+        : undefined,
       disabled: disabledReason !== undefined,
       disabledReason,
       description: createCustomActionDescription(action),

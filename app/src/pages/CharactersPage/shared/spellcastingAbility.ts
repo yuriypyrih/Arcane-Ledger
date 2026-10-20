@@ -5,6 +5,7 @@ import {
 } from "../customClass";
 import { getFeatSpellcastingAbilityForCharacter } from "../feats/runtime/spellcasting";
 import { getSpeciesSpellcastingAbilityForCharacter } from "../species";
+import { getArcaneArcherLoreSpellcastingAbility } from "../classFeatures/fighter/subclasses/fighterArcaneArcher";
 
 const spellcastingAbilityByClassName: Record<string, AbilityKey> = {
   Artificer: "INT",
@@ -19,6 +20,7 @@ const spellcastingAbilityByClassName: Record<string, AbilityKey> = {
 };
 
 const spellcastingAbilityBySubclassId: Record<string, AbilityKey> = {
+  "fighter-arcane-archer": "INT",
   "fighter-eldritch-knight": "INT",
   "monk-warrior-of-the-elements": "WIS",
   "rogue-arcane-trickster": "INT"
@@ -54,6 +56,7 @@ export function getSpellcastingAbilityForCharacterSpell(
   spellId: string
 ): AbilityKey | null {
   return (
+    getArcaneArcherLoreSpellcastingAbility(character, spellId) ??
     getSpeciesSpellcastingAbilityForCharacter(character, spellId) ??
     getFeatSpellcastingAbilityForCharacter(character, spellId) ??
     getSpellcastingAbilityForCharacter(character)

@@ -4,6 +4,9 @@ export const clericChannelDivinityActionKey = "cleric-channel-divinity";
 export const paladinChannelDivinityActionKey = "paladin-channel-divinity";
 
 export const clericChannelDivinityOptionKeys = {
+  pathToTheGrave: "cleric-path-to-the-grave",
+  fortifyingSpell: "cleric-fortifying-spell",
+  tenaciousSpell: "cleric-tenacious-spell",
   divineSpark: "divine-spark",
   turnUndead: "turn-undead",
   mindMagic: "cleric-mind-magic",
@@ -26,6 +29,9 @@ export const paladinChannelDivinityOptionKeys = {
 } as const;
 
 const divinityIdByOptionKey = new Map<string, string>([
+  [clericChannelDivinityOptionKeys.pathToTheGrave, "divinity-path-to-the-grave"],
+  [clericChannelDivinityOptionKeys.fortifyingSpell, "divinity-fortifying-spell"],
+  [clericChannelDivinityOptionKeys.tenaciousSpell, "divinity-tenacious-spell"],
   [clericChannelDivinityOptionKeys.divineSpark, "divinity-divine-spark"],
   [clericChannelDivinityOptionKeys.turnUndead, "divinity-turn-undead"],
   [clericChannelDivinityOptionKeys.mindMagic, "divinity-mind-magic"],

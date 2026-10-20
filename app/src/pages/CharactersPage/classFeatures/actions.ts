@@ -167,6 +167,7 @@ import {
 
 import { getWizardAbjurerSpellResistanceSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardAbjurer";
 import { getWizardBladesingerFocusSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardBladesinger";
+import { getRangerHungeringMightSavingThrowDescriptionAdditions } from "./ranger/subclasses/rangerHollowWarden";
 
 import { getSelectedSubclassForCharacter } from "../subclasses";
 import { getSubclassDerivedFeatureState } from "./subclasses";
@@ -653,6 +654,9 @@ export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
   );
   descriptionAdditions.push(
     ...getWizardBladesingerFocusSavingThrowDescriptionAdditions(character, ability)
+  );
+  descriptionAdditions.push(
+    ...getRangerHungeringMightSavingThrowDescriptionAdditions(character, ability)
   );
 
   return descriptionAdditions;

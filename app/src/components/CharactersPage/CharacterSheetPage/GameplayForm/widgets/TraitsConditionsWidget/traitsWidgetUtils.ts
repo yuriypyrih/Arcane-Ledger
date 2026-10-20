@@ -15,6 +15,7 @@ import {
 import { isChangelingShapeShifterStatusEntry } from "../../../../../../pages/CharactersPage/speciesChangeling";
 import { isHexbloodEerieTokenStatusEntry } from "../../../../../../pages/CharactersPage/speciesHexblood";
 import { isShifterShiftingStatusEntry } from "../../../../../../pages/CharactersPage/speciesShifter";
+import { isUmbralFormStatusEntry } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowForm";
 import { getSpellEntryById } from "../../../../../../codex/entries";
 import { getSpellLevel } from "../../../../../../pages/CharactersPage/spellLevels";
 import type { CharacterStatusEntry } from "../../../../../../types";
@@ -111,6 +112,8 @@ export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string)
 }
 
 export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
+  if (isUmbralFormStatusEntry(entry)) return true;
+
   if (isCustomTraitDefenseStatusEntry(entry)) {
     return false;
   }
@@ -138,7 +141,11 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
 }
 
 export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
-  return isStatusEntryRemovable(entry) && !isExhaustionStatusEntry(entry);
+  return (
+    isStatusEntryRemovable(entry) &&
+    !isExhaustionStatusEntry(entry) &&
+    !isUmbralFormStatusEntry(entry)
+  );
 }
 
 export function getStatusDrawerBadgeLabel(entry: CharacterStatusEntry): string {

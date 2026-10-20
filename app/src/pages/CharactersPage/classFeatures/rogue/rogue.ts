@@ -1,4 +1,21 @@
 import { replaceClassFeatureState } from "../shared/resourceState";
+import { createTextHeaderTag } from "../cardUsage";
+import {
+  normalizePhantomGhostWalkState,
+  restorePhantomGhostWalkOnLongRest
+} from "./subclasses/roguePhantomGhostWalk";
+import {
+  normalizePhantomVoiceOfDeathState,
+  restorePhantomVoiceOfDeathOnRest
+} from "./subclasses/roguePhantomVoiceOfDeath";
+import {
+  getPhantomTokensState,
+  restorePhantomSoulTrinketsOnLongRest
+} from "./subclasses/roguePhantomTokens";
+import {
+  normalizeRoguePhantomState,
+  restoreRoguePhantomWailsOnLongRest
+} from "./subclasses/roguePhantom";
 import { getProgressionRow } from "../../../../codex/progression";
 import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
@@ -340,6 +357,10 @@ export function normalizeRogueFeatureState(
     : [];
 
   return {
+    ...normalizeRoguePhantomState(record, character),
+    ...getPhantomTokensState(record, character),
+    ...normalizePhantomVoiceOfDeathState(record, character),
+    ...normalizePhantomGhostWalkState(record, character),
     bloodthirstMeleeAttacksRemainingThisTurn:
       bloodthirstUsesTotal > 0
         ? Math.max(
@@ -484,6 +505,7 @@ export function getRogueFeatureActions(
         drawer: {
           kind: "custom-form",
           eyebrow: "Rogue",
+          headerTags: getRogueSneakAttackHeaderTags(character),
           facts: [],
           formKind: "sneak-attack"
         },
@@ -815,6 +837,17 @@ function getRogueSneakAttackDiceTerm(
   return options?.display
     ? formatFormulaDieDisplayTerm(diceTerm, [{ kind: "minimum", value: minimumPerDie }])
     : `${diceTerm}m${minimumPerDie}`;
+}
+
+export function getRogueSneakAttackHeaderTags(
+  character: Parameters<typeof getRogueSneakAttackRemainingDiceCount>[0] &
+    Partial<Pick<Character, "classFeatureState">>,
+  effectKeys: RogueSneakAttackEffectKey[] = []
+) {
+  const availableDice = character.classFeatureState?.rogue?.sneakAttackUsedThisTurn
+    ? 0
+    : getRogueSneakAttackRemainingDiceCount(character, effectKeys);
+  return [createTextHeaderTag("Available dice", `${availableDice}d6`)];
 }
 
 export function getRogueSneakAttackFormula(
@@ -1225,6 +1258,7 @@ export function restoreRogueSpellThiefOnLongRest(character: Character): Characte
 }
 
 export function applyShortRestToRogueFeatures(character: Character): Character {
+  character = restorePhantomVoiceOfDeathOnRest(character);
   const restoredCharacter = restoreRogueSoulknifePsionicDie(
     restoreRogueScionOfTheThreeBloodthirstOnShortRest(
       restoreRogueStrokeOfLuckOnShortRest(character)
@@ -1256,6 +1290,9 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
 }
 
 export function applyLongRestToRogueFeatures(character: Character): Character {
+  character = restorePhantomGhostWalkOnLongRest(character);
+  character = restoreRoguePhantomWailsOnLongRest(character);
+  character = restorePhantomSoulTrinketsOnLongRest(character);
   const restoredCharacter = applyShortRestToRogueFeatures(
     restoreRogueScionOfTheThreeBloodthirstOnLongRest(
       restoreRogueSpellThiefOnLongRest(

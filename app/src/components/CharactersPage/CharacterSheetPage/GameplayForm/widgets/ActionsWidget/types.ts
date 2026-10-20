@@ -91,6 +91,7 @@ export type ActionsWidgetUiState = {
   selectedArtificerEldritchCannonSpellSlotLevel: number | null;
   selectedArtificerSteelDefenderSpellSlotLevel: number | null;
   selectedReanimatedCompanionDefinitions: CharacterCompanion[];
+  selectedVestigeCompanionDefinitions: CharacterCompanion[];
   selectedBeastMasterReviveSpellSlotLevel: number | null;
   selectedWildCompanionSpellSlotLevel: number;
   selectedWildResurgenceMode: WildResurgenceMode | null;
@@ -102,6 +103,7 @@ export type ActionsWidgetUiState = {
   selectedAasimarHealingHandsTarget: AasimarHealingHandsTarget;
   selectedAasimarCelestialRevelationOptionKey: AasimarCelestialRevelationOptionKey | null;
   selectedBlessingOfTheTricksterTarget: BlessingOfTheTricksterTarget;
+  selectedKeeperOfSoulsTarget: "self" | "other";
   selectedHandOfHealingTarget: MonkHandOfHealingTarget;
   selectedThirdEyeOptionKey: WizardDivinerThirdEyeOptionKey | null;
   selectedStarryFormConstellation: DruidStarryFormConstellation | null;
@@ -130,9 +132,12 @@ export type ActionsWidgetUiState = {
   isClairvoyantCombatantSelected: boolean;
   isEldritchSmiteSelected: boolean;
   isLifedrinkerSelected: boolean;
+  isCurvingShotSelected: boolean;
+  isArcaneShotSelected: boolean;
   isPsionicStrikeSelected: boolean;
   isDreadfulStrikeSelected: boolean;
   isColossusSlayerSelected: boolean;
+  isPullOfDeathSelected: boolean;
   isPolarStrikesSelected: boolean;
   isGoliathAncestryStrikeSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
@@ -207,6 +212,7 @@ export type ActionsWidgetExecutionContext = ActionsWidgetContextBag &
   Pick<
     ActionsWidgetUiStateResult,
     | "setSelectedActionOptionKeys"
+    | "setSelectedVestigeCompanionDefinitions"
     | "setSelectedFluidFormsMonster"
     | "setIsFluidFormsMonsterModalOpen"
     | "setSelectedWildShapeMonsterSlug"
@@ -234,6 +240,8 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
   Pick<
     ActionsWidgetUiStateResult,
     | "selectedActionOptionKeys"
+    | "selectedKeeperOfSoulsTarget"
+    | "setSelectedKeeperOfSoulsTarget"
     | "setSelectedActionOptionKeys"
     | "selectedFluidFormsMonster"
     | "setSelectedFluidFormsMonster"
@@ -250,6 +258,7 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
     | "setSelectedExperimentalElixirSpellSlotLevel"
     | "setSelectedArtificerEldritchCannonSpellSlotLevel"
     | "setSelectedReanimatedCompanionDefinitions"
+    | "setSelectedVestigeCompanionDefinitions"
     | "setSelectedArtificerSteelDefenderSpellSlotLevel"
     | "setSelectedNatureMagicianSpellSlotLevel"
     | "setSelectedWildResurgenceMode"

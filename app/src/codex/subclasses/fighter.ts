@@ -1,5 +1,8 @@
 import { createSubclassFeatureRow } from "./featureRow";
-import { arcaneShotOptionsDescription } from "./fighterArcaneArcher";
+import {
+  arcaneShotOptionsDescription,
+  arcaneShotUsingAShotDescription
+} from "./fighterArcaneArcher";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type { SubclassEntry } from "../entries/types";
 import {
@@ -321,27 +324,27 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Cantrip.</strong> Learn <spell:Druidcraft>Druidcraft</spell> or <spell:Prestidigitation>Prestidigitation</spell>, using <link:Intelligence>Intelligence</link> for spellcasting.",
           "<strong>Skills.</strong> Gain Arcana and Nature proficiency. For each one you already have, choose another skill available to a level-1 Fighter instead."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_SHOT, {
         description: [
           "<strong>Options Known.</strong> Learn two Arcane Shot options. Add another at Fighter levels 7, 10, 15, and 18. Whenever you learn a new option, you may also replace one known option with a different one.",
-          "<strong>Using a Shot.</strong> Once per turn, apply an option to a ranged attack with a weapon that has the Ammunition property. Choose when the attack hits and damages a creature, except for options that replace the attack roll.",
+          arcaneShotUsingAShotDescription,
           "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a Short or <link:long-rest>Long Rest</link>.",
-          "<strong>Arcane Shot Die.</strong> Start with a <strong>d6</strong>; use a <strong>d8</strong> at Fighter level 10, a <strong>d10</strong> at level 15, and a <strong>d12</strong> at level 18.",
+          "<strong>Arcane Shot Die.</strong> Start with a <strong>D6</strong>; use a <strong>D8</strong> at Fighter level 10, a <strong>D10</strong> at level 15, and a <strong>D12</strong> at level 18.",
           "<strong>Saving Throw DC.</strong> 8 + your <link:Intelligence>Intelligence</link> modifier + your <link:Proficiency Bonus>Proficiency Bonus</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_SHOT_OPTIONS, {
         description: arcaneShotOptionsDescription,
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.CURVING_SHOT, {
         description: [
           "Immediately after missing with a ranged attack roll using an Ammunition weapon, you may use a Bonus Action to attack a different creature you can see within the weapon's range and within 60 feet of the original target. Roll a new attack for the ricochet."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.MAGICAL_AMMUNITION, {
         description: [
@@ -351,13 +354,15 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Unlocking Ammunition.</strong> A magical burst affects a 15-foot <link:Emanation>Emanation</link>, with a knocking sound audible to 300 feet. Objects held shut by nonmagical locks, stuck, or barred become unlocked, unstuck, or unbarred. Only one lock on each object opens.",
           "<strong>Vine Ammunition.</strong> A climbable vine grows 120 feet from the ammunition and withers after 10 minutes."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Upon use it will simply track that you used this class feature but not the details of what ammunition and what options were chosen"
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.EVER_READY_SHOT, {
         description: [
           "When rolling <link:Initiative>Initiative</link>, you may recover one spent Arcane Shot use."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
@@ -366,14 +371,14 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           description: [
             "After using Indomitable and succeeding on the saving throw, you may teleport up to 60 feet to an unoccupied space you can see."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.MASTERFUL_SHOTS, {
         description: [
           "When a creature you can see misses you with an attack roll, use a Reaction to move up to half your Speed away from it without provoking Opportunity Attacks. As part of that Reaction, you may then make a ranged weapon attack roll against it if it is within range."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   }

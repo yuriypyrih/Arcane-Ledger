@@ -1,4 +1,5 @@
 import { renderFormFooter } from "./uiAdapters";
+import { formOfDreadActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockUndeadPatron";
 import clsx from "clsx";
 
 import ActionShape from "../../../../../ActionShape";
@@ -118,6 +119,7 @@ const rollingFeatureEffectKinds = new Set([
   "tireless"
 ]);
 const rollingFeatureActionKeys = new Set([
+  formOfDreadActionKey,
   boonOfFateImproveFateActionKey,
   darkOnesOwnLuckActionKey,
   durableSpeedyRecoveryActionKey,
@@ -191,6 +193,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     handleWeaponDamageRoll,
     isClairvoyantCombatantSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     isCrownOfSpellfireSelected,
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
@@ -207,6 +210,12 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
     isPolarStrikesSelected,
+    isCurvingShotSelected,
+    selectedWeaponCurvingShotState,
+    setIsCurvingShotSelected,
+    isArcaneShotSelected,
+    selectedWeaponArcaneShotState,
+    setIsArcaneShotSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
     isRecklessAttackSelected,
@@ -255,6 +264,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedSecondWindGroupRecoveryUsesTotal,
     selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponColossusSlayerToggleDisabled,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
@@ -295,6 +305,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedWeaponStunningStrikeToggleDisabled,
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
+    setIsPullOfDeathSelected,
     setIsCrownOfSpellfireSelected,
     setIsDiceRollerSettingsOpen,
     setIsDreadfulStrikeSelected,
@@ -402,6 +413,18 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
               targetLabel: "Damage"
             }}
             usageKey="dreadful-strikes"
+          />
+        ) : null}
+        {selectedWeaponPullOfDeathState ? (
+          <FeatureOptInToggle
+            label="Pull of Death"
+            checked={isPullOfDeathSelected}
+            disabled={selectedWeaponPullOfDeathState.disabled}
+            muted={selectedWeaponPullOfDeathState.disabled}
+            onCheckedChange={setIsPullOfDeathSelected}
+            title={selectedWeaponPullOfDeathState.disabledReason}
+            application={{ qualifierText: "Wounded target · Once per turn", targetLabel: "Damage" }}
+            usageKey="pull-of-death"
           />
         ) : null}
         <RangerHunterWeaponOptions
@@ -545,6 +568,35 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
             )}
             application={{ targetLabel: "Damage" }}
             usageKey="vampiric-bite"
+          />
+        ) : null}
+        {selectedWeaponCurvingShotState ? (
+          <FeatureOptInToggle
+            label="Curving Shot"
+            checked={isCurvingShotSelected}
+            disabled={selectedWeaponCurvingShotState.disabled}
+            muted={selectedWeaponCurvingShotState.disabled}
+            onCheckedChange={setIsCurvingShotSelected}
+            title={selectedWeaponCurvingShotState.disabledReason ?? undefined}
+            actionShape="bonusAction"
+            actionShapeAvailable={!selectedWeaponCurvingShotState.disabled}
+            application={{ targetLabel: "Attack" }}
+          />
+        ) : null}
+        {selectedWeaponArcaneShotState ? (
+          <FeatureOptInToggle
+            label="Arcane Shot"
+            checked={isArcaneShotSelected}
+            disabled={selectedWeaponArcaneShotState.disabled}
+            muted={selectedWeaponArcaneShotState.disabled}
+            onCheckedChange={setIsArcaneShotSelected}
+            title={selectedWeaponArcaneShotState.disabledReason ?? undefined}
+            usage={createChargesCardUsage(
+              selectedWeaponArcaneShotState.usesRemaining,
+              selectedWeaponArcaneShotState.usesTotal
+            )}
+            application={{ targetLabel: "Damage" }}
+            usageKey="arcane-shot"
           />
         ) : null}
         {showPsionicStrikeToggle ? (
@@ -1072,6 +1124,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
   ) {
     return (
       <SorcererInnateSorceryActionFooter
+        character={character}
         confirmLabel={selectedFeaturePrimaryLabel}
         actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
         actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -1083,7 +1136,9 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
         crownOfSpellfireFallbackSorceryPointCost={selectedCrownOfSpellfireFallbackSorceryPointCost}
         crownOfSpellfireDisabledReason={selectedCrownOfSpellfireBlockedReason ?? undefined}
         isCrownOfSpellfireSelected={isCrownOfSpellfireSelected}
-        onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        onConfirm={(umbralForm) =>
+          executeFeatureActivate(selectedAction.action, null, { umbralForm })
+        }
         onCrownOfSpellfireSelectedChange={setIsCrownOfSpellfireSelected}
       />
     );
@@ -1371,7 +1426,8 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
 
   if (
     selectedAction.kind === "feature" &&
-    selectedAction.action.key === darkOnesOwnLuckActionKey &&
+    (selectedAction.action.key === darkOnesOwnLuckActionKey ||
+      selectedAction.action.key === formOfDreadActionKey) &&
     selectedAction.execute.kind === "activate"
   ) {
     return (

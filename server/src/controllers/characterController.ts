@@ -513,6 +513,29 @@ function readEncounterCompanionMonsterRecord(
   };
 }
 
+function readCompanionAdditionalStatBlocks(
+  value: unknown,
+  field: string
+): CharacterEncounterCompanionSummaryRecord["additionalStatBlocks"] {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value) || value.length > encounterStatBlockListMaxLength) {
+    throw createEncounterStatBlockError(`Encounter companion ${field} is invalid.`);
+  }
+  const ids = new Set<string>();
+  return value.map((block, index) => {
+    if (!isObjectRecord(block)) {
+      throw createEncounterStatBlockError(`Encounter companion ${field}.${index} is invalid.`);
+    }
+    const id = readEncounterRequiredString(block.id, `${field}.${index}.id`);
+    const monster = readEncounterCompanionMonsterRecord(block.monster, `${field}.${index}.monster`);
+    if (!monster || ids.has(id)) {
+      throw createEncounterStatBlockError(`Encounter companion ${field}.${index} is invalid.`);
+    }
+    ids.add(id);
+    return { id, monster, modified: block.modified === true };
+  });
+}
+
 function readEncounterCompanionSummary(
   value: unknown,
   index: number
@@ -545,6 +568,10 @@ function readEncounterCompanionSummary(
     value.inheritedCreatureEntry,
     `companions.${index}.inheritedCreatureEntry`
   );
+  const additionalStatBlocks = readCompanionAdditionalStatBlocks(
+    value.additionalStatBlocks,
+    `companions.${index}.additionalStatBlocks`
+  );
 
   return {
     id: readEncounterRequiredString(value.id, `companions.${index}.id`),
@@ -567,6 +594,7 @@ function readEncounterCompanionSummary(
     ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
     ...(deathSaves ? { deathSaves } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
+    ...(additionalStatBlocks?.length ? { additionalStatBlocks } : {}),
     ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
       ? { inheritedCreatureEntryModified: true }
       : {})

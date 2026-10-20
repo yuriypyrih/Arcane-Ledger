@@ -63,6 +63,7 @@ export type CharacterEncounterCompanionSummaryRecord = {
   deathSaves?: CharacterCompanionDeathSavesRecord;
   inheritedCreatureEntry?: Record<string, unknown>;
   inheritedCreatureEntryModified?: boolean;
+  additionalStatBlocks?: { id: string; monster: Record<string, unknown>; modified?: boolean }[];
 };
 
 export type CharacterSheetSummaryRecord = {
@@ -246,6 +247,22 @@ const characterCompanionDeathSavesSchema = new Schema<CharacterCompanionDeathSav
   }
 );
 
+const companionStatBlockSchema = new Schema(
+  {
+    id: { type: String, required: true, trim: true, maxlength: encounterStatBlockStringMaxLength },
+    monster: {
+      type: Schema.Types.Mixed,
+      required: true,
+      validate: {
+        validator: validateEncounterCompanionMonsterRecord,
+        message: "Encounter companion stat block is invalid."
+      }
+    },
+    modified: Boolean
+  },
+  { _id: false, minimize: false }
+);
+
 const characterEncounterCompanionSummarySchema =
   new Schema<CharacterEncounterCompanionSummaryRecord>(
     {
@@ -315,6 +332,14 @@ const characterEncounterCompanionSummarySchema =
       },
       inheritedCreatureEntryModified: {
         type: Boolean
+      },
+      additionalStatBlocks: {
+        type: [companionStatBlockSchema],
+        default: undefined,
+        validate: {
+          validator: (value: unknown[]) => value.length <= encounterStatBlockListMaxLength,
+          message: "Too many companion stat blocks."
+        }
       }
     },
     {

@@ -1,3 +1,4 @@
+import { DrawerResourceManagement } from "../DrawerResourceManagement";
 import { LazyCodexSpellDrawer } from "../../../CodexPage/LazyCodexReferenceDrawers";
 import type { CastSelectedSpellOptions, SpellCastingFormRendererContext } from "./types";
 
@@ -280,7 +281,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     warlockStepsOfTheFeyUsesTotal
   } = context;
 
-  return (
+  const content = (
     <article className={clsx(shared.sectionCard, className)}>
       <div className={clsx(shared.sectionHeader, styles.spellcastingSectionHeader)}>
         <div>
@@ -1374,5 +1375,15 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
 
       {diceRollerPopup}
     </article>
+  );
+
+  return (
+    <DrawerResourceManagement
+      key={character.id}
+      character={character}
+      onPersistCharacter={onPersistCharacter}
+    >
+      {content}
+    </DrawerResourceManagement>
   );
 }

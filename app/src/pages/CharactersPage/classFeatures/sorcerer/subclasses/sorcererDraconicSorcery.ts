@@ -196,7 +196,7 @@ export function getSorcererDraconicDragonCompanionUsesRemaining(
   return Math.max(0, totalUses - normalizedExpendedUses);
 }
 
-function getSorcererDraconicDragonWingsUsesRemaining(character: DraconicSorceryCharacter): number {
+export function getSorcererDraconicDragonWingsUsesRemaining(character: DraconicSorceryCharacter): number {
   const totalUses = getSorcererDraconicDragonWingsUsesTotal(character);
   const expendedUses = Number(character.classFeatureState?.sorcerer?.dragonWingsUsesExpended);
   const normalizedExpendedUses = Number.isFinite(expendedUses)

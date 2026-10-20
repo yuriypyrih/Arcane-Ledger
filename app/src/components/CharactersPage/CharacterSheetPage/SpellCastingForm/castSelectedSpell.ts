@@ -1,4 +1,17 @@
 import {
+  canUsePhantomSpiritQuery,
+  isPhantomSpiritQuerySpell,
+  phantomSpiritQueryEffectId
+} from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
+import {
+  canUseSpiritualManifestationFreeCast,
+  spiritualManifestationFreeCastEffectId
+} from "../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfSpiritsEmpowered";
+import {
+  canUseDispellingRecovery,
+  dispellingRecoveryEffectId
+} from "../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericDomainSpellEffects";
+import {
   consumeArtificerJoltToLifeUse,
   spareTheDyingSpellId
 } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
@@ -137,10 +150,31 @@ export function castSelectedSpellWithContext(
   }
 
   const spellLevel = getSpellLevel(selectedSpell);
-  const roundTrackerResource =
-    options?.roundTrackerResourceOverride ??
-    selectedSpellActionPaths[0]?.roundTrackerResource ??
-    getRoundTrackerResourceForSpell(selectedSpell);
+  const useSpiritQuery = options?.spellCastEffectIds?.includes(phantomSpiritQueryEffectId) === true;
+  if (
+    (isPhantomSpiritQuerySpell(character, selectedSpell) && !useSpiritQuery) ||
+    (useSpiritQuery && !canUsePhantomSpiritQuery(character, selectedSpell))
+  ) {
+    return;
+  }
+  const useSpiritualManifestation =
+    options?.spellCastEffectIds?.includes(spiritualManifestationFreeCastEffectId) === true;
+  if (
+    useSpiritualManifestation &&
+    !canUseSpiritualManifestationFreeCast(character, selectedSpell)
+  ) {
+    return;
+  }
+  const useDispellingRecovery =
+    options?.spellCastEffectIds?.includes(dispellingRecoveryEffectId) === true &&
+    canUseDispellingRecovery(character, selectedSpell);
+  const roundTrackerResource = useSpiritQuery
+    ? "action"
+    : useDispellingRecovery
+      ? null
+      : (options?.roundTrackerResourceOverride ??
+        selectedSpellActionPaths[0]?.roundTrackerResource ??
+        getRoundTrackerResourceForSpell(selectedSpell));
   const selectedSpellActionPath =
     selectedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
     selectedSpellActionPaths[0] ??
@@ -152,7 +186,8 @@ export function castSelectedSpellWithContext(
         spellLevel: selectedSpell.spellLevel
       }
     : createEconomyMultiContextForSpell(selectedSpell);
-  const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
+  const castAsRitual =
+    !useSpiritQuery && options?.castAsRitual === true && selectedSpell.ritual === true;
   const useBeguilingMagic = options?.useBeguilingMagic === true;
   const useStarMap = options?.useStarMap === true && selectedSpellSupportsStarMap;
   const useMagicInitiate = options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
@@ -621,7 +656,16 @@ export function castSelectedSpellWithContext(
     useTelekineticMaster,
     useNaturalRecovery
   });
-  const { slotLevel, castsWithoutSpellSlot, freeCasts } = slotPlan;
+  const slotLevel =
+    useSpiritQuery || useSpiritualManifestation || useDispellingRecovery
+      ? spellLevel
+      : slotPlan.slotLevel;
+  const castsWithoutSpellSlot =
+    useSpiritQuery ||
+    useSpiritualManifestation ||
+    useDispellingRecovery ||
+    slotPlan.castsWithoutSpellSlot;
+  const { freeCasts } = slotPlan;
   const castsFreeViaSpellMastery = freeCasts.spellMastery;
   const castsFreeViaSignatureSpells = freeCasts.signatureSpells;
   const castsFreeViaNaturalRecovery = freeCasts.naturalRecovery;
@@ -677,6 +721,15 @@ export function castSelectedSpellWithContext(
       currentCharacter,
       roundTrackerResource
     );
+    if (
+      useSpiritualManifestation &&
+      !canUseSpiritualManifestationFreeCast(preparedCharacter, selectedSpell)
+    ) {
+      return currentCharacter;
+    }
+    if (useSpiritQuery && !canUsePhantomSpiritQuery(preparedCharacter, selectedSpell)) {
+      return currentCharacter;
+    }
     const currentSpellSlotTotals = getSheetSpellSlotTotals(preparedCharacter);
     const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
       preparedCharacter.spellSlotsExpended,

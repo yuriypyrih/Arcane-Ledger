@@ -27,6 +27,7 @@ type SummonDefinitionPanelProps = {
   onDefinitionsChange: (definitions: CharacterCompanion[]) => void;
   spell: Pick<SpellEntry, "name" | "description">;
   sourceKind?: "spell" | "feature";
+  mode?: "summon" | "form";
 };
 
 function createSummonInitialDraft(
@@ -73,7 +74,8 @@ function SummonDefinitionPanel({
   disabledReason = null,
   onDefinitionsChange,
   spell,
-  sourceKind = "spell"
+  sourceKind = "spell",
+  mode = "summon"
 }: SummonDefinitionPanelProps) {
   const [editingDefinitionIndex, setEditingDefinitionIndex] = useState<number | "new" | null>(null);
   const [initialDraft, setInitialDraft] = useState<CompanionDraft>();
@@ -82,11 +84,13 @@ function SummonDefinitionPanel({
       ? (definitions[editingDefinitionIndex] ?? null)
       : null;
   const buttonLabel =
-    definitions.length > 0
-      ? "Add additional summon"
-      : createDefaultMonster
-        ? `Define ${spell.name}`
-        : "Choose an eligible stat block yourself";
+    mode === "form"
+      ? "Define Spirit Form"
+      : definitions.length > 0
+        ? "Add additional summon"
+        : createDefaultMonster
+          ? `Define ${spell.name}`
+          : "Choose an eligible stat block yourself";
 
   function handleAddDefinition() {
     setInitialDraft(
@@ -122,9 +126,9 @@ function SummonDefinitionPanel({
           <CreatureCard
             key={`${definition.id}-${definitionIndex}`}
             creature={definition}
-            editLabel={`Edit ${definition.name} summon definition`}
+            editLabel={`Edit ${definition.name} ${mode} definition`}
             predisposition="friendly"
-            removeLabel={`Clear ${definition.name} summon definition`}
+            removeLabel={`Clear ${definition.name} ${mode} definition`}
             sourceLabel={sourceLabel}
             statusLabel={statusLabel}
             onEdit={() => setEditingDefinitionIndex(definitionIndex)}
@@ -135,32 +139,34 @@ function SummonDefinitionPanel({
       })}
 
       <div className={styles.summonDefinitionEmpty}>
-        <ActionButton
-          actionType="INFO"
-          variant="OUTLINE"
-          icon={<Search size={16} aria-hidden="true" />}
-          disabled={disabled}
-          title={disabledReason ?? undefined}
-          onClick={handleAddDefinition}
-        >
-          {buttonLabel}
-        </ActionButton>
+        {!disabled ? (
+          <ActionButton
+            actionType="INFO"
+            variant="OUTLINE"
+            icon={<Search size={16} aria-hidden="true" />}
+            title={disabledReason ?? undefined}
+            onClick={handleAddDefinition}
+          >
+            {buttonLabel}
+          </ActionButton>
+        ) : null}
         {disabledReason ? <p className={styles.summonDefinitionNotice}>{disabledReason}</p> : null}
       </div>
 
       {editingDefinitionIndex !== null ? (
         <CreatureEditorModal
+          allowAdditionalStatBlocks={mode !== "form"}
           character={character}
           creature={activeDefinition}
           creatures={character.companions ?? []}
           initialDraft={initialDraft}
           labels={{
             browseButton: "Browse Monsters",
-            browseSummary: "Choose a stat block to inherit for this summon.",
+            browseSummary: `Choose a stat block to inherit for this ${mode}.`,
             browseTitle: "Browse monsters",
             closeLabel: "Close summon definition",
-            createButton: "Define Summon",
-            createTitle: "Define summon",
+            createButton: mode === "form" ? "Define Form" : "Define Summon",
+            createTitle: `Define ${mode}`,
             deleteButton: "Delete",
             deleteCloseLabel: "Close delete summon confirmation",
             deleteConfirmLabel: "Delete",
@@ -171,21 +177,24 @@ function SummonDefinitionPanel({
               </>
             ),
             deleteTitle: "Delete summon?",
-            editTitle: "Edit summon",
-            inheritedStatBlockTitle: "Inherited stat block",
+            editTitle: `Edit ${mode}`,
+            inheritedStatBlockTitle: mode === "form" ? "Stat block" : "Stat blocks",
             noStatBlockText: "No stat block selected.",
             previewBadgeLabel: "Monster Preview",
-            saveButton: "Update Summon",
+            saveButton: mode === "form" ? "Update Form" : "Update Summon",
             summary:
-              sourceKind === "spell"
-                ? "Define the companion this spell will create when cast."
-                : "Define the companion this action will create.",
+              mode === "form"
+                ? "Define the spirit form your existing companion will adopt."
+                : sourceKind === "spell"
+                  ? "Define the companion this spell will create when cast."
+                  : "Define the companion this action will create.",
             useMonsterButton: "Use Monster"
           }}
           onClose={() => setEditingDefinitionIndex(null)}
           onSaveCreature={handleSaveDefinition}
           preserveTypeOnMonsterSelect
-          showSeparateInitiativeToggle
+          showDurationFields={mode !== "form"}
+          showSeparateInitiativeToggle={mode !== "form"}
         />
       ) : null}
     </section>

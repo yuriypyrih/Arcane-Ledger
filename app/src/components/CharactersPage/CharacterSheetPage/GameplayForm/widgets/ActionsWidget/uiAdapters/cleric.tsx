@@ -5,6 +5,10 @@ import {
   type ActionFormFooterContext
 } from "./types";
 import BlessingOfTheTricksterActionBody from "../BlessingOfTheTricksterActionBody";
+import {
+  KeeperOfSoulsActionBody,
+  KeeperOfSoulsActionFooter
+} from "../forms/KeeperOfSoulsAction";
 import ActionShape from "../../../../../../ActionShape";
 import { getActionShapeForEconomyType } from "../../../gameplayWidgetUtils";
 import ActionButton from "../../../../../../ActionButton";
@@ -77,6 +81,12 @@ function renderBlessingOfTheTricksterFooter(context: ActionFormFooterContext) {
   return undefined;
 }
 export const clericFormAdapters = {
+  "keeper-of-souls": {
+    body: (context) => <KeeperOfSoulsActionBody context={context} />,
+    footer: (context) => (
+      <KeeperOfSoulsActionFooter key={context.selectedAction?.key} context={context} />
+    )
+  },
   "blessing-of-the-trickster": {
     body: renderBlessingOfTheTricksterBody,
     footer: renderBlessingOfTheTricksterFooter

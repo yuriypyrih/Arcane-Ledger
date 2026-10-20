@@ -1,4 +1,11 @@
 import { replaceClassFeatureState } from "../shared/resourceState";
+import { normalizeSorcererShadowState } from "./subclasses/sorcererShadowSorcery";
+import {
+  activateUmbralForm,
+  getUmbralFormActivationDisabledReason,
+  getUmbralFormActivationSorceryPointCost,
+  type UmbralFormOption
+} from "./subclasses/sorcererShadowForm";
 import { getProgressionRow } from "../../../../codex/progression";
 import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
@@ -410,6 +417,7 @@ export function normalizeSorcererFeatureState(
     record.arcaneApotheosisFreeMetamagicUsedThisTurn === true;
 
   return {
+    ...normalizeSorcererShadowState(record, character),
     sorceryPointsExpended:
       hasFontOfMagic && Number.isFinite(sorceryPointsExpended)
         ? Math.max(0, Math.min(totalSorceryPoints, Math.floor(sorceryPointsExpended)))
@@ -852,6 +860,7 @@ export function activateInnateSorcery(
   character: Character,
   options?: {
     useCrownOfSpellfire?: boolean;
+    umbralForm?: UmbralFormOption;
   }
 ): Character {
   if (
@@ -862,6 +871,8 @@ export function activateInnateSorcery(
   }
 
   const useCrownOfSpellfire = options?.useCrownOfSpellfire === true;
+  const umbralForm = options?.umbralForm;
+  if (umbralForm && getUmbralFormActivationDisabledReason(character)) return character;
   const usesRemaining = getInnateSorceryUsesRemaining(character);
   const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
   const crownOfSpellfireUsesRemaining = getSorcererSubclassCrownOfSpellfireUsesRemaining(character);
@@ -869,6 +880,7 @@ export function activateInnateSorcery(
     getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(character);
   const totalSorceryPointCost =
     fallbackSorceryPointCost +
+    (umbralForm ? getUmbralFormActivationSorceryPointCost(character) : 0) +
     (useCrownOfSpellfire && crownOfSpellfireUsesRemaining <= 0
       ? crownOfSpellfireFallbackSorceryPointCost
       : 0);
@@ -920,6 +932,8 @@ export function activateInnateSorcery(
       })
     ]
   };
+
+  if (umbralForm) return activateUmbralForm(nextCharacter, umbralForm);
 
   return useCrownOfSpellfire
     ? activateSorcererSubclassCrownOfSpellfire(nextCharacter)

@@ -11,6 +11,8 @@ import { getBarbarianFeatureDescriptionAdditions } from "./barbarian/contributio
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkFeatureDescriptionAdditions } from "./monk/contributions";
 import { getRogueThiefInitiativeDescriptionAdditions } from "./rogue/subclasses/rogueThief";
+import { getPhantomDrawOfDeathInitiativeDescriptionAdditions } from "./rogue/subclasses/roguePhantomDeathsFriend";
+import { getEverReadyShotInitiativeDescriptionAdditions } from "./fighter/subclasses/fighterEverReadyShot";
 
 type InitiativeDescriptionCharacter = Character;
 
@@ -86,7 +88,9 @@ export function getInitiativeReferenceDescriptionAdditions(
     ...getAlertInitiativeDescriptionAdditions(character),
     ...getBarbarianFeatureDescriptionAdditions(character, "initiative"),
     ...getBardInitiativeDescriptionAdditions(character),
+    ...getEverReadyShotInitiativeDescriptionAdditions(character),
     ...getMonkFeatureDescriptionAdditions(character, "initiative"),
-    ...getRogueThiefInitiativeDescriptionAdditions(character)
+    ...getRogueThiefInitiativeDescriptionAdditions(character),
+    ...getPhantomDrawOfDeathInitiativeDescriptionAdditions(character)
   ];
 }

@@ -1,3 +1,4 @@
+import { getCompanionStatBlocks } from "../../../../pages/CharactersPage/companionStatBlocks";
 import SheetReferenceButton from "../SheetReferenceButton";
 import type { CSSProperties } from "react";
 import { ChessRook, Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
@@ -74,11 +75,12 @@ function CreatureCard({
 }: CreatureCardProps) {
   const temporaryHitPoints = normalizeTemporaryHitPoints(creature.temporaryHitPoints);
   const creatureType = getCompanionDisplayType(creature);
-  const inheritedCreatureEntry = creature.inheritedCreatureEntry;
+  const topStatBlock = getCompanionStatBlocks(creature)[0];
+  const inheritedCreatureEntry = topStatBlock?.monster;
   const armorClass = inheritedCreatureEntry ? getMonsterArmorClass(inheritedCreatureEntry) : null;
   const shouldShowArmorClass =
     typeof armorClass === "number" && Number.isFinite(armorClass) && armorClass > 0;
-  const isModified = creature.inheritedCreatureEntryModified === true;
+  const isModified = topStatBlock?.modified === true;
   const shortDurationLabel = getStatusDurationShortLabel(creature.duration);
   const durationTitle = getStatusDurationLabel(creature.duration);
   const roundTickOn = getStatusDurationTickOn(creature.duration);

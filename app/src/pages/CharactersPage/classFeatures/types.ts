@@ -28,6 +28,7 @@ import type {
   WeaponProficiencyEntry
 } from "../../../types";
 import type { WeaponAction } from "../gameplay";
+import type { ResourceManagementTarget } from "../resourceManagement";
 import type {
   SpellImplementationCastSource,
   SpellImplementationOptionValues
@@ -35,6 +36,7 @@ import type {
 
 export type FeatureActionTone = "default" | "accent" | "danger";
 export type FeatureActionIcon =
+  | "ghost"
   | "anima"
   | "brain"
   | "music"
@@ -49,12 +51,14 @@ export type FeatureActionIcon =
 export type FeatureActionCardUsageCharges = {
   current: number;
   total: number;
+  management?: ResourceManagementTarget;
 };
 
 export type FeatureActionCardUsageCost = {
   amountText?: string;
   resourceLabel: string;
   icon?: FeatureActionIcon;
+  management?: ResourceManagementTarget;
 };
 
 export type FeatureActionCardUsage =
@@ -96,7 +100,7 @@ export type FeatureActionHeaderTagPool = {
   icon?: FeatureActionIcon;
 };
 
-export type FeatureActionHeaderTag =
+export type FeatureActionHeaderTag = { management?: ResourceManagementTarget } & (
   | {
       kind: "charges";
       charges: FeatureActionCardUsageCharges;
@@ -114,7 +118,7 @@ export type FeatureActionHeaderTag =
       value: string;
       tone?: FeatureActionTone;
       icon?: FeatureActionIcon;
-    };
+    });
 
 export type FeatureActionFact = {
   label: string;
@@ -124,7 +128,7 @@ export type FeatureActionFact = {
   tone?: FeatureActionTone;
 };
 
-export type FeatureActionResource =
+export type FeatureActionResource = { management?: ResourceManagementTarget } & (
   | {
       kind: "tracker";
       label: string;
@@ -143,7 +147,7 @@ export type FeatureActionResource =
       value: string;
       tone?: FeatureActionTone;
       icon?: FeatureActionIcon;
-    };
+    });
 
 export type FeatureActionDrawerKind = "confirm" | "options" | "custom-form" | "spell-list";
 
@@ -161,6 +165,9 @@ export type FeatureActionExecuteEffectKind =
   | "tireless";
 
 export type FeatureActionFormKind =
+  | "warlock-vestige-companion"
+  | "warlock-semblance-of-life"
+  | "bard-spirits"
   | "aasimar-celestial-revelation"
   | "aasimar-healing-hands"
   | "artificer-arcane-firearm"
@@ -173,6 +180,7 @@ export type FeatureActionFormKind =
   | "artificer-transmute-magic-item"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
+  | "keeper-of-souls"
   | "boon-fluid-forms-shapechanger"
   | "brutal-strike"
   | "dragonborn-breath-weapon"
@@ -226,6 +234,7 @@ export type FeatureActionSource =
 
 export type FeatureActionSpellEffectKind =
   | "ascendant-step"
+  | "beasts-of-ill-omen"
   | "armor-of-shadows"
   | "conjured-cauldron"
   | "facilitated-revival"
@@ -250,6 +259,7 @@ export type FeatureActionSpellEffectKind =
   | "shadow-arts-darkness"
   | "unerring-path"
   | "visions-of-distant-realms"
+  | "voice-of-death"
   | "whispers-of-the-grave";
 
 export type FeatureActionDrawerConfig = {
@@ -295,6 +305,7 @@ export type FeatureActionExecuteConfig =
       actionContextText?: string;
       actionAvailabilityText?: string;
       actionConsumesSpellSlot?: boolean;
+      spellcastingAbilityOverride?: AbilityKey;
       allowRitualCasting?: boolean;
       freeCastSlotLevel?: number | null;
       spellImplementationCastSource?: SpellImplementationCastSource;

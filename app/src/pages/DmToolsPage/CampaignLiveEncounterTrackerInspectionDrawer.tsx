@@ -1,3 +1,4 @@
+import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
@@ -179,7 +180,7 @@ function CompanionStatBlock({
   participant: CampaignLiveEncounterTrackerPartyCompanionRecord;
 }) {
   const companion = participant.companion;
-  const monster = companion.inheritedCreatureEntry;
+  const blocks = getCompanionStatBlocks(companion);
   const description = (companion.description ?? "").trim();
   const hasHitPointSummary =
     isFiniteNumber(companion.currentHitPoints) && isFiniteNumber(companion.maxHitPoints);
@@ -192,17 +193,17 @@ function CompanionStatBlock({
           <p className={styles.liveTrackerDrawerDescription}>{description}</p>
         </section>
       ) : null}
-      {monster ? (
-        <section className={styles.liveTrackerDrawerSection}>
+      {blocks.map((block) => (
+        <section key={block.id} className={styles.liveTrackerDrawerSection}>
           <h4>Stat Block</h4>
           <MonsterEntryRenderer
-            monster={monster}
+            monster={block.monster}
             className={styles.liveTrackerMonsterEntry}
-            headingTag={companion.inheritedCreatureEntryModified ? "Modded" : undefined}
+            headingTag={block.modified ? "Modded" : undefined}
           />
         </section>
-      ) : null}
-      {!hasHitPointSummary && !description && !monster ? (
+      ))}
+      {!hasHitPointSummary && !description && blocks.length === 0 ? (
         <p className={styles.liveTrackerDrawerMutedText}>
           No information available for the companion.
         </p>

@@ -11,6 +11,12 @@ import {
   normalizeFighterBanneretFeatureState
 } from "./fighterBanneret";
 import {
+  arcaneArcherSubclassId,
+  getArcaneArcherDerivedFeatureState,
+  normalizeArcaneArcherFeatureState
+} from "./fighterArcaneArcher";
+import { advanceArcaneShotForNewRound } from "./fighterArcaneShot";
+import {
   advanceFighterBattleMasterFeaturesForNewRound,
   battleMasterSubclassId,
   getFighterBattleMasterDerivedFeatureState,
@@ -35,6 +41,7 @@ import {
 } from "./fighterPsiWarrior";
 
 const fighterSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [arcaneArcherSubclassId]: getArcaneArcherDerivedFeatureState,
   [banneretSubclassId]: getFighterBanneretDerivedFeatureState,
   [battleMasterSubclassId]: getFighterBattleMasterDerivedFeatureState,
   [championSubclassId]: getFighterChampionDerivedFeatureState,
@@ -49,6 +56,7 @@ const fighterSubclassStateNormalizers: Record<
     character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
   ) => Partial<CharacterFighterFeatureState>
 > = {
+  [arcaneArcherSubclassId]: normalizeArcaneArcherFeatureState,
   [banneretSubclassId]: normalizeFighterBanneretFeatureState,
   [battleMasterSubclassId]: normalizeFighterBattleMasterFeatureState,
   [eldritchKnightSubclassId]: normalizeFighterEldritchKnightFeatureState,
@@ -87,6 +95,8 @@ export function advanceFighterSubclassFeaturesForNewRound(character: Character):
   }
 
   switch (getClassSubclassId(character, "Fighter")) {
+    case arcaneArcherSubclassId:
+      return advanceArcaneShotForNewRound(character);
     case battleMasterSubclassId:
       return advanceFighterBattleMasterFeaturesForNewRound(character);
     case championSubclassId:

@@ -1,3 +1,4 @@
+import { consumePullOfDeath } from "./cleric/subclasses/clericGraveDomain";
 import { getSpellRuntimeCharacter } from "../characterRuntime/classContexts";
 import { getCharacterSpellEntryTransformer } from "../characterRuntime/spellEntryTransformer";
 import { applyClassEditorChange } from "../multiclass";
@@ -1273,6 +1274,8 @@ export function markFeatureWeaponBonusUseForCharacter(
   if (label === "Dreadful Strikes") {
     return finalize(markRangerDreadfulStrikesUsed(character));
   }
+
+  if (label === "Pull of Death") return finalize(consumePullOfDeath(character));
 
   if (label === "Colossus Slayer") {
     return finalize(markRangerHunterColossusSlayerUsed(character));

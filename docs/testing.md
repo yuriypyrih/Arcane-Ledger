@@ -5,6 +5,16 @@ the mounted sheet, persistence, HTTP/database behavior, and browser workflows us
 characters and isolated databases. Coverage includes refusal, recovery, cancellation, and reload
 cases as well as successful interactions. This is not an exhaustive certification of every rule.
 
+## When to run browser end-to-end tests
+
+Do not run browser end-to-end tests by default when implementing new features. Run them only when
+the user explicitly requests browser end-to-end testing or asks for a complete test round. This
+applies to both full and filtered browser suites; a new feature alone does not authorize a run.
+
+Default feature verification uses the relevant existing non-browser tests and lint, type, and build
+checks. This opt-in rule is the specific exception to the general existing-test guidance in
+`AGENTS.md`. It governs agent-initiated local runs; the automated CI configuration is unchanged.
+
 ## Install and run
 
 Use Node 22 for the same environment as CI. The harness also works with the repository's existing
@@ -21,6 +31,7 @@ cd app
 PLAYWRIGHT_BROWSERS_PATH=../.cache/playwright npx playwright install chromium
 cd ..
 npm test
+# Only when explicitly requested or included in a complete test round:
 npm run test:e2e
 npm run test:types
 npm run lint
@@ -41,6 +52,7 @@ npm --prefix app test -- tests/integration/persistence.test.tsx
 npm --prefix app run test:watch
 npm --prefix app run test:coverage
 npm --prefix server test
+# Browser suites follow the opt-in rule above:
 npm --prefix app run test:e2e -- --project=desktop
 npm --prefix app run test:e2e -- --project=mobile
 ```
@@ -197,8 +209,9 @@ wiring, persistence and visible results.
 Follow the test-scope rule in [AGENTS.md](../AGENTS.md): routine code work uses existing tests;
 it does not automatically add regression cases. New cases require explicit user approval or an
 agreed scope during new-feature design in Plan mode. An explicit testing-improvement request
-supplies approval for focused additions. Running tests and repairing or consolidating existing
-assertions do not require a separate approval step.
+supplies approval for focused additions. Running existing non-browser tests and repairing or
+consolidating existing assertions do not require a separate approval step. Browser end-to-end runs
+follow the opt-in rule above.
 
 Prefer strengthening an existing behavior test over adding another one. For approved additions,
 choose a few concrete risks such as lost edits, double transfers, authorization failures, or failed

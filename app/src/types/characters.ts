@@ -555,6 +555,12 @@ export type CharacterCustomEquipment =
   | CharacterCustomArmor
   | CharacterCustomItem;
 
+export type CompanionStatBlock = {
+  id: string;
+  monster: MonsterRecord;
+  modified?: boolean;
+};
+
 export type CharacterCompanion = {
   sourceClassEntryId?: string;
   sourceClassLevel?: number;
@@ -575,6 +581,10 @@ export type CharacterCompanion = {
   duration: CharacterStatusDuration;
   inheritedCreatureEntry?: MonsterRecord;
   inheritedCreatureEntryModified?: boolean;
+  additionalStatBlocks?: CompanionStatBlock[];
+  semblanceOfLife?: {
+    traitId: string;
+  };
 };
 
 export type CharacterCustomActionEconomy =

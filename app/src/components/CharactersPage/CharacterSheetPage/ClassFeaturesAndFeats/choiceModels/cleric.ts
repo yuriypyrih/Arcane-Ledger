@@ -1,3 +1,4 @@
+import { getArcanaDomainState } from "../../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericArcanaDomain";
 import {
   getCantripLimitForCharacter,
   getCantripSelectionOptionsForCharacter
@@ -164,7 +165,15 @@ export function createClericFeatureChoiceModel({
     );
   }
 
+  function isArcanaChoiceRequired(mastery: boolean) {
+    const state = getArcanaDomainState(character);
+    return mastery
+      ? (state.magicalMasterySpellIds ?? []).filter(Boolean).length < 4
+      : !state.arcanaSkill || (state.arcanaCantripIds ?? []).filter(Boolean).length < 2;
+  }
+
   return {
+    isArcanaChoiceRequired,
     getAvailableKnowledgeDomainBlessingsSkills,
     getAvailableKnowledgeDomainBlessingsTools,
     getAvailableKnowledgeDomainUnfetteredMindSavingThrows,

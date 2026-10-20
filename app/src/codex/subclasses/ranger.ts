@@ -351,7 +351,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Dominate Beast>Dominate Beast</spell>",
             "<strong>Level 17.</strong> <spell:Steel Wind Strike>Steel Wind Strike</spell>"
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WRATH_OF_THE_WILD, {
@@ -361,14 +361,18 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "<strong>Prowling Retribution.</strong> Immediately after a creature you can see within 5 feet damages you or an ally, you can make an Opportunity Attack against it.",
           "<strong>Unnerving Aura.</strong> When you transform and at the start of each later turn, your chosen creatures within a 10-foot <link:Emanation>Emanation</link> make <link:Wisdom>Wisdom</link> saving throws against your spell save DC. A failure causes <link:Frightened>Frightened</link> until your next turn starts."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Spends a Favored Enemy use and creates a 10-turn trait with Ancient Armor and your spell save DC. Apply Prowling Retribution and Unnerving Aura to other creatures manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.HUNGERING_MIGHT, {
         description: [
           "Add your <link:Wisdom>Wisdom</link> modifier to <link:Constitution>Constitution</link> saving throws, with a minimum bonus of +1.",
           "Once per turn while transformed with Wrath of the Wild, if you are Bloodied when you hit a creature with an attack roll, restore Hit Points equal to <strong>1d10</strong> plus your <link:Wisdom>Wisdom</link> modifier."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Adds your Wisdom modifier (minimum +1) to Constitution saving throws. The Bloodied healing rule appears in Wrath of the Wild's action drawer; resolve its trigger and healing manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_11, CLASS_FEATURE.ROT_AND_VIOLENCE, {
         description: [
@@ -376,7 +380,9 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "<strong>Menacing Aura.</strong> A creature that fails its Unnerving Aura save also cannot regain Hit Points or take Reactions until your next turn starts.",
           "<strong>Strangling Roots.</strong> When a weapon attack roll hits a creature, you may apply Sap or Slow alongside a different mastery property you are using with that weapon."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Adds its description to Wrath of the Wild's action and trait drawers. Resolve Menacing Aura and Strangling Roots manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.ANCIENT_MIGHT, {
         description: [
@@ -384,7 +390,9 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "<strong>Persistent Wrath.</strong> While Wrath of the Wild is active, if you would fall to 0 Hit Points without dying outright, you may instead set your Hit Points to twice your Ranger level. Recover this use after a <link:long-rest>Long Rest</link>, or spend a level 4+ spell slot without an action to restore it.",
           "<strong>Timeless.</strong> You are immune to <link:Exhaustion>Exhaustion</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Persistent Wrath restores Hit Points through the Book of Life and Death while Wrath of the Wild is active, spending its charge or a level 4+ spell slot. Its charge recovers at Long Rest. Ominous Strikes is shown in weapon and Unarmed Strike drawers; apply its damage and Timeless immunity manually."
       })
     ]
   }

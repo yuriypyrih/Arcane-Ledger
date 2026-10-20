@@ -57,6 +57,10 @@ export type CharacterBardExpertiseState = {
 };
 
 export type CharacterBardFeatureState = {
+  channeledSpirits?: Array<{ id: string; spirit: number }>;
+  pendingSpiritRolls?: Array<{ id: string; die: number; count: 1 | 2; results?: number[] }>;
+  spiritualManifestationUsesExpended?: number;
+  spiritualManifestationCoverUsesExpended?: number;
   bardicInspirationUsesExpended?: number;
   bardicInspirationTemporaryTotal?: number;
   lunarVitalityUsedThisTurn?: boolean;
@@ -119,6 +123,7 @@ export type CharacterPaladinFeatureState = {
 
 export type CharacterRangerFeatureState = {
   favoredEnemyUsesExpended?: number;
+  persistentWrathUsesExpended?: number;
   tirelessUsesExpended?: number;
   naturesVeilUsesExpended?: number;
   fortifyingSoulUsesExpended?: number;
@@ -152,6 +157,11 @@ export type CharacterRogueExpertiseState = {
 };
 
 export type CharacterRogueFeatureState = {
+  phantomWailsUsesExpended?: number;
+  phantomVoiceOfDeathUsesExpended?: number;
+  phantomGhostWalkUsesExpended?: number;
+  phantomSoulTrinkets?: number;
+  phantomWhispersProficiency?: SkillName | TOOL_PROFICIENCY;
   bloodthirstMeleeAttacksRemainingThisTurn?: number;
   bloodthirstUsesExpended?: number;
   dreadAllegianceChoice?: RogueScionOfTheThreeDreadAllegianceChoice;
@@ -170,6 +180,8 @@ export type CharacterRogueFeatureState = {
 };
 
 export type CharacterSorcererFeatureState = {
+  strengthOfTheGraveUsesExpended?: number;
+  umbralFormUsesExpended?: number;
   sorceryPointsExpended?: number;
   innateSorceryUsesExpended?: number;
   tidesOfChaosUsesExpended?: number;
@@ -214,6 +226,11 @@ export type CharacterWizardFeatureState = {
 };
 
 export type CharacterWarlockFeatureState = {
+  vestigeSpellsDomainId?: string;
+  vestigeRecoveryUsesExpended?: number;
+  semblanceOfLifeUsesExpended?: number;
+  formOfDreadUsesExpended?: number;
+  unholyResuscitationUsesExpended?: number;
   eldritchInvocationIds?: string[];
   extraAttacksRemainingThisTurn?: number;
   magicalCunningUsesExpended?: number;
@@ -260,6 +277,12 @@ export type CharacterMonkFeatureState = {
 };
 
 export type CharacterFighterFeatureState = {
+  magicalAmmunitionUsesExpended?: number;
+  arcaneShotOptionIds?: string[];
+  arcaneShotUsesExpended?: number;
+  arcaneShotUsedThisTurn?: boolean;
+  arcaneArcherLoreCantripId?: string;
+  arcaneArcherLoreSkills?: (SkillName | "")[];
   secondWindUsesExpended?: number;
   actionSurgeUsesExpended?: number;
   actionSurgeUsedThisTurn?: boolean;
@@ -329,6 +352,13 @@ export type CharacterClericFeatureState = {
   knowledgeBlessingsTool?: TOOL_PROFICIENCY;
   unfetteredMindSavingThrow?: SAVING_THROW_PROFICIENCY;
   divineForeknowledgeUsesExpended?: number;
+  arcanaSkill?: SkillName;
+  arcanaCantripIds?: string[];
+  magicalMasterySpellIds?: string[];
+  dispellingRecoveryUsesExpended?: number;
+  pullOfDeathUsedThisTurn?: boolean;
+  sentinelAtDeathsDoorUsesExpended?: number;
+  keeperOfSoulsUsesExpended?: number;
 };
 
 export type CharacterClassFeatureState = {

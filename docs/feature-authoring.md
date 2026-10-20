@@ -25,6 +25,29 @@ the way from the collector through derived state to the displayed action, spell,
 or drawer. Keep a transition hook for spending, concentration replacement, status creation, or a
 specialized roll; a declaration alone does not execute those operations.
 
+## Managing resources from drawer headers
+
+Action and spell header tags can carry a runtime-only `ResourceManagementTarget` in
+`management`. Charge and cost builders in `classFeatures/cardUsage.ts` preserve this metadata,
+including fallback tags. Existing actions are bound by explicit action IDs in each class's
+`resourceManagement.ts`; subclass counters live under that class's `subclasses/` directory.
+`drawerResourceBindings.ts` aggregates those bindings in header order. Spell options use explicit
+option and spell IDs in `spellResourceBindings.ts`, with feat and species adapters preserving
+the owning feat record and individual free-cast spell.
+
+Adapters read the saved character and manually adjust only their resource. Reuse counter-only
+spend/restore helpers, or `classCounterResource` when activation or rest helpers have other
+effects. Never invoke activation, healing, rest recovery, action economy, or fallback payment
+from a manual adjustment. Named resource widgets share these adapters and the counter modal
+actions. No extra persisted counters are needed.
+
+`DrawerResourceManagement` opens the existing resource modal above the drawer, retains drawer
+selections, and handles local Escape/focus behavior. Slot targets preserve the selected or Pact
+Magic pool and include exhausted eligible levels; Reset All affects only the selected level.
+Hit Dice reuse the existing class-specific management rows. Weapon headers deduplicate the pools
+for all shown resource-consuming options, including unchecked or exhausted options. Descriptive
+tags and read-only inspection remain informational.
+
 ## A subclass: follow Holy Nimbus end to end
 
 [Oath of Devotion](../app/src/pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion.ts)
@@ -199,3 +222,270 @@ concentration replacement, removal of description additions, and unchanged base 
 See [testing.md](testing.md) for the harness and performance commands. The progression matrix covers
 registered content boundaries, not every new mechanic. Measure cold and warm paths separately;
 reject a correctness tradeoff even if a benchmark improves.
+
+## College of Spirits: channeling and manual spirit effects
+
+The revised College of Spirits uses the feature descriptions in `codex/subclasses/bard.ts`.
+Its subclass runtime owns Guidance at 60 feet, playing-card proficiency, previously saved
+spirits (including duplicates), and Empowered Channeling resources. Playing cards are
+added through the normal inventory flow. Bardic Inspiration uses its ordinary payment and
+action flow, with the full Spirits from Beyond description added to its drawer. It has no
+spirit-channeling checkbox or automatic spirit roll. At level 14, Mystical Connection adds
+only its description to that drawer; its extra roll and spirit choice are manual. Existing paid
+pending rolls remain resolvable through Choose Channeled Spirit for saved-sheet compatibility.
+Rest options explicitly release stored spirits and restore the separate free-casting and cover resources.
+
+Controlled Channeling and unleashing are described in Bardic Inspiration without separate action
+cards. Players track random channeling, Controlled Channeling and its resource cost, unleashing,
+healing, damage, and target effects manually.
+Once Empowered Channeling is unlocked, Power from Beyond's description
+is added to damage and healing spell drawers. Its qualifying Bard spell-slot cast, once-per-turn
+use, roll, and bonus are tracked manually. Spiritual Manifestation has no separate action card;
+its opt-in in the Spirit Guardians drawer casts the spell at its base level without spending a
+spell slot, consuming its Long Rest charge. The separate Half Cover opt-in is shared by ordinary
+and free Spirit Guardians casting, consumes its own Short/Long Rest charge, and creates a
+Concentration-linked reminder; cover bonuses are manual.
+These manual boundaries are recorded in the features' Semi-tracked messages.
+
+### Grave and Arcana Domains
+
+The Cleric-local subclass runtimes implement the in-app level 3/6/17 domain descriptions.
+Both domains grant their table spells without using preparation capacity. Student of Arcana
+starts with empty skill and two Wizard-cantrip choices; Magical Mastery has one Wizard-spell
+choice at each of levels 6–9. These remain Cleric spell grants and use ordinary spell slots.
+
+Grave transforms Spare the Dying to a Bonus Action. Pull of Death uses opt-in controls in
+weapon and damaging-spell drawers and one shared turn counter, with its die increasing at
+Cleric level 11. The player confirms the target is below its maximum HP. Return to Life's
+maximum healing at 0 HP is supplied as sourced reference text, following Life Domain's
+existing healing-description pattern; the player applies the maximum healing result.
+Path to the Grave spends Channel Divinity, creates a one-round reminder ending at the next
+turn start, and exposes a free action to end a curse on a hit. Target disadvantage and extra
+damage are applied by the player. Sentinel at Death's Door spends its reaction charge and
+recovers explicitly at camp; damage halving and critical-hit cancellation remain manual.
+Keeper of Souls uses a compact Myself/Another switch in the drawer body and one confirmation
+button in the footer. It spends its ordinary charge before a level 6+ slot, blocks use while
+Incapacitated, and recovers on either rest. Self-healing updates the sheet;
+the player applies healing to another creature.
+
+Arcana's Fortifying Spell and Tenacious Spell are free Channel Divinity options with shared
+dice-confirm footers. They roll and spend the existing pool; the player confirms the trigger
+and applies the result. Dispelling Recovery is an explicit Dispel Magic drawer option after
+a qualifying spell: no additional action or slot, ordinary use first, then Channel Divinity.
+Its recovery is an explicit short/long-rest camp option. Enhanced Necromancy is an opt-in
+spell checkbox that spends Channel Divinity. It is offered for Grave table spells and level
+0–5 Necromancy spells; the player confirms single-target eligibility and extra components.
+The sheet does not infer enemy HP, saves, deaths, target counts, or spell-removal outcomes.
+
+### Hollow Warden
+
+The Ranger subclass grants its always-prepared spells at Ranger levels 3, 5, 9, 13, and 17
+without using preparation capacity. Wrath of the Wild is a Bonus Action that spends the
+existing Favored Enemy pool and creates a removable 10-turn feature trait. While active,
+Ancient Armor grants +1 AC, increasing to +2 at Ranger level 11. The action and trait drawers
+reuse the feature description and the spell DC formula display with Wisdom. Incapacitation,
+death, or losing the subclass ends the transformation; its duration uses the normal turn/rest
+flow. Prowling Retribution and Unnerving Aura remain reference text for manual resolution.
+At Ranger level 7, Hungering Might adds the Wisdom modifier (minimum +1) to Constitution
+saving throws even when Wrath of the Wild is inactive. Its first description paragraph appears
+in the Constitution ability drawer; its second appears as a sourced addition in Wrath of the
+Wild's action drawer. The player resolves the Bloodied hit trigger and healing manually.
+At Ranger level 11, Rot and Violence is appended to Wrath of the Wild's action and trait
+descriptions; the player resolves its effects. At Ranger level 15, Ancient Might adds
+Ominous Strikes to every weapon and Unarmed Strike drawer, with its extra damage applied
+manually. Persistent Wrath and Timeless appear in the Book of Life and Death. Persistent
+Wrath is available at 0 HP while transformed, before death or stabilization, and sets HP to
+twice the Ranger level (capped at maximum HP). It spends its Long Rest charge first, then
+the lowest available level 4+ spell slot to restore and immediately spend the charge; the
+button shows that slot's level and pool. Its charge has an explicit Long Rest camp option.
+Timeless's Exhaustion immunity remains reference text for manual application.
+
+### Phantom
+
+At Rogue level 3, Wails from the Grave adds its codex description and a charge-tracked opt-in
+to Sneak Attack. Confirming a selected use spends one charge and rolls half the Rogue's
+Sneak Attack dice (rounded up) separately as Necrotic damage for the second target. Uses
+equal the Dexterity modifier (minimum one), with explicit Long Rest recovery in camp.
+Target eligibility and the on-your-turn trigger remain the player's responsibility. Wails
+requires at least one Sneak Attack damage die after Cunning Strike costs. All Rogues see
+their available Sneak Attack dice in the drawer header, updating with Cunning Strike choices.
+Whispers of the Dead starts empty and grants one selected skill or tool proficiency. The
+dropdown disables proficiencies already held; replacing the choice removes its previous
+grant. The player changes this choice after a Short or Long Rest.
+At Rogue level 9, Tokens of the Departed adds the Soul Trinket resource (Ghost icon),
+starting at two with a maximum of two, three at level 13, and four at level 17. The gaining
+reaction adds one, or replaces one at capacity, and spends the Reaction. Long Rest recovery
+raises counts below two to two without reducing larger counts. Holding at least one grants
+Advantage on Constitution and Death Saving Throws. Wails spends an ordinary charge first
+and can spend a trinket when charges are exhausted.
+Spirit Query always prepares Augury using Constitution; its required opt-in spends one
+trinket to cast as a Magic action without slots or components. It cannot be bypassed with
+ritual casting. The player handles the nearby-death trigger and spirit questions.
+Voice of Death adds a level 9 Magic action card with one charge that opens Speak with Dead.
+Casting spends the charge without a spell slot or components and uses Dexterity for
+spellcasting. The card and spell drawer reuse the feature description, including the option
+to address a soul trinket. Both camp rest menus explicitly restore the charge; opening or
+closing the spell drawer does not spend it.
+At Rogue level 13, Ghost Walk adds a Bonus Action that spends its one Long Rest charge first,
+then one Soul Trinket for subsequent uses. It creates a removable 10-minute feature trait
+with the same codex description and grants a 10-foot Fly Speed with hover while the trait is
+active. Reusing it refreshes the existing trait. Camp explicitly offers Long Rest charge
+recovery; a Short Rest removes the timed trait without restoring its charge. Hazy Form and
+Incorporeal Movement remain reference text for the player to apply.
+At Rogue level 17, Death's Friend adds its Death's Lament description to Sneak Attack and
+its Draw of Death description to Initiative. Rolling Initiative grants one Soul Trinket
+only when the pool is empty; opening the drawer does not grant one. Existing trinkets are
+preserved. Applying Death's Lament damage to both targets remains the player's responsibility.
+
+### Shadow Sorcery
+
+Shadow Spells grants the codex spell list at Sorcerer levels 3, 5, 7, and 9 as always prepared,
+without consuming preparation capacity. The spells retain their normal casting costs.
+At level 3, Power of Shadow derives 120-foot Darkvision and 10-foot Blindsight as feature senses.
+Strength of the Grave adds its codex description and one charge to the Book of Life and Death.
+At 0 HP before death or stabilization, an available charge activates the Book and enables its
+Use button. Using it spends the charge, sets HP to Sorcerer level plus the effective Charisma
+modifier (clamped to the character's HP bounds), and clears death saves and HP-based
+Unconsciousness. The player resolves the described saving throw before applying a successful
+use. Camp explicitly offers charge recovery on a Long Rest; a Short Rest preserves spending.
+At Sorcerer level 6, Beasts of Ill Omen adds a Bonus Action card whose confirmation opens
+Summon Beast. Casting from this drawer spends 3 Sorcery Points, uses the Bonus Action,
+and requires neither preparation, a spell slot, nor Material components. Opening and closing
+the drawer does not spend points. Its optional Without Concentration checkbox changes the
+casting's displayed duration to 1 minute and tracks both the spell effect and defined summon
+for 10 round ends, preserving other concentration. Recasting through the feature replaces
+its previous summon and Summon Beast effect. The shadow appearance and nearby enemies'
+saving-throw Disadvantage remain reference text for the player to apply.
+At Sorcerer level 14, Shadow Walk adds a Bonus Action card and reuses its codex description;
+the player resolves lighting and the teleport destination.
+At level 18, Umbral Form adds its description and two mutually exclusive opt-in choices to
+Innate Sorcery: Incorporeal Movement or Shadow Resilience. Both share one Long Rest charge,
+then fall back to 6 Sorcery Points. Activation validates the combined cost when Innate Sorcery
+also needs its 2-point fallback. The chosen form becomes a saved trait with only that form's
+description and a duration linked to Innate Sorcery. It can be ended separately without an action.
+Shadow Resilience adds linked All damage but Force and All damage but Radiant resistance
+entries; ending either Umbral Form or Innate Sorcery removes them. Camp explicitly offers
+Umbral Form charge recovery on a Long Rest. Incorporeal movement, its damage, and seeing
+through the character's own Darkness remain reference text for the player to apply.
+
+### Undead Patron
+
+Undead Spells grants the codex list as always prepared at Warlock levels 3, 5, 7, and 9,
+without consuming preparation capacity or changing spell-slot costs.
+At level 3, Form of Dread adds a Bonus Action with charges equal to the effective Charisma
+modifier (minimum one), recovered through an explicit Long Rest camp option. Its drawer and
+saved 10-turn trait reuse the entire feature description. Activation spends a charge and rolls
+1d10 plus Warlock level through the shared dice footer; only Full Auto applies the temporary
+HP result. Other dice modes leave HP entry to the player. Temporary HP is granted once and
+does not depend on keeping the form active.
+The form grants linked Frightened immunity, clearing an existing Frightened condition.
+Expiration, early dismissal, or becoming Incapacitated ends the form and its immunity.
+While active, sourced Frightful Avatar text appears in all weapon drawers (including Unarmed
+Strike) and spells marked as attack spells. The player resolves its saving throw and target
+condition. At Warlock level 6, Grave Touched adds a permanent, non-editable feature trait
+containing its full codex description. Its benefits remain reference text for the player to apply.
+The trait is derived from the unlocked feature and disappears if the character no longer
+qualifies. Dreaded Necrosis is also added as sourced text to the Form of Dread action drawer.
+At level 10, Necrotic Husk derives Necrotic resistance, replaced by immunity while Form of
+Dread is active. Its Necrotic Resilience section is added to that action drawer.
+Unholy Resuscitation adds its section and one charge to the Book of Life and Death. At 0 HP
+before death or stabilization, an available charge activates the Book and enables its Use button.
+Using it spends the charge, sets HP to twice Warlock level (within the HP maximum), clears
+death saves, and adds one Exhaustion level through the shared status rules. Camp explicitly
+offers charge recovery on both Short and Long Rests. The eruption's damage and target saving
+throws remain reference text for the player to resolve.
+At level 14, Superior Dread adds its full codex description to the Form of Dread action drawer.
+While the form is active, it grants Bludgeoning, Piercing, and Slashing resistance, plus a Fly
+Speed that follows the current Walk Speed and the ability to hover. These derived benefits end
+with the form. Passing through creatures and objects, its Force damage, and Profane Casting
+remain reference text for the player to apply.
+
+### Vestige Patron
+
+Vestige Patron feature descriptions preserve the supplied source wording in the codex, build
+rows, and action drawer. Vestige Spells shows all four domain spell lists in place of the source's
+example. Vestige Companion references use an inline link to the local stat block inspector;
+the descriptions do not embed its statistics. The reference displays scaling formulas, while
+the summon editor calculates the character's stats.
+At Warlock level 3, Vestige Companion adds a Magic action with the feature's codex description.
+Opening the drawer predefines one summon with the frontend Vestige Companion stat block.
+The player can edit it or delete it and define it again; the add-summon button is hidden when
+another definition cannot be added.
+Form is selected through the editor's Type field; changing it updates an unmodified Vestige
+template. Celestial, Fiend, and Undead forms use their matching resistance and strike damage type. The
+template calculates AC, HP, Hit Dice, Proficiency Bonus, and spell attack modifier from the
+character; Pact Bond remains a reminder to add Proficiency Bonus to checks and saving throws.
+Players can replace or edit the inherited stat block and choose the companion's duration.
+Summoning spends an Action, adds one companion at full HP, and defaults to an indefinite
+duration without concentration. The existing companion must be dismissed before another is
+summoned. Modified Vestige stat blocks can be reset locally to the character's current stats.
+Vestige Spells starts with an empty Cleric Domain choice: Life, Light, Trickery, or War. The
+choice persists in Warlock feature state and grants that domain's codex spell table as always
+prepared Warlock spells at Warlock levels 3, 5, 7, and 9, without using preparation capacity.
+Changing domains replaces these derived grants; multiclass characters use their Warlock level.
+At level 6, Vestige Power adds its full description to the Vestige Companion action drawer.
+At level 10, Vestige Recovery adds a Reaction that requires the summoned vestige to be at 0 HP,
+one available charge, and a Pact Magic spell slot. Using it spends both resources, restores the
+companion to its HP maximum, and clears its death saves. It recognizes customized vestiges by
+their summon source and spends the Warlock's Pact Magic pool for multiclass characters.
+Its single charge persists in Warlock feature state and has an explicit Long Rest camp option;
+Short Rests do not restore it.
+At level 14, Semblance of Life adds a Magic action with one Long Rest charge. Its form editor
+uses the existing monster picker and stat-block editor without restricting the chosen block;
+the drawer suggests the matching spirit at half the Warlock level (rounded down, capped at 9).
+Form Max HP determines the temporary HP grant, using the existing non-stacking temporary HP rule.
+Activation adds a temporary stat block to the existing companion, retaining its HP, Hit Dice,
+identity, and Divine Power. A saved 60-minute feature trait controls the form's lifetime,
+including the existing rest fast-forward. A single reconciliation hook removes that temporary block when the trait ends
+or is disabled, temporary HP reaches zero, or the feature is lost. It removes an orphan trait
+when the companion is deleted, and duplicated companions do not inherit the active form.
+Current HP changes, unrelated temporary HP, and other attached stat blocks are preserved.
+Editing and saving a transformed companion retains the trait link. Removing its temporary
+block also ends the trait. Previously saved snapshot-based forms migrate to the attached-block
+representation during companion normalization.
+All companions support additional stat blocks through the companion editor. All blocks display
+together, newest first, in the companion and campaign inspection drawers. Only the first block
+initializes name, type, and HP; attaching more blocks leaves those values unchanged. Each block
+can be inspected, modified, reset, or removed independently. Cards show the top block's AC.
+Spirit scaling, the 90-foot requirement, companion commands, Divine Power, shared resistance,
+disappearance, and Recovery's teleportation remain manual.
+
+### Arcane Archer
+
+At Fighter level 3, Arcane Archer Lore offers a Druidcraft or Prestidigitation choice in
+the feature row. The selected cantrip is always prepared and uses Intelligence, including
+on multiclass characters. The two skill dropdowns automatically grant Arcana and Nature
+when the character does not already have them. Existing proficiencies instead require a
+replacement from the level-1 Fighter skill list; already proficient skills and the other
+dropdown's choice remain visible but disabled. Choices persist in Fighter feature state,
+while skill and spell grants are derived from the unlocked feature.
+
+Arcane Shot Options displays two learned-option dropdowns at Fighter level 3, with another
+at levels 7, 10, 15, and 18. Choices start empty, prevent duplicates, and persist in Fighter
+feature state. The profile shows Arcane Shot Die once unlocked: D6 at Fighter level 3,
+D8 at 10, D10 at 15, and D12 at 18. Ranged Ammunition weapon drawers include Using a Shot, the learned options,
+and an Arcane Shot DC formula using Intelligence and the character's Proficiency Bonus.
+The footer opt-in spends one Arcane Shot charge on Damage, with no option selection or
+automatic shot damage/effects. Charges equal the Intelligence modifier (minimum one), and
+Short and Long Rest camp options restore them. During tracked combat the option is limited
+to once per turn; advancing the turn clears that restriction.
+
+At Fighter level 7, Curving Shot adds its codex description to ranged Ammunition weapon drawers.
+Its footer opt-in shows the Bonus Action badge and applies on Attack. Selecting it switches the
+attack to a single Bonus Action attack, preserving the regular Action and remaining extra attacks.
+It is unavailable after the Bonus Action has been spent in tracked combat. The miss, alternate
+target, and range requirements remain manual.
+
+At Fighter level 7, Magical Ammunition provides a Magic action with one charge that recovers
+through the Short and Long Rest camp options. After that charge is spent, activation consumes
+one Second Wind use instead. Each use creates an editable, indefinite trait with the feature
+description; ammunition selection and effects remain manual. Existing ammunition traits are
+preserved when the feature is used again.
+
+At Fighter level 10, Ever-Ready Shot adds its codex description to the Initiative drawer.
+Rolling initiative restores one spent Arcane Shot charge, up to the current maximum.
+
+At Fighter level 15, Indomitable Teleport adds its codex description to the Indomitable action
+drawer. At level 18, Masterful Shots appears among the reactions in Traits & Conditions, reusing
+its codex description and the shared reaction spending flow. Teleportation, movement, and the
+ranged attack are handled manually.

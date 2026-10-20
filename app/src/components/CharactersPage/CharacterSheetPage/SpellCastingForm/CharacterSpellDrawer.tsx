@@ -1,3 +1,6 @@
+import { bindResourceHeaderTags } from "../../../../pages/CharactersPage/drawerResourceBindings";
+import { getSpellOptionResourceTargets } from "../../../../pages/CharactersPage/spellResourceBindings";
+import { useClericDomainSpellOptions } from "./useClericDomainSpellOptions";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -18,7 +21,9 @@ import SegmentedChoiceControl, {
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import { useReanimatorSpellOption } from "./useReanimatorSpellOption";
+import { useBardSpiritsSpellOptions } from "./useBardSpiritsSpellOptions";
 import SummonDefinitionPanel from "./SummonDefinitionPanel";
+import { usePhantomSpiritQueryOption } from "./usePhantomSpiritQueryOption";
 import {
   KeywordTooltip,
   getSpellTrackingState,
@@ -30,6 +35,7 @@ import type {
   AbilityKey,
   Character,
   CharacterCompanion,
+  CharacterStatusDuration,
   CharacterCustomTraitEffect
 } from "../../../../types";
 import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
@@ -242,6 +248,7 @@ type CharacterSpellDrawerProps = {
   actionShapeAvailable?: boolean;
   actionShapeMultiCount?: number;
   actionOptions?: CharacterSpellDrawerActionOption[];
+  summonDurationOverride?: CharacterStatusDuration;
   facts?: FeatureActionFact[];
   factsSectionTitle?: string | null;
   showActionDiceControls?: boolean;
@@ -352,6 +359,7 @@ function CharacterSpellDrawer({
   actionShapeAvailable = true,
   actionShapeMultiCount = 0,
   actionOptions = [],
+  summonDurationOverride,
   facts = [],
   factsSectionTitle = null,
   showActionDiceControls = false,
@@ -373,8 +381,18 @@ function CharacterSpellDrawer({
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
   const [spellSummonDefinitions, setSpellSummonDefinitions] = useState<CharacterCompanion[]>([]);
   const spellLevel = getSpellLevel(spell);
-  const spellSummonDefinitionConfig =
+  const baseSpellSummonDefinitionConfig =
     mode === "standard" ? getSpellSummonDefinitionConfig(spell) : null;
+  const spellSummonDefinitionConfig =
+    baseSpellSummonDefinitionConfig && summonDurationOverride
+      ? { ...baseSpellSummonDefinitionConfig, defaultDuration: summonDurationOverride }
+      : baseSpellSummonDefinitionConfig;
+  const activeSpellSummonDefinitions = summonDurationOverride
+    ? spellSummonDefinitions.map((companion) => ({
+        ...companion,
+        duration: summonDurationOverride
+      }))
+    : spellSummonDefinitions;
   const isSpellSummonDefinitionRequired = spellSummonDefinitionConfig !== null;
   const companionCount = character.companions?.length ?? 0;
   const summonDefinitionCount = spellSummonDefinitions.length;
@@ -510,16 +528,28 @@ function CharacterSpellDrawer({
     [activeSpellImplementationOptionValues, spellImplementationCastOptions]
   );
   const reanimatorOption = useReanimatorSpellOption(character, spell, mode === "standard");
+  const spiritsOptions = useBardSpiritsSpellOptions(
+    character,
+    spell,
+    mode === "standard",
+    actionConsumesSpellSlot
+  );
+  const clericOptions = useClericDomainSpellOptions(character, spell, mode === "standard");
+  const phantomOption = usePhantomSpiritQueryOption(character, spell, mode === "standard");
   const allActionOptions: CharacterSpellDrawerActionOption[] = [
+    ...phantomOption.options,
+    ...clericOptions.options,
     ...spellImplementationActionOptions,
     ...actionOptions,
-    ...(reanimatorOption ? [reanimatorOption] : [])
+    ...(reanimatorOption ? [reanimatorOption] : []),
+    ...spiritsOptions.options
   ];
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const isQuickRitualSelected = allActionOptions.some(
     (option) => option.id === "quick-ritual" && option.checked
   );
   const ritualCastingAvailable =
+    !phantomOption.required &&
     mode === "standard" &&
     spellLevel > 0 &&
     spell.ritual === true &&
@@ -542,6 +572,9 @@ function CharacterSpellDrawer({
       : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
   const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
+    phantomOption.selected ||
+    spiritsOptions.freeCast ||
+    clericOptions.dispellingRecovery ||
     spellLevel === 0 ||
     (selectedSlotIsFreeUse && !selectedSlotFreeUseDisabled) ||
     selectedSlotIsFreeCast ||
@@ -552,9 +585,11 @@ function CharacterSpellDrawer({
   const visibleActionOptions = allActionOptions;
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
     option.headerTags?.length
-      ? (option.usage?.mode === "charges-or-resource"
-          ? markUsageHeaderTagsAsFallback(option.headerTags)
-          : option.headerTags
+      ? bindResourceHeaderTags(
+          option.usage?.mode === "charges-or-resource"
+            ? markUsageHeaderTagsAsFallback(option.headerTags)
+            : option.headerTags,
+          getSpellOptionResourceTargets(option.id, spell.id)
         ).map((tag, index) => ({
           key: `${option.id}-header-tag-${index}`,
           value: tag
@@ -563,6 +598,9 @@ function CharacterSpellDrawer({
   );
   const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
+    !phantomOption.required &&
+    !spiritsOptions.freeCast &&
+    !clericOptions.dispellingRecovery &&
     mode === "standard" &&
     spellLevel > 0 &&
     (actionConsumesSpellSlot || freeCastSlotLevel !== null || slotFreeUseOption !== null) &&
@@ -578,9 +616,10 @@ function CharacterSpellDrawer({
         ) ?? null)
       : null;
   const requiredActionOptionWarning =
-    missingRequiredActionOptionSelection !== null
+    phantomOption.warning ??
+    (missingRequiredActionOptionSelection !== null
       ? `Choose a ${missingRequiredActionOptionSelection.label} option.`
-      : null;
+      : null);
   const isActionEnabled = shouldShowSlotControls
     ? canCastAtSelectedSlot &&
       !effectiveBlockedReason &&
@@ -616,7 +655,9 @@ function CharacterSpellDrawer({
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
   const visibleActionWarning =
-    requiredActionOptionWarning ?? summonDefinitionWarning ?? actionWarning;
+    requiredActionOptionWarning ??
+    summonDefinitionWarning ??
+    (clericOptions.dispellingRecovery ? null : actionWarning);
   const baseActionOptions = {
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),
@@ -658,12 +699,28 @@ function CharacterSpellDrawer({
     useBoonOfRevelry: allActionOptions.some(
       (option) => option.id === "boon-of-revelry" && option.checked
     ),
-    spellCastEffectIds: [],
+    spellCastEffectIds: [
+      ...phantomOption.effectIds,
+      ...clericOptions.effectIds,
+      ...spiritsOptions.effectIds
+    ],
     spellImplementationOptions: activeSpellImplementationOptionValues,
-    summonCompanions: isSpellSummonDefinitionRequired ? spellSummonDefinitions : []
+    summonCompanions: isSpellSummonDefinitionRequired ? activeSpellSummonDefinitions : []
   };
-  const resolvedActionPaths =
-    actionPaths && actionPaths.length > 0
+  const resolvedActionPaths: Array<
+    Omit<CharacterSpellDrawerActionPath, "actionShape"> & { actionShape: ActionShapeType | null }
+  > = clericOptions.dispellingRecovery
+    ? [
+        {
+          id: "cleric-dispelling-recovery",
+          actionLabel: "Cast Dispel Magic",
+          actionShape: null,
+          actionShapeAvailable: true,
+          roundTrackerResourceOverride: null,
+          disabledReason: isActionEnabled ? null : effectiveBlockedReason
+        }
+      ]
+    : actionPaths && actionPaths.length > 0
       ? actionPaths
       : footerActionShape
         ? [
@@ -680,11 +737,14 @@ function CharacterSpellDrawer({
           ]
         : [];
 
-  function createActionOptionsForPath(path: CharacterSpellDrawerActionPath) {
+  function createActionOptionsForPath(path: Omit<CharacterSpellDrawerActionPath, "actionShape">) {
     return {
       ...baseActionOptions,
       roundTrackerResourceOverride: path.roundTrackerResourceOverride,
-      spellCastEffectIds: path.spellCastEffectIds ?? [],
+      spellCastEffectIds: [
+        ...baseActionOptions.spellCastEffectIds,
+        ...(path.spellCastEffectIds ?? [])
+      ],
       spellActionPathId: path.id,
       spellImplementationCastSource: path.spellImplementationCastSource,
       spellImplementationOptions: {
@@ -804,11 +864,16 @@ function CharacterSpellDrawer({
   const spellDescriptionSections = orderDescriptionAdditionSections(
     spell.descriptionAdditions ?? []
   );
-  const availabilityText =
-    (isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
-      ? (actionAvailabilityText ??
-        "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
-      : actionAvailabilityText;
+  const availabilityText = phantomOption.required
+    ? "Spirit Query spends 1 Soul Trinket to cast Augury as a Magic action without a spell slot or components."
+    : clericOptions.dispellingRecovery
+      ? "Confirm that you just spent a spell slot on a spell that restored Hit Points or ended a condition. This casting uses no additional action or spell slot."
+      : spiritsOptions.freeCast
+        ? `Spiritual Manifestation casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
+        : (isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
+          ? (actionAvailabilityText ??
+            "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
+          : actionAvailabilityText;
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeUse
@@ -978,7 +1043,9 @@ function CharacterSpellDrawer({
                   spell.damage.length > 0 ? "Damage" : hasSpellHealing(spell) ? "Healing" : "Damage"
                 }
                 content={
-                  damageDetailOverride ??
+                  (clericOptions.pullOfDeath
+                    ? `${damageDetailOverride ?? getSpellDamageDetailForCharacter(character, spell, spellcastingAbilityOverride)} + ${clericOptions.pullOfDeath.displayLabel} (Pull of Death)`
+                    : damageDetailOverride) ??
                   getSpellDamageDetailForCharacter(character, spell, spellcastingAbilityOverride)
                 }
               />
@@ -1026,7 +1093,7 @@ function CharacterSpellDrawer({
               <SummonDefinitionPanel
                 character={character}
                 config={spellSummonDefinitionConfig}
-                definitions={spellSummonDefinitions}
+                definitions={activeSpellSummonDefinitions}
                 disabled={isSummonDefinitionAddDisabled}
                 disabledReason={summonDefinitionAddDisabledReason}
                 onDefinitionsChange={setSpellSummonDefinitions}
@@ -1324,13 +1391,15 @@ function CharacterSpellDrawer({
                         ) : undefined
                       }
                       trailingBadge={
-                        <ActionShape
-                          shape={path.actionShape}
-                          isSelected={path.actionShapeAvailable}
-                          multiCount={path.actionShapeMultiCount ?? 0}
-                          className={actionStyles.footerActionShape}
-                          title={getActionShapeTitle(path.actionShape)}
-                        />
+                        path.actionShape ? (
+                          <ActionShape
+                            shape={path.actionShape}
+                            isSelected={path.actionShapeAvailable}
+                            multiCount={path.actionShapeMultiCount ?? 0}
+                            className={actionStyles.footerActionShape}
+                            title={getActionShapeTitle(path.actionShape)}
+                          />
+                        ) : null
                       }
                     >
                       <span className={actionStyles.castActionLabelContent}>

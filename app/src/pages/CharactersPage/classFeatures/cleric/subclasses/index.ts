@@ -1,3 +1,11 @@
+import {
+  graveDomainSubclassId,
+  getClericGraveDomainDerivedFeatureState
+} from "./clericGraveDomain";
+import {
+  arcanaDomainSubclassId,
+  getClericArcanaDomainDerivedFeatureState
+} from "./clericArcanaDomain";
 import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
 import type {
   SubclassDerivedFeatureState,
@@ -20,6 +28,8 @@ import {
 import { getClericWarDomainDerivedFeatureState, warDomainSubclassId } from "./clericWarDomain";
 
 const clericSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [graveDomainSubclassId]: getClericGraveDomainDerivedFeatureState,
+  [arcanaDomainSubclassId]: getClericArcanaDomainDerivedFeatureState,
   [knowledgeDomainSubclassId]: getClericKnowledgeDomainDerivedFeatureState,
   [lifeDomainSubclassId]: getClericLifeDomainDerivedFeatureState,
   [lightDomainSubclassId]: getClericLightDomainDerivedFeatureState,

@@ -1,5 +1,11 @@
 import type { Character } from "../../types";
 import { getAlwaysSpellbookSpellIdsForCharacter } from "./classFeatures";
+import {
+  getCharacterCustomSpellEntries,
+  getCustomCantripSelectionOptionsForCharacter,
+  getCustomPreparedSpellSelectionOptionsForCharacter,
+  mergeSpellEntriesById
+} from "./customSpells";
 import { getSpeciesAlwaysPreparedSpellIdsForCharacter } from "./species";
 import {
   getAlwaysPreparedSpellIds,
@@ -46,12 +52,14 @@ export function getSpellSelectionInputStatusForCharacter(
     | "cantripIds"
     | "preparedSpellIds"
     | "spellbookSpellIds"
+    | "customSpellSnapshots"
     | "feats"
     | "species"
     | "speciesChoices"
     | "statusEntries"
   >
 ): SpellSelectionInputStatus {
+  const customSpellEntries = getCharacterCustomSpellEntries(character);
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
@@ -60,12 +68,15 @@ export function getSpellSelectionInputStatusForCharacter(
     character.customClass,
     character.classRules
   );
-  const cantripOptions = getCantripSelectionOptionsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
+  const cantripOptions = mergeSpellEntriesById(
+    getCantripSelectionOptionsForCharacter(
+      character.className,
+      character.level,
+      character.subclassId,
+      character.customClass,
+      character.classRules
+    ),
+    getCustomCantripSelectionOptionsForCharacter(customSpellEntries, character)
   );
   const selectedCantripIds = normalizeTrackedSpellIds(
     character.cantripIds,
@@ -98,12 +109,15 @@ export function getSpellSelectionInputStatusForCharacter(
     character.classRules,
     character.level
   );
-  const spellPreparationOptions = getPreparedSpellSelectionOptionsForCharacter(
-    character.className,
-    character.level,
-    character.subclassId,
-    character.customClass,
-    character.classRules
+  const spellPreparationOptions = mergeSpellEntriesById(
+    getPreparedSpellSelectionOptionsForCharacter(
+      character.className,
+      character.level,
+      character.subclassId,
+      character.customClass,
+      character.classRules
+    ),
+    getCustomPreparedSpellSelectionOptionsForCharacter(customSpellEntries, character)
   );
   const classAlwaysPreparedSpellIds = getAlwaysPreparedSpellIds(
     character.className,

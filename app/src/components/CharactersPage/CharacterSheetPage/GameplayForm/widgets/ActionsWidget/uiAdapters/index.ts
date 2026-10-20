@@ -5,6 +5,7 @@ import type {
   ActionFormFooterContext
 } from "./types";
 import { artificerFormAdapters } from "./artificer";
+import { bardFormAdapters } from "./bard";
 import { speciesFormAdapters } from "./species";
 import { wizardFormAdapters } from "./wizard";
 import { clericFormAdapters } from "./cleric";
@@ -18,6 +19,7 @@ import { sorcererFormAdapters } from "./sorcerer";
 import { druidFormAdapters } from "./druid";
 const adapters: Partial<Record<ActionFormKind, ActionFormAdapter>> = {
   ...artificerFormAdapters,
+  ...bardFormAdapters,
   ...speciesFormAdapters,
   ...wizardFormAdapters,
   ...clericFormAdapters,

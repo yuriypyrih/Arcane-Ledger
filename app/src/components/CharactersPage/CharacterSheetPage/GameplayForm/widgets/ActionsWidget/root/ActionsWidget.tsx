@@ -1,3 +1,20 @@
+import { getChannelDivinityResource } from "../../../../../../../pages/CharactersPage/classFeatures/channelDivinityResource";
+import { getWeaponResourceHeaderTags } from "../../../../../../../pages/CharactersPage/weaponResourceHeaders";
+import { namedResources } from "../../../../../../../pages/CharactersPage/managedClassResources";
+import {
+  hitDiceResource,
+  spellSlotResource
+} from "../../../../../../../pages/CharactersPage/resourceManagement";
+import { speciesManagedResources } from "../../../../../../../pages/CharactersPage/speciesResourceManagement";
+import { fighterManagedResources } from "../../../../../../../pages/CharactersPage/classFeatures/fighter/resourceManagement";
+import { rangerManagedResources } from "../../../../../../../pages/CharactersPage/classFeatures/ranger/resourceManagement";
+import { paladinManagedResources } from "../../../../../../../pages/CharactersPage/classFeatures/paladin/resourceManagement";
+import { bindActionResourceHeaderTags } from "../../../../../../../pages/CharactersPage/drawerResourceBindings";
+import { DrawerResourceManagement } from "../../../../DrawerResourceManagement";
+import { getCurvingShotWeaponOptionState } from "../../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterCurvingShot";
+import { getArcaneShotWeaponOptionState } from "../../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneShot";
+import ActionDiceConfirmFooter from "../ActionDiceConfirmFooter";
+import { clericChannelDivinityOptionKeys } from "../../../../../../../pages/CharactersPage/classFeatures/channelDivinity";
 import {
   getCharacterSpellSlotPools,
   getGameplayClassContext,
@@ -58,6 +75,10 @@ import {
 } from "../../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
+  getRogueSneakAttackHeaderTags,
+  rogueSneakAttackActionKey
+} from "../../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
+import {
   createFeatureActionCardCost,
   createNamedUsageHeaderTags
 } from "../../../../../../../pages/CharactersPage/classFeatures/cardUsage";
@@ -112,7 +133,10 @@ import { type ArcaneRecoverySelection } from "../../../../../../../pages/Charact
 import { wizardAbjurerArcaneWardActionKey } from "../../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 
 import { isCommonActionKey } from "../../../../../../../pages/CharactersPage/commonActions";
-import { getRoundTrackerResourceForEconomyType } from "../../../../../../../pages/CharactersPage/actionEconomy";
+import {
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType
+} from "../../../../../../../pages/CharactersPage/actionEconomy";
 import { getAbilityModifierBreakdownForCharacter } from "../../../../../../../pages/CharactersPage/abilities";
 import { getProficiencyBonus } from "../../../../../../../pages/CharactersPage/gameplay";
 
@@ -217,7 +241,8 @@ import { getMonsterKey } from "../../../../../../../utils/monsters";
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 const initialSneakAttackActionSelection: SneakAttackActionSelection = {
   effectKeys: [],
-  useRendMind: false
+  useRendMind: false,
+  useWailsFromTheGrave: false
 };
 
 function ActionsWidget({
@@ -281,8 +306,10 @@ function ActionsWidget({
     selectedArtificerEldritchCannonSpellSlotLevel,
     setSelectedArtificerEldritchCannonSpellSlotLevel,
     selectedReanimatedCompanionDefinitions,
+    selectedVestigeCompanionDefinitions,
     selectedArtificerSteelDefenderSpellSlotLevel,
     setSelectedReanimatedCompanionDefinitions,
+    setSelectedVestigeCompanionDefinitions,
     setSelectedArtificerSteelDefenderSpellSlotLevel,
     selectedBeastMasterReviveSpellSlotLevel,
     setSelectedBeastMasterReviveSpellSlotLevel,
@@ -306,6 +333,8 @@ function ActionsWidget({
     setSelectedAasimarCelestialRevelationOptionKey,
     selectedBlessingOfTheTricksterTarget,
     setSelectedBlessingOfTheTricksterTarget,
+    selectedKeeperOfSoulsTarget,
+    setSelectedKeeperOfSoulsTarget,
     selectedHandOfHealingTarget,
     setSelectedHandOfHealingTarget,
     selectedThirdEyeOptionKey,
@@ -362,12 +391,18 @@ function ActionsWidget({
     setIsEldritchSmiteSelected,
     isLifedrinkerSelected,
     setIsLifedrinkerSelected,
+    isCurvingShotSelected,
+    isArcaneShotSelected,
     isPsionicStrikeSelected,
+    setIsCurvingShotSelected,
+    setIsArcaneShotSelected,
     setIsPsionicStrikeSelected,
     isDreadfulStrikeSelected,
     setIsDreadfulStrikeSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     setIsColossusSlayerSelected,
+    setIsPullOfDeathSelected,
     isPolarStrikesSelected,
     setIsPolarStrikesSelected,
     isGoliathAncestryStrikeSelected,
@@ -553,6 +588,7 @@ function ActionsWidget({
     selectedWeaponDreadAmbusherState,
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponGoliathAncestryState,
@@ -571,6 +607,7 @@ function ActionsWidget({
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponPullOfDeathToggleDisabled,
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponGoliathAncestryToggleDisabled,
@@ -596,6 +633,7 @@ function ActionsWidget({
     nextRollCriticalHitOverride,
     isDreadfulStrikeSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
     isHandOfHarmSelected,
@@ -611,6 +649,14 @@ function ActionsWidget({
     isVampiricBiteSelected,
     isVowOfEnmitySelected
   });
+  const selectedWeaponCurvingShotState = useMemo(
+    () => getCurvingShotWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponArcaneShotState = useMemo(
+    () => getArcaneShotWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedDrawerOptions = useMemo(
     () =>
       selectedAction?.kind === "feature" && selectedAction.drawer.kind === "options"
@@ -939,12 +985,33 @@ function ActionsWidget({
       return [];
     }
 
+    if (isCurvingShotSelected && selectedWeaponCurvingShotState) {
+      const shapeState = getEconomyShapeState(ECONOMY_TYPE.BONUS_ACTION, roundTracker);
+      return [
+        {
+          id: "primary" as const,
+          economyType: ECONOMY_TYPE.BONUS_ACTION,
+          shapeState,
+          additionalUseCount: 0,
+          totalUseCount: shapeState.isUsable ? 1 : 0,
+          usesLightFollowUp: false
+        }
+      ];
+    }
+
     return getWeaponAttackPathStates(
       character,
       selectedWeaponEffectiveAction ?? selectedAction.action,
       roundTracker
     );
-  }, [character, roundTracker, selectedAction, selectedWeaponEffectiveAction]);
+  }, [
+    character,
+    roundTracker,
+    selectedAction,
+    selectedWeaponEffectiveAction,
+    isCurvingShotSelected,
+    selectedWeaponCurvingShotState
+  ]);
   const selectedHandOfHealingActionPathStates = useMemo(() => {
     if (
       !selectedAction ||
@@ -1332,30 +1399,47 @@ function ActionsWidget({
       ? selectedFontOfMagicWarning
       : (selectedActionWarning ?? selectedRageSelectionWarning));
   const selectedActionHeaderTags: FeatureActionHeaderTag[] =
-    selectedAction?.kind === "weapon"
-      ? []
-      : isLayOnHandsActionSelected
-        ? createNamedUsageHeaderTags(
-            createFeatureActionCardCost({
-              amountText: `${selectedLayOnHandsTotalCost}`
-            }),
-            selectedLayOnHandsRemainingPool,
-            selectedLayOnHandsTotalPool,
-            {
-              label: "Pool of Healing"
-            }
-          )
-        : selectedFeatureAction?.key === rangerBeastMasterReviveActionKey
-          ? [
+    selectedFeatureAction?.key === rogueSneakAttackActionKey
+      ? getRogueSneakAttackHeaderTags(character, sneakAttackActionSelection.effectKeys)
+      : selectedAction?.kind === "weapon"
+        ? getWeaponResourceHeaderTags(character, [
+            selectedWeaponDreadAmbusherState && rangerManagedResources.dreadAmbusherUsesExpended,
+            selectedWeaponGoliathAncestryState && speciesManagedResources.giantAncestryUsesExpended,
+            selectedWeaponVampiricBiteState && speciesManagedResources.vampiricBiteUsesExpended,
+            selectedWeaponStunningStrikeState && namedResources.focus,
+            selectedWeaponHandOfHarmState && namedResources.focus,
+            selectedWeaponQuiveringPalmState && namedResources.focus,
+            selectedWeaponArcaneShotState && fighterManagedResources.arcaneShotUsesExpended,
+            selectedAction.action.attackKind === "weapon" &&
+              selectedWeaponPsionicStrikeFormula !== null &&
+              namedResources["psi-energy"],
+            selectedWeaponSacredWeaponState && paladinManagedResources.channelDivinityUsesExpended,
+            selectedWeaponVowOfEnmityState && paladinManagedResources.channelDivinityUsesExpended,
+            selectedWeaponEldritchSmiteState && spellSlotResource(1, undefined, "pact"),
+            selectedWeaponLifedrinkerState && hitDiceResource
+          ])
+        : isLayOnHandsActionSelected
+          ? createNamedUsageHeaderTags(
+              createFeatureActionCardCost({
+                amountText: `${selectedLayOnHandsTotalCost}`
+              }),
+              selectedLayOnHandsRemainingPool,
+              selectedLayOnHandsTotalPool,
               {
-                kind: "text",
-                label: "Spell Slot",
-                value: selectedBeastMasterReviveSpellSlot
-                  ? `Use 1 out of ${selectedBeastMasterReviveSpellSlot.remaining}/${selectedBeastMasterReviveSpellSlot.total} Spell Slots`
-                  : "No Spell Slots"
+                label: "Pool of Healing"
               }
-            ]
-          : (selectedAction?.drawer.headerTags ?? []);
+            )
+          : selectedFeatureAction?.key === rangerBeastMasterReviveActionKey
+            ? [
+                {
+                  kind: "text",
+                  label: "Spell Slot",
+                  value: selectedBeastMasterReviveSpellSlot
+                    ? `Use 1 out of ${selectedBeastMasterReviveSpellSlot.remaining}/${selectedBeastMasterReviveSpellSlot.total} Spell Slots`
+                    : "No Spell Slots"
+                }
+              ]
+            : (selectedAction?.drawer.headerTags ?? []);
   const baseFixedSpellExecute =
     selectedAction?.kind === "feature" &&
     selectedAction.execute.kind === "spell" &&
@@ -1429,7 +1513,7 @@ function ActionsWidget({
   const fixedSpellcastingAbilityOverride =
     selectedFeatureAction?.key === genieMagicWishMagicActionKey
       ? genieMagicSpellcastingAbility
-      : null;
+      : (fixedSpellExecute?.spellcastingAbilityOverride ?? null);
   const selectedActionSpellEntry =
     fixedSpellEntry ?? selectedDivineInterventionSpell ?? selectedMysticArcanumSpell;
   const channelDivinityUsesTotal = getChannelDivinityUsesTotalForCharacter(character);
@@ -1649,6 +1733,7 @@ function ActionsWidget({
     getClassLevel(character, "Bard") >= 3;
 
   const {
+    prepareCharacterForResourceConsumption,
     closeActionDrawer,
     openWeaponDetailReference,
     executeCommonAction,
@@ -1697,6 +1782,7 @@ function ActionsWidget({
     submitWarriorOfTheGods,
     submitIndomitable,
     submitHealingLight,
+    submitVestigeCompanion,
     submitMonkElementalBurst,
     submitSorcererWarpingImplosion,
     submitSorcererSpellfireBurst,
@@ -1732,6 +1818,7 @@ function ActionsWidget({
     openDiceRoller,
     setSelectedActionKey,
     setSelectedActionOptionKeys,
+    setSelectedVestigeCompanionDefinitions,
     resetActionDrawerState,
     resetActionSelectionState,
     setSelectedWeaponDetailReference,
@@ -1760,6 +1847,7 @@ function ActionsWidget({
     initialSneakAttackActionSelection,
     isClairvoyantCombatantSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     isCommonActionsOpen,
     isCustomActionsOpen,
     isCrownOfSpellfireSelected,
@@ -1779,6 +1867,8 @@ function ActionsWidget({
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
     isPolarStrikesSelected,
+    isCurvingShotSelected,
+    isArcaneShotSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
     isRageOfTheGodsSelected,
@@ -1830,7 +1920,9 @@ function ActionsWidget({
     selectedStarryFormConstellation,
     selectedThirdEyeOptionKey,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponPullOfDeathToggleDisabled,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponEldritchSmiteState,
@@ -1852,6 +1944,8 @@ function ActionsWidget({
     selectedWeaponRecklessAttackToggleDisabled,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponCurvingShotState,
+    selectedWeaponArcaneShotState,
     selectedWeaponPsionicStrikeAvailable,
     selectedWeaponPsionicStrikeFormula,
     selectedWeaponQuiveringPalmState,
@@ -1872,6 +1966,7 @@ function ActionsWidget({
     selectedWildShapeMonsterSlug,
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
+    setIsPullOfDeathSelected,
     setIsCommonActionsOpen,
     setIsCustomActionsOpen,
     setIsDiceRollerSettingsOpen,
@@ -1886,6 +1981,8 @@ function ActionsWidget({
     setIsHuntersMarkTargetSelected,
     setIsImprovedShadowStepSelected,
     setIsPolarStrikesSelected,
+    setIsCurvingShotSelected,
+    setIsArcaneShotSelected,
     setIsPsionicStrikeSelected,
     setIsQuiveringPalmSelected,
     setIsRecklessAttackSelected,
@@ -1957,6 +2054,10 @@ function ActionsWidget({
   }
 
   const drawerRenderContext = {
+    selectedKeeperOfSoulsTarget,
+    setSelectedKeeperOfSoulsTarget,
+    prepareCharacterForResourceConsumption,
+    openDiceRoller,
     character,
     selectedAction,
     selectedWeaponRollState,
@@ -1980,6 +2081,7 @@ function ActionsWidget({
     selectedExperimentalElixirSpellSlotLevel,
     selectedArtificerEldritchCannonSpellSlotLevel,
     selectedReanimatedCompanionDefinitions,
+    selectedVestigeCompanionDefinitions,
     selectedArtificerSteelDefenderSpellSlotLevel,
     natureMagicianOptions,
     selectedNatureMagicianSpellSlotLevel,
@@ -2033,7 +2135,11 @@ function ActionsWidget({
     selectedFlurryOfHealingAndHarmUsesTotal,
     isFlurryOfHealingAndHarmSelected,
     selectedWeaponPsionicStrikeFormula,
+    selectedWeaponCurvingShotState,
+    selectedWeaponArcaneShotState,
     selectedWeaponPsionicStrikeAvailable,
+    isCurvingShotSelected,
+    isArcaneShotSelected,
     isPsionicStrikeSelected,
     selectedWeaponEldritchSmiteState,
     isEldritchSmiteSelected,
@@ -2044,6 +2150,7 @@ function ActionsWidget({
     selectedWeaponDreadAmbusherState,
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponColossusSlayerState,
+    selectedWeaponPullOfDeathState,
     selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponGoliathAncestryState,
@@ -2061,6 +2168,7 @@ function ActionsWidget({
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponPullOfDeathToggleDisabled,
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponGoliathAncestryToggleDisabled,
@@ -2075,6 +2183,7 @@ function ActionsWidget({
     isRecklessAttackSelected,
     isDreadfulStrikeSelected,
     isColossusSlayerSelected,
+    isPullOfDeathSelected,
     isHordeBreakerSelected,
     isPolarStrikesSelected,
     isGoliathAncestryStrikeSelected,
@@ -2135,6 +2244,7 @@ function ActionsWidget({
     submitWarriorOfTheGods,
     submitIndomitable,
     submitHealingLight,
+    submitVestigeCompanion,
     submitMonkElementalBurst,
     submitSorcererWarpingImplosion,
     submitSorcererSpellfireBurst,
@@ -2174,6 +2284,7 @@ function ActionsWidget({
     setSelectedExperimentalElixirSpellSlotLevel,
     setSelectedArtificerEldritchCannonSpellSlotLevel,
     setSelectedReanimatedCompanionDefinitions,
+    setSelectedVestigeCompanionDefinitions,
     setSelectedArtificerSteelDefenderSpellSlotLevel,
     setSelectedNatureMagicianSpellSlotLevel,
     setSelectedWildResurgenceMode,
@@ -2199,6 +2310,7 @@ function ActionsWidget({
     setIsRecklessAttackSelected,
     setIsDreadfulStrikeSelected,
     setIsColossusSlayerSelected,
+    setIsPullOfDeathSelected,
     setIsPolarStrikesSelected,
     setIsGoliathAncestryStrikeSelected,
     setIsSacredWeaponSelected,
@@ -2212,6 +2324,8 @@ function ActionsWidget({
     setIsFlurryOfHealingAndHarmSelected,
     setIsGroupRecoverySelected,
     setIsFortifyingSoulIncludingSelfSelected,
+    setIsCurvingShotSelected,
+    setIsArcaneShotSelected,
     setIsPsionicStrikeSelected,
     setIsEldritchSmiteSelected,
     setIsLifedrinkerSelected,
@@ -2292,7 +2406,11 @@ function ActionsWidget({
   };
 
   return (
-    <>
+    <DrawerResourceManagement
+      key={character.id}
+      character={character}
+      onPersistCharacter={onPersistCharacter}
+    >
       <ActionsGrid
         character={character}
         combatActions={combatActions}
@@ -2367,7 +2485,15 @@ function ActionsWidget({
           factsSectionTitle={
             selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle
           }
-          headerTags={selectedActionHeaderTags}
+          headerTags={
+            selectedAction.kind === "feature"
+              ? bindActionResourceHeaderTags(
+                  selectedAction.action.key,
+                  selectedActionHeaderTags,
+                  selectedAction.name
+                )
+              : selectedActionHeaderTags
+          }
           detailsContent={
             selectedAction.kind === "feature" ? (
               <CustomActionDrawerDetails
@@ -2416,7 +2542,8 @@ function ActionsWidget({
               current: channelDivinityUsesRemaining,
               total: channelDivinityUsesTotal,
               icon: "pyromancy",
-              cost: 1
+              cost: 1,
+              management: getChannelDivinityResource(character)
             }
           ]}
           onClose={() => setSelectedChannelDivinityOptionKey(null)}
@@ -2429,28 +2556,46 @@ function ActionsWidget({
                   </p>
                 </div>
               ) : null}
-              <ActionButton
-                className={clsx(styles.footerActionButton, styles.channelDivinityFooterButton)}
-                onClick={() =>
-                  runWithActionConfirmationToast(
-                    selectedChannelDivinityRow.option.economyType,
-                    () => submitSelectedChannelDivinity(selectedChannelDivinityRow)
-                  )
-                }
-                disabled={selectedChannelDivinitySubmitWarning !== null}
-                trailingBadge={
-                  selectedChannelDivinityActionShape ? (
-                    <ActionShape
-                      shape={selectedChannelDivinityActionShape}
-                      isSelected={selectedChannelDivinityShapeState?.isAvailable ?? true}
-                      multiCount={selectedChannelDivinityShapeState?.multiCount ?? 0}
-                      className={styles.footerActionShape}
-                    />
-                  ) : null
-                }
-              >
-                Use Channel Divinity
-              </ActionButton>
+              {selectedChannelDivinityRow.option.rollFormula &&
+              (selectedChannelDivinityRow.option.key ===
+                clericChannelDivinityOptionKeys.fortifyingSpell ||
+                selectedChannelDivinityRow.option.key ===
+                  clericChannelDivinityOptionKeys.tenaciousSpell) ? (
+                <ActionDiceConfirmFooter
+                  actionName={selectedChannelDivinityRow.option.name}
+                  confirmLabel="Use Channel Divinity"
+                  actionShape={selectedChannelDivinityActionShape}
+                  actionShapeAvailable={selectedChannelDivinityShapeState?.isAvailable ?? true}
+                  actionShapeMultiCount={selectedChannelDivinityShapeState?.multiCount ?? 0}
+                  disabled={selectedChannelDivinitySubmitWarning !== null}
+                  isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+                  onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+                  onConfirm={() => submitSelectedChannelDivinity(selectedChannelDivinityRow)}
+                />
+              ) : (
+                <ActionButton
+                  className={clsx(styles.footerActionButton, styles.channelDivinityFooterButton)}
+                  onClick={() =>
+                    runWithActionConfirmationToast(
+                      selectedChannelDivinityRow.option.economyType,
+                      () => submitSelectedChannelDivinity(selectedChannelDivinityRow)
+                    )
+                  }
+                  disabled={selectedChannelDivinitySubmitWarning !== null}
+                  trailingBadge={
+                    selectedChannelDivinityActionShape ? (
+                      <ActionShape
+                        shape={selectedChannelDivinityActionShape}
+                        isSelected={selectedChannelDivinityShapeState?.isAvailable ?? true}
+                        multiCount={selectedChannelDivinityShapeState?.multiCount ?? 0}
+                        className={styles.footerActionShape}
+                      />
+                    ) : null
+                  }
+                >
+                  Use Channel Divinity
+                </ActionButton>
+              )}
             </div>
           }
         >
@@ -2562,7 +2707,7 @@ function ActionsWidget({
       ) : null}
 
       {diceRollerPopup}
-    </>
+    </DrawerResourceManagement>
   );
 }
 

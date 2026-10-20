@@ -353,9 +353,10 @@ export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow
     {
       label: "Proficiency Bonus",
       value:
-        typeof monster.proficiency_bonus === "number" && Number.isFinite(monster.proficiency_bonus)
+        getKnownMonsterText(monster.proficiency_bonus_display) ??
+        (typeof monster.proficiency_bonus === "number" && Number.isFinite(monster.proficiency_bonus)
           ? formatMonsterFeatureStat(monster.proficiency_bonus)
-          : ""
+          : "")
     },
     {
       label: "Skills",

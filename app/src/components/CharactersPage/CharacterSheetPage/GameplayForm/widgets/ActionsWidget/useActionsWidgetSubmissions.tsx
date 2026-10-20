@@ -1,9 +1,22 @@
 import { applyActionResourceTransition } from "./actionResourceTransition";
+import type { CharacterCompanion } from "../../../../../../types";
+import {
+  appendSpellSummonCompanionsForCast,
+  canAddSpellSummonCompanionsForCast
+} from "../../../../../../pages/CharactersPage/spellSummons";
+import {
+  endPreviousShadowBeastsCast,
+  getShadowBeastsCastSpell,
+  prepareShadowBeastsSummons,
+  shadowBeastsWithoutConcentrationOptionId,
+  spendShadowBeastsSorceryPoints
+} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowBeasts";
 import { createWizardFormSubmissions } from "./uiAdapters/wizard";
 import { createWarlockFormSubmissions } from "./uiAdapters/warlock";
 import { createSpeciesFormSubmissions } from "./uiAdapters/species";
 import { createSorcererFormSubmissions } from "./uiAdapters/sorcerer";
 import { createRogueFormSubmissions } from "./uiAdapters/rogue";
+import { consumePhantomVoiceOfDeathUse } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
 import { createPaladinFormSubmissions } from "./uiAdapters/paladin";
 import { createFighterFormSubmissions } from "./uiAdapters/fighter";
 import { createFeatsFormSubmissions } from "./uiAdapters/feats";
@@ -175,7 +188,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   } = context;
   const { submitArcaneRecovery, submitPortent, submitThirdEye } =
     createWizardFormSubmissions(context);
-  const { submitHealingLight } = createWarlockFormSubmissions(context);
+  const { submitHealingLight, submitVestigeCompanion } = createWarlockFormSubmissions(context);
   const {
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,
@@ -746,6 +759,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   }
 
   function castFixedSpellAction(options?: {
+    summonCompanions?: CharacterCompanion[];
     roundTrackerResourceOverride?: "action" | "bonusAction" | "reaction" | null;
     spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
@@ -763,6 +777,18 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
     }
+
+    const isShadowBeastsCast = fixedSpellExecute.effectKind === "beasts-of-ill-omen";
+    const spellForCast = isShadowBeastsCast
+      ? getShadowBeastsCastSpell(
+          fixedSpellEntry,
+          options?.spellImplementationOptions?.[shadowBeastsWithoutConcentrationOptionId] === true
+        )
+      : fixedSpellEntry;
+    const summonCompanions = isShadowBeastsCast
+      ? prepareShadowBeastsSummons(spellForCast, options?.summonCompanions ?? [])
+      : (options?.summonCompanions ?? []);
+    if (isShadowBeastsCast && summonCompanions.length === 0) return;
 
     const useBeguilingMagic = options?.useBeguilingMagic === true;
     const useElementalSmite =
@@ -841,7 +867,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         spellSlotTotals
       );
 
-      if (fixedSpellExecute.effectKind === "paladins-smite") {
+      if (isShadowBeastsCast) {
+        nextCharacter = spendShadowBeastsSorceryPoints(preparedCharacter);
+        if (nextCharacter === preparedCharacter) return currentCharacter;
+        nextCharacter = endPreviousShadowBeastsCast(nextCharacter);
+      } else if (fixedSpellExecute.effectKind === "paladins-smite") {
         nextCharacter = consumePaladinsSmiteUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "faithful-steed") {
         nextCharacter = consumeFaithfulSteedUseForCharacter(preparedCharacter);
@@ -866,6 +896,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacter = consumeArtificerUnerringPathUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "facilitated-revival") {
         nextCharacter = consumeArtificerFacilitatedRevivalUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "voice-of-death") {
+        nextCharacter = consumePhantomVoiceOfDeathUse(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "conjured-cauldron") {
         nextCharacter = consumeArtificerConjuredCauldronUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "genie-magic") {
@@ -876,6 +908,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacter === preparedCharacter &&
         fixedSpellExecute.effectKind === "gift-of-the-depths"
       ) {
+        return currentCharacter;
+      }
+
+      if (!canAddSpellSummonCompanionsForCast(nextCharacter, summonCompanions)) {
         return currentCharacter;
       }
 
@@ -958,7 +994,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         return currentCharacter;
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithJoltToLife,
-        spell: fixedSpellEntry,
+        spell: spellForCast,
         spellSlotLevel: slotLevel,
         sourceSpellSlotLevel,
         castSource: spellImplementationCastSource,
@@ -966,11 +1002,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       });
       const fixedSpellStatusEntries = applySpellDurationToStatusEntries(
         nextCharacterWithSpellImplementation.statusEntries,
-        fixedSpellEntry,
+        spellForCast,
         {
           ...getSpellImplementationStatusOptionsForCharacter({
             character: nextCharacterWithSpellImplementation,
-            spell: fixedSpellEntry,
+            spell: spellForCast,
             spellSlotLevel: slotLevel,
             sourceSpellSlotLevel,
             castSource: spellImplementationCastSource,
@@ -978,17 +1014,20 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
           }),
           sourceSpellSlotLevel,
           spellFormulas: getSpellFormulaCellsForCharacterSpell(
-            fixedSpellEntry,
+            spellForCast,
             nextCharacterWithSpellImplementation
           )
         }
       );
-      const nextCharacterWithSpellDuration = {
-        ...nextCharacterWithSpellImplementation,
-        statusEntries: useFrozenHaunt
-          ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(fixedSpellStatusEntries)
-          : fixedSpellStatusEntries
-      };
+      const nextCharacterWithSpellDuration = appendSpellSummonCompanionsForCast(
+        {
+          ...nextCharacterWithSpellImplementation,
+          statusEntries: useFrozenHaunt
+            ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(fixedSpellStatusEntries)
+            : fixedSpellStatusEntries
+        },
+        summonCompanions
+      );
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellDuration)
         : nextCharacterWithSpellDuration;
@@ -1285,6 +1324,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     submitWarriorOfTheGods,
     submitIndomitable,
     submitHealingLight,
+    submitVestigeCompanion,
     submitMonkElementalBurst,
     submitSorcererWarpingImplosion,
     submitSorcererSpellfireBurst,

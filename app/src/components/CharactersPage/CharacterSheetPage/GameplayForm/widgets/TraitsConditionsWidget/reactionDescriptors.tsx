@@ -1,3 +1,16 @@
+import {
+  gainPhantomSoulTrinket,
+  getPhantomSoulTrinketsMaximum,
+  getPhantomSoulTrinketsRemaining,
+  phantomSoulTrinketReactionId
+} from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
+import { createTextHeaderTag } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  sentinelAtDeathsDoorId,
+  getSentinelUsesRemaining,
+  getSentinelUsesTotal,
+  consumeSentinelUse
+} from "../../../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericGraveDomain";
 import { artificerLifeTransferReaction } from "./artificerLifeTransferReaction";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
@@ -912,6 +925,21 @@ const descriptors: ReactionDescriptor[] = [
     skipReactionWhenUnchanged: true
   },
   {
+    id: sentinelAtDeathsDoorId,
+    getResourceWarning: (context) =>
+      getSentinelUsesRemaining(context.character) <= 0
+        ? "No Sentinel at Death's Door uses remaining."
+        : null,
+    getHeaderTags: (context) => [
+      createChargesHeaderTag(
+        getSentinelUsesRemaining(context.character),
+        getSentinelUsesTotal(context.character)
+      )
+    ],
+    apply: consumeSentinelUse,
+    skipReactionWhenUnchanged: true
+  },
+  {
     id: clericWardingFlareReactionEntryId,
     getResourceWarning: (context) =>
       context.wardingFlareUsesRemaining <= 0 ? "No Warding Flare uses remaining." : null,
@@ -968,6 +996,18 @@ const descriptors: ReactionDescriptor[] = [
     ],
     apply: consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
     skipReactionWhenUnchanged: true
+  },
+  {
+    id: phantomSoulTrinketReactionId,
+    getResourceSummary: () => null,
+    getHeaderTags: ({ character }) => [
+      createTextHeaderTag(
+        "Soul Trinket",
+        `${getPhantomSoulTrinketsRemaining(character)}/${getPhantomSoulTrinketsMaximum(character)}`,
+        "ghost"
+      )
+    ],
+    apply: gainPhantomSoulTrinket
   },
   {
     id: rangerWinterWalkerChillingRetributionReactionEntryId,

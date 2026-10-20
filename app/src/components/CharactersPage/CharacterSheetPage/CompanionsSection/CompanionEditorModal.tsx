@@ -20,6 +20,7 @@ function CompanionEditorModal({
 }: CompanionEditorModalProps) {
   return (
     <CreatureEditorModal
+      allowAdditionalStatBlocks
       allowPrimalBeasts
       character={character}
       creature={companion}
@@ -42,7 +43,7 @@ function CompanionEditorModal({
         ),
         deleteTitle: "Delete companion?",
         editTitle: "Edit companion",
-        inheritedStatBlockTitle: "Inherited stat block",
+        inheritedStatBlockTitle: "Stat blocks",
         noStatBlockText: "No stat block selected.",
         previewBadgeLabel: "Monster Preview",
         saveButton: "Save Changes",

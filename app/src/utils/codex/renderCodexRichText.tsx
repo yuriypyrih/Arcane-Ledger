@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { getLocalMonsterReference } from "../../codex/monsterReferences";
+import MonsterReferenceLink from "../../components/MonsterEntryRenderer/MonsterReferenceLink";
 import {
   KeywordTooltip,
   getDivinityEntryByName,
@@ -113,9 +115,18 @@ export function renderCodexRichText(
       const keywordKey = match[2];
       const label = match[3] ?? keywordKey;
       const resolvedKeyword = resolveKeywordReference(keywordKey, label);
+      const monster = getLocalMonsterReference(keywordKey);
 
       nodes.push(
-        resolvedKeyword && onOpenKeyword ? (
+        monster ? (
+          <MonsterReferenceLink
+            key={`${keywordKey}-${index}`}
+            monster={monster}
+            className={linkClassName}
+          >
+            {renderNestedText(label)}
+          </MonsterReferenceLink>
+        ) : resolvedKeyword && onOpenKeyword ? (
           <button
             key={`${keywordKey}-${index}`}
             type="button"

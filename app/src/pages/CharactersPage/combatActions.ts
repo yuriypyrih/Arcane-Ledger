@@ -1,3 +1,4 @@
+import { bindActionResourceHeaderTags } from "./drawerResourceBindings";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
@@ -159,13 +160,13 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
     switch (action.cardUsage.mode) {
       case "charges":
         normalizedHeaderTags.push(
-          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
+          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total, undefined, action.cardUsage.charges.management)
         );
         break;
       case "charges-and-resource":
       case "charges-or-resource":
         normalizedHeaderTags.push(
-          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
+          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total, undefined, action.cardUsage.charges.management)
         );
         appendUsageTag();
         break;
@@ -351,7 +352,11 @@ function createFeatureActionDrawer(
   const blockedReason = action.drawer?.blockedReason;
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
   const factsSectionTitle = action.drawer?.factsSectionTitle;
-  const headerTags = createFeatureActionHeaderTags(action);
+  const headerTags = bindActionResourceHeaderTags(
+    action.key,
+    createFeatureActionHeaderTags(action),
+    action.name
+  );
   const eyebrow = formatFeatureActionSourceEyebrow(action) ?? action.drawer?.eyebrow;
   const confirmLabel = action.drawer?.confirmLabel ?? execute.label;
 

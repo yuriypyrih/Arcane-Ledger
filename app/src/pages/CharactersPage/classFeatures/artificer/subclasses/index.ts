@@ -27,21 +27,23 @@ import {
   getArtificerReanimatorDerivedFeatureState
 } from "./artificerReanimator";
 
-const artificerSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [reanimatorSubclassId]: getArtificerReanimatorDerivedFeatureState,
-  [alchemistSubclassId]: getArtificerAlchemistDerivedFeatureState,
-  [armorerSubclassId]: getArtificerArmorerDerivedFeatureState,
-  [artilleristSubclassId]: getArtificerArtilleristDerivedFeatureState,
-  [battleSmithSubclassId]: getArtificerBattleSmithDerivedFeatureState,
-  [cartographerSubclassId]: getArtificerCartographerDerivedFeatureState
-};
-
 export function getArtificerSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Artificer") || !getClassSubclassId(character, "Artificer")) {
     return {};
   }
+
+  // Ability helpers import the class runtime again. Read subclass IDs and resolvers
+  // only when deriving a character, after that module cycle has initialized.
+  const artificerSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [reanimatorSubclassId]: getArtificerReanimatorDerivedFeatureState,
+    [alchemistSubclassId]: getArtificerAlchemistDerivedFeatureState,
+    [armorerSubclassId]: getArtificerArmorerDerivedFeatureState,
+    [artilleristSubclassId]: getArtificerArtilleristDerivedFeatureState,
+    [battleSmithSubclassId]: getArtificerBattleSmithDerivedFeatureState,
+    [cartographerSubclassId]: getArtificerCartographerDerivedFeatureState
+  };
 
   return (
     artificerSubclassRuntimeRegistry[getClassSubclassId(character, "Artificer")]?.(character) ?? {}

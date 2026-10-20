@@ -1,4 +1,28 @@
 import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
+import { restoreUnholyResuscitationOnRest } from "./warlockNecroticHusk";
+import { normalizeWarlockVestigeFeatureState } from "./warlockVestigeSpells";
+import {
+  normalizeSemblanceOfLifeState,
+  restoreSemblanceOfLifeOnLongRest
+} from "./warlockSemblanceOfLife";
+import {
+  activateVestigeRecovery,
+  normalizeVestigeRecoveryState,
+  restoreVestigeRecoveryOnLongRest,
+  vestigeRecoveryActionKey
+} from "./warlockVestigeRecovery";
+import {
+  getWarlockVestigePatronDerivedFeatureState,
+  vestigePatronSubclassId
+} from "./warlockVestigePatron";
+import {
+  activateFormOfDread,
+  formOfDreadActionKey,
+  getWarlockUndeadPatronDerivedFeatureState,
+  normalizeWarlockUndeadFeatureState,
+  restoreFormOfDreadOnLongRest,
+  undeadPatronSubclassId
+} from "./warlockUndeadPatron";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import type {
   SubclassDerivedFeatureState,
@@ -40,6 +64,8 @@ import {
 } from "./warlockGreatOldOnePatron";
 
 const warlockSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [vestigePatronSubclassId]: getWarlockVestigePatronDerivedFeatureState,
+  [undeadPatronSubclassId]: getWarlockUndeadPatronDerivedFeatureState,
   [archfeyPatronSubclassId]: getWarlockArchfeyPatronDerivedFeatureState,
   [celestialPatronSubclassId]: getWarlockCelestialPatronDerivedFeatureState,
   [fiendPatronSubclassId]: getWarlockFiendPatronDerivedFeatureState,
@@ -53,15 +79,26 @@ const warlockSubclassStateNormalizers: Record<
       Partial<Pick<Character, "abilities" | "level" | "subclassId">>
   ) => Partial<CharacterWarlockFeatureState>
 > = {
+  [vestigePatronSubclassId]: (value, character) => ({
+    ...normalizeWarlockVestigeFeatureState(value, character),
+    ...normalizeVestigeRecoveryState(value, character),
+    ...normalizeSemblanceOfLifeState(value, character)
+  }),
+  [undeadPatronSubclassId]: normalizeWarlockUndeadFeatureState,
   [archfeyPatronSubclassId]: normalizeWarlockArchfeyPatronFeatureState,
   [celestialPatronSubclassId]: normalizeWarlockCelestialPatronFeatureState,
   [fiendPatronSubclassId]: normalizeWarlockFiendPatronFeatureState,
   [greatOldOnePatronSubclassId]: normalizeWarlockGreatOldOnePatronFeatureState
 };
 const warlockShortRestRestorers: Record<string, (character: Character) => Character> = {
+  [undeadPatronSubclassId]: restoreUnholyResuscitationOnRest,
   [greatOldOnePatronSubclassId]: restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest
 };
 const warlockLongRestRestorers: Record<string, (character: Character) => Character> = {
+  [vestigePatronSubclassId]: (character) =>
+    restoreSemblanceOfLifeOnLongRest(restoreVestigeRecoveryOnLongRest(character)),
+  [undeadPatronSubclassId]: (character) =>
+    restoreUnholyResuscitationOnRest(restoreFormOfDreadOnLongRest(character)),
   [archfeyPatronSubclassId]: restoreWarlockArchfeyPatronFeaturesOnLongRest,
   [celestialPatronSubclassId]: restoreWarlockCelestialPatronFeaturesOnLongRest,
   [fiendPatronSubclassId]: restoreWarlockFiendPatronFeaturesOnLongRest,
@@ -101,6 +138,20 @@ export function activateWarlockSubclassFeatureAction(
 ): Character | null {
   if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return null;
+  }
+
+  if (
+    getClassSubclassId(character, "Warlock") === vestigePatronSubclassId &&
+    actionKey === vestigeRecoveryActionKey
+  ) {
+    return activateVestigeRecovery(character);
+  }
+
+  if (
+    getClassSubclassId(character, "Warlock") === undeadPatronSubclassId &&
+    actionKey === formOfDreadActionKey
+  ) {
+    return activateFormOfDread(character);
   }
 
   if (

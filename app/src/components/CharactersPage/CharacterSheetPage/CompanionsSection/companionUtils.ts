@@ -3,7 +3,7 @@ import { getSpeciesEntries } from "../../../../codex/selectors";
 import type { PrimalBeastKind } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { PRIMAL_BEAST_MONSTER_TYPE } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { speciesOptions } from "../../../../pages/CharactersPage/constants";
-import type { CharacterCompanion, MonsterRecord } from "../../../../types";
+import type { CharacterCompanion, CompanionStatBlock, MonsterRecord } from "../../../../types";
 import {
   getMonsterSourceKey,
   getMonsterSourceTitle,
@@ -28,6 +28,7 @@ export type CompanionDraft = {
   durationValue: number;
   inheritedCreatureEntry: MonsterRecord | null;
   inheritedCreatureEntryModified: boolean;
+  additionalStatBlocks: CompanionStatBlock[];
 };
 
 export const COMPANION_MONSTERS_PER_PAGE = 20;
@@ -68,6 +69,7 @@ export function createEmptyCompanionDraft(
     durationValue: defaultManualStatusDurationDraft.value,
     inheritedCreatureEntry: null,
     inheritedCreatureEntryModified: false,
+    additionalStatBlocks: [],
     ...overrides
   };
 }
@@ -87,6 +89,7 @@ export function createDraftFromCompanion(companion: CharacterCompanion): Compani
     durationType: durationDraft.type,
     durationValue: durationDraft.value,
     inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null,
+    additionalStatBlocks: companion.additionalStatBlocks ?? [],
     inheritedCreatureEntryModified: Boolean(
       companion.inheritedCreatureEntry && companion.inheritedCreatureEntryModified === true
     )

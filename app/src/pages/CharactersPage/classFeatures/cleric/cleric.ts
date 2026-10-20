@@ -1,3 +1,5 @@
+import * as graveDomainSubclass from "./subclasses/clericGraveDomain";
+import * as arcanaDomainSubclass from "./subclasses/clericArcanaDomain";
 import { replaceClassFeatureState } from "../shared/resourceState";
 import {
   getAppliedAbilityScoreBonus,
@@ -305,12 +307,24 @@ export function getClericResolvedDivinityDisplay(
     character,
     divinity
   );
+  if (divinity.isHealingSpell && graveDomainSubclass.hasGraveDomain(character)) {
+    healingDescriptionAdditions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.CIRCLE_OF_MORTALITY,
+        graveDomainSubclass.getGraveHealingDescription(character),
+        "Return to Life"
+      )
+    );
+  }
 
   if (divinity.id !== "divinity-turn-undead" || !hasClericSearUndead(character)) {
     return {
       damage: baseDamage,
       healing: baseHealing,
-      valueCell: divineSparkValueCell,
+      valueCell:
+        arcanaDomainSubclass.getArcanaDivinityValueCell(character, divinity.id) ??
+        divineSparkValueCell,
       description: divinity.description,
       descriptionAdditions: healingDescriptionAdditions
     };
@@ -377,7 +391,9 @@ export function normalizeClericFeatureState(
     ...baseState,
     ...knowledgeDomainState,
     ...lightDomainState,
-    ...warDomainState
+    ...warDomainState,
+    ...graveDomainSubclass.normalizeGraveDomainState(record, normalizedCharacter),
+    ...arcanaDomainSubclass.normalizeArcanaDomainState(record, normalizedCharacter)
   };
 }
 
@@ -479,6 +495,12 @@ export function advanceClericFeaturesForNewRound(character: Character): Characte
     }
   }
 
+  if (nextCharacter.classFeatureState?.cleric?.pullOfDeathUsedThisTurn) {
+    nextCharacter = replaceClassFeatureState(nextCharacter, "cleric", {
+      ...nextCharacter.classFeatureState.cleric,
+      pullOfDeathUsedThisTurn: false
+    });
+  }
   return warDomainSubclass.advanceClericWarPriestForNewRound(nextCharacter);
 }
 
@@ -1088,6 +1110,15 @@ export function activateClericFeatureActionOption(
     return character;
   }
 
+  if (optionKey === graveDomainSubclass.pathToTheGraveKey)
+    return graveDomainSubclass.activatePathToTheGrave(character);
+  if (
+    optionKey === clericChannelDivinityOptionKeys.fortifyingSpell ||
+    optionKey === clericChannelDivinityOptionKeys.tenaciousSpell
+  )
+    return arcanaDomainSubclass.hasArcanaDomain(character)
+      ? expendClericChannelDivinityUse(character)
+      : character;
   switch (optionKey) {
     case clericChannelDivinityOptionKeys.divineSpark:
     case clericChannelDivinityOptionKeys.turnUndead:
@@ -1211,12 +1242,20 @@ export function applyShortRestToClericFeatures(character: Character): Character 
     return character;
   }
 
+  character = arcanaDomainSubclass.restoreDispellingRecovery(
+    graveDomainSubclass.restoreKeeperOfSouls(character)
+  );
   return restoreClericWarPriestOnShortRest(
     restoreClericWardingFlareOnShortRest(restoreClericChannelDivinityOnShortRest(character))
   );
 }
 
 export function applyLongRestToClericFeatures(character: Character): Character {
+  character = graveDomainSubclass.restoreSentinelUses(
+    graveDomainSubclass.restoreKeeperOfSouls(
+      arcanaDomainSubclass.restoreDispellingRecovery(character)
+    )
+  );
   return restoreClericDivineForeknowledgeOnLongRest(
     restoreClericDivineInterventionOnLongRest(
       restoreClericWarPriestOnLongRest(

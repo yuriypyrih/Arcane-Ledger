@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character, CharacterWizardPortentRoll } from "../../../../../../types";
 import { getWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import Checkbox from "../../../../FormInputs/Checkbox";
@@ -34,13 +34,32 @@ function normalizePortentDraftValue(value: string): number | undefined {
 }
 
 function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
-  const currentPortentRolls = getWizardDivinerPortentRolls(character);
+  const currentPortentRolls = useMemo(() => getWizardDivinerPortentRolls(character), [character]);
+  const previousPortentRolls = useRef(currentPortentRolls);
   const [draftRolls, setDraftRolls] = useState<PortentDraftRoll[]>(() =>
     currentPortentRolls.map((roll) => ({
       value: roll.value?.toString() ?? "",
       used: roll.used === true
     }))
   );
+
+  useEffect(() => {
+    const previous = previousPortentRolls.current;
+    previousPortentRolls.current = currentPortentRolls;
+    // Header adjustments change saved usage while this form stays open. Merge
+    // those changes without discarding unsaved foretelling values or other rows.
+    if (currentPortentRolls.some((roll, index) => roll.used !== previous[index]?.used)) {
+      setDraftRolls((drafts) =>
+        currentPortentRolls.map((roll, index) => ({
+          value: drafts[index]?.value ?? roll.value?.toString() ?? "",
+          used:
+            roll.used !== previous[index]?.used
+              ? roll.used === true
+              : (drafts[index]?.used ?? roll.used === true)
+        }))
+      );
+    }
+  }, [currentPortentRolls]);
 
   function updateDraftRoll(index: number, updates: Partial<PortentDraftRoll>) {
     setDraftRolls((currentDraftRolls) =>

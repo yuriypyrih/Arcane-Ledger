@@ -2,6 +2,10 @@ import { type SpellDescriptionEntry } from "../../codex/entries";
 import { CLASS_FEATURE, FEATS } from "../../codex/entries/enums";
 import type { Character } from "../../types";
 import {
+  getPhantomLifeEssenceDescription,
+  getPhantomSoulTrinketsRemaining
+} from "./classFeatures/rogue/subclasses/roguePhantomTokens";
+import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "./actionModalDescriptions";
@@ -100,6 +104,7 @@ export function hasDeathSaveAdvantageForCharacter(character: Character): boolean
 
 export function getDeathSaveAdvantageSourcesForCharacter(character: Character): string[] {
   return [
+    ...(getPhantomSoulTrinketsRemaining(character) > 0 ? ["Tokens of the Departed: Life Essence"] : []),
     ...(hasFeatForCharacter(character, FEATS.DURABLE) ? ["Durable"] : []),
     ...(hasFighterChampionSurvivorFeature(character) ? ["Defy Death"] : []),
     ...(hasRebornDeathSaveAdvantageForCharacter(character) ? ["Escaped Death"] : [])
@@ -130,6 +135,8 @@ export function getDeathSaveDescriptionAdditionsForCharacter(
   character: Character
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
+  const lifeEssence = getPhantomLifeEssenceDescription(character);
+  if (lifeEssence.length > 0) descriptionAdditions.push(lifeEssence);
 
   if (hasFeatForCharacter(character, FEATS.DURABLE)) {
     descriptionAdditions.push(

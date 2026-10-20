@@ -1,4 +1,6 @@
 import { replaceClassFeatureState } from "../shared/resourceState";
+import * as spiritsSubclass from "./subclasses/bardCollegeOfSpiritsState";
+import { restoreSpiritualManifestation } from "./subclasses/bardCollegeOfSpiritsEmpowered";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
 import { hasCharacterClass, getCharacterLevel, getClassLevel } from "../../multiclassState";
 import {
@@ -194,6 +196,7 @@ export function normalizeBardFeatureState(
     ...loreSubclass.normalizeBardCollegeOfLoreFeatureState(record, character),
     ...moonSubclass.normalizeBardCollegeOfTheMoonFeatureState(record, character),
     ...valorSubclass.normalizeBardCollegeOfValorFeatureState(record, character),
+    ...spiritsSubclass.normalizeBardSpiritsState(record, character),
     expertise:
       hasLevel2Expertise || hasLevel9Expertise
         ? {
@@ -1090,12 +1093,16 @@ export function restoreBardicInspirationOnShortRest(character: Character): Chara
 }
 
 export function applyShortRestToBardFeatures(character: Character): Character {
+  character = restoreSpiritualManifestation(spiritsSubclass.clearBardSpiritsOnRest(character), true);
   const restoredBardicInspiration = restoreBardicInspirationOnShortRest(character);
 
   return clearBardTurnState(restoreUnbreakableMajestyOnShortRest(restoredBardicInspiration));
 }
 
 export function applyLongRestToBardFeatures(character: Character): Character {
+  character = restoreSpiritualManifestation(
+    restoreSpiritualManifestation(spiritsSubclass.clearBardSpiritsOnRest(character), true)
+  );
   if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
     return clearBardTurnState(
       restoreUnbreakableMajestyOnLongRest(

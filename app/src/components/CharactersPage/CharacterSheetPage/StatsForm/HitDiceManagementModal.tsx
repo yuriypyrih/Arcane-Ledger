@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
@@ -14,14 +15,24 @@ type Props = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
   onClose: () => void;
+  nestedInDrawer?: boolean;
+  panelRef?: Ref<HTMLElement>;
 };
 
-export default function HitDiceManagementModal({ character, onPersistCharacter, onClose }: Props) {
+export default function HitDiceManagementModal({
+  character,
+  onPersistCharacter,
+  onClose,
+  nestedInDrawer,
+  panelRef
+}: Props) {
   const pools = getClassHitDicePools(character);
   const remaining = pools.reduce((sum, pool) => sum + pool.remaining, 0);
   const total = pools.reduce((sum, pool) => sum + pool.total, 0);
   return (
     <ResourceManagementModal
+      nestedInDrawer={nestedInDrawer}
+      panelRef={panelRef}
       titleId="hit-dice-resource-management-title"
       title={`Hit Dice ${remaining}/${total}`}
       closeLabel="Close hit dice resource management"

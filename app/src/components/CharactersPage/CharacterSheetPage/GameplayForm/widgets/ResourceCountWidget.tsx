@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import ResourceManagementModal from "../../ResourceManagementModal";
+import { counterResourceActions } from "../../counterResourceActions";
 import styles from "./ResourceCountWidget.module.css";
 
 export type ResourceCountWidgetIcon =
@@ -79,26 +80,14 @@ function ResourceCountWidget({
           title={resolvedModalTitle}
           closeLabel={`Close ${modalTitle} resource management`}
           onClose={() => setIsOpen(false)}
-          actions={[
-            {
-              label: "Use 1",
-              onClick: onUse,
-              disabled: current <= 0,
-              ariaLabel: `Use 1 ${modalTitle}`
-            },
-            {
-              label: "Reset 1",
-              onClick: onAdd,
-              disabled: current >= total,
-              ariaLabel: `Reset 1 ${modalTitle}`
-            },
-            {
-              label: "Reset All",
-              onClick: onReset,
-              disabled: current >= total,
-              ariaLabel: `Reset all ${modalTitle}`
-            }
-          ]}
+          actions={counterResourceActions({
+            label: modalTitle,
+            current,
+            total,
+            onUse,
+            onRestore: onAdd,
+            onReset
+          })}
         />
       ) : null}
     </>

@@ -319,6 +319,7 @@ function ClassFeatureList({
     updateBardPrimalLoreSkillSelection
   } = choices;
   const {
+    isArcanaChoiceRequired,
     getAvailableKnowledgeDomainBlessingsSkills,
     getAvailableKnowledgeDomainBlessingsTools,
     getAvailableKnowledgeDomainUnfetteredMindSavingThrows,
@@ -345,6 +346,8 @@ function ClassFeatureList({
   } = choices;
   const {
     getAvailableFighterBanneretKnightlyEnvoyLanguages,
+    isArcaneShotOptionsInputRequired,
+    isArcaneArcherLoreInputRequired,
     getAvailableFighterBanneretKnightlyEnvoySkills,
     getFighterBanneretKnightlyEnvoyLanguageSelection,
     getFighterBanneretKnightlyEnvoySkillSelection,
@@ -397,6 +400,7 @@ function ClassFeatureList({
     getRogueScionOfTheThreeDreadAllegianceChoice,
     getRogueThievesCantLanguageSelection,
     isRogueExpertiseInputRequired,
+    isRoguePhantomWhispersInputRequired,
     isRogueScionOfTheThreeDreadAllegianceInputRequired,
     isRogueThievesCantInputRequired,
     updateRogueExpertiseSelection,
@@ -420,6 +424,7 @@ function ClassFeatureList({
     getWarlockMysticArcanumSpellLevel,
     isWarlockFiendishResilienceInputRequired,
     isWarlockMysticArcanumInputRequired,
+    isWarlockVestigeSpellsInputRequired,
     updateWarlockFiendishResilienceDamageTypeSelection,
     updateWarlockMysticArcanumSelection
   } = choices;
@@ -601,6 +606,14 @@ function ClassFeatureList({
             character.className === "Artificer" &&
             isArtificerToolsOfTheTradeInputRequired();
           const isInputRequired =
+            (isUnlocked &&
+              character.className === "Fighter" &&
+              featureRow.feature === CLASS_FEATURE.ARCANE_SHOT_OPTIONS &&
+              isArcaneShotOptionsInputRequired()) ||
+            (isUnlocked &&
+              character.className === "Fighter" &&
+              featureRow.feature === CLASS_FEATURE.ARCANE_ARCHER_LORE &&
+              isArcaneArcherLoreInputRequired()) ||
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isSpellcastingFeatureInputRequired ||
             isEldritchInvocationInputRequired ||
@@ -608,6 +621,11 @@ function ClassFeatureList({
             isBardLoreBonusProficienciesRequired ||
             isBardMagicalDiscoveriesRequired ||
             isBardPrimalLoreRequired ||
+            (isUnlocked &&
+              character.className === "Cleric" &&
+              (featureRow.feature === CLASS_FEATURE.STUDENT_OF_ARCANA ||
+                featureRow.feature === CLASS_FEATURE.MAGICAL_MASTERY) &&
+              isArcanaChoiceRequired(featureRow.feature === CLASS_FEATURE.MAGICAL_MASTERY)) ||
             isKnowledgeDomainBlessingsRequired ||
             isKnowledgeDomainUnfetteredMindRequired ||
             isRangerGloomStalkerIronMindRequired ||
@@ -637,6 +655,10 @@ function ClassFeatureList({
               featureRow.feature === CLASS_FEATURE.OTHERWORLDLY_GLAMOUR &&
               character.className === "Ranger" &&
               isRangerOtherworldlyGlamourInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.WHISPERS_OF_THE_DEAD &&
+              character.className === "Rogue" &&
+              isRoguePhantomWhispersInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
               character.className === "Rogue" &&
@@ -718,6 +740,10 @@ function ClassFeatureList({
               featureRow.feature === CLASS_FEATURE.ELEMENTAL_AFFINITY &&
               character.className === "Sorcerer" &&
               isSorcererDraconicElementalAffinityInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.VESTIGE_SPELLS &&
+              character.className === "Warlock" &&
+              isWarlockVestigeSpellsInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.FIENDISH_RESILIENCE &&
               character.className === "Warlock" &&

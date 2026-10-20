@@ -1,7 +1,14 @@
+import { lazy, Suspense } from "react";
 import type { DAMAGE_TYPE } from "../../../../codex/entries/enums";
 import type { LANGUAGE_PROFICIENCY, SkillName } from "../../../../types";
 import SelectInput from "../../FormInputs/SelectInput";
 import type { ClassFeatureContentContext } from "./types";
+
+const ClericArcanaFeatureFields = lazy(() => import("./ClericArcanaFeatureFields"));
+const FighterArcaneShotFields = lazy(() => import("./FighterArcaneShotFields"));
+const FighterArcaneArcherLoreFields = lazy(() => import("./FighterArcaneArcherLoreFields"));
+const RoguePhantomFeatureFields = lazy(() => import("./RoguePhantomFeatureFields"));
+const WarlockVestigeSpellFields = lazy(() => import("./WarlockVestigeSpellFields"));
 
 export function renderClassFeatureContent(context: ClassFeatureContentContext) {
   const {
@@ -413,6 +420,25 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
             onOpenSpellReference={onOpenSpellReference}
             onOpenDivinityReference={onOpenDivinityReference}
           />
+        </>
+      ) : featureRow.feature === CLASS_FEATURE.VESTIGE_SPELLS &&
+        character.className === "Warlock" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <WarlockVestigeSpellFields
+              character={character}
+              disabled={!isUnlocked}
+              onPersistCharacter={context.onPersistCharacter}
+            />
+          </Suspense>
         </>
       ) : featureRow.feature === CLASS_FEATURE.FIENDISH_RESILIENCE &&
         character.className === "Warlock" ? (
@@ -945,6 +971,43 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
             recomputeCharacterFeatureProficiencies={recomputeCharacterFeatureProficiencies}
           />
         </>
+      ) : featureRow.feature === CLASS_FEATURE.ARCANE_ARCHER_LORE &&
+        character.className === "Fighter" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <FighterArcaneArcherLoreFields
+              character={character}
+              disabled={!isUnlocked}
+              onPersistCharacter={context.onPersistCharacter}
+            />
+          </Suspense>
+        </>
+      ) : featureRow.feature === CLASS_FEATURE.ARCANE_SHOT_OPTIONS &&
+        character.className === "Fighter" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <FighterArcaneShotFields
+              character={character}
+              onPersistCharacter={context.onPersistCharacter}
+            />
+          </Suspense>
+        </>
       ) : featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
         character.className === "Fighter" ? (
         <>
@@ -1402,6 +1465,27 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
             </label>
           </div>
         </>
+      ) : (featureRow.feature === CLASS_FEATURE.STUDENT_OF_ARCANA ||
+          featureRow.feature === CLASS_FEATURE.MAGICAL_MASTERY) &&
+        character.className === "Cleric" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <ClericArcanaFeatureFields
+              character={character}
+              feature={featureRow.feature}
+              disabled={!isUnlocked}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </Suspense>
+        </>
       ) : featureRow.feature === CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE &&
         character.className === "Cleric" ? (
         <>
@@ -1746,6 +1830,25 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
             onOpenDivinityReference={onOpenDivinityReference}
           />
         )
+      ) : featureRow.feature === CLASS_FEATURE.WHISPERS_OF_THE_DEAD &&
+        character.className === "Rogue" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <RoguePhantomFeatureFields
+              character={character}
+              disabled={!isUnlocked}
+              onPersistCharacter={context.onPersistCharacter}
+            />
+          </Suspense>
+        </>
       ) : featureRow.feature === CLASS_FEATURE.DREAD_ALLEGIANCE &&
         character.className === "Rogue" ? (
         <>

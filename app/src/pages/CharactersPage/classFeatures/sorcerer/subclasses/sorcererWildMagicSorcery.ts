@@ -120,7 +120,7 @@ export function getSorcererWildMagicTamedSurgeUsesTotal(
   return hasSorcererTamedSurgeFeature(character) ? tamedSurgeUsesTotal : 0;
 }
 
-function getSorcererWildMagicTidesOfChaosUsesRemaining(
+export function getSorcererWildMagicTidesOfChaosUsesRemaining(
   character: WildMagicSorceryCharacter
 ): number {
   const totalUses = getSorcererWildMagicTidesOfChaosUsesTotal(character);

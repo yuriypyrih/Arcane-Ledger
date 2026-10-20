@@ -153,6 +153,7 @@ export type MonsterRecord = {
   normal_sight_range?: number | null;
   passive_perception?: number | null;
   proficiency_bonus?: number | null;
+  proficiency_bonus_display?: string | null;
   resistances_and_immunities?: MonsterResistancesAndImmunitiesRecord | null;
   saving_throws?: MonsterAbilityMap | null;
   saving_throws_all?: MonsterAbilityMap | null;

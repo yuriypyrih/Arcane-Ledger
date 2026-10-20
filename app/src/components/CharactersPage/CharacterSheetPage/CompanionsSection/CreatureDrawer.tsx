@@ -13,6 +13,7 @@ import {
 } from "../../../Overlay";
 import MonsterEntryRenderer from "../../../MonsterEntryRenderer/MonsterEntryRenderer";
 import { getCompanionStatBlock } from "../../../../pages/CharactersPage/beastMasterCompanions";
+import { getCompanionStatBlocks } from "../../../../pages/CharactersPage/companionStatBlocks";
 import {
   applyDamageToCharacterCompanion,
   applyHealingToCharacterCompanion,
@@ -56,12 +57,14 @@ function CreatureDrawer({
 }: CreatureDrawerProps) {
   const titleId = useId();
   const [drawerNotice, setDrawerNotice] = useState<string | null>(null);
-  const statBlock = getCompanionStatBlock(creature, character);
+  const statBlocks = getCompanionStatBlocks({
+    ...creature,
+    inheritedCreatureEntry: getCompanionStatBlock(creature, character) ?? undefined
+  });
   const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
   const statusLabel = getCompanionStatusLabel(creature);
   const creatureDescription = creature.description.trim();
   const creatureType = getCompanionDisplayType(creature);
-  const isStatBlockModified = creature.inheritedCreatureEntryModified === true;
   const shouldShowDeathSaves =
     creature.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";
   const shouldShowDetailsGrid = showSource || showDuration;
@@ -169,20 +172,20 @@ function CreatureDrawer({
           </section>
         ) : null}
 
-        {statBlock ? (
-          <section className={styles.drawerSection}>
+        {statBlocks.map((block) => (
+          <section key={block.id} className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
               <div>
                 <p className={styles.panelEyebrow}>Chosen stat block</p>
               </div>
             </div>
             <MonsterEntryRenderer
-              monster={statBlock}
+              monster={block.monster}
               className={styles.inheritedMonsterEntry}
-              headingTag={isStatBlockModified ? "Modded" : undefined}
+              headingTag={block.modified ? "Modded" : undefined}
             />
           </section>
-        ) : null}
+        ))}
       </OverlayBody>
     </SheetDrawer>
   );

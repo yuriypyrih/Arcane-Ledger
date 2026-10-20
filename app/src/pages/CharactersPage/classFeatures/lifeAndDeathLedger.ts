@@ -1,4 +1,10 @@
 import { getClassLevel } from "../multiclassState";
+import {
+  getUnholyResuscitationDescriptionAdditions,
+  getUnholyResuscitationUsesRemaining,
+  hasNecroticHusk,
+  isUnholyResuscitationAvailable
+} from "./warlock/subclasses/warlockNecroticHusk";
 import { getEldritchInvocationEntryById, type SpellDescriptionEntry } from "../../../codex/entries";
 import { CLASS_FEATURE, ELDRITCH_INVOCATION, FEATS } from "../../../codex/entries/enums";
 import type { Character } from "../../../types";
@@ -42,6 +48,18 @@ import {
   getBarbarianFeatureDescriptionAdditions
 } from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
+import {
+  getShadowStrengthOfTheGraveDescriptionAdditions,
+  getShadowStrengthOfTheGraveUsesRemaining,
+  hasSorcererPowerOfShadow,
+  isShadowStrengthOfTheGraveAvailable
+} from "./sorcerer/subclasses/sorcererShadowSorcery";
+import {
+  getRangerAncientMightLedgerDescriptionAdditions,
+  getRangerPersistentWrathUsesRemaining,
+  hasRangerPersistentWrath,
+  isRangerPersistentWrathRelevant
+} from "./ranger/subclasses/rangerPersistentWrath";
 import {
   getFighterChampionSurvivorDefyDeathDescription,
   getFighterChampionSurvivorHeroicRallyDescription,
@@ -168,6 +186,9 @@ export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolea
   return (
     isArtificerSoulOfArtificeCheatDeathAvailable(character) ||
     isLifeAndDeathRelentlessRageRelevant(character) ||
+    isRangerPersistentWrathRelevant(character) ||
+    isShadowStrengthOfTheGraveAvailable(character) ||
+    isUnholyResuscitationAvailable(character) ||
     isLifeAndDeathUndyingSentinelAvailable(character) ||
     (isLifeAndDeathUnconscious(character) && isLifeAndDeathSearingVengeanceAvailable(character)) ||
     (isLifeAndDeathUnconscious(character) &&
@@ -193,7 +214,10 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
       "custom",
       barbarianLifeAndDeathLedgerDescriptionTargetKey
     ),
-    ...getRebornLifeAndDeathDescriptionAdditionsForCharacter(character)
+    ...getRebornLifeAndDeathDescriptionAdditionsForCharacter(character),
+    ...getRangerAncientMightLedgerDescriptionAdditions(character),
+    ...getShadowStrengthOfTheGraveDescriptionAdditions(character),
+    ...getUnholyResuscitationDescriptionAdditions(character)
   ];
 
   const championSurvivorDescription = [
@@ -280,6 +304,36 @@ export function getLifeAndDeathLedgerHeaderItems(
   character: Character
 ): LifeAndDeathLedgerHeaderItem[] {
   const headerItems: LifeAndDeathLedgerHeaderItem[] = [];
+
+  if (hasNecroticHusk(character)) {
+    headerItems.push({
+      kind: "dots",
+      key: "unholy-resuscitation-uses",
+      label: "Unholy Resuscitation",
+      current: getUnholyResuscitationUsesRemaining(character),
+      total: 1
+    });
+  }
+
+  if (hasSorcererPowerOfShadow(character)) {
+    headerItems.push({
+      kind: "dots",
+      key: "strength-of-the-grave-uses",
+      label: "Strength of the Grave",
+      current: getShadowStrengthOfTheGraveUsesRemaining(character),
+      total: 1
+    });
+  }
+
+  if (hasRangerPersistentWrath(character)) {
+    headerItems.push({
+      kind: "dots",
+      key: "persistent-wrath-uses",
+      label: "Persistent Wrath",
+      current: getRangerPersistentWrathUsesRemaining(character),
+      total: 1
+    });
+  }
 
   if (hasBarbarianRelentlessRageFeature(character)) {
     headerItems.push({

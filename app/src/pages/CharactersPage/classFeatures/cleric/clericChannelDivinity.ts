@@ -48,6 +48,7 @@ export function expendClericChannelDivinityUse(character: Character): Character 
   }
 
   return replaceClassFeatureState(character, "cleric", {
+    ...character.classFeatureState?.cleric,
     ...clericState,
     channelDivinityUsesExpended: usesExpended + 1
   });
@@ -64,6 +65,7 @@ export function restoreClericChannelDivinityOnShortRest(character: Character): C
   );
 
   return replaceClassFeatureState(character, "cleric", {
+    ...character.classFeatureState?.cleric,
     ...clericState,
     blessedStrikeUsedThisTurn: false,
     channelDivinityUsesExpended: Math.max(0, (clericState.channelDivinityUsesExpended ?? 0) - 1)
@@ -81,6 +83,7 @@ export function restoreClericChannelDivinityOnLongRest(character: Character): Ch
   );
 
   return replaceClassFeatureState(character, "cleric", {
+    ...character.classFeatureState?.cleric,
     ...clericState,
     blessedStrikeUsedThisTurn: false,
     channelDivinityUsesExpended: 0

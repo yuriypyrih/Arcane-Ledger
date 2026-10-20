@@ -1,4 +1,6 @@
 import { extractDescriptionSection as extractSubclassFeatureDescriptionSection } from "./shared/descriptionSections";
+import { formOfDreadStatusSourceId } from "./classFeatures/warlock/subclasses/warlockUndeadPatron";
+import { reconcileSemblanceOfLife } from "./classFeatures/warlock/subclasses/warlockSemblanceOfLife";
 import {
   hasCharacterClass,
   getCharacterLevel,
@@ -36,6 +38,12 @@ import {
   unbreakableMajestyDescription
 } from "../../codex/subclasses/bard";
 import { getSubclassEntryById } from "../../codex/subclasses";
+import { phantomGhostWalkStatusSourceId } from "./classFeatures/rogue/subclasses/roguePhantomGhostWalk";
+import {
+  getWrathOfTheWildDescriptionAdditions,
+  reconcileRangerWrathOfTheWildStatus,
+  wrathOfTheWildStatusSourceId
+} from "./classFeatures/ranger/subclasses/rangerHollowWarden";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../codex/entries/enums";
 import {
@@ -674,8 +682,9 @@ export function getEffectiveHitPointMaximumForCharacter(
 }
 
 export function reconcileCharacterStatusConsequences(character: Character): Character {
+  character = reconcileSemblanceOfLife(character);
   const reconciledCharacter = reconcileTensersTransformationStatusForCharacter(
-    reconcileSylunesViperStatusForCharacter(character)
+    reconcileSylunesViperStatusForCharacter(reconcileRangerWrathOfTheWildStatus(character))
   );
   const normalizedStatusEntries = normalizeCharacterStatusEntries(
     reconciledCharacter.statusEntries
@@ -701,7 +710,8 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
               !(
                 (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
                   entry.value === EFFECT_NAME.CONCENTRATION) ||
-                entry.sourceId === unbreakableMajestyStatusSourceId
+                entry.sourceId === unbreakableMajestyStatusSourceId ||
+                entry.sourceId === formOfDreadStatusSourceId
               )
           )
         )
@@ -1293,6 +1303,20 @@ export function getStatusEntryDescriptionContent(
   description: SpellDescriptionEntry[];
   descriptionAdditions: SpellDescriptionEntry[][];
 } {
+  if (entry.sourceId === phantomGhostWalkStatusSourceId && character) {
+    return {
+      description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.GHOST_WALK),
+      descriptionAdditions: []
+    };
+  }
+
+  if (entry.sourceId === wrathOfTheWildStatusSourceId && character) {
+    return {
+      description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.WRATH_OF_THE_WILD),
+      descriptionAdditions: getWrathOfTheWildDescriptionAdditions(character)
+    };
+  }
+
   if (
     entry.sourceId === paladinOathOfDevotionSacredWeaponStatusSourceId &&
     character &&

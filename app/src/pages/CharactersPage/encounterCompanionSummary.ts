@@ -69,6 +69,10 @@ function createEncounterCompanionSummary(
   companion: CharacterCompanion
 ): PortableEncounterCompanionSummary {
   const inheritedCreatureEntry = createCompanionMonsterSummary(companion.inheritedCreatureEntry);
+  const additionalStatBlocks = companion.additionalStatBlocks?.flatMap((block) => {
+    const monster = createCompanionMonsterSummary(block.monster);
+    return monster ? [{ ...block, monster }] : [];
+  });
 
   return {
     id: companion.id,
@@ -83,6 +87,7 @@ function createEncounterCompanionSummary(
       ? { temporaryHitPointsSource: companion.temporaryHitPointsSource }
       : {}),
     ...(companion.deathSaves ? { deathSaves: companion.deathSaves } : {}),
+    ...(additionalStatBlocks?.length ? { additionalStatBlocks } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
     ...(inheritedCreatureEntry && companion.inheritedCreatureEntryModified === true
       ? { inheritedCreatureEntryModified: true }

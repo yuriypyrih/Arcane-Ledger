@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from "react";
+import { useShadowBeastsSpellOption } from "../../../SpellCastingForm/useShadowBeastsSpellOption";
 import CharacterSpellDrawer, {
   type CharacterSpellDrawerActionOptions
 } from "../../../SpellCastingForm/CharacterSpellDrawer";
@@ -257,12 +258,17 @@ function FeatureSpellDrawers({
   const alwaysPreparedSpellIds = getAlwaysPreparedSpellIdsForCharacter(character);
   const alwaysPreparedSpellIdSet = new Set(alwaysPreparedSpellIds);
   const alwaysPreparedSpellSourceMap = getAlwaysPreparedSpellSourceMapForCharacter(character);
+  const shadowBeasts = useShadowBeastsSpellOption(
+    character,
+    fixedSpellEntry,
+    isFixedSpellDrawerOpen && fixedSpellExecute?.effectKind === "beasts-of-ill-omen"
+  );
   const fixedSpellDisplay = useMemo(
     () =>
-      fixedSpellEntry
-        ? getGoliathSpellDisplay(fixedSpellEntry, selectedActionSpellGoliathAncestryState)
+      shadowBeasts.spell
+        ? getGoliathSpellDisplay(shadowBeasts.spell, selectedActionSpellGoliathAncestryState)
         : null,
-    [fixedSpellEntry, selectedActionSpellGoliathAncestryState]
+    [shadowBeasts.spell, selectedActionSpellGoliathAncestryState]
   );
   const fixedSpellAlwaysPrepared = fixedSpellDisplay
     ? alwaysPreparedSpellIdSet.has(fixedSpellDisplay.id)
@@ -357,6 +363,7 @@ function FeatureSpellDrawers({
           slotPoolControl={slotPoolControl}
           character={character}
           spell={fixedSpellDisplay}
+          summonDurationOverride={shadowBeasts.summonDuration}
           damageDetailOverride={fixedSpellDamageDetailOverride}
           alwaysPrepared={fixedSpellAlwaysPrepared}
           alwaysPreparedSources={fixedSpellAlwaysPreparedSources}
@@ -373,6 +380,10 @@ function FeatureSpellDrawers({
           onAction={(options) =>
             onCastFixedSpellAction({
               ...options,
+              spellImplementationOptions: {
+                ...options?.spellImplementationOptions,
+                ...shadowBeasts.castOptions
+              },
               useBeguilingMagic: useBeguilingMagicOnActionSpell,
               useGoliathAncestry: useGoliathAncestryOnActionSpell,
               useFrozenHaunt: useFrozenHauntOnActionSpell,
@@ -392,8 +403,14 @@ function FeatureSpellDrawers({
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onDiceRollerSettingsOpenChange={onDiceRollerSettingsOpenChange}
           actionWarning={fixedSpellCastWarning}
-          actionDisabled={spellcastingBlocked || fixedSpellSharedCastWarning !== null}
-          blockedReason={spellcastingBlocked ? spellcastingBlockedReason : null}
+          actionDisabled={
+            spellcastingBlocked ||
+            fixedSpellSharedCastWarning !== null ||
+            shadowBeasts.blockedReason !== null
+          }
+          blockedReason={
+            spellcastingBlocked ? spellcastingBlockedReason : shadowBeasts.blockedReason
+          }
           allowRitualCasting={fixedSpellExecute.allowRitualCasting}
           actionPaths={fixedSpellActionPaths
             .map((path) => {
@@ -422,10 +439,12 @@ function FeatureSpellDrawers({
             })
             .filter((path): path is NonNullable<typeof path> => path !== null)}
           actionOptions={
+            shadowBeasts.options.length > 0 ||
             beguilingMagicOption ||
             goliathAncestryOption ||
             selectedActionSpellFrozenHauntOptionState !== null
               ? [
+                  ...shadowBeasts.options,
                   ...(beguilingMagicOption ? [beguilingMagicOption] : []),
                   ...(goliathAncestryOption ? [goliathAncestryOption] : []),
                   ...(selectedActionSpellFrozenHauntOptionState

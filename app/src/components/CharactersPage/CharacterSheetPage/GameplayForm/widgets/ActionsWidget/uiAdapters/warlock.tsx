@@ -12,6 +12,21 @@ import { spendWarlockHealingLightDiceForCharacter } from "../../../../../../../p
 
 import { applyRolledHealingToCharacter } from "../../../gameplayStateUtils";
 import { type ActionsWidgetSubmissionContext } from "../types";
+import type { CharacterCompanion } from "../../../../../../../types";
+import {
+  summonWarlockVestigeCompanion,
+  vestigeCompanionActionKey
+} from "../../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockVestigePatron";
+import ActionButton from "../../../../../../ActionButton";
+import ActionShape from "../../../../../../ActionShape";
+import ActionFooterButtonRow from "../ActionFooterButtonRow";
+import VestigeCompanionActionBody from "../forms/VestigeCompanionActionBody";
+import styles from "../ActionsWidget.module.css";
+import {
+  activateSemblanceOfLife,
+  getSemblanceOfLifeDefinitionError,
+  semblanceOfLifeActionKey
+} from "../../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockSemblanceOfLife";
 
 function renderHealingLightBody(context: ActionFormBodyContext) {
   const {
@@ -84,7 +99,61 @@ function renderHealingLightFooter(context: ActionFormFooterContext) {
   }
   return undefined;
 }
+const vestigeFormAdapter: ActionFormAdapter = {
+  body: (context) => <VestigeCompanionActionBody context={context} />,
+  footer: (context) => {
+    const {
+      selectedAction,
+      selectedVestigeCompanionDefinitions,
+      selectedFeatureActionPrimaryDisabledReason,
+      selectedActionEconomyShapeState,
+      selectedFeaturePrimaryLabel,
+      confirmSelectedActionToast,
+      submitVestigeCompanion
+    } = context;
+    if (!selectedAction) return undefined;
+    const definition = selectedVestigeCompanionDefinitions[0];
+    const isForm =
+      selectedAction.kind === "feature" && selectedAction.action.key === semblanceOfLifeActionKey;
+    const warning =
+      selectedFeatureActionPrimaryDisabledReason ??
+      (isForm
+        ? getSemblanceOfLifeDefinitionError(definition)
+        : !definition?.inheritedCreatureEntry
+          ? "Define your companion before summoning it."
+          : null);
+    const shape = getActionShapeForEconomyType(selectedAction.economyType);
+    return (
+      <>
+        {warning ? <p>{warning}</p> : null}
+        <ActionFooterButtonRow>
+          <ActionButton
+            className={styles.weaponFooterButton}
+            disabled={warning !== null}
+            onClick={confirmSelectedActionToast(() => {
+              if (definition && !warning) submitVestigeCompanion(definition);
+            })}
+            trailingBadge={
+              shape ? (
+                <ActionShape
+                  shape={shape}
+                  isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                  multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                  className={styles.footerActionShape}
+                />
+              ) : null
+            }
+          >
+            {selectedFeaturePrimaryLabel}
+          </ActionButton>
+        </ActionFooterButtonRow>
+      </>
+    );
+  }
+};
 export const warlockFormAdapters = {
+  "warlock-vestige-companion": vestigeFormAdapter,
+  "warlock-semblance-of-life": vestigeFormAdapter,
   "healing-light": { body: renderHealingLightBody, footer: renderHealingLightFooter }
 } satisfies Partial<Record<ActionFormKind, ActionFormAdapter>>;
 export function createWarlockFormSubmissions(context: ActionsWidgetSubmissionContext) {
@@ -130,5 +199,30 @@ export function createWarlockFormSubmissions(context: ActionsWidgetSubmissionCon
 
     closeActionDrawer();
   }
-  return { submitHealingLight };
+  function submitVestigeCompanion(definition: CharacterCompanion) {
+    if (
+      !selectedFeatureAction ||
+      ![vestigeCompanionActionKey, semblanceOfLifeActionKey].includes(selectedFeatureAction.key)
+    )
+      return;
+    let didApply = false;
+    onPersistCharacter(
+      (currentCharacter) => {
+        const nextCharacter = applyActionResourceTransition(
+          currentCharacter,
+          selectedFeatureAction.economyType,
+          prepareCharacterForResourceConsumption,
+          (preparedCharacter) =>
+            selectedFeatureAction.key === semblanceOfLifeActionKey
+              ? activateSemblanceOfLife(preparedCharacter, definition)
+              : summonWarlockVestigeCompanion(preparedCharacter, definition)
+        );
+        didApply = nextCharacter !== currentCharacter;
+        return nextCharacter;
+      },
+      { domains: ["companions", "resources", "statuses"], normalize: "targeted" }
+    );
+    if (didApply) closeActionDrawer();
+  }
+  return { submitHealingLight, submitVestigeCompanion };
 }

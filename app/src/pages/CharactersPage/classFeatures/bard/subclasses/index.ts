@@ -1,4 +1,6 @@
 import { hasCharacterClass, getClassSubclassId } from "../../../multiclassState";
+import { collegeOfSpiritsSubclassId } from "./bardCollegeOfSpiritsState";
+import { getBardCollegeOfSpiritsDerivedFeatureState } from "./bardCollegeOfSpirits";
 import type {
   SubclassDerivedFeatureState,
   SubclassRuntimeCharacter,
@@ -26,6 +28,7 @@ import {
 } from "./bardCollegeOfValor";
 
 const bardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [collegeOfSpiritsSubclassId]: getBardCollegeOfSpiritsDerivedFeatureState,
   [collegeOfDanceSubclassId]: getBardCollegeOfDanceDerivedFeatureState,
   [collegeOfGlamourSubclassId]: getBardCollegeOfGlamourDerivedFeatureState,
   [collegeOfLoreSubclassId]: getBardCollegeOfLoreDerivedFeatureState,

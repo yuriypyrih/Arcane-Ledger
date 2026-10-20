@@ -1,8 +1,5 @@
 import { createSubclassFeatureRow } from "./featureRow";
-import {
-  vestigeCompanionStatisticsDescription,
-  getVestigeDomainSpellDescriptions
-} from "./warlockVestige";
+import { getVestigeDomainSpellDescriptions } from "./warlockVestige";
 import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type { SubclassEntry } from "../entries/types";
 
@@ -281,7 +278,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Fearless Form.</strong> While transformed, you are immune to <link:Frightened>Frightened</link>. Becoming transformed also ends that condition on you.",
           "<strong>Frightful Avatar.</strong> Once per turn when an attack roll hits a creature, you may require a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes it <link:Frightened>Frightened</link> until your next turn ends."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.UNDEAD_SPELLS, {
         description: [
@@ -291,7 +288,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Greater Invisibility>Greater Invisibility</spell>, <spell:Phantasmal Killer>Phantasmal Killer</spell>",
           "<strong>Level 9.</strong> <spell:Antilife Shell>Antilife Shell</spell>, <spell:Cloudkill>Cloudkill</spell>"
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.GRAVE_TOUCHED, {
         description: [
@@ -299,14 +296,14 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Dreaded Necrosis.</strong> Once per turn while Form of Dread is active, when an attack roll hits a creature and deals Necrotic damage, roll one extra damage die for that Necrotic damage.",
           "<strong>Undead Endurance.</strong> Dehydration, malnutrition, and suffocation cannot give you <link:Exhaustion>Exhaustion</link>. You do not need sleep and cannot be put to sleep by magic."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.NECROTIC_HUSK, {
         description: [
           "<strong>Necrotic Resilience.</strong> Gain <link:Resistance>Resistance</link> to Necrotic damage, improving to <link:Immunity>Immunity</link> while Form of Dread is active.",
           "<strong>Unholy Resuscitation.</strong> If you fall to 0 Hit Points without dying outright, you may unleash an eruption. Your chosen creatures in a 30-foot <link:Emanation>Emanation</link> make <link:Constitution>Constitution</link> saving throws against your spell save DC. Deal Necrotic damage equal to <strong>2d10</strong> plus your <link:Charisma>Charisma</link> modifier on a failure, or half on a success. Then set your Hit Points to twice your Warlock level and gain one <link:Exhaustion>Exhaustion</link> level. Recover this benefit after a Short or <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SUPERIOR_DREAD, {
         description: [
@@ -315,7 +312,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Ghostly Flight.</strong> Gain a Fly Speed equal to your Speed and the ability to hover. Treat creatures and objects as Difficult Terrain when passing through them; ending your turn inside one deals <strong>1d10</strong> Force damage to you.",
           "<strong>Profane Casting.</strong> Your Conjuration and Necromancy Warlock spells need no Verbal or Somatic components, and no Material components unless they are costly or consumed."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -330,40 +327,39 @@ export const warlockSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.VESTIGE_COMPANION, {
         description: [
-          "Your patron manifests as a Small Vestige Companion. Choose Celestial, Fiend, or Undead when you gain this feature and give it a supernatural appearance of your choice. It is Friendly to you and your allies, follows your commands, and vanishes if you die.",
-          "<strong>Combat.</strong> The vestige acts during your turn and moves and uses Reactions independently. It Dodges unless you use a Bonus Action to command an action. You may also forgo one attack during your Attack action to command Vestige's Strike. While you are <link:Incapacitated>Incapacitated</link>, it acts independently and can choose actions other than Dodge.",
-          "<strong>Disappearance.</strong> At 0 Hit Points, the vestige disappears. Perform a 1-minute ceremony to bring it back at full Hit Points in an unoccupied space within 5 feet. A Magic action can dismiss it to a pocket dimension; another Magic action returns it to an unoccupied space within 30 feet. It leaves worn and carried objects behind when disappearing at 0 Hit Points or entering the pocket dimension.",
-          "<strong>New Form.</strong> After a <link:long-rest>Long Rest</link>, you may summon the vestige in a new form within 5 feet, choosing its appearance and creature type again. If already present, it changes form instead.",
-          ...vestigeCompanionStatisticsDescription
+          "The vestige manifests, drawing strength from your pact. It uses the <link:Vestige Companion>Vestige Companion</link> stat block and is a Celestial, Fiend, or Undead (choose when you gain this feature). You determine what the vestige looks like, but regardless of its form, the vestige bears features indicating its supernatural origin. For example, you might decide your vestige is an oversize floating skull etched with sigils, a circle of glowing runes, or a constantly shifting abstract shape. The vestige is <link:Friendly>Friendly</link> to you and your allies and obeys your commands. It vanishes if you die.",
+          "<strong>The Vestige in Combat.</strong> In combat, the vestige acts during your turn. It can move and use its <link:Reaction>Reaction</link> on its own, but the only action it takes is the <link:Dodge>Dodge</link> action unless you take a <link:Bonus Action>Bonus Action</link> to command it to take an action in its stat block or some other action. You can also sacrifice one of your attacks when you take the <link:Attack>Attack</link> action to command the vestige to take the Vestige's Strike action. If you have the <link:Incapacitated>Incapacitated</link> condition, the vestige acts on its own and isn't limited to the <link:Dodge>Dodge</link> action.",
+          "<strong>Disappearance of the Vestige.</strong> When the vestige drops to 0 <link:Hit Points>Hit Points</link>, it disappears. You can spend 1 minute performing a magical ceremony to manifest the vestige again; it reappears with its maximum <link:Hit Points>Hit Points</link> in an unoccupied space within 5 feet of you. As a <link:Magic>Magic</link> action, you can temporarily dismiss the vestige to a pocket dimension. As a <link:Magic>Magic</link> action while it is temporarily dismissed, you can cause the vestige to reappear in an unoccupied space within 30 feet of you. Whenever the vestige drops to 0 <link:Hit Points>Hit Points</link> or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying.",
+          "Whenever you finish a <link:long-rest>Long Rest</link>, you can summon the vestige in a new form, which appears in an unoccupied space within 5 feet of you. You choose its appearance and whether it is a Celestial, Fiend, or Undead. If the vestige is already manifested from this feature, its form changes to the new one."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.VESTIGE_SPELLS, {
         description: [
-          "Choose the Life, Light, Trickery, or War Cleric domain. Its Domain Spells count as Warlock spells for you and become always prepared when your Warlock level reaches the corresponding Cleric level. The eligible spell lists are shown below.",
+          "The magic of your <link:Vestige Companion>Vestige Companion</link> ensures you always have certain spells ready. Select one of the following Cleric domains: Life, Light, Trickery, or War. The Domain Spells of your chosen domain are Warlock spells for you. When you reach a Warlock level equal to a Cleric level listed on the Domain Spells table for the domain you have chosen, you thereafter always have the listed spells prepared.",
           ...getVestigeDomainSpellDescriptions()
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.VESTIGE_POWER, {
         description: [
-          "The companion recovers Divine Power when you finish a Short or <link:long-rest>Long Rest</link> or use Magical Cunning. While within 30 feet of it, you share its damage Resistances."
+          "Your <link:Vestige Companion>Vestige Companion</link> now regains its use of Divine Power whenever you finish a <link:short-rest>Short</link> or <link:long-rest>Long Rest</link> or when you use your Magical Cunning feature. In addition, while within 30 feet of your <link:Vestige Companion>Vestige Companion</link>, you have <link:Resistance>Resistance</link> to the same damage types as the vestige."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.VESTIGE_RECOVERY, {
         description: [
-          "When your companion would fall to 0 Hit Points, you may use a Reaction and spend a Pact Magic slot to restore it to its Hit Point maximum instead. It then teleports to an unoccupied space you can see within 30 feet of itself. After using this feature, finish a <link:long-rest>Long Rest</link> before using it again."
+          "When your <link:Vestige Companion>Vestige Companion</link> would drop to 0 <link:Hit Points>Hit Points</link>, you can take a <link:Reaction>Reaction</link> and expend a Pact Magic spell slot to instead change its <link:Hit Points>Hit Points</link> to its <link:Hit Points>Hit Point</link> maximum. The vestige then teleports to an unoccupied space you can see within 30 feet of it. Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SEMBLANCE_OF_LIFE, {
         description: [
-          "As a Magic action while your companion is within 90 feet, transform it for 1 hour. A Celestial becomes the spirit from <spell:Summon Celestial>Summon Celestial</spell>, a Fiend uses <spell:Summon Fiend>Summon Fiend</spell>, and an Undead uses <spell:Summon Undead>Summon Undead</spell>. Use a spell level equal to half your Warlock level, rounded down, maximum 9.",
-          "Replace its statistics with that spirit form, but keep its personality, Divine Power Bonus Action, Hit Points, and Hit Dice. Give it <link:Temporary Hit Points>Temporary Hit Points</link> equal to the spirit form's Hit Points. These <link:Temporary Hit Points>Temporary Hit Points</link> vanish after 1 hour; losing all of them ends the transformation early.",
-          "Recover this feature after a <link:long-rest>Long Rest</link>."
+          "Your <link:Vestige Companion>Vestige Companion</link> continues to grow in strength, and with your assistance, it can briefly adopt a more powerful form. Depending on the vestige's type, you can take a <link:Magic>Magic</link> action while the vestige is within 90 feet of you to shape-shift it for 1 hour into one of the following forms: Celestial Spirit (Celestial vestige; see the <spell:Summon Celestial>Summon Celestial</spell> spell in the Player's Handbook), Fiendish Spirit (Fiend vestige; see the <spell:Summon Fiend>Summon Fiend</spell> spell in the Player's Handbook), or Undead Spirit (Undead vestige; see the <spell:Summon Undead>Summon Undead</spell> spell in the Player's Handbook). The vestige's game statistics are replaced by the spirit's stat block, and the spell's level is equal to half your Warlock level (round down; maximum level 9), but the vestige retains its personality, Divine Power <link:Bonus Action>Bonus Action</link>, <link:Hit Points>Hit Points</link>, and <link:Hit Point Dice>Hit Point Dice</link>.",
+          "The vestige gains a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to the <link:Hit Points>Hit Points</link> of the spirit form. These <link:Temporary Hit Points>Temporary Hit Points</link> vanish if any remain after 1 hour, and the transformation ends early if it has no <link:Temporary Hit Points>Temporary Hit Points</link> left.",
+          "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   }

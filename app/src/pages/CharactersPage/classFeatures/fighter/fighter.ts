@@ -1,4 +1,6 @@
 import { replaceClassFeatureState } from "../shared/resourceState";
+import { getFighterSecondWindUsesRemaining, getFighterSecondWindUsesTotal } from "./secondWind";
+export { getFighterSecondWindUsesRemaining, getFighterSecondWindUsesTotal } from "./secondWind";
 import { getProgressionRow } from "../../../../codex/progression";
 import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { hasCharacterClass, getClassLevel } from "../../multiclassState";
@@ -481,27 +483,6 @@ export function getFighterNonMagicActionMultiCount(
     normalizeFighterFeatureState(character.classFeatureState?.fighter, character)
       .actionSurgeExtraActionsRemainingThisTurn ?? 0
   );
-}
-
-export function getFighterSecondWindUsesTotal(
-  character: Pick<Character, "className" | "level">
-): number {
-  if (!hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND)) {
-    return 0;
-  }
-
-  return getFighterFeatureRow(getClassLevel(character, "Fighter"))?.secondWind ?? 0;
-}
-
-export function getFighterSecondWindUsesRemaining(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  const totalUses = getFighterSecondWindUsesTotal(character);
-  const usesExpended =
-    normalizeFighterFeatureState(character.classFeatureState?.fighter, character)
-      .secondWindUsesExpended ?? 0;
-
-  return Math.max(0, totalUses - usesExpended);
 }
 
 export function getFighterSecondWindHealingFormula(

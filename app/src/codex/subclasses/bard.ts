@@ -283,7 +283,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>Guiding Whispers.</strong> You learn <spell:Guidance>Guidance</spell> and can cast it with a range of 60 feet.",
           "<strong>Spiritual Focus.</strong> You receive a Gaming Set (playing cards) and proficiency with it. For Bard spells, you can use those cards, an Arcane Focus (crystal or orb), a Candle, or an Ink Pen as your Spellcasting Focus."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Guidance and playing-card proficiency are tracked. Add the playing cards through the normal inventory flow; spellcasting focus use is manual."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPIRITS_FROM_BEYOND, {
         description: [
@@ -303,7 +305,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>11 — Brute.</strong> Your chosen creatures in a 30-foot <link:Emanation>Emanation</link> from the target make <link:Strength>Strength</link> saving throws. Failure: Thunder damage equal to three Bardic Inspiration die rolls and <link:Prone>Prone</link>. Success: half damage, without the condition.",
           "<strong>12 — Priest.</strong> Restore Hit Points to the target equal to two Bardic Inspiration die rolls and end one condition you choose: <link:Blinded>Blinded</link>, <link:Charmed>Charmed</link>, <link:Deafened>Deafened</link>, <link:Paralyzed>Paralyzed</link>, <link:Poisoned>Poisoned</link>, or <link:Stunned>Stunned</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The full description is shown in the Bardic Inspiration drawer. Track random channeling, Controlled Channeling and its resource cost, unleashing spirits, healing, damage, and target effects manually. Previously saved spirits still expire on rest."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -314,7 +318,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
             "<strong>Spiritual Manifestation.</strong> <spell:Spirit Guardians>Spirit Guardians</spell> is always prepared for you. You can cast it once without a slot, recovering this free casting after a <link:long-rest>Long Rest</link>.",
             "When you cast Spirit Guardians, you can also give yourself and allies within its <link:Emanation>Emanation</link> Half Cover. Once you make this modification, you must finish a Short or <link:long-rest>Long Rest</link> before using it again."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "Free Spirit Guardians and Half Cover charges are tracked. Power from Beyond is described in damage and healing spell drawers; track its once-per-turn use, roll, and bonus manually. Apply Half Cover bonuses to yourself and allies manually."
         }
       ),
       createSubclassFeatureRow(
@@ -324,7 +330,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           description: [
             "When rolling for Spirits from Beyond, roll twice and choose either result. If the rolls match, you may choose any outcome from the list instead."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "The description is shown in the Bardic Inspiration drawer. Apply the extra roll and spirit choice manually."
         }
       )
     ]

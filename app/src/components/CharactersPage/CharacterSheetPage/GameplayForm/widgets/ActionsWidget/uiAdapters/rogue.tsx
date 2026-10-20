@@ -7,6 +7,21 @@ import {
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "../SneakAttackModal";
 import FeatureOptInToggle from "../../../../FeatureOptInToggle/FeatureOptInToggle";
 import {
+  createChargesCardUsage,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  getPhantomSoulTrinketsRemaining,
+  hasPhantomTokens
+} from "../../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
+import {
+  consumeRoguePhantomWailsUse,
+  getRoguePhantomWailsFormula,
+  getRoguePhantomWailsUsesRemaining,
+  getRoguePhantomWailsUsesTotal
+} from "../../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantom";
+import {
   getRogueSoulknifePsionicDiceRemaining,
   getRogueSoulknifeRendMindUsesRemaining,
   getRogueSoulknifeRendMindUsesTotal,
@@ -71,9 +86,46 @@ function renderSneakAttackFooter(context: ActionFormFooterContext) {
     const rendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
     const rendMindCanUse =
       rendMindUsesRemaining > 0 || getRogueSoulknifePsionicDiceRemaining(character) > 0;
+    const wailsUsesTotal = getRoguePhantomWailsUsesTotal(character);
+    const wailsUsesRemaining = getRoguePhantomWailsUsesRemaining(character);
+    const hasSneakAttackDamage =
+      getRogueSneakAttackFormula(character, sneakAttackActionSelection.effectKeys) !== "0";
+    const soulTrinkets = getPhantomSoulTrinketsRemaining(character);
+    const canUseWails = (wailsUsesRemaining > 0 || soulTrinkets > 0) && hasSneakAttackDamage;
 
     return (
       <div className={styles.footerActionStack}>
+        {wailsUsesTotal > 0 ? (
+          <FeatureOptInToggle
+            label="Wails from the Grave"
+            checked={sneakAttackActionSelection.useWailsFromTheGrave && canUseWails}
+            disabled={!canUseWails}
+            muted={!canUseWails}
+            title={
+              !hasSneakAttackDamage
+                ? "Wails from the Grave requires Sneak Attack damage."
+                : !canUseWails
+                  ? "No Wails from the Grave charges or Soul Trinkets remaining."
+                  : undefined
+            }
+            onCheckedChange={(checked) =>
+              setSneakAttackActionSelection({
+                ...sneakAttackActionSelection,
+                useWailsFromTheGrave: checked
+              })
+            }
+            usage={
+              hasPhantomTokens(character)
+                ? createChargesOrResourceCardUsage(
+                    wailsUsesRemaining,
+                    wailsUsesTotal,
+                    createFeatureActionCardCost({ amountText: "1", icon: "ghost" })
+                  )
+                : createChargesCardUsage(wailsUsesRemaining, wailsUsesTotal)
+            }
+            usageKey="wails-from-the-grave"
+          />
+        ) : null}
         {hasRendMind ? (
           <FeatureOptInToggle
             label="Rend Mind"
@@ -131,8 +183,12 @@ export function createRogueFormSubmissions(context: ActionsWidgetSubmissionConte
     closeActionDrawer,
     selectedFeatureAction
   } = context;
-  function submitSneakAttack({ effectKeys, useRendMind }: SneakAttackActionSelection) {
-    if (!selectedFeatureAction) {
+  function submitSneakAttack({
+    effectKeys,
+    useRendMind,
+    useWailsFromTheGrave
+  }: SneakAttackActionSelection) {
+    if (!selectedFeatureAction || character.classFeatureState?.rogue?.sneakAttackUsedThisTurn) {
       return;
     }
 
@@ -155,6 +211,13 @@ export function createRogueFormSubmissions(context: ActionsWidgetSubmissionConte
       (getRogueSoulknifeRendMindUsesRemaining(character) > 0 ||
         getRogueSoulknifePsionicDiceRemaining(character) > 0);
     const rendMindSaveDc = getRogueSoulknifeRendMindSavingThrowDc(character);
+    const wailsFormula =
+      useWailsFromTheGrave &&
+      sneakAttackFormula !== "0" &&
+      (getRoguePhantomWailsUsesRemaining(character) > 0 ||
+        getPhantomSoulTrinketsRemaining(character) > 0)
+        ? getRoguePhantomWailsFormula(character)
+        : null;
     const baseDescription = selectedFeatureAction.detail.endsWith(".")
       ? selectedFeatureAction.detail
       : `${selectedFeatureAction.detail}.`;
@@ -165,6 +228,9 @@ export function createRogueFormSubmissions(context: ActionsWidgetSubmissionConte
         : null,
       canUseRendMind && rendMindSaveDc !== null
         ? `Rend Mind: Wisdom save DC ${rendMindSaveDc} or Stunned for 1 minute.`
+        : null,
+      wailsFormula
+        ? "Wails from the Grave: Necrotic damage to a second creature within 30 feet of the first."
         : null
     ]
       .filter((entry): entry is string => Boolean(entry))
@@ -180,15 +246,26 @@ export function createRogueFormSubmissions(context: ActionsWidgetSubmissionConte
         return currentCharacter;
       }
 
-      return canUseRendMind
+      const nextCharacter = canUseRendMind
         ? consumeRogueSoulknifeRendMindUse(activatedCharacter)
         : activatedCharacter;
+      return wailsFormula ? consumeRoguePhantomWailsUse(nextCharacter) : nextCharacter;
     });
 
     openDiceRoller({
       title: "Sneak Attack",
       formula: sneakAttackFormula,
       formulaDisplay: sneakAttackFormulaDisplay,
+      entries: wailsFormula
+        ? [
+            {
+              label: "Sneak Attack",
+              formula: sneakAttackFormula,
+              formulaDisplay: sneakAttackFormulaDisplay
+            },
+            { label: "Wails from the Grave (Necrotic)", formula: wailsFormula }
+          ]
+        : undefined,
       description
     });
 

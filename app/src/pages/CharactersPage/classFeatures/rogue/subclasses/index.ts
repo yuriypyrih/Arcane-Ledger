@@ -21,6 +21,7 @@ import {
   scionOfTheThreeSubclassId
 } from "./rogueScionOfTheThree";
 import { getRogueSoulknifeDerivedFeatureState, soulknifeSubclassId } from "./rogueSoulknife";
+import { getRoguePhantomDerivedFeatureState, phantomSubclassId } from "./roguePhantom";
 import {
   getRogueThiefDerivedFeatureState,
   getRogueThiefSneakAttackEffectDefinitions,
@@ -28,6 +29,7 @@ import {
 } from "./rogueThief";
 
 const rogueSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [phantomSubclassId]: getRoguePhantomDerivedFeatureState,
   [arcaneTricksterSubclassId]: getRogueArcaneTricksterDerivedFeatureState,
   [assassinSubclassId]: getRogueAssassinDerivedFeatureState,
   [scionOfTheThreeSubclassId]: getRogueScionOfTheThreeDerivedFeatureState,

@@ -1,3 +1,13 @@
+import { useState } from "react";
+import type { Character } from "../../../../../../types";
+import {
+  getUmbralFormActivationDisabledReason,
+  getUmbralFormUsesRemaining,
+  hasUmbralForm,
+  umbralFormOptions,
+  umbralFormSorceryPointCost,
+  type UmbralFormOption
+} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowForm";
 import ActionButton from "../../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
@@ -9,6 +19,7 @@ import { runWithActionConfirmationToast } from "../../../actionConfirmationToast
 import styles from "./SorcererInnateSorceryAction.module.css";
 
 type SorcererInnateSorceryActionFooterProps = {
+  character: Character;
   confirmLabel: string;
   actionShape: ActionShapeType | null;
   actionShapeAvailable: boolean;
@@ -20,11 +31,12 @@ type SorcererInnateSorceryActionFooterProps = {
   crownOfSpellfireFallbackSorceryPointCost: number;
   crownOfSpellfireDisabledReason?: string | null;
   isCrownOfSpellfireSelected: boolean;
-  onConfirm: () => void;
+  onConfirm: (umbralForm?: UmbralFormOption) => void;
   onCrownOfSpellfireSelectedChange: (checked: boolean) => void;
 };
 
 export function SorcererInnateSorceryActionFooter({
+  character,
   confirmLabel,
   actionShape,
   actionShapeAvailable,
@@ -39,6 +51,11 @@ export function SorcererInnateSorceryActionFooter({
   onConfirm,
   onCrownOfSpellfireSelectedChange
 }: SorcererInnateSorceryActionFooterProps) {
+  const [umbralForm, setUmbralForm] = useState<UmbralFormOption>();
+  const umbralFormUnlocked = hasUmbralForm(character);
+  const umbralFormDisabledReason = umbralFormUnlocked
+    ? getUmbralFormActivationDisabledReason(character)
+    : null;
   return (
     <div className={styles.footerStack}>
       {crownOfSpellfireUnlocked ? (
@@ -58,10 +75,31 @@ export function SorcererInnateSorceryActionFooter({
           usageKey="crown-of-spellfire"
         />
       ) : null}
+      {umbralFormUnlocked
+        ? umbralFormOptions.map((option) => (
+            <FeatureOptInToggle
+              key={option.key}
+              label={option.label}
+              checked={umbralForm === option.key}
+              onCheckedChange={(checked) => setUmbralForm(checked ? option.key : undefined)}
+              title={umbralFormDisabledReason ?? undefined}
+              usage={createChargesOrResourceCardUsage(
+                getUmbralFormUsesRemaining(character),
+                1,
+                createFeatureActionCardCost({
+                  amountText: String(umbralFormSorceryPointCost),
+                  icon: "sparkles"
+                })
+              )}
+              usageKey={`umbral-form-${option.key}`}
+            />
+          ))
+        : null}
       <ActionButton
         className={styles.confirmButton}
-        onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
-        disabled={disabled}
+        onClick={() => runWithActionConfirmationToast(actionShape, () => onConfirm(umbralForm))}
+        disabled={disabled || Boolean(umbralForm && umbralFormDisabledReason)}
+        title={umbralForm ? (umbralFormDisabledReason ?? undefined) : undefined}
         trailingBadge={
           actionShape ? (
             <ActionShape

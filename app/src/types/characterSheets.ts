@@ -193,6 +193,7 @@ export type PortableEncounterCompanionSummary = Pick<
   | "deathSaves"
   | "inheritedCreatureEntry"
   | "inheritedCreatureEntryModified"
+  | "additionalStatBlocks"
 >;
 
 export type PortableCharacterSheetSummary = {

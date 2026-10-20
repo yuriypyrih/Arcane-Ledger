@@ -8,6 +8,7 @@ import {
   setWarlockMysticArcanumSpellIdForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { ClassFeatureChoiceModelArgs } from "./shared";
+import { getWarlockVestigeSpellDomain } from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockVestigeSpells";
 
 export function createWarlockFeatureChoiceModel({
   character,
@@ -80,6 +81,7 @@ export function createWarlockFeatureChoiceModel({
   }
 
   return {
+    isWarlockVestigeSpellsInputRequired: () => !getWarlockVestigeSpellDomain(character),
     getAvailableWarlockMysticArcanumSpells,
     getWarlockFiendishResilienceDamageTypeSelection,
     getWarlockMysticArcanumSelection,

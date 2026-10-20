@@ -9,11 +9,13 @@ import type {
   FeatureActionResource,
   FeatureActionTone
 } from "./types";
+import type { ResourceManagementTarget } from "../resourceManagement";
 
 type FeatureActionCardCostOptions = {
   amountText?: string;
   resourceLabel?: string;
   icon?: FeatureActionIcon;
+  management?: ResourceManagementTarget;
 };
 
 function normalizeAmountText(value?: string) {
@@ -28,22 +30,26 @@ function normalizeResourceLabel(value?: string) {
 export function createFeatureActionCardCost({
   amountText,
   resourceLabel = "",
-  icon
+  icon,
+  management
 }: FeatureActionCardCostOptions): FeatureActionCardUsageCost {
   return {
     amountText: normalizeAmountText(amountText),
     resourceLabel: normalizeResourceLabel(resourceLabel),
-    icon
+    icon,
+    management
   };
 }
 
 export function createFeatureActionCardUsageCharges(
   current: number,
-  total: number
+  total: number,
+  management?: ResourceManagementTarget
 ): FeatureActionCardUsageCharges {
   return {
     current: Math.max(0, current),
-    total: Math.max(0, total)
+    total: Math.max(0, total),
+    management
   };
 }
 
@@ -74,12 +80,14 @@ export function createFeatureActionHeaderTagPool(
 export function createChargesHeaderTag(
   current: number,
   total: number,
-  supplementaryText?: string
+  supplementaryText?: string,
+  management?: ResourceManagementTarget
 ): FeatureActionHeaderTag {
   const normalizedSupplementaryText = supplementaryText?.trim();
 
   return {
     kind: "charges",
+    management,
     charges: createFeatureActionCardUsageCharges(current, total),
     supplementaryText: normalizedSupplementaryText ? normalizedSupplementaryText : undefined
   };
@@ -92,6 +100,7 @@ export function createUsageHeaderTag(
 ): FeatureActionHeaderTag {
   return {
     kind: "usage",
+    management: cost.management,
     cost,
     pool,
     isFallback
@@ -122,10 +131,11 @@ export function createChargesAndUsageHeaderTags(
   poolTotal: number,
   poolOptions: FeatureActionHeaderTagPoolOptions = {},
   supplementaryText?: string,
-  usageOptions: FeatureActionUsageHeaderTagOptions = {}
+  usageOptions: FeatureActionUsageHeaderTagOptions = {},
+  chargesManagement?: ResourceManagementTarget
 ): FeatureActionHeaderTag[] {
   return [
-    createChargesHeaderTag(chargesCurrent, chargesTotal, supplementaryText),
+    createChargesHeaderTag(chargesCurrent, chargesTotal, supplementaryText, chargesManagement),
     createUsageHeaderTag(
       cost,
       createFeatureActionHeaderTagPool(poolCurrent, poolTotal, poolOptions),
@@ -144,41 +154,53 @@ export function createTextHeaderTag(
   label: string,
   value: string,
   icon?: FeatureActionIcon,
-  tone?: FeatureActionTone
+  tone?: FeatureActionTone,
+  management?: ResourceManagementTarget
 ): FeatureActionHeaderTag {
   return {
     kind: "text",
     label,
     value,
     icon,
-    tone
+    tone,
+    management
   };
 }
 
 export function createHeaderTagsFromResources(
   resources: FeatureActionResource[]
 ): FeatureActionHeaderTag[] {
-  return resources.flatMap((resource): FeatureActionHeaderTag[] => {
+  return resources.map((resource): FeatureActionHeaderTag => {
     if (resource.kind === "text") {
-      return [createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone)];
+      return createTextHeaderTag(
+        resource.label,
+        resource.value,
+        resource.icon,
+        resource.tone,
+        resource.management
+      );
     }
 
     if (!resource.icon) {
-      return [createChargesHeaderTag(resource.current, resource.total, resource.supplementary)];
+      return createChargesHeaderTag(
+        resource.current,
+        resource.total,
+        resource.supplementary,
+        resource.management
+      );
     }
 
-    return [
-      createUsageHeaderTag(
-        createFeatureActionCardCost({
-          amountText: resource.cost ? String(resource.cost) : undefined,
-          resourceLabel: resource.label,
-          icon: resource.icon
-        }),
-        createFeatureActionHeaderTagPool(resource.current, resource.total, {
-          icon: resource.icon
-        })
-      )
-    ];
+    return createUsageHeaderTag(
+      createFeatureActionCardCost({
+        amountText: resource.cost ? String(resource.cost) : undefined,
+        resourceLabel: resource.label,
+        icon: resource.icon,
+        management: resource.management
+      }),
+      createFeatureActionHeaderTagPool(resource.current, resource.total, {
+        icon: resource.icon
+      })
+    );
   });
 }
 
@@ -215,21 +237,26 @@ export function createNamedResourceOrResourceCardUsage(
   };
 }
 
-export function createChargesCardUsage(current: number, total: number): FeatureActionCardUsage {
+export function createChargesCardUsage(
+  current: number,
+  total: number,
+  management?: ResourceManagementTarget
+): FeatureActionCardUsage {
   return {
     mode: "charges",
-    charges: createFeatureActionCardUsageCharges(current, total)
+    charges: createFeatureActionCardUsageCharges(current, total, management)
   };
 }
 
 export function createChargesAndResourceCardUsage(
   current: number,
   total: number,
-  cost: FeatureActionCardUsageCost
+  cost: FeatureActionCardUsageCost,
+  management?: ResourceManagementTarget
 ): FeatureActionCardUsage {
   return {
     mode: "charges-and-resource",
-    charges: createFeatureActionCardUsageCharges(current, total),
+    charges: createFeatureActionCardUsageCharges(current, total, management),
     cost
   };
 }
@@ -237,11 +264,12 @@ export function createChargesAndResourceCardUsage(
 export function createChargesOrResourceCardUsage(
   current: number,
   total: number,
-  cost: FeatureActionCardUsageCost
+  cost: FeatureActionCardUsageCost,
+  management?: ResourceManagementTarget
 ): FeatureActionCardUsage {
   return {
     mode: "charges-or-resource",
-    charges: createFeatureActionCardUsageCharges(current, total),
+    charges: createFeatureActionCardUsageCharges(current, total, management),
     cost
   };
 }

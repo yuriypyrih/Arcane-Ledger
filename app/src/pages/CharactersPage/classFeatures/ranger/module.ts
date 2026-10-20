@@ -15,6 +15,10 @@ import {
 } from "./ranger";
 import { getRangerClassFeatureDerivedState } from "./contributions";
 import type { ClassFeatureModule } from "../types";
+import {
+  activateRangerWrathOfTheWild,
+  wrathOfTheWildActionKey
+} from "./subclasses/rangerHollowWarden";
 
 export const rangerFeatureModule: ClassFeatureModule<"ranger"> = {
   className: "Ranger",
@@ -22,6 +26,10 @@ export const rangerFeatureModule: ClassFeatureModule<"ranger"> = {
   normalizeState: normalizeRangerFeatureState,
   collectDerived: getRangerClassFeatureDerivedState,
   handleAction(character, actionKey) {
+    if (actionKey === wrathOfTheWildActionKey) {
+      return activateRangerWrathOfTheWild(character);
+    }
+
     if (actionKey === tirelessActionKey) {
       return consumeRangerTirelessUse(character);
     }

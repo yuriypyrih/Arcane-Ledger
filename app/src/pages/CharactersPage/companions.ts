@@ -28,6 +28,7 @@ import {
   normalizeTemporaryHitPoints
 } from "./shared";
 import { CHARACTER_COMPANION_LIMIT } from "./characterLimits";
+import { normalizeCompanionStatBlocks } from "./companionStatBlocks";
 
 export { CHARACTER_COMPANION_LIMIT };
 
@@ -73,7 +74,20 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     return null;
   }
 
-  const inheritedCreatureEntry = normalizeMonsterRecord(value.inheritedCreatureEntry);
+  let inheritedCreatureEntry = normalizeMonsterRecord(value.inheritedCreatureEntry);
+  let inheritedCreatureEntryModified = value.inheritedCreatureEntryModified === true;
+  const additionalStatBlocks = normalizeCompanionStatBlocks(value.additionalStatBlocks);
+  const form = isObjectRecord(value.semblanceOfLife) ? value.semblanceOfLife : null;
+  const originalStatBlock = normalizeMonsterRecord(form?.originalStatBlock);
+  const traitId = normalizeText(form?.traitId);
+  // Upgrade saved transformations from the earlier replacement/snapshot representation.
+  if (originalStatBlock && traitId) {
+    if (inheritedCreatureEntry && !additionalStatBlocks.some((entry) => entry.id === traitId)) {
+      additionalStatBlocks.push({ id: traitId, monster: inheritedCreatureEntry, modified: true });
+    }
+    inheritedCreatureEntry = originalStatBlock;
+    inheritedCreatureEntryModified = form?.originalStatBlockModified === true;
+  }
   const primalBeastKind = getNormalizedPrimalBeastKind(value.primalBeastKind);
   const role = value.role === beastMasterCompanionRole ? beastMasterCompanionRole : undefined;
   const duration = normalizeCompanionDuration(value.duration);
@@ -106,7 +120,9 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     ...(role ? { role } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
-    ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
+    ...(additionalStatBlocks.length ? { additionalStatBlocks } : {}),
+    ...(traitId ? { semblanceOfLife: { traitId } } : {}),
+    ...(inheritedCreatureEntry && inheritedCreatureEntryModified
       ? { inheritedCreatureEntryModified: true }
       : {})
   };

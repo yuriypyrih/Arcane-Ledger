@@ -1,4 +1,8 @@
 import {
+  endPathToTheGraveKey,
+  endPathToTheGrave
+} from "./subclasses/clericGraveDomain";
+import {
   activateClericBlessingOfTheTrickster,
   activateClericCoronaOfLight,
   activateClericDivineForeknowledge,
@@ -32,6 +36,7 @@ export const clericFeatureModule: ClassFeatureModule<"cleric"> = {
     return getClericClassFeatureDerivedState(character);
   },
   handleAction(character, actionKey) {
+    if (actionKey === endPathToTheGraveKey) return endPathToTheGrave(character);
     if (actionKey === blessingOfTheTricksterActionKey) {
       return activateClericBlessingOfTheTrickster(character);
     }

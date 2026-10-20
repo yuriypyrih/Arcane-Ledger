@@ -1,5 +1,10 @@
+import type { ReactNode } from "react";
+import { useDrawerResourceManagement } from "../../../drawerResourceManagementContext";
 import clsx from "clsx";
-import type { FeatureActionFact, FeatureActionHeaderTag } from "../../../../../../pages/CharactersPage/classFeatures";
+import type {
+  FeatureActionFact,
+  FeatureActionHeaderTag
+} from "../../../../../../pages/CharactersPage/classFeatures";
 import { renderFeatureUsageIcon } from "../../../featureUsageIcons";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./GameplayActionDrawer.module.css";
@@ -8,6 +13,31 @@ type FeatureActionHeaderTagsProps = {
   tags: FeatureActionHeaderTag[];
   tagKeyPrefix: string;
 };
+
+function HeaderResourcePill({
+  tag,
+  children
+}: {
+  tag: FeatureActionHeaderTag;
+  children: ReactNode;
+}) {
+  const manage = useDrawerResourceManagement();
+  const target = tag.management;
+  return target && manage ? (
+    <button
+      type="button"
+      className={clsx(styles.resourceBadge, styles.resourceBadgeButton)}
+      aria-haspopup="dialog"
+      aria-label={`Manage ${target.label}`}
+      title={`Manage ${target.label}`}
+      onClick={(event) => manage(target, event.currentTarget)}
+    >
+      {children}
+    </button>
+  ) : (
+    <span className={styles.resourceBadge}>{children}</span>
+  );
+}
 
 function getToneClassName(tone: FeatureActionFact["tone"]) {
   if (tone === "danger") {
@@ -30,7 +60,7 @@ function FeatureActionHeaderTags({ tags, tagKeyPrefix }: FeatureActionHeaderTags
       const current = Math.min(total, Math.max(0, Math.floor(tag.charges.current)));
 
       return (
-        <span key={key} className={styles.resourceBadge}>
+        <HeaderResourcePill key={key} tag={tag}>
           <span>Charges</span>
           <span className={sheetStyles.shortRestDots}>
             {Array.from({ length: total }, (_, dotIndex) => (
@@ -46,7 +76,7 @@ function FeatureActionHeaderTags({ tags, tagKeyPrefix }: FeatureActionHeaderTags
           {tag.supplementaryText ? (
             <span className={styles.resourceBadgeSupplementary}>{tag.supplementaryText}</span>
           ) : null}
-        </span>
+        </HeaderResourcePill>
       );
     }
 
@@ -54,7 +84,7 @@ function FeatureActionHeaderTags({ tags, tagKeyPrefix }: FeatureActionHeaderTags
       const usageParts = ["Use", tag.cost.amountText, tag.cost.resourceLabel].filter(Boolean);
 
       return (
-        <span key={key} className={styles.resourceBadge}>
+        <HeaderResourcePill key={key} tag={tag}>
           <span className={styles.resourceBadgeValue}>
             {usageParts.map((part, partIndex) => (
               <span key={`${key}-usage-${partIndex}`}>{part}</span>
@@ -72,23 +102,21 @@ function FeatureActionHeaderTags({ tags, tagKeyPrefix }: FeatureActionHeaderTags
             })}
             {tag.isFallback ? <span>instead</span> : null}
           </span>
-        </span>
+        </HeaderResourcePill>
       );
     }
 
     return (
-      <span key={key} className={styles.resourceBadge}>
+      <HeaderResourcePill key={key} tag={tag}>
         {tag.label ? <span className={styles.resourceBadgeLabel}>{tag.label}</span> : null}
-        <span
-          className={clsx(styles.resourceBadgeValue, getToneClassName(tag.tone))}
-        >
+        <span className={clsx(styles.resourceBadgeValue, getToneClassName(tag.tone))}>
           <span>{tag.value}</span>
           {renderFeatureUsageIcon(tag.icon, {
             iconClassName: styles.resourceBadgeIcon,
             imageIconClassName: styles.resourceAssetIcon
           })}
         </span>
-      </span>
+      </HeaderResourcePill>
     );
   });
 }

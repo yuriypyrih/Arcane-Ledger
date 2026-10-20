@@ -57,6 +57,10 @@ import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 import { TraitNotesBody, TraitNotesFooterControls } from "./TraitNotesSection";
 import { useTraitNotesEditor } from "./useTraitNotesEditor";
+import {
+  getWrathOfTheWildSpellFormulas,
+  wrathOfTheWildStatusSourceId
+} from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHollowWarden";
 
 type StatusEntryDrawerProps = {
   character: Character;
@@ -135,7 +139,10 @@ function StatusEntryDrawer({
   const shouldShowSpellSlotFact = isSpellStatusEntry && entry.group === STATUS_ENTRY_GROUP.EFFECTS;
   const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
   const optionLabel = isSpellStatusEntry ? getStatusEntryOptionLabel(entry) : null;
-  const spellFormulas = entry.spellFormulas ?? [];
+  const spellFormulas =
+    entry.sourceId === wrathOfTheWildStatusSourceId
+      ? getWrathOfTheWildSpellFormulas(character)
+      : (entry.spellFormulas ?? []);
   const shouldUseTwoFactLayout =
     !shouldShowSpellSlotFact && !targetLabel && !optionLabel && !isExhaustionEntry;
   const hasBaseDescription = descriptionEntries.length > 0;

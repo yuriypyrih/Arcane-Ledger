@@ -28,6 +28,8 @@ import {
 } from "../../../../pages/CharactersPage/feats/runtime";
 import { expendHeroicInspirationForCharacter } from "../../../../pages/CharactersPage/heroicInspiration";
 import { setRoundTrackerCombatState } from "../../../../pages/CharactersPage/combat";
+import { applyPhantomDrawOfDeathOnInitiative } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomDeathsFriend";
+import { applyEverReadyShotOnInitiative } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterEverReadyShot";
 import type { Character } from "../../../../types";
 import { formatRollResultTotal } from "../../../../utils/dice";
 
@@ -98,6 +100,8 @@ export function applyInitiativeRollCharacterEffects(
   nextCharacter = restoreBoonOfFateImproveFateForCharacter(nextCharacter);
   nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(nextCharacter);
   nextCharacter = applyArchdruidOnInitiativeForCharacter(nextCharacter);
+  nextCharacter = applyPhantomDrawOfDeathOnInitiative(nextCharacter);
+  nextCharacter = applyEverReadyShotOnInitiative(nextCharacter);
 
   if (options.useUncannyMetabolismOnInitiative) {
     nextCharacter = applyMonkUncannyMetabolismOnInitiativeForCharacter(nextCharacter);

@@ -1,3 +1,4 @@
+import { getShadowBeastsSpellEntry } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererShadowBeasts";
 export {
   createCommonActionDefinition,
   getFeatureActionDrawerPrimaryLabel
@@ -8,6 +9,7 @@ import {
   getClassLevel
 } from "../../../../../../pages/CharactersPage/multiclassState";
 import { getArtificerFacilitatedRevivalSpellEntry } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import { getPhantomVoiceOfDeathSpellEntry } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
 import type { Character, AbilityKey } from "../../../../../../types";
 import { type SpellEntry, type WeaponEntry } from "../../../../../../codex/entries";
 import { ACTION_TYPE, CLASS_FEATURE, SPELL_COMPONENT } from "../../../../../../codex/entries/enums";
@@ -190,6 +192,10 @@ export function getFixedSpellEntryForExecute(
 
   const transformedSpell = getSpellEntryForCharacter(character, spell);
 
+  if (execute.effectKind === "beasts-of-ill-omen") {
+    return getShadowBeastsSpellEntry(character, transformedSpell);
+  }
+
   if (execute.effectKind === "contact-patron") {
     return createContactPatronSpellEntry(character, transformedSpell);
   }
@@ -200,6 +206,10 @@ export function getFixedSpellEntryForExecute(
 
   if (execute.effectKind === "facilitated-revival") {
     return getArtificerFacilitatedRevivalSpellEntry(character, transformedSpell);
+  }
+
+  if (execute.effectKind === "voice-of-death") {
+    return getPhantomVoiceOfDeathSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "conjured-cauldron") {

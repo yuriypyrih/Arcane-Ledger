@@ -1,3 +1,4 @@
+import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import clsx from "clsx";
 import { Fragment, type CSSProperties } from "react";
 import { ArrowRightFromLine, ChessRook, GripVertical, Shield, Undo2 } from "lucide-react";
@@ -155,10 +156,9 @@ function getPartyMemberViewModel(
 function getCompanionViewModel(
   companion: PortableEncounterCompanionSummary
 ): ParticipantCardViewModel {
+  const topStatBlock = getCompanionStatBlocks(companion)[0]?.monster;
   return {
-    armorClass: companion.inheritedCreatureEntry
-      ? getMonsterArmorClass(companion.inheritedCreatureEntry)
-      : null,
+    armorClass: topStatBlock ? getMonsterArmorClass(topStatBlock) : null,
     currentHitPoints: normalizeDisplayNumber(companion.currentHitPoints),
     deathSaves: normalizeDeathSaveTrack(companion.deathSaves),
     isMakingDeathSaves:

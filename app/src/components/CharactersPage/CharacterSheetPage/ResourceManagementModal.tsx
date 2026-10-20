@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import type { SpellDescriptionEntry } from "../../../codex/entries";
 import ActionButton from "../../ActionButton";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
@@ -60,6 +60,8 @@ type ResourceManagementModalProps = {
   titleAccessory?: ReactNode;
   columnCount?: number;
   children?: ReactNode;
+  nestedInDrawer?: boolean;
+  panelRef?: Ref<HTMLElement>;
 };
 
 function ResourceManagementModal({
@@ -73,7 +75,9 @@ function ResourceManagementModal({
   description = RESOURCE_MANAGEMENT_DESCRIPTION,
   additionalDescription = [],
   titleAccessory,
-  children
+  children,
+  nestedInDrawer = false,
+  panelRef
 }: ResourceManagementModalProps) {
   function handleActionClick(action: ResourceManagementModalAction) {
     action.onClick();
@@ -89,7 +93,12 @@ function ResourceManagementModal({
   } as CSSProperties;
 
   return (
-    <SheetModal titleId={titleId} onClose={onClose}>
+    <SheetModal
+      titleId={titleId}
+      onClose={onClose}
+      backdropClassName={nestedInDrawer ? styles.drawerResourceBackdrop : undefined}
+      panelRef={panelRef}
+    >
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayEyebrow>{eyebrow}</OverlayEyebrow>

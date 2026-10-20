@@ -1,4 +1,13 @@
+import {
+  consumeCurvingShot,
+  getCurvingShotWeaponOptionState
+} from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterCurvingShot";
+import { consumeArcaneShot } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneShot";
 import { applyActionResourceTransition } from "./actionResourceTransition";
+import {
+  formOfDreadActionKey,
+  getFormOfDreadTemporaryHitPointsFormula
+} from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockUndeadPatron";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 
@@ -191,6 +200,7 @@ import {
 import type { ActionsWidgetExecutionContext } from "./types";
 
 import { useActionsWidgetSubmissions } from "./useActionsWidgetSubmissions";
+import { createWarlockVestigeCompanionDefinition, vestigeCompanionActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockVestigePatron";
 
 export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext) {
   const {
@@ -202,6 +212,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setSelectedActionOptionKeys,
     resetActionDrawerState,
     resetActionSelectionState,
+    setSelectedVestigeCompanionDefinitions,
     setSelectedWeaponDetailReference,
     arcaneWardSpellSlotOptions,
     bardicInspirationFallbackSpellSlotOptions,
@@ -247,6 +258,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
     isPolarStrikesSelected,
+    isCurvingShotSelected,
+    selectedWeaponCurvingShotState,
+    setIsCurvingShotSelected,
+    isArcaneShotSelected,
+    selectedWeaponArcaneShotState,
+    setIsArcaneShotSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
     isRageOfTheGodsSelected,
@@ -338,6 +355,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedWildShapeMonsterSlug,
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
+    setIsPullOfDeathSelected,
     setIsCommonActionsOpen,
     setIsCustomActionsOpen,
     setIsDiceRollerSettingsOpen,
@@ -429,6 +447,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
   useEffect(() => {
     resetActionSelectionState();
+    if (selectedActionKey === vestigeCompanionActionKey) {
+      setSelectedVestigeCompanionDefinitions([createWarlockVestigeCompanionDefinition(character)]);
+    }
     setSneakAttackActionSelection(initialSneakAttackActionSelection);
     setSelectedSpellfireBurstTarget("self");
     setSelectedArcaneRecoverySelection({});
@@ -719,6 +740,18 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedActionSpellFrozenHauntFallbackSlotLevelIsValid,
     selectedActionSpellFrozenHauntOptionState
   ]);
+
+  useEffect(() => {
+    if (!selectedWeaponCurvingShotState || selectedWeaponCurvingShotState.disabled) {
+      setIsCurvingShotSelected(false);
+    }
+  }, [selectedWeaponCurvingShotState]);
+
+  useEffect(() => {
+    if (!selectedWeaponArcaneShotState || selectedWeaponArcaneShotState.disabled) {
+      setIsArcaneShotSelected(false);
+    }
+  }, [selectedWeaponArcaneShotState]);
 
   useEffect(() => {
     if (selectedWeaponPsionicStrikeAvailable) {
@@ -1113,7 +1146,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
   function executeFeatureActivate(
     action: FeatureActionCard,
-    economyTypeOverride: EconomyType | null = null
+    economyTypeOverride: EconomyType | null = null,
+    innateSorceryOptions?: Parameters<typeof activateInnateSorceryForCharacter>[1]
   ) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
@@ -1205,7 +1239,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     if (action.key === innateSorceryActionKey) {
       onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateInnateSorceryForCharacter(preparedCharacter, {
-          useCrownOfSpellfire: isCrownOfSpellfireSelected
+          useCrownOfSpellfire: isCrownOfSpellfireSelected,
+          ...innateSorceryOptions
         })));
       closeActionDrawer();
       return;
@@ -1564,6 +1599,24 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       return;
     }
 
+    if (action.key === formOfDreadActionKey) {
+      const formula = getFormOfDreadTemporaryHitPointsFormula(character);
+      activateFeatureAction(action);
+      openDiceRoller({
+        title: action.name,
+        formula,
+        formulaDisplay: formula,
+        description: "Roll Temporary Hit Points for Form of Dread.",
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, action.name)
+          );
+        }
+      });
+      closeActionDrawer();
+      return;
+    }
+
     if (effectKind === "tireless") {
       const temporaryHitPointsFormula = getRangerTirelessTemporaryHitPointsFormula(character);
       const temporaryHitPointsFormulaDisplay =
@@ -1665,7 +1718,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
   }
 
   function handleWeaponAttackRoll(action: WeaponAction, pathState?: WeaponAttackPathState) {
-    const economyTypeOverride = pathState?.economyType;
+    const useCurvingShot = isCurvingShotSelected && selectedWeaponCurvingShotState !== null;
+    if (useCurvingShot && selectedWeaponCurvingShotState.disabled) return;
+    const economyTypeOverride = useCurvingShot ? ECONOMY_TYPE.BONUS_ACTION : pathState?.economyType;
     const sacredWeaponIsActive = selectedWeaponSacredWeaponState?.active === true;
     const vowOfEnmityIsActive = selectedWeaponVowOfEnmityState?.active === true;
     const useSacredWeapon =
@@ -1705,6 +1760,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       (character.classFeatureState?.ranger?.extraAttacksRemainingThisTurn ?? 0) <= 0;
 
     onPersistCharacter((currentCharacter) => {
+      if (
+        useCurvingShot &&
+        getCurvingShotWeaponOptionState(currentCharacter, action)?.disabled !== false
+      ) {
+        return currentCharacter;
+      }
       const { preparedCharacter, preparedAction, roundTrackerResource } =
         resolvePreparedWeaponAction(currentCharacter, action, economyTypeOverride);
       let effectivePreparedAction = preparedAction;
@@ -1777,6 +1838,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         nextCharacter = markRangerHunterHordeBreakerUsedForCharacter(nextCharacter);
       }
 
+      if (useCurvingShot) return consumeCurvingShot(nextCharacter, preparedAction);
+
       return roundTrackerResource
         ? consumeWeaponAttackActionForCharacter(nextCharacter, {
             ...preparedAction,
@@ -1787,6 +1850,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         : nextCharacter;
     });
 
+    setIsCurvingShotSelected(false);
     setIsSacredWeaponSelected(false);
     setIsVowOfEnmitySelected(false);
     setIsRecklessAttackSelected(false);
@@ -1856,6 +1920,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isStunningStrikeSelected &&
       selectedWeaponStunningStrikeState !== null &&
       !selectedWeaponStunningStrikeToggleDisabled;
+    const useArcaneShot =
+      isArcaneShotSelected &&
+      selectedWeaponArcaneShotState !== null &&
+      !selectedWeaponArcaneShotState.disabled;
     const usePsionicStrike =
       action.attackKind === "weapon" &&
       isPsionicStrikeSelected &&
@@ -1971,6 +2039,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       useGoliathAncestryStrike ||
       useStunningStrike ||
       useEmpoweredStrikes ||
+      useArcaneShot ||
       usePsionicStrike ||
       useEldritchSmite ||
       useLifedrinker ||
@@ -1980,6 +2049,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     setIsDreadfulStrikeSelected(false);
     setIsColossusSlayerSelected(false);
+    setIsPullOfDeathSelected(false);
     setIsPolarStrikesSelected(false);
     setIsGoliathAncestryStrikeSelected(false);
     setIsStunningStrikeSelected(false);
@@ -1987,6 +2057,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsVampiricBiteSelected(false);
+    setIsArcaneShotSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsEldritchSmiteSelected(false);
     setIsLifedrinkerSelected(false);
@@ -2002,6 +2073,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
               : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
           nextCharacter
         );
+
+        if (useArcaneShot) {
+          nextCharacter = consumeArcaneShot(nextCharacter, action);
+        }
 
         if (usePsionicStrike) {
           nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);

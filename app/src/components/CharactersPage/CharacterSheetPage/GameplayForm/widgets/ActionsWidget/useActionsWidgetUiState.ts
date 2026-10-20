@@ -52,9 +52,12 @@ function createInitialState(
     isClairvoyantCombatantSelected: false,
     isEldritchSmiteSelected: false,
     isLifedrinkerSelected: false,
+    isCurvingShotSelected: false,
+    isArcaneShotSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
+    isPullOfDeathSelected: false,
     isPolarStrikesSelected: false,
     isGoliathAncestryStrikeSelected: false,
     isHuntersMarkTargetSelected: false,
@@ -99,9 +102,12 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     isClairvoyantCombatantSelected: false,
     isEldritchSmiteSelected: false,
     isLifedrinkerSelected: false,
+    isCurvingShotSelected: false,
+    isArcaneShotSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
+    isPullOfDeathSelected: false,
     isPolarStrikesSelected: false,
     isGoliathAncestryStrikeSelected: false,
     isHuntersMarkTargetSelected: false,
@@ -135,8 +141,11 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isClairvoyantCombatantSelected: false,
     isEldritchSmiteSelected: false,
     isLifedrinkerSelected: false,
+    isCurvingShotSelected: false,
+    isArcaneShotSelected: false,
     isPsionicStrikeSelected: false,
     isColossusSlayerSelected: false,
+    isPullOfDeathSelected: false,
     isGoliathAncestryStrikeSelected: false,
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
@@ -252,6 +261,10 @@ export function useActionsWidgetUiState(
         dispatch,
         "selectedReanimatedCompanionDefinitions"
       ),
+      setSelectedVestigeCompanionDefinitions: createFieldSetter(
+        dispatch,
+        "selectedVestigeCompanionDefinitions"
+      ),
       setSelectedArtificerSteelDefenderSpellSlotLevel: createFieldSetter(
         dispatch,
         "selectedArtificerSteelDefenderSpellSlotLevel"
@@ -292,6 +305,7 @@ export function useActionsWidgetUiState(
         "selectedBlessingOfTheTricksterTarget"
       ),
       setSelectedHandOfHealingTarget: createFieldSetter(dispatch, "selectedHandOfHealingTarget"),
+      setSelectedKeeperOfSoulsTarget: createFieldSetter(dispatch, "selectedKeeperOfSoulsTarget"),
       setSelectedThirdEyeOptionKey: createFieldSetter(dispatch, "selectedThirdEyeOptionKey"),
       setSelectedStarryFormConstellation: createFieldSetter(
         dispatch,
@@ -352,9 +366,12 @@ export function useActionsWidgetUiState(
       ),
       setIsEldritchSmiteSelected: createFieldSetter(dispatch, "isEldritchSmiteSelected"),
       setIsLifedrinkerSelected: createFieldSetter(dispatch, "isLifedrinkerSelected"),
+      setIsCurvingShotSelected: createFieldSetter(dispatch, "isCurvingShotSelected"),
+      setIsArcaneShotSelected: createFieldSetter(dispatch, "isArcaneShotSelected"),
       setIsPsionicStrikeSelected: createFieldSetter(dispatch, "isPsionicStrikeSelected"),
       setIsDreadfulStrikeSelected: createFieldSetter(dispatch, "isDreadfulStrikeSelected"),
       setIsColossusSlayerSelected: createFieldSetter(dispatch, "isColossusSlayerSelected"),
+      setIsPullOfDeathSelected: createFieldSetter(dispatch, "isPullOfDeathSelected"),
       setIsPolarStrikesSelected: createFieldSetter(dispatch, "isPolarStrikesSelected"),
       setIsGoliathAncestryStrikeSelected: createFieldSetter(
         dispatch,

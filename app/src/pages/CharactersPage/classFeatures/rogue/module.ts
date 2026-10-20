@@ -12,6 +12,10 @@ import {
 } from "./rogue";
 import { getRogueClassFeatureDerivedState } from "./contributions";
 import {
+  activatePhantomGhostWalk,
+  phantomGhostWalkActionKey
+} from "./subclasses/roguePhantomGhostWalk";
+import {
   activateRogueSoulknifePsychicTeleportation,
   activateRogueSoulknifePsychicWhispers,
   activateRogueSoulknifePsychicVeil,
@@ -27,6 +31,10 @@ export const rogueFeatureModule: ClassFeatureModule<"rogue"> = {
   normalizeState: normalizeRogueFeatureState,
   collectDerived: getRogueClassFeatureDerivedState,
   handleAction(character, actionKey) {
+    if (actionKey === phantomGhostWalkActionKey) {
+      return activatePhantomGhostWalk(character);
+    }
+
     if (actionKey === rogueSneakAttackActionKey) {
       return activateRogueSneakAttack(character);
     }

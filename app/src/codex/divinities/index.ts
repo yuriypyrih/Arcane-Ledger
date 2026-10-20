@@ -1,6 +1,8 @@
 import { ACTION_TYPE, CLASS_FEATURE, DAMAGE_TYPE, DICE } from "../entries/enums";
 import type { DivinityEntry, DivinityValue } from "../entries/types";
 import {
+  pathToTheGraveDescription,
+  modifyMagicDescription,
   invokeDuplicityDescription,
   preserveLifeDescription,
   radianceOfTheDawnDescription
@@ -266,7 +268,38 @@ export const vowOfEnmity: DivinityEntry = {
   ]
 };
 
+const pathToTheGrave: DivinityEntry = {
+  id: "divinity-path-to-the-grave",
+  name: "Path to the Grave",
+  sourceFeature: CLASS_FEATURE.PATH_TO_THE_GRAVE,
+  castingTime: [ACTION_TYPE.BONUS_ACTION],
+  range: "30 feet",
+  duration: "Until your next turn starts",
+  description: [...pathToTheGraveDescription]
+};
+const fortifyingSpell: DivinityEntry = {
+  id: "divinity-fortifying-spell",
+  name: "Fortifying Spell",
+  sourceFeature: CLASS_FEATURE.MODIFY_MAGIC,
+  castingTime: ["No action required"],
+  range: "One spell target",
+  duration: "Instantaneous",
+  description: [modifyMagicDescription[0], modifyMagicDescription[1]]
+};
+const tenaciousSpell: DivinityEntry = {
+  id: "divinity-tenacious-spell",
+  name: "Tenacious Spell",
+  sourceFeature: CLASS_FEATURE.MODIFY_MAGIC,
+  castingTime: ["No action required"],
+  range: "A creature you can see",
+  duration: "Instantaneous",
+  description: [modifyMagicDescription[0], modifyMagicDescription[2]]
+};
+
 export const divinityEntries: DivinityEntry[] = [
+  pathToTheGrave,
+  fortifyingSpell,
+  tenaciousSpell,
   divineSpark,
   turnUndead,
   mindMagic,

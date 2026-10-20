@@ -18,6 +18,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndResourceCardUsage,
+  createChargesAndUsageHeaderTags,
   createFeatureActionCardCost,
   createHeaderTagsFromResources
 } from "../../cardUsage";
@@ -638,6 +639,17 @@ export function getMonkWarriorOfMercyFeatureActions(
       ),
       usesRemaining,
       usesTotal: handOfUltimateMercyUsesTotal,
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        handOfUltimateMercyUsesTotal,
+        createFeatureActionCardCost({
+          amountText: String(handOfUltimateMercyFocusCost),
+          icon: "brain"
+        }),
+        getMonkFocusPointsRemaining(character),
+        getMonkFocusPointsTotal(character),
+        { icon: "brain" }
+      ),
       usesInlineLabel: "Use 5",
       usesInlineIcon: "brain",
       description: [...handOfUltimateMercyDescription],

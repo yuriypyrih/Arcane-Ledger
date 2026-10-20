@@ -1,4 +1,6 @@
 import type { Character } from "../../../types";
+import { arcaneShotDieProgression } from "../../../codex/subclasses/fighterArcaneArcher";
+import { getArcaneShotDie } from "../classFeatures/fighter/subclasses/fighterArcaneShot";
 import {
   getBarbarianRageDamageBonusForCharacter,
   getBardicInspirationDieForCharacter,
@@ -22,12 +24,11 @@ function formatDieValue(die: string | null): string | null {
   return die ? String(die).toLowerCase() : null;
 }
 
-export function createAdditionalCoreStatCards(
-  character: Character
-): CombatSummaryCoreStatCard[] {
+export function createAdditionalCoreStatCards(character: Character): CombatSummaryCoreStatCard[] {
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
+  const arcaneShotDie = getArcaneShotDie(character);
   const fighterBattleMasterSuperiorityDie =
     getFighterBattleMasterSuperiorityDieForCharacter(character);
   const fighterBattleMasterSuperiorityDiceTotal =
@@ -98,6 +99,22 @@ export function createAdditionalCoreStatCards(
         {
           label: "Progression",
           value: "d6 at 1, d8 at 5, d10 at 10, d12 at 15"
+        }
+      ]
+    });
+  }
+
+  if (arcaneShotDie) {
+    cards.push({
+      key: "fighter-arcane-shot-die",
+      label: "Arcane Shot Die",
+      value: arcaneShotDie,
+      summaryText: "Your current Arcane Shot die, used by your learned Arcane Shot options.",
+      detailCards: [
+        { label: "Current Die", value: arcaneShotDie },
+        {
+          label: "Progression",
+          value: arcaneShotDieProgression.map(({ level, die }) => `${die} at ${level}`).join(", ")
         }
       ]
     });

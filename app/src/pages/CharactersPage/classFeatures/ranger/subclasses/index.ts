@@ -4,6 +4,7 @@ import { getRangerBeastMasterDerivedFeatureState } from "./rangerBeastMaster";
 import { getRangerFeyWandererDerivedFeatureState } from "./rangerFeyWanderer";
 import { getRangerGloomStalkerDerivedFeatureState } from "./rangerGloomStalker";
 import { getRangerHunterDerivedFeatureState } from "./rangerHunter";
+import { getRangerHollowWardenDerivedFeatureState } from "./rangerHollowWarden";
 import { getRangerWinterWalkerDerivedFeatureState } from "./rangerWinterWalker";
 
 export function getRangerSubclassDerivedFeatureState(
@@ -22,6 +23,8 @@ export function getRangerSubclassDerivedFeatureState(
       return getRangerGloomStalkerDerivedFeatureState(character);
     case "ranger-hunter":
       return getRangerHunterDerivedFeatureState(character);
+    case "ranger-hollow-warden":
+      return getRangerHollowWardenDerivedFeatureState(character);
     case "ranger-winter-walker":
       return getRangerWinterWalkerDerivedFeatureState(character);
     default:

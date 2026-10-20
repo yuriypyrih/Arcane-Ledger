@@ -61,6 +61,10 @@ import type {
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import { getRangerFeatAdjustedWisdomModifier } from "./abilityModifiers";
+import {
+  normalizeRangerPersistentWrathState,
+  restoreRangerPersistentWrathOnLongRest
+} from "./subclasses/rangerPersistentWrath";
 import * as feyWandererSubclass from "./subclasses/rangerFeyWanderer";
 import * as gloomStalkerSubclass from "./subclasses/rangerGloomStalker";
 import * as hunterSubclass from "./subclasses/rangerHunter";
@@ -419,6 +423,7 @@ export function normalizeRangerFeatureState(
     : [];
 
   return {
+    ...normalizeRangerPersistentWrathState(record, character),
     favoredEnemyUsesExpended: hasFavoredEnemy
       ? Math.max(
           0,
@@ -1405,7 +1410,11 @@ export function applyLongRestToRangerFeatures(character: Character): Character {
           restoreRangerWinterWalkerChillingRetributionOnLongRest(
             restoreRangerWinterWalkerFrozenHauntOnLongRest(
               restoreRangerNaturesVeilOnLongRest(
-                restoreRangerTirelessOnLongRest(restoreRangerFavoredEnemyOnLongRest(character))
+                restoreRangerTirelessOnLongRest(
+                  restoreRangerFavoredEnemyOnLongRest(
+                    restoreRangerPersistentWrathOnLongRest(character)
+                  )
+                )
               )
             )
           )
