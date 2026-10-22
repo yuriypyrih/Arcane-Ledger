@@ -972,15 +972,37 @@ function CharacterSyncBootstrap() {
       }
     }
 
+    // Cellular recovery may leave navigator.onLine true and never emit an online event.
+    const retryTimer = window.setInterval(() => {
+      if (status !== "authenticated" || document.visibilityState !== "visible" || !navigator.onLine)
+        return;
+      const hasPendingWrites = loadStoredPortableCharacterSheetSnapshot().records.some((record) => {
+        const sync = getPortableCharacterSheetSync(record);
+        return (
+          sync?.ownerId === user?.id &&
+          (sync?.syncStatus === "dirty" ||
+            sync?.syncStatus === "error" ||
+            sync?.syncStatus === "deleting")
+        );
+      });
+      if (!initializedSessionRef.current?.() || hasPendingWrites) handleOnline();
+    }, 30_000);
     window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      window.clearInterval(retryTimer);
       window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearSyncTimer();
     };
-  }, [clearSyncTimer, initializeAuthenticatedCharacterCache, syncDirtyCharacterRecords]);
+  }, [
+    clearSyncTimer,
+    initializeAuthenticatedCharacterCache,
+    status,
+    syncDirtyCharacterRecords,
+    user?.id
+  ]);
 
   return (
     <>

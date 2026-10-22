@@ -5,6 +5,7 @@ export {
   restoreOfflineAuthUser,
   setAuthError,
   setAuthenticatedUser,
+  setAuthenticatedSession,
   setAuthLoading,
   setGuestSession,
   type AuthState

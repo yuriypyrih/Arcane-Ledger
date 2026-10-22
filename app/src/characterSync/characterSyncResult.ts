@@ -1,5 +1,8 @@
 import type { PortableCharacterSheet } from "../types";
-import { markPortableCharacterSheetSyncError } from "../pages/CharactersPage/portableCharacterSheet";
+import {
+  detachPortableCharacterSheetCloudSync,
+  markPortableCharacterSheetSyncError
+} from "../pages/CharactersPage/portableCharacterSheet";
 import {
   getPortableCharacterSheetSync,
   isPortableCharacterSheetOwnedBy
@@ -45,6 +48,11 @@ export function replaceSyncedRecord(options: {
             }
           }
         : record;
+    }
+
+    if (nextSync?.syncStatus === "local-only") {
+      // An unavailable cloud sheet only changes the link; edits made during upload stay local.
+      return detachPortableCharacterSheetCloudSync(record, nextSync.lastSyncError ?? "");
     }
 
     if (

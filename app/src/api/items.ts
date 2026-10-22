@@ -120,19 +120,29 @@ export async function fetchItemList(
 
   appendArtificerPlanScope(searchParams, artificerPlans);
 
-  return apiGet<PaginatedApiResponse<ItemListItem>>(`items?${searchParams.toString()}`, options);
+  return apiGet<PaginatedApiResponse<ItemListItem>>(`items?${searchParams.toString()}`, {
+    ...options,
+    sessionIndependent: true
+  });
 }
 
 export async function fetchItemByKey(key: string, options?: ApiRequestOptions) {
-  return apiGet<ItemRecord>(`items/${key}`, options);
+  return apiGet<ItemRecord>(`items/${key}`, { ...options, sessionIndependent: true });
 }
 
 export async function fetchItemsByKeys(keys: string[], options?: ApiRequestOptions) {
-  return apiPost<ItemBatchLookupRecord>("items/batch", { keys }, options);
+  return apiPost<ItemBatchLookupRecord>(
+    "items/batch",
+    { keys },
+    { ...options, sessionIndependent: true }
+  );
 }
 
 export async function fetchItemPackContents(key: string, options?: ApiRequestOptions) {
-  return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`, options);
+  return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`, {
+    ...options,
+    sessionIndependent: true
+  });
 }
 
 export async function fetchItemFilterOptions(
@@ -157,5 +167,8 @@ export async function fetchItemFilterOptions(
 
   const queryString = searchParams.toString();
 
-  return apiGet<ItemFilterOptions>(`items/meta${queryString ? `?${queryString}` : ""}`, options);
+  return apiGet<ItemFilterOptions>(`items/meta${queryString ? `?${queryString}` : ""}`, {
+    ...options,
+    sessionIndependent: true
+  });
 }

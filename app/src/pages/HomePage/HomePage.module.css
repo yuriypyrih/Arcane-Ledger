@@ -87,7 +87,6 @@
   min-width: 0;
 }
 
-.eyebrow,
 .guestBannerEyebrow,
 .title,
 .heroRuleLine,
@@ -97,7 +96,6 @@
   margin: 0;
 }
 
-.eyebrow,
 .guestBannerEyebrow {
   color: var(--color-accent);
   font-size: 0.7rem;

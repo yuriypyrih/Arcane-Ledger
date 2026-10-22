@@ -8,6 +8,8 @@ export type ApiRequestOptions = {
   signal?: AbortSignal;
   suppressFailureToast?: boolean;
   handleAuthSessionFailure?: boolean;
+  /** Public catalog requests do not depend on the current account or its verification. */
+  sessionIndependent?: boolean;
 };
 
 export type ApiErrorBody = {
@@ -50,10 +52,7 @@ export function isApiOfflineError(error: unknown): error is ApiOfflineError {
 
 export function isApiAbortError(error: unknown): boolean {
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    error.name === "AbortError"
+    typeof error === "object" && error !== null && "name" in error && error.name === "AbortError"
   );
 }
 
@@ -165,7 +164,7 @@ async function waitForSessionVerification(signal?: AbortSignal) {
     }
     function checkSession() {
       const auth = store.getState().auth;
-      if (signal?.aborted || auth.user?.id !== initialAuth.user?.id) {
+      if (signal?.aborted || auth.sessionGeneration !== initialAuth.sessionGeneration) {
         handleAbort();
       } else if (auth.sessionVerified || !auth.loading) {
         finish();
@@ -185,14 +184,30 @@ async function apiRequest<T>(
   const apiBaseUrl = getApiBaseUrl();
   const normalizedPath = path.replace(/^\//, "");
   const isSessionRequest = ["auth/me", "auth/login", "auth/logout"].includes(normalizedPath);
+  const sessionGeneration = store.getState().auth.sessionGeneration;
+  function ensureCurrentSession() {
+    if (
+      !options?.sessionIndependent &&
+      store.getState().auth.sessionGeneration !== sessionGeneration
+    ) {
+      throw new DOMException("Request belongs to an earlier session.", "AbortError");
+    }
+  }
 
   if (!apiBaseUrl || isBrowserOffline()) {
     throw new ApiOfflineError();
   }
 
-  if (!isSessionRequest) await waitForSessionVerification(options?.signal);
+  if (!isSessionRequest && !options?.sessionIndependent)
+    await waitForSessionVerification(options?.signal);
+  ensureCurrentSession();
   const auth = store.getState().auth;
-  if (auth.status === "authenticated" && !auth.sessionVerified && !isSessionRequest) {
+  if (
+    auth.status === "authenticated" &&
+    !auth.sessionVerified &&
+    !isSessionRequest &&
+    !options?.sessionIndependent
+  ) {
     throw new ApiOfflineError();
   }
 
@@ -207,27 +222,29 @@ async function apiRequest<T>(
       signal: options?.signal
     });
   } catch (error) {
+    ensureCurrentSession();
     if (isApiAbortError(error)) {
       throw error;
     }
 
-    if (isBrowserOffline()) {
-      throw new ApiOfflineError();
-    }
-
-    notifyApiRequestFailed(options);
-    const requestError = new ApiRequestFailedError("API request failed.", { originalError: error });
-    captureApiFailure(requestError, { path, requestUrl });
-    throw requestError;
+    // Fetch can fail while navigator.onLine is still true (for example, lost cellular signal).
+    // No server response means no evidence that authentication or the saved data is invalid.
+    throw new ApiOfflineError();
   }
 
+  ensureCurrentSession();
   if (!response.ok) {
     const apiError = await readApiError(response);
+    ensureCurrentSession();
     const errorCode = apiError?.error?.code;
     const errorMessage =
       apiError?.error?.message ?? `API request failed with status ${response.status}`;
 
-    if (options?.handleAuthSessionFailure !== false && shouldHandleAuthSessionFailure(errorCode)) {
+    if (
+      !options?.sessionIndependent &&
+      options?.handleAuthSessionFailure !== false &&
+      shouldHandleAuthSessionFailure(errorCode)
+    ) {
       handleExpiredAuthSession();
     } else {
       notifyApiRequestFailed(options);
@@ -242,7 +259,9 @@ async function apiRequest<T>(
     throw requestError;
   }
 
-  return readResponseJson<T>(response);
+  const result = await readResponseJson<T>(response);
+  ensureCurrentSession();
+  return result;
 }
 
 export async function apiGet<T>(path: string, options?: ApiRequestOptions): Promise<T> {

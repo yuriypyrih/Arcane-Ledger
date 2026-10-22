@@ -17,9 +17,8 @@ checks. This opt-in rule is the specific exception to the general existing-test 
 
 ## Install and run
 
-Use Node 22 for the same environment as CI. The harness also works with the repository's existing
-Node 18.20 installation; the test dependencies are on compatible major versions. The frontend stays
-on Vite 5 in this pass.
+Use Node 22 for the same environment as CI. The backend's Sharp image processor requires Node
+20.9 or newer, so Node 18 cannot run the complete harness. The frontend stays on Vite 5 in this pass.
 
 From the repository root:
 

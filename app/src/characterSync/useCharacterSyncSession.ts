@@ -5,15 +5,24 @@ import type { RootState } from "../store";
 /** Invalidate pending work on logout, account changes, and coordinator unmount. */
 export function useCharacterSyncSession() {
   const store = useStore<RootState>();
-  const session = useRef({ ownerId: null as string | null, generation: 0, mounted: false });
+  const session = useRef({
+    ownerId: null as string | null,
+    authGeneration: -1,
+    generation: 0,
+    mounted: false
+  });
 
   useEffect(() => {
     const currentSession = session.current;
     function updateSession() {
-      const { status, user } = store.getState().auth;
+      const { status, user, sessionGeneration } = store.getState().auth;
       const ownerId = status === "authenticated" ? (user?.id ?? null) : null;
-      if (currentSession.ownerId !== ownerId) {
+      if (
+        currentSession.ownerId !== ownerId ||
+        currentSession.authGeneration !== sessionGeneration
+      ) {
         currentSession.ownerId = ownerId;
+        currentSession.authGeneration = sessionGeneration;
         currentSession.generation += 1;
       }
     }

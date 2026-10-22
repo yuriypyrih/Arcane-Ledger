@@ -98,7 +98,6 @@ function HomePage() {
             <section className={styles.panel} aria-labelledby="home-characters-title">
               <div className={styles.panelHeader}>
                 <div>
-                  <p className={styles.eyebrow}>Roster</p>
                   <h3 id="home-characters-title" className={styles.panelTitle}>
                     Top Active Characters
                   </h3>
@@ -122,7 +121,6 @@ function HomePage() {
             <section className={styles.panel} aria-labelledby="home-tools-title">
               <div className={styles.panelHeader}>
                 <div>
-                  <p className={styles.eyebrow}>GM tools</p>
                   <h3 id="home-tools-title" className={styles.panelTitle}>
                     Prep Tray
                   </h3>

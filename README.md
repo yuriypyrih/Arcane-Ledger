@@ -63,6 +63,11 @@ After a successful online session check or login, the app remembers the account 
 Reopening offline preserves that account and locally saved character sheets; edits remain local
 until connectivity returns. The app retries session verification on reconnect, focus, and periodically
 while visible after a failed check. Cloud operations resume after the cookie session is verified.
+Temporary signal loss also preserves the signed-in appearance and local edits when the browser still
+reports being online. Pending cloud writes retry every 30 seconds while the app is visible and the
+browser reports a connection. Responses from an earlier login cannot expire the current session or
+replace its data. A deleted/not-found save response detaches the cloud link while preserving the
+latest local edits.
 Explicit logout (including offline logout) and confirmed session expiry clear the remembered account.
 Server-only features still require a connection. Existing installations need to open online once
 after this update to remember their account for subsequent offline launches.
@@ -82,6 +87,8 @@ Architecture guides:
   Ansible, Netlify configuration, and separate Docker builds for the frontend and backend.
 
 ## Running Locally
+
+Use Node 22; the backend image processor requires Node 20.9 or newer.
 
 Install and run the frontend:
 

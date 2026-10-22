@@ -2,6 +2,11 @@ import sharp from "sharp";
 import { AppError } from "../errors/AppError.js";
 import { captureServerError, captureServerMessage } from "../sentry.js";
 
+// Upload MIME declarations are untrusted. Disable other decoders before inspecting any bytes.
+// This service owns the server's Sharp usage; configure once, never during individual requests.
+sharp.block({ operation: ["VipsForeignLoad"] });
+sharp.unblock({ operation: ["VipsForeignLoadJpegBuffer", "VipsForeignLoadWebpBuffer"] });
+
 export const CHARACTER_IMAGE_UPLOAD_MAX_BYTES = 1024 * 1024;
 export const CHARACTER_IMAGE_TARGET_BYTES = 150 * 1024;
 export const CHARACTER_IMAGE_HARD_MAX_BYTES = 300 * 1024;

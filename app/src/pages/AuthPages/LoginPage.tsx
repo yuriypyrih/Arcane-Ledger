@@ -8,7 +8,7 @@ import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
 import {
   setAuthError,
   setAuthLoading,
-  setAuthenticatedUser,
+  setAuthenticatedSession,
   useAppDispatch,
   useAppSelector
 } from "../../store";
@@ -39,7 +39,7 @@ function LoginPage() {
     try {
       const { user } = await login({ email, password }, { suppressFailureToast: true });
       markAuthSessionActive();
-      dispatch(setAuthenticatedUser(user));
+      dispatch(setAuthenticatedSession(user));
       navigate("/");
     } catch (error) {
       setCanResendVerification(getApiErrorCode(error) === "EMAIL_NOT_VERIFIED");

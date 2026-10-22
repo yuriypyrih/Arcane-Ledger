@@ -1,4 +1,9 @@
-import type { MonsterListItem, MonsterOrdering, MonsterRecord, PaginatedApiResponse } from "../types";
+import type {
+  MonsterListItem,
+  MonsterOrdering,
+  MonsterRecord,
+  PaginatedApiResponse
+} from "../types";
 import { apiGet, type ApiRequestOptions } from "./client";
 import type { MonsterChallengeRatingBucket } from "../constants/monsters";
 
@@ -63,12 +68,12 @@ export async function fetchMonsterList(
     searchParams.set("max_challenge_rating", String(maxChallengeRating));
   }
 
-  return apiGet<PaginatedApiResponse<MonsterListItem>>(
-    `monsters?${searchParams.toString()}`,
-    options
-  );
+  return apiGet<PaginatedApiResponse<MonsterListItem>>(`monsters?${searchParams.toString()}`, {
+    ...options,
+    sessionIndependent: true
+  });
 }
 
 export async function fetchMonsterByKey(key: string, options?: ApiRequestOptions) {
-  return apiGet<MonsterRecord>(`monsters/${key}`, options);
+  return apiGet<MonsterRecord>(`monsters/${key}`, { ...options, sessionIndependent: true });
 }

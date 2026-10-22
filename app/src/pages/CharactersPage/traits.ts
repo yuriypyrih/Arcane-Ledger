@@ -1,5 +1,5 @@
 import { extractDescriptionSection as extractSubclassFeatureDescriptionSection } from "./shared/descriptionSections";
-import { formOfDreadStatusSourceId } from "./classFeatures/warlock/subclasses/warlockUndeadPatron";
+import { formOfDreadStatusSourceId } from "./classFeatures/warlock/subclasses/warlockUndeadIds";
 import { reconcileSemblanceOfLife } from "./classFeatures/warlock/subclasses/warlockSemblanceOfLife";
 import {
   hasCharacterClass,

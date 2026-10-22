@@ -1,4 +1,10 @@
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
+import { formOfDreadActionKey, formOfDreadStatusSourceId } from "./warlockUndeadIds";
+export {
+  undeadPatronSubclassId,
+  formOfDreadActionKey,
+  formOfDreadStatusSourceId
+} from "./warlockUndeadIds";
 import {
   collectNecroticHuskContributions,
   normalizeUnholyResuscitationState
@@ -43,9 +49,6 @@ import {
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
 
-export const undeadPatronSubclassId = "warlock-undead-patron";
-export const formOfDreadActionKey = "warlock-undead-form-of-dread";
-export const formOfDreadStatusSourceId = "feature-warlock-undead-form-of-dread";
 const formOfDreadName = "Form of Dread";
 const undeadSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Bane", "Blindness/Deafness", "Phantasmal Force", "Ray of Sickness"]),

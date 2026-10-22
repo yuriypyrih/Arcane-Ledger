@@ -2,8 +2,7 @@ import { ignoreCharacterMutation } from "../readOnlySheetContext";
 import { useCallback, useMemo, useState } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getCharacterClasses } from "../../../../pages/CharactersPage/multiclassState";
-import { getCastingProgression } from "../../../../codex/classes/multiclass";
+import { getCharacterSpellcastingSources } from "../../../../pages/CharactersPage/spellcastingAvailability";
 import {
   getCharacterSpellSlotPools,
   getSpellcastingClassView,
@@ -23,9 +22,7 @@ type Props = {
 function MulticlassSpells({ character, className, onPersistCharacter }: Props) {
   const [sourceId, setSourceId] = useState("");
   const [poolId, setPoolId] = useState("");
-  const classes = getCharacterClasses(character);
-  const casters = classes.filter((entry) => getCastingProgression(entry) !== "none");
-  const sources = casters.length ? casters : classes.slice(0, 1);
+  const sources = getCharacterSpellcastingSources(character);
   const source = sources.find((entry) => entry.id === sourceId) ?? sources[0];
   const pools = getCharacterSpellSlotPools(character).filter((pool) =>
     pool.totals.some((total) => total > 0)
@@ -98,9 +95,7 @@ function MulticlassSpells({ character, className, onPersistCharacter }: Props) {
 
 export default function CharacterSpells(props: Props) {
   if (props.readOnly && props.character.multiclass) {
-    const classes = getCharacterClasses(props.character);
-    const casters = classes.filter((entry) => getCastingProgression(entry) !== "none");
-    const sources = casters.length ? casters : classes.slice(0, 1);
+    const sources = getCharacterSpellcastingSources(props.character);
     const pools = getCharacterSpellSlotPools(props.character);
     return (
       <>

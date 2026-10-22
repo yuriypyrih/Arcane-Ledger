@@ -9,6 +9,7 @@ import {
   setAuthError,
   setAuthenticatedUser,
   showToast,
+  store,
   useAppDispatch,
   useAppSelector
 } from "../../store";
@@ -47,6 +48,7 @@ function AccountPage() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
+    const sessionGeneration = store.getState().auth.sessionGeneration;
     setLoggingOut(true);
 
     try {
@@ -54,9 +56,11 @@ function AccountPage() {
     } catch {
       // Local logout remains authoritative when the server cannot clear its cookie.
     } finally {
-      clearLocalAuthSession();
       setLoggingOut(false);
-      navigate("/");
+      if (store.getState().auth.sessionGeneration === sessionGeneration) {
+        clearLocalAuthSession();
+        navigate("/");
+      }
     }
   }
 

@@ -22,7 +22,8 @@ export const patchNotes: PatchNote[] = [
           "15 new subclasses added!",
           "New backgrounds, feats, and spells, with gameplay implementation for some arriving in a future update.",
           'Resource tags (like "Charges") in drawer headers are now interactive, so you can manage resources directly. Previously, resetting a single charge required a Rest action with every other refill disabled.',
-          "General stats, such as AC and Speed, can now be overwritten directly."
+          "General stats, such as AC and Speed, can now be overwritten directly.",
+          "Improved clarity and readability across many areas of Arcane Ledger, including more spacious text and corrected formatting in spell descriptions."
         ]
       }
     ]

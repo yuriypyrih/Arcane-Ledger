@@ -1,7 +1,7 @@
 import type { Character, CharacterRogueFeatureState } from "../../../../../types";
 import { ACTION_TYPE, CLASS_FEATURE, REACTION } from "../../../../../codex/entries/enums";
 import type { SpellEntry } from "../../../../../codex/entries";
-import { getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { getClassLevel, getClassSubclassId, isSpellFromClass } from "../../../multiclassState";
 import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
@@ -109,7 +109,11 @@ export function isPhantomSpiritQuerySpell(
   character: SubclassRuntimeCharacter,
   spell: Pick<SpellEntry, "id">
 ): boolean {
-  return hasPhantomTokens(character) && spell.id === phantomAugurySpellId;
+  return (
+    hasPhantomTokens(character) &&
+    isSpellFromClass(character, "Rogue") &&
+    spell.id === phantomAugurySpellId
+  );
 }
 
 export function canUsePhantomSpiritQuery(
@@ -177,7 +181,7 @@ export function collectPhantomTokensContributions(
         {
           id: "rogue-phantom-spirit-query",
           transform: (spell) =>
-            spell.id === phantomAugurySpellId
+            isPhantomSpiritQuerySpell(character, spell)
               ? appendFeatureSourcedDescriptionAddition(
                   {
                     ...spell,
