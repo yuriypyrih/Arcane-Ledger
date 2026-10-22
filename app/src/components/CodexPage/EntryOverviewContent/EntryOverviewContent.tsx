@@ -13,7 +13,7 @@ import {
 import {
   formatBackgroundAbilityScoreOptions,
   formatBackgroundEquipmentOptions,
-  formatBackgroundOriginFeat,
+  formatBackgroundOriginFeatReference,
   formatBackgroundProficiencies
 } from "../backgroundPresentation";
 import {
@@ -66,10 +66,6 @@ function formatClassToolProficiencyList(className: string): string {
   ].filter((value): value is string => value !== null);
 
   return parts.length > 0 ? parts.join(" | ") : "None";
-}
-
-function createBackgroundOriginFeatReference(background: BackgroundEntry): string {
-  return `<feat:${background.originFeat}>${formatBackgroundOriginFeat(background)}</feat>`;
 }
 
 function DetailItem({ label, children, fullWidth = false }: DetailItemProps) {
@@ -189,7 +185,7 @@ export function BackgroundEntryOverviewItems({
         {renderRichValue(formatBackgroundAbilityScoreOptions(entry), richTextOptions)}
       </DetailItem>
       <DetailItem label="Feat">
-        {renderRichValue(createBackgroundOriginFeatReference(entry), richTextOptions)}
+        {renderRichValue(formatBackgroundOriginFeatReference(entry), richTextOptions)}
       </DetailItem>
       <DetailItem label="Skill + Tool Proficiencies">
         {renderRichValue(formatBackgroundProficiencies(entry), richTextOptions)}

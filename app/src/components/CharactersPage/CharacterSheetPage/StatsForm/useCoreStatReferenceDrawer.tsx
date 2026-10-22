@@ -3,6 +3,18 @@ import {
   getClassSubclassId
 } from "../../../../pages/CharactersPage/multiclassState";
 import { useState } from "react";
+import { Pencil } from "lucide-react";
+import {
+  getStatOverrideMaximum,
+  movementOverrideKeys,
+  movementOverrideLabels,
+  setStatOverride,
+  statOverrideKeys,
+  statOverrideLabels,
+  type StatOverrideKey
+} from "../../../../pages/CharactersPage/statOverrides";
+import SheetActionButton from "../SheetActionButton";
+import StatOverrideModal, { type StatOverrideField } from "./StatOverrideModal";
 import { useReadOnlySheet } from "../readOnlySheetContext";
 import { getClassHitDicePools } from "../../../../pages/CharactersPage/hitDice";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
@@ -46,6 +58,8 @@ export function useCoreStatReferenceDrawer(
     null
   );
   const [isHitDiceManagementOpen, setIsHitDiceManagementOpen] = useState(false);
+  const [selectedCoreStatKey, setSelectedCoreStatKey] = useState<string | null>(null);
+  const [editingOverride, setEditingOverride] = useState<StatOverrideKey | null>(null);
   const [useUncannyMetabolismOnInitiative, setUseUncannyMetabolismOnInitiative] = useState(false);
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
   const [
@@ -87,16 +101,60 @@ export function useCoreStatReferenceDrawer(
   const initiativeBreakdown = coreStats.initiativeBreakdown;
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const hasThiefsReflexes = hasRogueThiefThiefsReflexesForCharacter(character);
+  const selectedCard = coreStats.cards.find((card) => card.key === selectedCoreStatKey);
+  const currentReference = selectedCard
+    ? coreStats.getReferenceForCard(selectedCard)
+    : selectedStatReference;
   const resolvedSelectedStatReference =
-    selectedStatReference?.keyword === "Armor Class"
-      ? {
-          ...selectedStatReference,
-          detailCards: coreStats.armorClassDetailCards,
-          warning: armorClassResolution.warning
-        }
-      : selectedStatReference;
+    currentReference?.keyword === "Armor Class"
+      ? { ...currentReference, warning: armorClassResolution.warning }
+      : currentReference;
+  const selectedOverrideKey = statOverrideKeys.find((key) => key === selectedCoreStatKey);
+  const overrideFields: StatOverrideField[] =
+    editingOverride === "speed"
+      ? movementOverrideKeys.map((key) => ({
+          key,
+          label: `${movementOverrideLabels[key]} speed (ft)`,
+          value: Math.max(
+            0,
+            Math.min(
+              300,
+              Math.floor(
+                character.statOverrides?.speed?.values[key] ??
+                  coreStats.movementSpeedBreakdowns[key].total ??
+                  0
+              )
+            )
+          ),
+          maximum: 300
+        }))
+      : editingOverride
+        ? [
+            {
+              key: editingOverride,
+              label: statOverrideLabels[editingOverride],
+              value: Math.max(
+                0,
+                Math.min(
+                  getStatOverrideMaximum(editingOverride),
+                  Math.floor(
+                    character.statOverrides?.[editingOverride]?.value ??
+                      (editingOverride === "armorClass"
+                        ? armorClassResolution.activeFormula.breakdown.total
+                        : editingOverride === "initiative"
+                          ? initiativeBreakdown.total
+                          : coreStats[editingOverride])
+                  )
+                )
+              ),
+              maximum: getStatOverrideMaximum(editingOverride)
+            }
+          ]
+        : [];
 
   function closeCoreStatReference() {
+    setEditingOverride(null);
+    setSelectedCoreStatKey(null);
     setIsDiceRollerSettingsOpen(false);
     setUsePersistentRageOnInitiative(false);
     setUsePurpleDragonRookRallyingCryOnInitiative(false);
@@ -107,6 +165,7 @@ export function useCoreStatReferenceDrawer(
   }
 
   function openCoreStatReference(card: CoreStatCard) {
+    setSelectedCoreStatKey(card.key);
     if (card.key === "hitDice") {
       closeCoreStatReference();
       if (readOnly) {
@@ -212,6 +271,13 @@ export function useCoreStatReferenceDrawer(
       {resolvedSelectedStatReference ? (
         <StatReferenceDrawer
           reference={resolvedSelectedStatReference}
+          headerAction={
+            !readOnly && selectedOverrideKey ? (
+              <SheetActionButton onClick={() => setEditingOverride(selectedOverrideKey)}>
+                <Pencil size={16} aria-hidden="true" />
+              </SheetActionButton>
+            ) : null
+          }
           footer={
             resolvedSelectedStatReference.keyword === "Armor Class" &&
             armorClassResolution.formulas.length >= 2 ? (
@@ -264,6 +330,27 @@ export function useCoreStatReferenceDrawer(
             ) : null
           }
           onClose={closeCoreStatReference}
+        />
+      ) : null}
+      {!readOnly && editingOverride ? (
+        <StatOverrideModal
+          key={editingOverride}
+          label={statOverrideLabels[editingOverride]}
+          enabled={character.statOverrides?.[editingOverride]?.enabled ?? false}
+          fields={overrideFields}
+          onClose={() => setEditingOverride(null)}
+          onSave={(enabled, values) => {
+            onPersistCharacter((current) =>
+              setStatOverride(
+                current,
+                editingOverride,
+                editingOverride === "speed"
+                  ? { enabled, values }
+                  : { enabled, value: values[editingOverride] }
+              )
+            );
+            setEditingOverride(null);
+          }}
         />
       ) : null}
       {!readOnly && diceRollerPopup}

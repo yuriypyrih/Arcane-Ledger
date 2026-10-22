@@ -37,6 +37,16 @@ export function formatBackgroundOriginFeat(background: BackgroundEntry): string 
   return featLabel;
 }
 
+export function formatBackgroundOriginFeatReference(background: BackgroundEntry): string {
+  if (background.originFeatOptions?.length) {
+    return `Choose one: ${background.originFeatOptions
+      .map((feat) => `<feat:${feat}>${getFeatLabel(feat)}</feat>`)
+      .join(", ")}.`;
+  }
+
+  return `<feat:${background.originFeat}>${formatBackgroundOriginFeat(background)}</feat>`;
+}
+
 export function formatBackgroundProficiencies(background: BackgroundEntry): string {
   const skillLabel = background.grantedSkillProficiencies.join(", ") || "None";
   const toolLabel =

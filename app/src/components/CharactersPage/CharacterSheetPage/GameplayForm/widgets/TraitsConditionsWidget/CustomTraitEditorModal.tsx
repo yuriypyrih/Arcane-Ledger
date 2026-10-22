@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import {
   OverlayBody,
@@ -107,7 +107,7 @@ function CustomTraitEditorModal({
           disabled={createDisabled}
           icon={
             isEditingCustomTrait ? (
-              <Check size={18} aria-hidden="true" />
+              <Save size={18} aria-hidden="true" />
             ) : (
               <Plus size={18} aria-hidden="true" />
             )

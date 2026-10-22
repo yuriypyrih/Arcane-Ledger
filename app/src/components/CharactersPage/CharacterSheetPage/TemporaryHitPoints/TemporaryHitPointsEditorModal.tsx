@@ -1,3 +1,4 @@
+import { Save } from "lucide-react";
 import type { ChangeEvent } from "react";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import ActionButton from "../../../ActionButton";
@@ -129,6 +130,7 @@ function TemporaryHitPointsEditorModal({
             className={styles.footerButton}
             onClick={onSave}
             disabled={!hasUnsavedChanges}
+            icon={<Save size={16} aria-hidden="true" />}
           >
             Save
           </ActionButton>

@@ -1,4 +1,5 @@
 import { normalizeMulticlassCharacter } from "./multiclassStorage";
+import { getProficiencyNormalizationLimit, normalizeStatOverrides } from "./statOverrides";
 import type { Character, CharacterDraft, PortableCharacterSheet, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
 import {
@@ -351,7 +352,11 @@ export function normalizeCharacter(value: unknown): Character | null {
   };
   const normalizedFeats = reconcileHumanOriginFeatEntries(
     reconcileBackgroundOriginFeatEntries(
-      normalizeCharacterFeats(record.feats, normalizedLevel),
+      normalizeCharacterFeats(
+        record.feats,
+        normalizedLevel,
+        getProficiencyNormalizationLimit(record)
+      ),
       isBackgroundName(resolvedBackground) ? resolvedBackground : "",
       normalizedLevel
     ),
@@ -700,6 +705,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     heroicInspiration: normalizedHeroicInspiration,
     hitDiceRemaining: normalizedHitDiceRemaining,
     coreStats: normalizedCoreStats,
+    statOverrides: normalizeStatOverrides(record.statOverrides),
     armorClassFormulaSelection: normalizedArmorClassFormulaSelection,
     classFeatureState: normalizedClassFeatureState,
     feats: normalizedFeats,

@@ -36,11 +36,6 @@ export type OriginFeatResourceState = {
   spellfireSparkSpellfireFlameTotal: number;
 };
 
-function getFeatProficiencyBonusForLevel(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
-
 function getLuckyPointsExpended(normalizedFeats: CharacterFeatEntry[], total: number): number {
   const luckyEntry = normalizedFeats.find((entry) => entry.feat === FEATS.LUCKY);
   const pointsExpended = luckyEntry?.lucky?.pointsExpended ?? 0;
@@ -61,9 +56,9 @@ function getSpellfireSparkSpellfireFlameExpended(
 export function getOriginFeatResourceState(
   normalizedFeats: CharacterFeatEntry[],
   featSet: ReadonlySet<FEATS>,
-  level: number
+  proficiencyBonus: number
 ): OriginFeatResourceState {
-  const luckyPointsTotal = featSet.has(FEATS.LUCKY) ? getFeatProficiencyBonusForLevel(level) : 0;
+  const luckyPointsTotal = featSet.has(FEATS.LUCKY) ? proficiencyBonus : 0;
   const luckyPointsExpended = getLuckyPointsExpended(normalizedFeats, luckyPointsTotal);
   const cultOfDragonInitiateInspiredByFearTotal = featSet.has(FEATS.CULT_OF_THE_DRAGON_INITIATE)
     ? 1
@@ -80,7 +75,7 @@ export function getOriginFeatResourceState(
       entry.purpleDragonRook?.rallyingCryExpended === true
   );
   const spellfireSparkSpellfireFlameTotal = featSet.has(FEATS.SPELLFIRE_SPARK)
-    ? getFeatProficiencyBonusForLevel(level)
+    ? proficiencyBonus
     : 0;
   const spellfireSparkSpellfireFlameExpended = getSpellfireSparkSpellfireFlameExpended(
     normalizedFeats,

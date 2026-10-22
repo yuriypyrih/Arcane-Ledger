@@ -1115,8 +1115,6 @@ export function consumeRogueWeaponAttack(
     action.actionCategory === ACTION_CATEGORY.ATTACK &&
     (action.attackKind === "unarmed" ||
       (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE));
-  const rogueState = getRogueFeatureState(character);
-
   if (!roundTrackerResource) {
     return character;
   }
@@ -1138,20 +1136,16 @@ export function consumeRogueWeaponAttack(
     return character;
   }
 
-  if (rogueState.steadyAimAttackAdvantageAvailable !== true) {
-    return consumedCharacter;
-  }
+  return consumeRogueSteadyAimAttackAdvantage(consumedCharacter);
+}
 
-  return {
-    ...consumedCharacter,
-    classFeatureState: {
-      ...consumedCharacter.classFeatureState,
-      rogue: {
-        ...getRogueFeatureState(consumedCharacter),
-        steadyAimAttackAdvantageAvailable: false
-      }
-    }
-  };
+/** An attack's effect is independent of which economy pool paid for it. */
+export function consumeRogueSteadyAimAttackAdvantage(character: Character): Character {
+  if (!character.classFeatureState?.rogue?.steadyAimAttackAdvantageAvailable) return character;
+  return replaceClassFeatureState(character, "rogue", {
+    ...getRogueFeatureState(character),
+    steadyAimAttackAdvantageAvailable: false
+  });
 }
 
 export function consumeRogueStrokeOfLuckUse(character: Character): Character {

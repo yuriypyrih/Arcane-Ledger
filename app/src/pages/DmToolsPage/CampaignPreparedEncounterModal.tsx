@@ -1,4 +1,4 @@
-import { Pencil, Plus } from "lucide-react";
+import { Plus, Save, X } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import type { CampaignPreparedEncounterRecord } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
@@ -109,6 +109,7 @@ function CampaignPreparedEncounterModal({
             <ActionButton
               type="button"
               variant="OUTLINE"
+              icon={<X size={16} aria-hidden="true" />}
               disabled={isSaving}
               fullWidth
               onClick={onClose}
@@ -119,7 +120,7 @@ function CampaignPreparedEncounterModal({
               type="submit"
               icon={
                 isEditing ? (
-                  <Pencil size={16} aria-hidden="true" />
+                  <Save size={16} aria-hidden="true" />
                 ) : (
                   <Plus size={16} aria-hidden="true" />
                 )

@@ -8,6 +8,14 @@ import {
   spiritualManifestationFreeCastEffectId
 } from "../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfSpiritsEmpowered";
 import {
+  canUseUndeadThrallsFreeCast,
+  undeadThrallsFreeCastEffectId
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardNecromancerUndeadThralls";
+import {
+  canUseWondrousAlterationFreeCast,
+  wondrousAlterationFreeCastEffectId
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
+import {
   canUseDispellingRecovery,
   dispellingRecoveryEffectId
 } from "../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericDomainSpellEffects";
@@ -16,6 +24,10 @@ import {
   spareTheDyingSpellId
 } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
+import {
+  canPaySpellEconomy,
+  payEconomyForCharacterAction
+} from "../../../../pages/CharactersPage/classFeatures/economyMulti";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../types";
 import { getSpellFormulaCellsForCharacterSpell } from "../../../../pages/CharactersPage/shared/spellFormulas";
@@ -27,7 +39,6 @@ export function castSelectedSpellWithContext(
   options?: CastSelectedSpellOptions
 ) {
   const {
-    ACTION_CATEGORY,
     activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
     applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
     applySpellCastFeatureEffectsForCharacter,
@@ -65,7 +76,6 @@ export function castSelectedSpellWithContext(
     consumeRangerMistyWandererUseForCharacter,
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
     consumeRoundTrackerResourceForCharacter,
-    consumeSharedEconomyMultiForCharacterAction,
     consumeSorcererSubclassDragonCompanionUseForCharacter,
     consumeSorcererSubclassTamedSurgeUseForCharacter,
     consumeWarlockStepsOfTheFeyUseForCharacter,
@@ -159,6 +169,12 @@ export function castSelectedSpellWithContext(
   }
   const useSpiritualManifestation =
     options?.spellCastEffectIds?.includes(spiritualManifestationFreeCastEffectId) === true;
+  const useUndeadThralls =
+    options?.spellCastEffectIds?.includes(undeadThrallsFreeCastEffectId) === true;
+  if (useUndeadThralls && !canUseUndeadThrallsFreeCast(character, selectedSpell)) return;
+  const useWondrousAlteration =
+    options?.spellCastEffectIds?.includes(wondrousAlterationFreeCastEffectId) === true;
+  if (useWondrousAlteration && !canUseWondrousAlterationFreeCast(character, selectedSpell)) return;
   if (
     useSpiritualManifestation &&
     !canUseSpiritualManifestationFreeCast(character, selectedSpell)
@@ -176,16 +192,14 @@ export function castSelectedSpellWithContext(
         selectedSpellActionPaths[0]?.roundTrackerResource ??
         getRoundTrackerResourceForSpell(selectedSpell));
   const selectedSpellActionPath =
+    selectedSpellActionPaths.find((path) => path.id === options?.spellActionPathId) ??
     selectedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
     selectedSpellActionPaths[0] ??
     null;
-  const sharedEconomyContext = selectedSpellActionPath
-    ? {
-        economyType: selectedSpellActionPath.economyType,
-        actionCategory: ACTION_CATEGORY.MAGIC,
-        spellLevel: selectedSpell.spellLevel
-      }
-    : createEconomyMultiContextForSpell(selectedSpell);
+  const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell, {
+    ...selectedSpellActionPath,
+    roundTrackerResource
+  });
   const castAsRitual =
     !useSpiritQuery && options?.castAsRitual === true && selectedSpell.ritual === true;
   const useBeguilingMagic = options?.useBeguilingMagic === true;
@@ -239,6 +253,10 @@ export function castSelectedSpellWithContext(
     selectedSpellActionPath?.spellImplementationCastSource ??
     "standard";
   const spellActionPathId = options?.spellActionPathId ?? selectedSpellActionPath?.id ?? null;
+  const canPaySelectedSpellEconomy = (currentCharacter: Character) =>
+    castAsRitual ||
+    canPaySpellEconomy(currentCharacter, selectedSpell, roundTrackerResource, spellActionPathId);
+  if (!canPaySelectedSpellEconomy(character)) return;
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
   const useStepsOfTheFey =
     options?.useStepsOfTheFey === true &&
@@ -405,6 +423,7 @@ export function castSelectedSpellWithContext(
       options?.useJoltToLife === true && selectedSpell.id === spareTheDyingSpellId;
     if (roundTrackerResource) {
       onPersistCharacter((currentCharacter) => {
+        if (!canPaySelectedSpellEconomy(currentCharacter)) return currentCharacter;
         if (!canAddSelectedSummonCompanions(currentCharacter)) {
           return currentCharacter;
         }
@@ -457,19 +476,6 @@ export function castSelectedSpellWithContext(
           return currentCharacter;
         }
 
-        const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
-          nextCharacterWithFeatCastEffects,
-          sharedEconomyContext
-        );
-
-        if (nextCharacterWithSharedMulti !== nextCharacterWithFeatCastEffects) {
-          return appendSelectedSummonCompanions(
-            applySpellCastFeatureEffectsForCharacter(nextCharacterWithSharedMulti, selectedSpell, {
-              useRadiantSoul
-            })
-          );
-        }
-
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
           nextCharacterWithFeatCastEffects,
           selectedSpell,
@@ -480,9 +486,10 @@ export function castSelectedSpellWithContext(
           roundTrackerResource
         );
 
-        return appendSelectedSummonCompanions(
-          consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
-        );
+        const paid = payEconomyForCharacterAction(nextCharacterWithFleetStep, sharedEconomyContext);
+        return paid.status === "paid"
+          ? appendSelectedSummonCompanions(paid.character)
+          : currentCharacter;
       });
     } else {
       onPersistCharacter((currentCharacter) => {
@@ -657,10 +664,16 @@ export function castSelectedSpellWithContext(
     useNaturalRecovery
   });
   const slotLevel =
-    useSpiritQuery || useSpiritualManifestation || useDispellingRecovery
+    useSpiritQuery ||
+    useSpiritualManifestation ||
+    useDispellingRecovery ||
+    useUndeadThralls ||
+    useWondrousAlteration
       ? spellLevel
       : slotPlan.slotLevel;
   const castsWithoutSpellSlot =
+    useWondrousAlteration ||
+    useUndeadThralls ||
     useSpiritQuery ||
     useSpiritualManifestation ||
     useDispellingRecovery ||
@@ -713,6 +726,7 @@ export function castSelectedSpellWithContext(
   }
 
   onPersistCharacter((currentCharacter) => {
+    if (!canPaySelectedSpellEconomy(currentCharacter)) return currentCharacter;
     if (!canAddSelectedSummonCompanions(currentCharacter)) {
       return currentCharacter;
     }
@@ -721,6 +735,15 @@ export function castSelectedSpellWithContext(
       currentCharacter,
       roundTrackerResource
     );
+    if (useUndeadThralls && !canUseUndeadThrallsFreeCast(preparedCharacter, selectedSpell)) {
+      return currentCharacter;
+    }
+    if (
+      useWondrousAlteration &&
+      !canUseWondrousAlterationFreeCast(preparedCharacter, selectedSpell)
+    ) {
+      return currentCharacter;
+    }
     if (
       useSpiritualManifestation &&
       !canUseSpiritualManifestationFreeCast(preparedCharacter, selectedSpell)
@@ -1028,6 +1051,7 @@ export function castSelectedSpellWithContext(
       selectedSpellCastEffectIds,
       {
         spellSlotLevel: slotLevel,
+        sourceSpellSlotLevel,
         castSource: spellImplementationCastSource,
         options: spellImplementationOptions,
         spellActionPathId
@@ -1073,22 +1097,11 @@ export function castSelectedSpellWithContext(
       );
     }
 
-    const nextCharacterWithSharedMulti = roundTrackerResource
-      ? consumeSharedEconomyMultiForCharacterAction(
-          nextCharacterWithSpellCastEffects,
-          sharedEconomyContext
-        )
-      : nextCharacterWithSpellCastEffects;
-
-    if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
-      return appendSelectedSummonCompanions(nextCharacterWithSharedMulti);
-    }
-
-    const nextCharacterWithResource = roundTrackerResource
-      ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
-      : nextCharacterWithFleetStep;
-
-    return appendSelectedSummonCompanions(nextCharacterWithResource);
+    if (!roundTrackerResource) return appendSelectedSummonCompanions(nextCharacterWithFleetStep);
+    const paid = payEconomyForCharacterAction(nextCharacterWithFleetStep, sharedEconomyContext);
+    return paid.status === "paid"
+      ? appendSelectedSummonCompanions(paid.character)
+      : currentCharacter;
   });
 
   rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);

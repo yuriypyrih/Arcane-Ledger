@@ -1,10 +1,5 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -190,7 +185,7 @@ function getBarbarianPathOfTheBerserkerIntimidatingPresenceFacts(
   character: IntimidatingPresenceFormulaCharacter
 ): FeatureActionFact[] {
   const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const dc = 8 + strengthModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",

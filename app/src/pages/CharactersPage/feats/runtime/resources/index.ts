@@ -1,4 +1,5 @@
 import { getClericDomainSpellCastEffects } from "../../../classFeatures/cleric/subclasses/clericDomainSpellEffects";
+import { getWizardSubclassSpellCastEffects } from "../../../classFeatures/wizard/subclasses";
 import { getPhantomSpiritQueryCastEffects } from "../../../classFeatures/rogue/subclasses/roguePhantomTokens";
 import { getBardSpiritsSpellCastEffects } from "../../../classFeatures/bard/subclasses/bardCollegeOfSpiritsEmpowered";
 import { updateFeatEntries } from "./stateAdapter";
@@ -796,7 +797,8 @@ export function applyFeatureSpellCastEffectsForCharacter(
       ...collectFeatDerivedState(character).spellCastEffects,
       ...getBardSpiritsSpellCastEffects(character),
       ...getPhantomSpiritQueryCastEffects(character),
-      ...getClericDomainSpellCastEffects(character)
+      ...getClericDomainSpellCastEffects(character),
+      ...getWizardSubclassSpellCastEffects(character)
     ].map((effect) =>
       effect.id === spellfireSparkSpellfireFlameSpellCastEffectId && !effect.apply
         ? {

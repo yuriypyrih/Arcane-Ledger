@@ -1,5 +1,6 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
-import { getCharacterLevel } from "./multiclassState";
+
 import {
   getSpeciesEntryByName,
   getSpellEntryById,
@@ -92,11 +93,6 @@ function getGnomeDescriptionText(heading: string, fallback: string): string {
   const section = getGnomeDescriptionSection(heading);
 
   return section.length > 0 ? section.join("\n") : fallback;
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -305,7 +301,7 @@ export function getGnomeSpellcastingAbilityForCharacter(
 
 export function getGnomeSpeakWithAnimalsUsesTotal(character: GnomeRuntimeCharacter): number {
   return isForestGnome(character)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 

@@ -271,7 +271,7 @@ export function getBarbarianIndomitableMightMinimumAbilityForSkillRoll(
   return hasBarbarianIndomitableMightFeature(character) && skill === SKILL.ATHLETICS ? "STR" : null;
 }
 
-function getBarbarianAdditionalAttackCount(
+export function getBarbarianAdditionalAttackCount(
   character: Pick<Character, "className" | "level">
 ): number {
   return hasBarbarianExtraAttack(character) ? 1 : 0;

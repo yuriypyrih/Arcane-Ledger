@@ -8,6 +8,7 @@ export type FeatContributionContext = {
   entry: CharacterFeatEntry;
   index: number;
   level: number;
+  proficiencyBonus: number;
   contribution: FeatureContributionSpec<FeatDerivedState>;
   featCantripEntries: SpellEntry[];
   getFeatDescription: (feat: FEATS) => SpellDescriptionEntry[];

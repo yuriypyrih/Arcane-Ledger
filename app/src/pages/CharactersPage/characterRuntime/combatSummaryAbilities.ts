@@ -1,9 +1,4 @@
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../multiclassState";
 import { CLASS_FEATURE } from "../../../codex/entries/enums";
 import { getClassEntryByName } from "../../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character } from "../../../types";
@@ -162,7 +157,7 @@ export function createCombatSummaryAbilities(
     getClassSubclassId(character, "Bard") === "bard-college-of-dance" &&
     getClassLevel(character, "Bard") >= 14;
   const hasEvasion = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION).length > 0;
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const effectiveAbilities = getAbilityScoresForCharacter(character);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)

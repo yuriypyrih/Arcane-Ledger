@@ -1,3 +1,4 @@
+import { Save } from "lucide-react";
 import { applyActionResourceTransition } from "../actionResourceTransition";
 import type { ActionFormKind } from "./types";
 import {
@@ -89,7 +90,12 @@ function renderPortentFooter(context: ActionFormFooterContext) {
     selectedAction.drawer.formKind === "portent"
   ) {
     return (
-      <ActionButton className={styles.footerActionButton} type="submit" form={portentActionFormId}>
+      <ActionButton
+        className={styles.footerActionButton}
+        type="submit"
+        form={portentActionFormId}
+        icon={<Save size={16} aria-hidden="true" />}
+      >
         Save Portent
       </ActionButton>
     );

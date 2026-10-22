@@ -23,12 +23,13 @@ import {
 import { ENTRY_CATEGORIES, FEATS, TRACKER } from "../../../codex/entries/enums";
 import {
   resolveKeywordReference,
+  renderCodexRichText,
   type ResolvedKeywordReference
 } from "../../../utils/codex/renderCodexRichText";
 import {
   formatBackgroundAbilityScoreOptions,
   formatBackgroundEquipmentOptions,
-  formatBackgroundOriginFeat,
+  formatBackgroundOriginFeatReference,
   formatBackgroundProficiencies
 } from "../backgroundPresentation";
 import styles from "../FeatCodexList/FeatCodexList.module.css";
@@ -68,13 +69,14 @@ function getListTitle(category: CodexDisclosureCategory): string {
 }
 
 function getEntryTrackingState(entry: BackgroundEntry | SpeciesEntry): TRACKER {
-  return entry.category === ENTRY_CATEGORIES.BACKGROUNDS
-    ? TRACKER.TRACKED
-    : (entry.trackingState ?? TRACKER.NOT_TRACKED);
+  return (
+    entry.trackingState ??
+    (entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? TRACKER.TRACKED : TRACKER.NOT_TRACKED)
+  );
 }
 
 function getEntryTrackingMessage(entry: BackgroundEntry | SpeciesEntry): string | undefined {
-  return entry.category === ENTRY_CATEGORIES.SPECIES ? entry.trackingMessage : undefined;
+  return entry.trackingMessage;
 }
 
 function getStatusLabel(category: CodexDisclosureCategory): string {
@@ -130,8 +132,6 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
 
   function renderEntryBody(entry: BackgroundEntry | SpeciesEntry) {
     if (entry.category === ENTRY_CATEGORIES.BACKGROUNDS) {
-      const originFeatLabel = formatBackgroundOriginFeat(entry);
-
       return (
         <>
           {entry.description ? (
@@ -141,15 +141,10 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
             {formatBackgroundAbilityScoreOptions(entry)}
           </DetailLine>
           <DetailLine label="Feat">
-            <button
-              type="button"
-              className={featureDisclosureStyles.inlineLinkButton}
-              onClick={() =>
-                setSelectedFeatReference({ feat: entry.originFeat, label: originFeatLabel })
-              }
-            >
-              {originFeatLabel}
-            </button>
+            {renderCodexRichText(formatBackgroundOriginFeatReference(entry), {
+              linkClassName: featureDisclosureStyles.inlineLinkButton,
+              onOpenFeat: (feat, label) => setSelectedFeatReference({ feat, label })
+            })}
           </DetailLine>
           <DetailLine label="Skill + Tool Proficiencies">
             {formatBackgroundProficiencies(entry)}

@@ -19,7 +19,6 @@ import {
   OverlayHeader,
   OverlayHeaderContent,
   OverlayTitle,
-  OverlayTitleRow,
   SheetDrawer
 } from "../../../Overlay";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
@@ -77,10 +76,16 @@ export type SelectedStatReference = {
 type StatReferenceDrawerProps = {
   reference: SelectedStatReference;
   footer?: ReactNode;
+  headerAction?: ReactNode;
   onClose: () => void;
 };
 
-function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenceDrawerProps) {
+function StatReferenceDrawer({
+  reference,
+  footer = null,
+  headerAction,
+  onClose
+}: StatReferenceDrawerProps) {
   const readOnly = useReadOnlySheet();
   const visibleFooter = readOnly ? null : footer;
   const descriptionSections = orderDescriptionAdditionSections(
@@ -96,9 +101,7 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
       <OverlayHeader className={styles.referenceDrawerHeader}>
         <OverlayHeaderContent>
           <OverlayEyebrow>Reference</OverlayEyebrow>
-          <OverlayTitleRow>
-            <OverlayTitle id="character-stats-reference-title">{reference.keyword}</OverlayTitle>
-          </OverlayTitleRow>
+          <OverlayTitle id="character-stats-reference-title">{reference.keyword}</OverlayTitle>
         </OverlayHeaderContent>
         {reference.indicatorSections?.length ? (
           <div className={styles.referenceIndicatorStack}>
@@ -127,7 +130,10 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
             })}
           </div>
         ) : null}
-        <OverlayCloseButton label="Close stats details" onClick={onClose} />
+        <div className={styles.referenceHeaderActions}>
+          {!readOnly && headerAction}
+          <OverlayCloseButton label="Close stats details" onClick={onClose} />
+        </div>
       </OverlayHeader>
 
       {hasDescriptionContent || hasDetails ? (

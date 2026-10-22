@@ -69,6 +69,7 @@
 
 .progressRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.9rem;
@@ -97,6 +98,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.55rem;
+  margin-inline-start: auto;
 }
 
 .actionButton {
@@ -138,31 +140,6 @@
 }
 
 @media (max-width: 599px) {
-  .progressMetaRow {
-    grid-template-columns: 1fr;
-  }
-
-  .progressMetaItemRight {
-    text-align: left;
-  }
-
-  .progressMetaLabelRight,
-  .progressMetaContentRight {
-    text-align: left;
-  }
-
-  .progressMetaContentRight {
-    justify-content: flex-start;
-  }
-
-  .progressRow {
-    flex-direction: column;
-  }
-
-  .progressActions {
-    justify-content: flex-start;
-  }
-
   .footer :global(button) {
     justify-content: center;
   }

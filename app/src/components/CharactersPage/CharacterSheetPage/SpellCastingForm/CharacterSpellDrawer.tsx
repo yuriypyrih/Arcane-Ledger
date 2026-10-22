@@ -1,6 +1,11 @@
 import { bindResourceHeaderTags } from "../../../../pages/CharactersPage/drawerResourceBindings";
 import { getSpellOptionResourceTargets } from "../../../../pages/CharactersPage/spellResourceBindings";
 import { useClericDomainSpellOptions } from "./useClericDomainSpellOptions";
+import { useTransmuterSpellOption } from "./useTransmuterSpellOption";
+import {
+  useNecromancerSpellOption,
+  useUndeadThrallsSpellOption
+} from "./useNecromancerSpellOption";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -56,6 +61,7 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
+import { appendMysticArtsSpellDescription } from "../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheMysticArts";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import { CHARACTER_COMPANION_LIMIT } from "../../../../pages/CharactersPage/companions";
@@ -536,13 +542,27 @@ function CharacterSpellDrawer({
   );
   const clericOptions = useClericDomainSpellOptions(character, spell, mode === "standard");
   const phantomOption = usePhantomSpiritQueryOption(character, spell, mode === "standard");
+  const undeadThrallsOption = useUndeadThrallsSpellOption(
+    character,
+    spell,
+    mode === "standard" && actionConsumesSpellSlot
+  );
+  const undeadThrallsFreeCast = undeadThrallsOption?.checked === true;
+  const wondrousAlterationOption = useTransmuterSpellOption(
+    character,
+    spell,
+    mode === "standard" && actionConsumesSpellSlot
+  );
+  const wondrousAlterationFreeCast = wondrousAlterationOption?.checked === true;
   const allActionOptions: CharacterSpellDrawerActionOption[] = [
     ...phantomOption.options,
     ...clericOptions.options,
     ...spellImplementationActionOptions,
     ...actionOptions,
     ...(reanimatorOption ? [reanimatorOption] : []),
-    ...spiritsOptions.options
+    ...spiritsOptions.options,
+    ...(undeadThrallsOption ? [undeadThrallsOption] : []),
+    ...(wondrousAlterationOption ? [wondrousAlterationOption] : [])
   ];
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const isQuickRitualSelected = allActionOptions.some(
@@ -572,6 +592,8 @@ function CharacterSpellDrawer({
       : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
   const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
+    wondrousAlterationFreeCast ||
+    undeadThrallsFreeCast ||
     phantomOption.selected ||
     spiritsOptions.freeCast ||
     clericOptions.dispellingRecovery ||
@@ -582,7 +604,28 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
-  const visibleActionOptions = allActionOptions;
+  const necromancerOption = useNecromancerSpellOption(
+    character,
+    spell,
+    normalizedSelectedSpellSlotLevel,
+    mode === "standard",
+    actionConsumesSpellSlot &&
+      !wondrousAlterationFreeCast &&
+      !undeadThrallsFreeCast &&
+      !selectedSlotIsFreeCast &&
+      !selectedSlotIsFreeUse &&
+      !isRitualCastingSelected &&
+      !ritualCastingRequired &&
+      !isQuickRitualSelected &&
+      !phantomOption.selected &&
+      !spiritsOptions.freeCast &&
+      !clericOptions.dispellingRecovery &&
+      (selectedSpellRemainingSlots ?? 0) > 0
+  );
+  const visibleActionOptions = [
+    ...allActionOptions,
+    ...(necromancerOption ? [necromancerOption] : [])
+  ];
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
     option.headerTags?.length
       ? bindResourceHeaderTags(
@@ -598,6 +641,8 @@ function CharacterSpellDrawer({
   );
   const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
+    !wondrousAlterationFreeCast &&
+    !undeadThrallsFreeCast &&
     !phantomOption.required &&
     !spiritsOptions.freeCast &&
     !clericOptions.dispellingRecovery &&
@@ -702,7 +747,10 @@ function CharacterSpellDrawer({
     spellCastEffectIds: [
       ...phantomOption.effectIds,
       ...clericOptions.effectIds,
-      ...spiritsOptions.effectIds
+      ...spiritsOptions.effectIds,
+      ...(undeadThrallsFreeCast ? [undeadThrallsOption.id] : []),
+      ...(wondrousAlterationFreeCast ? [wondrousAlterationOption.id] : []),
+      ...(necromancerOption?.checked ? [necromancerOption.id] : [])
     ],
     spellImplementationOptions: activeSpellImplementationOptionValues,
     summonCompanions: isSpellSummonDefinitionRequired ? activeSpellSummonDefinitions : []
@@ -862,18 +910,22 @@ function CharacterSpellDrawer({
 
   const hasBaseDescription = spell.description.length > 0;
   const spellDescriptionSections = orderDescriptionAdditionSections(
-    spell.descriptionAdditions ?? []
+    appendMysticArtsSpellDescription(character, spell).descriptionAdditions ?? []
   );
-  const availabilityText = phantomOption.required
-    ? "Spirit Query spends 1 Soul Trinket to cast Augury as a Magic action without a spell slot or components."
-    : clericOptions.dispellingRecovery
-      ? "Confirm that you just spent a spell slot on a spell that restored Hit Points or ended a condition. This casting uses no additional action or spell slot."
-      : spiritsOptions.freeCast
-        ? `Spiritual Manifestation casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
-        : (isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
-          ? (actionAvailabilityText ??
-            "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
-          : actionAvailabilityText;
+  const availabilityText = wondrousAlterationFreeCast
+    ? `Wondrous Alteration casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
+    : phantomOption.required
+      ? "Spirit Query spends 1 Soul Trinket to cast Augury as a Magic action without a spell slot or components."
+      : undeadThrallsFreeCast
+        ? `Undead Thralls casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
+        : clericOptions.dispellingRecovery
+          ? "Confirm that you just spent a spell slot on a spell that restored Hit Points or ended a condition. This casting uses no additional action or spell slot."
+          : spiritsOptions.freeCast
+            ? `Spiritual Manifestation casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
+            : (isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
+              ? (actionAvailabilityText ??
+                "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
+              : actionAvailabilityText;
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeUse
@@ -895,7 +947,7 @@ function CharacterSpellDrawer({
   const shouldShowTopRow =
     relativeDescription !== null ||
     ritualCastingAvailable ||
-    allActionOptions.length > 0 ||
+    visibleActionOptions.length > 0 ||
     actionContextTexts.length > 0;
 
   if (typeof document === "undefined") {

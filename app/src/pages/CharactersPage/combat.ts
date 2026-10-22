@@ -63,7 +63,7 @@ function normalizeRoundTrackerSpellExtraAttackUses(
         Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
       ] as const;
     })
-    .filter(([key, count]) => key.length > 0 && count > 0);
+    .filter(([key]) => key.length > 0);
 
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }

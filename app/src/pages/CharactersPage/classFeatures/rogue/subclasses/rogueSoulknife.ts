@@ -1,10 +1,5 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { type WeaponDamage } from "../../../../../codex/entries";
 import { CLASS_FEATURE, ENTRY_CATEGORIES } from "../../../../../codex/entries/enums";
 import { psychicBladeSoulBladesSummary } from "../../../../../codex/entries/featureWeapons";
@@ -647,7 +642,7 @@ export function getRogueSoulknifeRendMindSavingThrowDc(
   return (
     8 +
     getAbilityModifierForCharacter(character, "DEX") +
-    getProficiencyBonus(getCharacterLevel(character) ?? 1)
+    getProficiencyBonus(character)
   );
 }
 
@@ -662,7 +657,7 @@ export function getRogueSoulknifeRendMindSavingThrowFormulaDisplay(
   }
 
   const dexterityModifier = getAbilityModifierForCharacter(character, "DEX");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
 
   return [
     `Wisdom DC ${saveDc} = DC 8`,

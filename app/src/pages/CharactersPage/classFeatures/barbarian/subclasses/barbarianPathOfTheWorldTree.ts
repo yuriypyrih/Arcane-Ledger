@@ -1,9 +1,4 @@
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getReactionEntryById } from "../../../../../codex/entries";
 import {
   CLASS_FEATURE,
@@ -106,7 +101,7 @@ export function getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormulaFact(
   }
 
   const strengthModifier = getAbilityModifierForCharacter(character, "STR");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const dc = 8 + strengthModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",

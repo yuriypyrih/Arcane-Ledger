@@ -633,6 +633,18 @@ export type CharacterCustomSpellSnapshot = {
   spell: SpellEntry;
 };
 
+export type CharacterStatOverrideValue = { enabled: boolean; value: number };
+export type CharacterStatOverrides = {
+  armorClass?: CharacterStatOverrideValue;
+  initiative?: CharacterStatOverrideValue;
+  passivePerception?: CharacterStatOverrideValue;
+  proficiencyBonus?: CharacterStatOverrideValue;
+  speed?: {
+    enabled: boolean;
+    values: Partial<Record<"walk" | "climb" | "swim" | "fly" | "burrow", number>>;
+  };
+};
+
 export type Character = {
   id: number;
   name: string;
@@ -692,6 +704,7 @@ export type Character = {
   shortRestsUsedToday?: number;
   heroicInspiration: boolean;
   coreStats?: CoreStats;
+  statOverrides?: CharacterStatOverrides;
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
@@ -753,6 +766,7 @@ export type CharacterDraft = {
   shortRestsUsedToday?: number;
   heroicInspiration: boolean;
   coreStats?: CoreStats;
+  statOverrides?: CharacterStatOverrides;
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];

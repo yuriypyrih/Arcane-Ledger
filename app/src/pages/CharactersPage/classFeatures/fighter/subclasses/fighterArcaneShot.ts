@@ -17,7 +17,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
-import { getCharacterLevel, getClassLevel } from "../../../multiclassState";
+import { getClassLevel } from "../../../multiclassState";
 import { getFeatureDescriptionMetadataForCharacter } from "../../featureDescriptions";
 import { replaceClassFeatureState, spendClassResource } from "../../shared/resourceState";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
@@ -182,7 +182,7 @@ export function collectArcaneShotContributions(
                 )
               : withDescription;
             const intelligence = getAbilityModifierForCharacter(character, "INT");
-            const proficiency = getProficiencyBonus(getCharacterLevel(character));
+            const proficiency = getProficiencyBonus(character);
             const label = "Arcane Shot DC Formula";
             return {
               ...withOptions,

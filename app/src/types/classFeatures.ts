@@ -216,6 +216,9 @@ export type CharacterWizardFeatureState = {
   spellcastWeaponBonusActionAvailable?: boolean;
   scholar?: SkillName;
   savantSpellIds?: string[];
+  undeadThrallsUsesExpended?: number;
+  bolsterUndeadUsesExpended?: number;
+  wondrousAlterationUsesExpended?: number;
   phantasmalCreaturesUsesExpended?: number;
   illusorySelfUsesExpended?: number;
   overchannelUsesSinceLongRest?: number;

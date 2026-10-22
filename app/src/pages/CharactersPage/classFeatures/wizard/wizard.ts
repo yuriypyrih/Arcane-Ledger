@@ -2,6 +2,10 @@ import { replaceClassFeatureState } from "../shared/resourceState";
 import { getProgressionRow } from "../../../../codex/progression";
 import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
+import { getNecromancySpellbookSpellIds } from "./subclasses/wizardNecromancer";
+import { normalizeUndeadThrallsUsesExpended } from "./subclasses/wizardNecromancerUndeadThralls";
+import { normalizeWondrousAlterationUsesExpended } from "./subclasses/wizardTransmuterWondrousAlteration";
+import { normalizeBolsterUndeadUsesExpended } from "./subclasses/wizardNecromancerDeathMaster";
 import {
   hasCharacterClass,
   getClassLevel,
@@ -329,6 +333,18 @@ export function normalizeWizardFeatureState(
         )
       : 0,
     ...normalizeWizardBladesingerFeatureState(record ?? {}, character),
+    bolsterUndeadUsesExpended: normalizeBolsterUndeadUsesExpended(
+      record?.bolsterUndeadUsesExpended,
+      character
+    ),
+    undeadThrallsUsesExpended: normalizeUndeadThrallsUsesExpended(
+      record?.undeadThrallsUsesExpended,
+      character
+    ),
+    wondrousAlterationUsesExpended: normalizeWondrousAlterationUsesExpended(
+      record?.wondrousAlterationUsesExpended,
+      character
+    ),
     scholar: hasScholar ? normalizeWizardScholarSelection(record?.scholar) : undefined,
     savantSpellIds:
       getClassSubclassId(character, "Wizard") === undefined
@@ -408,14 +424,17 @@ export function getWizardSavantSpellIds(
     return [];
   }
 
-  return normalizeWizardSavantSpellIds(getWizardFeatureState(character).savantSpellIds, character);
+  return normalizeWizardSavantSpellIds(
+    getWizardFeatureState(character).savantSpellIds,
+    character
+  ).filter(Boolean);
 }
 
 export function getWizardAlwaysSpellbookSpellIds(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "classFeatureState" | "subclassId">>
 ): string[] {
-  return getWizardSavantSpellIds(character);
+  return [...getWizardSavantSpellIds(character), ...getNecromancySpellbookSpellIds(character)];
 }
 
 export function setWizardSavantSpellIds(character: Character, spellIds: string[]): Character {

@@ -408,6 +408,9 @@ export type EconomyMultiActionContext = {
   weaponInventoryStackId?: string;
   weaponInventoryFeatureTags?: CharacterInventoryFeatureTag[];
   spellLevel?: number;
+  spellCastingTime?: SpellEntry["castingTime"];
+  spellActionPathId?: string;
+  poolOnly?: boolean;
 };
 
 export type FeatureEconomyMultiAccessRule = {
@@ -416,6 +419,10 @@ export type FeatureEconomyMultiAccessRule = {
   attackKinds?: EconomyMultiAttackKind[];
   weaponInventoryFeatureTags?: CharacterInventoryFeatureTag[];
   spellLevels?: number[];
+  spellCastingTimes?: SpellEntry["castingTime"];
+  /** Number of attacks/strikes paid for one use. */
+  cost?: number;
+  spellActionPathIds?: string[];
   maxAccessible: number | "all";
 };
 

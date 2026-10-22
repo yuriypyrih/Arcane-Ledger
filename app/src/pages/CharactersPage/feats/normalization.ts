@@ -291,7 +291,8 @@ function getRawFeatValue(rawEntry: unknown): unknown {
 
 export function normalizeCharacterFeats(
   value: unknown,
-  currentLevel: number
+  currentLevel: number,
+  proficiencyBonusLimit?: number
 ): CharacterFeatEntry[] {
   const rawEntries = getRawFeatEntries(value);
 
@@ -555,11 +556,13 @@ export function normalizeCharacterFeats(
         : undefined;
     const spellfireSpark =
       feat === FEATS.SPELLFIRE_SPARK
-        ? normalizeSpellfireSparkChoice(record.spellfireSpark, currentLevel)
+        ? normalizeSpellfireSparkChoice(record.spellfireSpark, currentLevel, proficiencyBonusLimit)
         : undefined;
     const musician = feat === FEATS.MUSICIAN ? normalizeMusicianChoice(record.musician) : undefined;
     const lucky =
-      feat === FEATS.LUCKY ? normalizeLuckyChoice(record.lucky, currentLevel) : undefined;
+      feat === FEATS.LUCKY
+        ? normalizeLuckyChoice(record.lucky, currentLevel, proficiencyBonusLimit)
+        : undefined;
 
     return [
       {

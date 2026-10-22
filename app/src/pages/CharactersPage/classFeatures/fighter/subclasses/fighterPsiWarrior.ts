@@ -1,10 +1,5 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   getReactionEntryById,
   getSpellEntryByName,
@@ -231,7 +226,7 @@ function formatPsiWarriorBreakdownTerm(value: number, label: string): string {
 
 function getTelekineticThrustDcFact(character: PsiWarriorCharacter): FeatureActionFact {
   const intelligenceModifier = getPsiWarriorIntelligenceModifier(character);
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const telekineticThrustDc = 8 + intelligenceModifier + proficiencyBonus;
   const breakdown = [
     "8 Base",

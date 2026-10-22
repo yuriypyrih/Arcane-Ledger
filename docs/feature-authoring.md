@@ -157,6 +157,31 @@ uses cantrip scaling, class, subclass, feat, then species transforms. Spellbook 
 separate and supports Wizard as a secondary class. Intrinsic roll/apply behavior stays in the spell
 implementation registry. Do not add a competing transform chain to a component.
 
+Necromancer and Transmuter use the shared Savant dropdowns and always-spellbook grants, filtered to
+Necromancy and Transmutation respectively. Their choices retain their positions so the first two
+are limited to spell levels 1–2, with one further choice at each new Wizard spell-slot tier. These
+grants do not automatically prepare the chosen spells.
+
+Transmuter's Wondrous Alteration grants always-prepared Alter Self and appends its feature text to
+the spell drawer. Its optional free cast uses one charge per Long Rest and casts at the base spell
+level without spending a slot, including when no slots remain. The charge has an explicit camp
+recovery option. Aquatic Adaptation, Change Appearance, and Natural Weapons benefits remain manual.
+
+Necromancy Spellbook adds Find Familiar without preparing it, grants Necrotic resistance, and
+sources its drawer additions from the codex. The optional Undead Vitality
+effect restores the player's HP by Wizard level plus the slot actually spent, capped at maximum HP.
+Spell-cast effects receive that paid slot as `sourceSpellSlotLevel`; `spellSlotLevel` alone is only
+the casting level and must not trigger slot-paid benefits on free, ritual, or item casts.
+At Wizard level 6, Grave Resilience runs after a successful Arcane Recovery and removes one
+Exhaustion level. Overwhelming Necrosis is reference text on spells with Necrotic damage. Undead
+Thralls grants always-prepared Animate Dead with a separate optional free-cast charge, restored
+through its explicit Long Rest option. Its spell-level increase and companion bonuses remain manual.
+Harvest Undead appears in Traits & Conditions and heals by Wizard level only while Bloodied and
+above 0 HP; sacrificing the Undead remains manual. Death's Master adds Bolster Undead, granting
+Wizard-level temporary HP to companions whose type is Undead without replacing higher temporary
+HP, with one charge restored through its Long Rest option. Extinguish Undead spends a Reaction and
+the selected level 5+ spell slot; its trigger, explosion damage, and targets remain manual.
+
 Caches are keyed by immutable object identity, including the source spell object and casting/book
 mode. Two custom spell objects with the same ID may have different descriptions or formulas. Class
 runtime views are keyed by both the outer character and class entry; editors still obtain fresh
@@ -174,6 +199,26 @@ control and d20 icon. Other action buttons retain their visual role and accessib
 when activation changes the prepared character. Use it only for that policy. A failed activation
 returns the original character and discards provisional preparation. Confirmation must recheck
 live state rather than trust a stale displayed count.
+
+Shared attack and spell payments use `classFeatures/economyMulti.ts`. Build a context with the
+weapon/spell helpers, use `resolveEconomyPaymentForCharacterAction` for availability, and call
+`payEconomyForCharacterAction` against live state when submitting. Its explicit `paid`/`unavailable`
+result determines whether to commit the entire cast, including slots and effects. Object identity
+does not indicate payment success; free/out-of-combat payments can legitimately leave state unchanged.
+
+`economyPayment.ts` owns payment selection and attack-budget transitions. `economyPools.ts` adapts
+the existing class counters, while subclass rules declare eligibility and per-use costs. Extra
+Attack alternatives share a budget; Action Surge starts another complete Attack action. Independent
+grants such as Flurry and Retaliation remain separate. Starting or spending an Attack action updates
+all class representations directly rather than replaying other classes' attack handlers. Attack
+effects such as Steady Aim and Shadow Step advantage remain in their owning runtimes.
+
+Saved sheets keep their existing class counters. For spell-granted Extra Attack,
+`roundTracker.spellExtraAttackUses` distinguishes a missing entry (no Attack action started), zero
+(one extra attack remains), and one (spent). Normalization must preserve zero. Merely spending an
+Action on another activity must not unlock an extra attack. Older saves without this marker
+cannot distinguish those activities; a transformation saved mid-turn may need a new turn to
+establish its attack budget.
 
 `useNestedReferences` and `NestedReferenceDrawers` preserve nested reference priority and existing
 lazy drawers. The host retains its Escape handler and any special tooltip behavior. Use
@@ -489,3 +534,30 @@ At Fighter level 15, Indomitable Teleport adds its codex description to the Indo
 drawer. At level 18, Masterful Shots appears among the reactions in Traits & Conditions, reusing
 its codex description and the shared reaction spending flow. Teleportation, movement, and the
 ranged attack are handled manually.
+
+### Warrior of the Mystic Arts
+
+Spellcasting unlocks at Monk level 3. Cantrip and prepared spell choices use the Sorcerer spell
+list, with Wisdom for spell attack rolls and saving throw DCs. The level 3–20 progression lives
+in `app/src/codex/classes/subclassSpellcasting.ts`, and the codex feature description renders its
+rows from that same data. Spell selection, slot spending, persistence, and Long Rest recovery
+use the standard spellcasting flows. Multiclass characters contribute one third of their Monk
+levels, rounded down, to shared slots, while their Monk spell choices remain limited by Monk level.
+
+The progression was checked against the [Arcana Unleashed subclass reference](https://dnd2024.wikidot.com/monk:warrior-of-the-mystic-arts)
+and the matching level-3 spellcasting table in the [official Mystic Subclasses playtest](https://media.dndbeyond.com/compendium-images/ua/mystic-subclasses/mrF6k4xf0yYFJL2m/UA2026-MysticSubclasses.pdf).
+
+At Monk level 6, Mystic Fighting Style lets Action cantrips spend one use of the existing
+Action attack pool. Casting a cantrip first spends the Action and opens the same extra attack
+as Unarmed Strike. That use can pay for another cantrip or an attack; there is no separate
+once-per-turn cantrip limit. Cantrips do not use the Flurry of Blows Bonus Action pool.
+
+Focused Strike adds its sourced description to Unarmed Strike at Monk level 11. Improved Mystic
+Fighting Style adds its description to Flurry of Blows at level 17. Level-1 and level-2 spells with
+an Action casting time can then spend two remaining Action attacks or two Flurry of Blows strikes
+from the existing counters. Each pool is checked separately; one use from each cannot pay for a
+cast. The Bonus Action spell path requires an activated Flurry with at least two strikes left.
+It is hidden when no Flurry strikes remain and disabled when only one remains. Eligible spell
+drawers include the level-17 feature description whether or not Flurry is currently active.
+Normal casting with an unused Action remains available, and spell-slot costs are unchanged.
+The shared spell paths and spending hooks cover prepared, feature-granted, and stored item spells.

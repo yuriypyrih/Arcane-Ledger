@@ -2,7 +2,7 @@ import { type ReactionEntry, type SpellDescriptionEntry } from "../../../../code
 import { FEATS, REACTION } from "../../../../codex/entries/enums";
 import type { CharacterFeatEntry } from "../../../../types";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../classFeatures/types";
-import { getProficiencyBonus } from "../../gameplay";
+
 import {
   createDurableSpeedyRecoveryAction,
   createFairyTricksterFlusteringStrikeAction,
@@ -76,11 +76,11 @@ export type GeneralFeatResourceState = {
 export function getGeneralFeatResourceState(
   normalizedFeats: CharacterFeatEntry[],
   featSet: ReadonlySet<FEATS>,
-  level: number,
+  proficiencyBonus: number,
   telepathicDetectThoughtsFreeCastEntries: FeatDerivedState["telepathicDetectThoughtsFreeCastEntries"]
 ): GeneralFeatResourceState {
   const fairyTricksterFlusteringStrikeTotal = featSet.has(FEATS.FAIRY_TRICKSTER)
-    ? getProficiencyBonus(level)
+    ? proficiencyBonus
     : 0;
   const fairyTricksterFlusteringStrikeExpended = Math.max(
     0,
@@ -95,9 +95,7 @@ export function getGeneralFeatResourceState(
       )
     )
   );
-  const mythalTouchedMythalWardTotal = featSet.has(FEATS.MYTHAL_TOUCHED)
-    ? getProficiencyBonus(level)
-    : 0;
+  const mythalTouchedMythalWardTotal = featSet.has(FEATS.MYTHAL_TOUCHED) ? proficiencyBonus : 0;
   const mythalTouchedMythalWardExpended = Math.max(
     0,
     Math.min(
@@ -126,7 +124,7 @@ export function getGeneralFeatResourceState(
       entry.feat === FEATS.ENCLAVE_MAGIC && entry.enclaveMagic?.twoHeartsOneMindExpended === true
   );
   const purpleDragonCommandantEncourageAllyTotal = featSet.has(FEATS.PURPLE_DRAGON_COMMANDANT)
-    ? getProficiencyBonus(level)
+    ? proficiencyBonus
     : 0;
   const purpleDragonCommandantEncourageAllyExpended = Math.max(
     0,

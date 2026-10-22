@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ArrowLeft, CircleHelp, Dice6 } from "lucide-react";
+import { ArrowLeft, CircleHelp, Dice6, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type {
@@ -71,6 +71,7 @@ import {
   createDefaultBackgroundOriginFeatEntry,
   getBackgroundEntry,
   getBackgroundEquipmentChoice,
+  getBackgroundOriginFeatOptions,
   getBackgroundToolChoiceOptions,
   normalizeBackgroundChoices
 } from "../../../pages/CharactersPage/backgrounds";
@@ -200,6 +201,7 @@ import {
 } from "./starterPackUtils";
 import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
 import OriginFeatSetupControls from "./OriginFeatSetupControls";
+import BackgroundOriginFeatSelect from "./BackgroundOriginFeatSelect";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import { sanitizeUserInput } from "../../../utils/userInputSanitization";
 import {
@@ -339,7 +341,7 @@ function getBackgroundFeatEntry(
       (featEntry) =>
         featEntry.source?.type === "background" &&
         featEntry.source.background === entry.name &&
-        featEntry.feat === entry.originFeat
+        getBackgroundOriginFeatOptions(background).includes(featEntry.feat)
     ) ?? createDefaultBackgroundOriginFeatEntry(entry.name, 1)
   );
 }
@@ -4119,7 +4121,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   function renderBackgroundOriginFeatControls() {
     return (
       <OriginFeatSetupControls
-        feat={backgroundEntry?.originFeat ?? null}
+        feat={selectedBackgroundFeatEntry?.feat ?? backgroundEntry?.originFeat ?? null}
         featEntry={selectedBackgroundFeatEntry}
         sourceLabel="background"
         emptyText="Choose a supported background first."
@@ -4657,7 +4659,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </fieldset>
 
             <fieldset className={styles.choiceGroup}>
-              <legend>Origin Feat · {getFeatLabel(backgroundEntry.originFeat)}</legend>
+              <legend>
+                Origin Feat ·{" "}
+                {getFeatLabel(selectedBackgroundFeatEntry?.feat ?? backgroundEntry.originFeat)}
+              </legend>
+              <BackgroundOriginFeatSelect
+                background={backgroundEntry}
+                selectedFeat={selectedBackgroundFeatEntry}
+                feats={resolvedFeats ?? []}
+                onChange={commitBackgroundFeat}
+              />
               {renderBackgroundOriginFeatControls()}
             </fieldset>
 
@@ -6177,6 +6188,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   fullWidth={false}
                   onClick={onBack}
                   disabled={hasPendingAction}
+                  icon={<X size={16} aria-hidden="true" />}
                 >
                   Cancel
                 </ActionButton>

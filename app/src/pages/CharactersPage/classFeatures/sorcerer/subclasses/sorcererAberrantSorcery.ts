@@ -2,12 +2,7 @@ import { spendClassResource } from "../../shared/resourceState";
 import { replaceClassFeatureState } from "../../shared/resourceState";
 import { extractDescriptionSection as extractSubclassFeatureDescriptionSection } from "../../../shared/descriptionSections";
 import { getProgressionRow } from "../../../../../codex/progression";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { sorcererFeatures } from "../../../../../codex/classes";
 import { type SpellEntry } from "../../../../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
@@ -174,7 +169,7 @@ function getSorcererAberrantSpellSaveDc(
       Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries">
     >
 ): number {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
 
   return 8 + proficiencyBonus + charismaModifier;
@@ -463,7 +458,7 @@ function getSorcererAberrantWarpingImplosionFacts(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureActionCard["facts"] {
   const spellSaveDc = getSorcererAberrantSpellSaveDc(character);
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const saveFormulaCell = formatFormulaCell({
     formula: String(spellSaveDc),

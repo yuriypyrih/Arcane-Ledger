@@ -144,6 +144,7 @@ export function useReactionDrawerState({
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
   const [selectedEldritchCannonCompanionId, setSelectedEldritchCannonCompanionId] = useState("");
   const [selectedLifeTransferCompanionId, setSelectedLifeTransferCompanionId] = useState("");
+  const [selectedExtinguishUndeadSlotId, setSelectedExtinguishUndeadSlotId] = useState("");
   const selectedReactionEntryId = selectedReactionEntry?.id ?? null;
   const isSpellThiefReactionSelected =
     selectedReactionEntryId === rogueArcaneTricksterSpellThiefReactionId;
@@ -371,6 +372,7 @@ export function useReactionDrawerState({
     setSelectedSpellThiefSpellId("");
     setSelectedEldritchCannonCompanionId("");
     setSelectedLifeTransferCompanionId("");
+    setSelectedExtinguishUndeadSlotId("");
     setSelectedStatusEntryId(null);
   }
 
@@ -424,6 +426,7 @@ export function useReactionDrawerState({
         selectedCosmicOmenSelection,
         selectedEldritchCannonCompanionId,
         selectedLifeTransferCompanionId,
+        selectedExtinguishUndeadSlotId,
         selectedRangerHunterSuperiorHuntersDefenseDamageType,
         selectedReactionEntry,
         selectedSongOfDefenseDamageReduction,
@@ -432,6 +435,7 @@ export function useReactionDrawerState({
         selectedSpellThiefSpellId,
         setSelectedEldritchCannonCompanionId,
         setSelectedLifeTransferCompanionId,
+        setSelectedExtinguishUndeadSlotId,
         setSelectedSongOfDefenseSpellSlotLevel,
         setSelectedSpellThiefSpellId,
         setSpellThiefSearchQuery,

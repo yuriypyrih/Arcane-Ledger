@@ -80,7 +80,7 @@ function getActionChargesMax(
     return fallbackMax;
   }
 
-  return clampInteger(proficiencyBonus, 1, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
+  return clampInteger(proficiencyBonus, 0, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
 }
 
 export function getCustomActionDraftChargesMax(
@@ -93,7 +93,7 @@ export function getCustomActionDraftChargesMax(
     return fallbackMax;
   }
 
-  return clampInteger(proficiencyBonus, 1, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
+  return clampInteger(proficiencyBonus, 0, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
 }
 
 function getParsedCustomActionEffects(draft: CustomActionDraft): CharacterCustomTraitEffect[] {
@@ -190,7 +190,7 @@ export function isCustomActionDraftValid(
   const longRestRecovery = clampInteger(draft.longRestRecovery, 0, chargesMax, 1);
 
   return (
-    chargesMax >= 1 &&
+    chargesMax >= (draft.chargesMaxMode === "proficiency_bonus" ? 0 : 1) &&
     chargesCurrent >= 0 &&
     shortRestRecovery >= 0 &&
     longRestRecovery >= 0

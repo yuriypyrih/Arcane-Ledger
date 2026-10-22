@@ -237,7 +237,7 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
   weight: number | null;
   cost: EquipmentCost;
 };
-export const BACKGROUND_SOURCE_VALUES = ["PHB'24", "FRHoF", "EFA"] as const;
+export const BACKGROUND_SOURCE_VALUES = ["PHB'24", "FRHoF", "EFA", "RHW"] as const;
 export type BackgroundSource = (typeof BACKGROUND_SOURCE_VALUES)[number];
 export const SPECIES_SOURCE_VALUES = ["PHB'24", "MPMM", "RHW", "EFA"] as const;
 export type SpeciesSource = (typeof SPECIES_SOURCE_VALUES)[number];
@@ -246,8 +246,11 @@ export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKG
   source: BackgroundSource;
   page: number;
   description: string;
+  trackingState?: TRACKER;
+  trackingMessage?: string;
   abilityScoreOptions: [AbilityKey, AbilityKey, AbilityKey];
   originFeat: FEATS;
+  originFeatOptions?: FEATS[];
   originFeatSpellList?: SPELL_LIST_CLASS.CLERIC | SPELL_LIST_CLASS.DRUID | SPELL_LIST_CLASS.WIZARD;
   grantedSkillProficiencies: SkillName[];
   grantedToolProficiencies: TOOL_PROFICIENCY[];

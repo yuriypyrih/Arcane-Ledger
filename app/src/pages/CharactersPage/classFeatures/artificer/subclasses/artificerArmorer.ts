@@ -1,5 +1,5 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import { getCharacterLevel, getClassLevel, getClassSubclassId } from "../../../multiclassState";
+import { getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import {
   type ReactionEntry,
   type SpellDescriptionEntry,
@@ -921,7 +921,7 @@ function getArtificerArmorerArmorModelWeaponAction(
       damageAbility: ability,
       damageAbilityModifier: abilityModifier,
       proficiencyLabel: "Simple weapon",
-      proficiencyBonus: getProficiencyBonus(getCharacterLevel(character) ?? 1),
+      proficiencyBonus: getProficiencyBonus(character),
       damageBonusEntries: hasImprovedArsenal
         ? [
             {

@@ -133,6 +133,7 @@ import {
   getRogueStrokeOfLuckUsesTotal,
   consumeRogueSpellThiefUse,
   consumeRogueWeaponAttack,
+  consumeRogueSteadyAimAttackAdvantage,
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueSpellThiefOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest
@@ -248,8 +249,10 @@ import {
 } from "./monk/subclasses/monkWarriorOfMercy";
 import { consumeMonkWarriorOfTheElementsEmpoweredStrikes } from "./monk/subclasses/monkWarriorOfTheElements";
 import { consumeFighterWeaponAttack } from "./fighter/fighter";
+import { consumeMonkWarriorOfShadowStepAttackAdvantage } from "./monk/subclasses/monkWarriorOfShadow";
 import {
-  consumeSharedEconomyMultiForCharacterAction,
+  payEconomyForCharacterAction,
+  resolveEconomyPaymentForCharacterAction,
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForWeaponAction
 } from "./economyMulti";
@@ -268,7 +271,6 @@ import type { CharacterStatusEntry } from "../../../types";
 import { getSpellEntryById, type ReactionEntry, type SpellEntry } from "../../../codex/entries";
 
 import {
-  clearRoundScopedFeatureStateForCharacter,
   clearRoundScopedFeatureStateIfOutOfCombat
 } from "./state";
 
@@ -1364,46 +1366,51 @@ export function consumeWeaponAttackActionForCharacter(
       )
     };
   };
-  const finalize = (nextCharacter: Character) =>
-    clearRoundScopedFeatureStateIfOutOfCombat(applyLightTrigger(nextCharacter));
+  const finalize = (nextCharacter: Character) => {
+    const shouldPreserveFrenzy =
+      !shouldTrackRoundScopedResources(nextCharacter.roundTracker) &&
+      hasCharacterClass(nextCharacter, "Barbarian") &&
+      getBarbarianRageState(nextCharacter).frenzyPending === true;
+    const cleared = clearRoundScopedFeatureStateIfOutOfCombat(applyLightTrigger(nextCharacter));
+    return shouldPreserveFrenzy
+      ? {
+          ...cleared,
+          classFeatureState: {
+            ...cleared.classFeatureState,
+            rage: { ...getBarbarianRageState(cleared), frenzyPending: true }
+          }
+        }
+      : cleared;
+  };
 
   if (action.lightFollowUpKind) {
     return finalize(consumeLightFollowUp(character));
   }
 
-  const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
-    character,
-    createEconomyMultiContextForWeaponAction(action)
-  );
-
-  if (nextCharacterWithSharedMulti !== character) {
-    return finalize(nextCharacterWithSharedMulti);
+  const economyContext = createEconomyMultiContextForWeaponAction(action);
+  if (
+    action.economyType === ECONOMY_TYPE.ACTION ||
+    resolveEconomyPaymentForCharacterAction(character, economyContext).payment?.kind === "pool"
+  ) {
+    const paid = payEconomyForCharacterAction(character, economyContext);
+    if (paid.status === "unavailable") {
+      // Bloodthirst owns a separate melee-only grant, displayed on the weapon itself.
+      return hasCharacterClass(character, "Rogue")
+        ? finalize(consumeRogueWeaponAttack(character, action))
+        : character;
+    }
+    return finalize(
+      consumeRogueSteadyAimAttackAdvantage(
+        consumeMonkWarriorOfShadowStepAttackAdvantage(paid.character, {
+          attackKind: action.attackKind,
+          combatType: action.combatType ?? null
+        })
+      )
+    );
   }
 
   if (hasCharacterClass(character, "Barbarian")) {
-    const nextCharacter = applyLightTrigger(consumeBarbarianWeaponAttack(character));
-
-    if (shouldTrackRoundScopedResources(nextCharacter.roundTracker)) {
-      return nextCharacter;
-    }
-
-    const shouldPreserveFrenzyPending = getBarbarianRageState(nextCharacter).frenzyPending === true;
-    const clearedCharacter = clearRoundScopedFeatureStateForCharacter(nextCharacter);
-
-    if (!shouldPreserveFrenzyPending) {
-      return clearedCharacter;
-    }
-
-    return {
-      ...clearedCharacter,
-      classFeatureState: {
-        ...clearedCharacter.classFeatureState,
-        rage: {
-          ...getBarbarianRageState(clearedCharacter),
-          frenzyPending: true
-        }
-      }
-    };
+    return finalize(consumeBarbarianWeaponAttack(character));
   }
 
   if (hasCharacterClass(character, "Bard")) {
@@ -1471,25 +1478,13 @@ export function consumeNonMagicActionForCharacter(
   character: Character,
   action: Pick<FeatureActionCard, "economyType" | "actionCategory">
 ): Character {
-  const nextCharacter = consumeSharedEconomyMultiForCharacterAction(
+  const paid = payEconomyForCharacterAction(
     character,
     createEconomyMultiContextForFeatureAction(action)
   );
-
-  if (nextCharacter !== character) {
-    return clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
-  }
-
-  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-
-  return clearRoundScopedFeatureStateIfOutOfCombat(
-    roundTrackerResource
-      ? {
-          ...character,
-          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
-        }
-      : character
-  );
+  return paid.status === "paid"
+    ? clearRoundScopedFeatureStateIfOutOfCombat(paid.character)
+    : character;
 }
 
 export function activateFeatureActionOptionForCharacter(

@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "../multiclassState";
 import { type SpellEntry } from "../../../codex/entries";
 import { ABILITY_TYPES } from "../../../codex/entries/enums";
 import type { RollMode } from "../../../types";
@@ -219,7 +218,7 @@ export function getSpellSaveFormulaCell(
     };
   }
 
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const innateSorceryBonus = isInnateSorceryActiveForSpell(character, spell) ? 1 : 0;
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
@@ -292,7 +291,7 @@ export function getSpellAttackRollFormulaForCharacter(
     return null;
   }
 
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);

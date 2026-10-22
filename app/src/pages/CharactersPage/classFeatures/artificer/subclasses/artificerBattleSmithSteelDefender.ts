@@ -124,13 +124,13 @@ function getSteelDefenderMaximumHitPoints(character: BattleSmithSteelDefenderCha
 function getSteelDefenderSpellAttackModifier(character: BattleSmithSteelDefenderCharacter): number {
   return (
     getAbilityModifierForCharacter(character, "INT") +
-    getProficiencyBonus(getNormalizedCharacterLevel(character))
+    getProficiencyBonus(character)
   );
 }
 
 function createSteelDefenderTemplate(character: BattleSmithSteelDefenderCharacter): MonsterRecord {
   const level = getNormalizedCharacterLevel(character);
-  const proficiencyBonus = getProficiencyBonus(level);
+  const proficiencyBonus = getProficiencyBonus(character);
   const spellAttackModifier = getSteelDefenderSpellAttackModifier(character);
   const passivePerception = 10 + proficiencyBonus * 2;
   const specialAbilities = [

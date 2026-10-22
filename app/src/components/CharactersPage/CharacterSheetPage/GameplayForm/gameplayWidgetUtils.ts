@@ -61,7 +61,7 @@ export function getDamageRangeLabel(
 function hasVisibleWeaponProficiency(
   action: Pick<WeaponAction, "proficiencyLabel" | "proficiencyBonus">
 ) {
-  return action.proficiencyBonus !== 0 && action.proficiencyLabel.trim().length > 0;
+  return action.proficiencyLabel.trim().length > 0;
 }
 
 export function getWeaponActionRollDescription(action: WeaponAction): string {

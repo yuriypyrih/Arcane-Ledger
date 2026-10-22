@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getClericProficiencyBonus } from "../../proficiencyBonus";
 import * as graveDomainSubclass from "./subclasses/clericGraveDomain";
 import * as arcanaDomainSubclass from "./subclasses/clericArcanaDomain";
 import { replaceClassFeatureState } from "../shared/resourceState";
@@ -5,7 +6,7 @@ import {
   getAppliedAbilityScoreBonus,
   compareAbilityScoreBonusOrder
 } from "../../shared/abilityBonusMath";
-import { getCharacterLevel, getClassLevel } from "../../multiclassState";
+import { getClassLevel } from "../../multiclassState";
 import { getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
   getDivinityEntryById,
@@ -146,17 +147,14 @@ function getClericWisdomModifier(
   return Math.floor((getFeatAdjustedAbilityScore(character, "WIS") - 10) / 2);
 }
 
-function getClericProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
+
 
 function getClericSpellSaveDc(
   character: Pick<Character, "level" | "abilities" | "feats"> &
     Partial<Pick<Character, "background" | "backgroundChoices">>
 ): number {
   return (
-    8 + getClericProficiencyBonus(getCharacterLevel(character)) + getClericWisdomModifier(character)
+    8 + getClericProficiencyBonus(character) + getClericWisdomModifier(character)
   );
 }
 

@@ -1,3 +1,4 @@
+import { Save, X } from "lucide-react";
 import { useId, useState, type ChangeEvent } from "react";
 import ActionButton from "../../../../ActionButton";
 import {
@@ -162,10 +163,12 @@ function HitPointsEditModal({ character, onClose, onPersistCharacter }: HitPoint
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <ActionButton variant="OUTLINE" onClick={onClose}>
+        <ActionButton variant="OUTLINE" icon={<X size={16} aria-hidden="true" />} onClick={onClose}>
           Cancel
         </ActionButton>
-        <ActionButton onClick={saveHitPoints}>Save</ActionButton>
+        <ActionButton icon={<Save size={16} aria-hidden="true" />} onClick={saveHitPoints}>
+          Save
+        </ActionButton>
       </OverlayFooter>
     </SheetModal>
   );

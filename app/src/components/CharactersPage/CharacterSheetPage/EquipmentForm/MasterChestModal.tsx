@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CircleCheck, History, Plus, RefreshCw, Save } from "lucide-react";
+import { CircleCheck, History, Plus, RefreshCw, Save, X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import ActionButton from "../../../ActionButton";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
@@ -830,7 +830,7 @@ function MasterChestModal({
         <div
           className={clsx(isMasterChestView ? styles.footerActions : styles.readOnlyFooterActions)}
         >
-          <ActionButton variant="OUTLINE" onClick={onClose}>
+          <ActionButton variant="OUTLINE" icon={<X size={16} aria-hidden="true" />} onClick={onClose}>
             {isGmMode || !isMasterChestView ? "Close" : "Cancel"}
           </ActionButton>
           {isMasterChestView ? (

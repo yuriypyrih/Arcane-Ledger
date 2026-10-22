@@ -1,9 +1,4 @@
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, ToolProficiencyEntry } from "../../../../../types";
@@ -208,7 +203,7 @@ function getRogueAssassinDeathStrikeSavingThrowFormulaFact(
   character: RogueAssassinCharacter
 ): FeatureActionFact {
   const dexterityModifier = getAbilityModifierBreakdownForCharacter(character, "DEX").total;
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const saveDc = 8 + dexterityModifier + proficiencyBonus;
 
   return {

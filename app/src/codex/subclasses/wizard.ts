@@ -291,7 +291,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.NECROMANCY_SAVANT, {
         description: createSchoolSavantDescription("Necromancy"),
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -302,7 +302,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
             "<strong>Undead Familiar.</strong> Add <spell:Find Familiar>Find Familiar</spell> to your spellbook. When casting it, you may choose a Skeleton or Zombie instead of its normal forms. A normal form can be Undead. During your Attack action, forgo one attack to let the familiar use its Reaction to make an attack.",
             "<strong>Undead Vitality.</strong> When spending a slot to cast a Necromancy spell, you may heal an Undead you can see within 60 feet for Hit Points equal to the slot's level plus your Wizard level."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "Adds Find Familiar to your spellbook and grants Necrotic resistance. Undead Vitality optionally restores your own Hit Points when you spend a spell slot. Familiar forms and attacks are managed manually."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.GRAVE_POWER, {
@@ -311,7 +313,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Grave Resilience.</strong> Using Arcane Recovery reduces your <link:Exhaustion>Exhaustion</link> by one level, if you have any.",
           "<strong>Overwhelming Necrosis.</strong> Damage from your Wizard spells and features ignores <link:Resistance>Resistance</link> to Necrotic damage."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Arcane Recovery reduces Exhaustion by one level. Overwhelming Necrosis is shown on spells that deal Necrotic damage; apply its resistance bypass manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.UNDEAD_THRALLS, {
         description: [
@@ -320,13 +324,17 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Undead Fortitude.</strong> An Undead created or summoned by your Necromancy spell gains current and maximum Hit Points equal to your <link:Intelligence>Intelligence</link> modifier plus half your Wizard level, rounded down.",
           "<strong>Withering Strike.</strong> When an Undead you control within 60 feet hits a creature with an attack roll, add Necrotic damage equal to your <link:Intelligence>Intelligence</link> modifier, minimum 1."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Animate Dead is always prepared and has one optional free casting per Long Rest. The effective spell-level increase, Undead Fortitude, and Withering Strike are managed manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.HARVEST_UNDEAD, {
         description: [
           "Immediately after damage makes you Bloodied without reducing you to 0 Hit Points, you may use a Reaction to set a controlled Undead you can see to 0 Hit Points. You then regain Hit Points equal to your Wizard level."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Reaction is available while Bloodied and above 0 HP and restores HP equal to your Wizard level. Sacrificing the controlled Undead is managed manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.DEATHS_MASTER, {
         description: [
@@ -334,7 +342,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Bolster Undead.</strong> As a Bonus Action, choose any number of Undead within 60 feet that you created or summoned using a Necromancy spell. Give each <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Wizard level. Recover this Bonus Action after a <link:long-rest>Long Rest</link>.",
           "<strong>Extinguish Undead.</strong> When an Undead you can see falls to 0 Hit Points, you may make it explode. Roll d6s equal to half its unexpended Hit Dice, rounded up, minimum <strong>1d6</strong>. Every creature in a 10-foot <link:Emanation>Emanation</link> from it makes a <link:Dexterity>Dexterity</link> saving throw. Failure: Necrotic damage equal to the roll and no Reactions until its next turn starts. Success: half damage only. If the exploding Undead is not under your control, you must spend a Reaction and a level 5+ spell slot."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Bolster Undead grants Wizard-level temporary HP to all Undead companions once per Long Rest. Extinguish Undead spends a Reaction and a selected level 5+ spell slot; resolve the explosion manually."
       })
     ]
   },
@@ -352,7 +362,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.TRANSMUTATION_SAVANT,
         {
           description: createSchoolSavantDescription("Transmutation"),
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.TRANSMUTERS_STONE, {
@@ -371,7 +381,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Change Appearance.</strong> Gain <link:Advantage>Advantage</link> on <link:Charisma>Charisma</link> (Deception) checks.",
           "<strong>Natural Weapons.</strong> The growth deals <strong>2d6</strong> damage of its associated type. Also gain <link:Advantage>Advantage</link> on <link:Constitution>Constitution</link> saving throws to maintain <link:Concentration>Concentration</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Alter Self is always prepared and has one optional free casting per Long Rest. The feature description is shown in its spell drawer; apply the additional transformation benefits manually."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,

@@ -1,4 +1,5 @@
 import { type ArmorEntry } from "../../codex/entries";
+import { getStatOverride } from "./statOverrides";
 import { ARMOR_TYPES } from "../../codex/entries/enums";
 import { getArmorEntries } from "../../codex/selectors";
 import type {
@@ -680,6 +681,29 @@ function buildArmorClassSelectionWarning(
 }
 
 export function getArmorClassResolutionForCharacter(character: Character): ArmorClassResolution {
+  const override = getStatOverride(character, "armorClass");
+  if (override !== null) {
+    const formula: ArmorClassFormulaOption = {
+      key: "manual-override",
+      label: "Overwritten",
+      selectorLabel: "Overwritten",
+      isApplicable: true,
+      isDefault: true,
+      breakdown: {
+        total: override,
+        source: "OVERWRITTEN",
+        entries: [{ label: "(OVERWRITTEN)", value: override }]
+      }
+    };
+    return {
+      formulas: [formula],
+      defaultFormula: formula,
+      selectedFormula: formula,
+      activeFormula: formula,
+      selection: character.armorClassFormulaSelection ?? defaultArmorClassFormulaSelection,
+      warning: null
+    };
+  }
   const modes = getArmorClassModeStates(character);
   const shieldBonus = getHeldShieldBonus(character);
   const featureContext = {

@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
 import { getCharacterLevel } from "./multiclassState";
 import {
@@ -152,11 +153,6 @@ function getGoliathDescriptionPlainText(heading: string, fallback: string): stri
   return stripDescriptionMarkup(getGoliathDescriptionText(heading, fallback))
     .replace(new RegExp(`^${escapeRegExp(heading)}\\.\\s*`, "i"), "")
     .trim();
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -342,7 +338,7 @@ export function normalizeGoliathFeatureState(value: unknown): CharacterGoliathFe
 
 export function getGoliathGiantAncestryUsesTotal(character: GoliathRuntimeCharacter): number {
   return isGoliathSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 

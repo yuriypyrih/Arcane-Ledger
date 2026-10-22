@@ -88,7 +88,8 @@ export function getCastingProgression(entry: CharacterClassEntry): CastingProgre
     return "manual";
   if (
     (entry.className === "Fighter" && entry.subclassId === "fighter-eldritch-knight") ||
-    (entry.className === "Rogue" && entry.subclassId === "rogue-arcane-trickster")
+    (entry.className === "Rogue" && entry.subclassId === "rogue-arcane-trickster") ||
+    (entry.className === "Monk" && entry.subclassId === "monk-warrior-of-the-mystic-arts")
   )
     return entry.level >= 3 ? "third" : "none";
   return multiclassRules[entry.className]?.casting ?? "none";

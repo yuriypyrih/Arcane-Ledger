@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import ActionButton from "../../components/ActionButton";
 import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
@@ -101,12 +101,19 @@ function EditPartyGroupModal({ partyGroup, onClose }: EditPartyGroupModalProps) 
 
         <OverlayFooter>
           <div className={styles.modalFooterActions}>
-            <ActionButton type="button" variant="OUTLINE" disabled={isSaving} fullWidth onClick={onClose}>
+            <ActionButton
+              type="button"
+              variant="OUTLINE"
+              icon={<X size={16} aria-hidden="true" />}
+              disabled={isSaving}
+              fullWidth
+              onClick={onClose}
+            >
               Cancel
             </ActionButton>
             <ActionButton
               type="submit"
-              icon={<Pencil size={16} aria-hidden="true" />}
+              icon={<Save size={16} aria-hidden="true" />}
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving party group"

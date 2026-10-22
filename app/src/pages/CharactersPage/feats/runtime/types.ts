@@ -42,6 +42,7 @@ export type FeatRuntimeCharacter = Pick<Character, "level"> &
       | "hitDiceRemaining"
       | "languageProficiencies"
       | "statusEntries"
+      | "statOverrides"
     >
   > & {
     feats?: unknown;

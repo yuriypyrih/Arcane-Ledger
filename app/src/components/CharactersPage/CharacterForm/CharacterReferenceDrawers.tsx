@@ -111,6 +111,16 @@ function BackgroundReferenceDrawer({
           <OverlayBadge>Background</OverlayBadge>
           <OverlayTitleRow>
             <OverlayTitle id="character-background-reference-title">{entry.name}</OverlayTitle>
+            {entry.trackingState ? (
+              <FeatureTrackingBadgeButton
+                trackingState={entry.trackingState}
+                trackingMessage={entry.trackingMessage}
+                onClick={(state, message) => {
+                  const reference = resolveKeywordReference(state, undefined, message);
+                  if (reference) richTextOptions.onOpenKeyword?.(reference);
+                }}
+              />
+            ) : null}
           </OverlayTitleRow>
           {entry.summary.trim().length > 0 ? (
             <OverlaySummary>{renderCodexRichText(entry.summary, richTextOptions)}</OverlaySummary>

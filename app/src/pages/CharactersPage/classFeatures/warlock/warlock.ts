@@ -1,14 +1,9 @@
+import { getProficiencyBonus } from "../../proficiencyBonus";
 import { replaceClassFeatureState } from "../shared/resourceState";
 import { getProgressionRow } from "../../../../codex/progression";
 import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { getHitDicePools, spendHitDice } from "../../hitDice";
-import {
-  getClassEntry,
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassCantripIds,
-  getClassLevel
-} from "../../multiclassState";
+import { getClassEntry, hasCharacterClass, getClassCantripIds, getClassLevel } from "../../multiclassState";
 import { getCharacterSpellSlotPools, setSlotPoolExpended } from "../../multiclassSpellcasting";
 import {
   getEldritchInvocationEntryById,
@@ -1010,11 +1005,6 @@ export function getWarlockEldritchMindSavingThrowDescriptionAdditions(
   return getWarlockInvocationStatDescriptionAdditions(character, "savingThrow:CON");
 }
 
-function getProficiencyBonusForLevel(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
-
 function createSignedFormula(baseFormula: string, modifier: number): string {
   if (modifier === 0) {
     return baseFormula;
@@ -1044,11 +1034,11 @@ export function getWarlockWeaponAction(
   const charismaBreakdown = getAbilityModifierBreakdownForCharacter(character, "CHA");
   const shouldUseCharisma = charismaBreakdown.total >= action.abilityModifier;
   const proficiencyBonus =
-    action.proficiencyBonus !== 0
+    action.proficiencyLabel.trim()
       ? action.proficiencyBonus
-      : getProficiencyBonusForLevel(getCharacterLevel(character));
+      : getProficiencyBonus(character);
   const proficiencyLabel =
-    action.proficiencyBonus !== 0 ? action.proficiencyLabel : "Pact of the Blade";
+    action.proficiencyLabel.trim() ? action.proficiencyLabel : "Pact of the Blade";
   const charismaAction = shouldUseCharisma
     ? {
         ...action,

@@ -1,8 +1,9 @@
+import { getProficiencyBonus } from "../../proficiencyBonus";
 import { replaceClassFeatureState } from "../shared/resourceState";
 import * as spiritsSubclass from "./subclasses/bardCollegeOfSpiritsState";
 import { restoreSpiritualManifestation } from "./subclasses/bardCollegeOfSpiritsEmpowered";
 import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
-import { hasCharacterClass, getCharacterLevel, getClassLevel } from "../../multiclassState";
+import { hasCharacterClass, getClassLevel } from "../../multiclassState";
 import {
   getReactionEntryById,
   type ReactionEntry,
@@ -717,9 +718,7 @@ export function getBardSkillBonuses(
   return [
     {
       label: "Jack of All Trades",
-      value: Math.floor(
-        (Math.floor((Math.max(1, Math.min(20, getCharacterLevel(character))) - 1) / 4) + 2) / 2
-      )
+      value: Math.floor(getProficiencyBonus(character) / 2)
     }
   ];
 }

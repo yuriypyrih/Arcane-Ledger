@@ -617,6 +617,7 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
       statusEntries: character.statusEntries
     },
     preferences: {
+      statOverrides: character.statOverrides,
       armorClassFormulaSelection: character.armorClassFormulaSelection,
       hover: character.hover
     },
@@ -709,6 +710,7 @@ export function createHydratedCharacterInputFromPortableSheet(
     roundTracker: record.session.roundTracker,
     statusEntries: record.session.statusEntries,
     armorClassFormulaSelection: record.preferences.armorClassFormulaSelection,
+    statOverrides: record.preferences.statOverrides,
     hover: record.preferences.hover,
     classFeatureState: record.features.classFeatureState,
     feats: record.features.feats,

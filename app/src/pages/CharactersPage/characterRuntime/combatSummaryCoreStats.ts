@@ -1,4 +1,4 @@
-import { getCharacterLevel } from "../multiclassState";
+import { formatStatOverrideFormula, getStatOverride } from "../statOverrides";
 import { type SpellDescriptionEntry } from "../../../codex/entries";
 import { CLASS_FEATURE } from "../../../codex/entries/enums";
 import type { AbilityKey, Character, CoreStats } from "../../../types";
@@ -212,6 +212,9 @@ function formatMovementBaseFormula(
 function formatMovementFormula(
   movement: ReturnType<typeof getMovementSpeedBreakdownsForCharacter>["walk"]
 ): string {
+  if (movement.source === "OVERWRITTEN" && movement.total !== null) {
+    return formatStatOverrideFormula(movement.total, "ft");
+  }
   if (movement.total === null) {
     return "-";
   }
@@ -381,7 +384,7 @@ export function createBaseCoreStatCards(
 ): CombatSummaryCoreStatCardsResult {
   const armorClassResolution = getArmorClassResolutionForCharacter(character);
   const armorClassBreakdown = armorClassResolution.activeFormula.breakdown;
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
   const hitDiceTotal = getHitDiceTotalForCharacter(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
@@ -418,6 +421,9 @@ export function createBaseCoreStatCards(
       detailValue = formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries);
     } else if (field.label === "Speed") {
       detailValue = formatMovementFormula(speedBreakdown);
+    } else if (field.key === "passivePerception" || field.key === "proficiencyBonus") {
+      const override = getStatOverride(character, field.key);
+      if (override !== null) detailValue = formatStatOverrideFormula(override, field.label);
     }
 
     return {
@@ -626,7 +632,7 @@ export function createCombatSummaryCoreStats(
     profileColumns: createProfileColumns(baseCards, additionalCards),
     broadProfileRows: createChunkedCoreStatRows([...baseCards, ...additionalCards], 2),
     armorClassDetailCards,
-    proficiencyBonus: getProficiencyBonus(getCharacterLevel(character)),
+    proficiencyBonus: getProficiencyBonus(character),
     passivePerception: getPassivePerceptionForCharacter(character),
     speed: getSpeedForCharacter(character),
     speedBreakdown,

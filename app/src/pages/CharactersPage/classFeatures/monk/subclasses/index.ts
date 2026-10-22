@@ -20,12 +20,17 @@ import {
   getMonkWarriorOfTheOpenHandDerivedFeatureState,
   warriorOfTheOpenHandSubclassId
 } from "./monkWarriorOfTheOpenHand";
+import {
+  getMonkWarriorOfTheMysticArtsDerivedFeatureState,
+  warriorOfTheMysticArtsSubclassId
+} from "./monkWarriorOfTheMysticArts";
 
 const monkSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
   [warriorOfMercySubclassId]: getMonkWarriorOfMercyDerivedFeatureState,
   [warriorOfShadowSubclassId]: getMonkWarriorOfShadowDerivedFeatureState,
   [warriorOfTheElementsSubclassId]: getMonkWarriorOfTheElementsDerivedFeatureState,
-  [warriorOfTheOpenHandSubclassId]: getMonkWarriorOfTheOpenHandDerivedFeatureState
+  [warriorOfTheOpenHandSubclassId]: getMonkWarriorOfTheOpenHandDerivedFeatureState,
+  [warriorOfTheMysticArtsSubclassId]: getMonkWarriorOfTheMysticArtsDerivedFeatureState
 };
 
 export function getMonkSubclassDerivedFeatureState(

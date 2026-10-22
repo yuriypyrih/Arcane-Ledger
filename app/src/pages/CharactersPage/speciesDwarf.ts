@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
 import { getCharacterLevel } from "./multiclassState";
 import {
@@ -59,11 +60,6 @@ function getDwarfDescriptionPlainText(heading: string, fallback: string): string
   return stripDescriptionMarkup(getDwarfDescriptionText(heading, fallback))
     .replace(new RegExp(`^${heading}\\.\\s*`, "i"), "")
     .trim();
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -168,7 +164,7 @@ export function getDwarfStonecunningUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDwarfSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 

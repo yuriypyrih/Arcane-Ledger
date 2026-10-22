@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import { Pencil } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -114,7 +113,7 @@ type SelectedStatusEntryDrawerContentProps = Omit<
 
 function getActorInsightDcFormula(character: Character): string {
   const charismaModifier = getAbilityModifierBreakdownForCharacter(character, "CHA").total;
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const insightDc = 8 + charismaModifier + proficiencyBonus;
 
   return `Insight DC ${insightDc} = ${formatFormulaTerms([
@@ -134,7 +133,7 @@ function getAasimarCelestialRevelationStatusFormula(
     return null;
   }
 
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
 
   if (option.key === "inner-radiance") {
     return {

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { MoveLeft, MoveRight, Package, Save } from "lucide-react";
+import { MoveLeft, MoveRight, Package, Save, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import ActionButton from "../../../ActionButton";
@@ -227,7 +227,11 @@ function EquipmentContainerManageModal({
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <ActionButton variant="OUTLINE" onClick={onCancel}>
+          <ActionButton
+            variant="OUTLINE"
+            icon={<X size={16} aria-hidden="true" />}
+            onClick={onCancel}
+          >
             Cancel
           </ActionButton>
           <ActionButton

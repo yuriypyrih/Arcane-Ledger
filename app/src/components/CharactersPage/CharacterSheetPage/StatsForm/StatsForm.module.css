@@ -138,6 +138,15 @@
   align-items: center;
 }
 
+.referenceHeaderActions {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  flex-shrink: 0;
+  gap: 0.55rem;
+  margin-inline-start: auto;
+}
+
 .referenceIndicatorStack {
   display: grid;
   gap: 0.45rem;

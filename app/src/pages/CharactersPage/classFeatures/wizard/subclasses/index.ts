@@ -28,6 +28,28 @@ import {
 import { divinerSubclassId, getWizardDivinerDerivedFeatureState } from "./wizardDiviner";
 import { restoreWizardDivinerPortentOnLongRest } from "./wizardDivinerPortent";
 import {
+  getWizardTransmuterDerivedFeatureState,
+  transmuterSubclassId
+} from "./wizardTransmuter";
+import {
+  applyGraveResilienceAfterArcaneRecovery,
+  getNecromancerSpellCastEffects,
+  getWizardNecromancerDerivedFeatureState,
+  necromancerSubclassId,
+  transformNecromancerSpell
+} from "./wizardNecromancer";
+import { restoreUndeadThrallsOnLongRest } from "./wizardNecromancerUndeadThralls";
+import {
+  getWondrousAlterationSpellCastEffects,
+  restoreWondrousAlterationOnLongRest,
+  transformWondrousAlterationSpell
+} from "./wizardTransmuterWondrousAlteration";
+import {
+  activateBolsterUndead,
+  bolsterUndeadActionKey,
+  restoreBolsterUndeadOnLongRest
+} from "./wizardNecromancerDeathMaster";
+import {
   evokerSubclassId,
   getWizardEvokerDerivedFeatureState,
   getWizardEvokerSpellbookSpellEntry,
@@ -48,13 +70,18 @@ const wizardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
   [bladesingerSubclassId]: getWizardBladesingerDerivedFeatureState,
   [divinerSubclassId]: getWizardDivinerDerivedFeatureState,
   [evokerSubclassId]: getWizardEvokerDerivedFeatureState,
-  [illusionistSubclassId]: getWizardIllusionistDerivedFeatureState
+  [illusionistSubclassId]: getWizardIllusionistDerivedFeatureState,
+  [necromancerSubclassId]: getWizardNecromancerDerivedFeatureState,
+  [transmuterSubclassId]: getWizardTransmuterDerivedFeatureState
 };
 const wizardLongRestRestorers: Record<string, (character: Character) => Character> = {
   [abjurerSubclassId]: restoreWizardAbjurerArcaneWardOnLongRest,
   [bladesingerSubclassId]: restoreWizardBladesongOnLongRest,
   [divinerSubclassId]: restoreWizardDivinerPortentOnLongRest,
   [evokerSubclassId]: restoreWizardEvokerOverchannelOnLongRest,
+  [transmuterSubclassId]: restoreWondrousAlterationOnLongRest,
+  [necromancerSubclassId]: (character) =>
+    restoreBolsterUndeadOnLongRest(restoreUndeadThrallsOnLongRest(character)),
   [illusionistSubclassId]: (character) =>
     restoreWizardIllusionistIllusorySelfOnLongRest(
       restoreWizardIllusionistPhantasmalCreaturesOnLongRest(character)
@@ -103,6 +130,13 @@ export function activateWizardSubclassFeatureAction(
   }
 
   if (
+    getClassSubclassId(character, "Wizard") === necromancerSubclassId &&
+    actionKey === bolsterUndeadActionKey
+  ) {
+    return activateBolsterUndead(character);
+  }
+
+  if (
     getClassSubclassId(character, "Wizard") === bladesingerSubclassId &&
     actionKey === wizardBladesongActionKey
   ) {
@@ -138,7 +172,24 @@ export function getWizardSubclassSpellbookSpellEntry(
     return getWizardEvokerSpellbookSpellEntry(character, spell);
   }
 
+  if (getClassSubclassId(character, "Wizard") === necromancerSubclassId) {
+    return transformNecromancerSpell(character, spell);
+  }
+
+  if (getClassSubclassId(character, "Wizard") === transmuterSubclassId) {
+    return transformWondrousAlterationSpell(character, spell);
+  }
+
   return spell;
+}
+
+export function getWizardSubclassSpellCastEffects(character: Character) {
+  if (getClassSubclassId(character, "Wizard") === transmuterSubclassId) {
+    return getWondrousAlterationSpellCastEffects(character);
+  }
+  return getClassSubclassId(character, "Wizard") === necromancerSubclassId
+    ? getNecromancerSpellCastEffects(character)
+    : [];
 }
 
 export function restoreWizardSubclassFeaturesOnLongRest(character: Character): Character {
@@ -152,6 +203,10 @@ export function restoreWizardSubclassFeaturesOnLongRest(character: Character): C
 export function restoreWizardSubclassFeaturesOnArcaneRecovery(character: Character): Character {
   if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return character;
+  }
+
+  if (getClassSubclassId(character, "Wizard") === necromancerSubclassId) {
+    return applyGraveResilienceAfterArcaneRecovery(character);
   }
 
   return getClassSubclassId(character, "Wizard") === bladesingerSubclassId

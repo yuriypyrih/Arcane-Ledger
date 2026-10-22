@@ -1,3 +1,5 @@
+import { getProficiencyBonus } from "../../../proficiencyBonus";
+import { getProficiencyNormalizationLimit } from "../../../statOverrides";
 import { applyFeatContribution } from "../contributions";
 import {
   magicInitiateFreeCastContributionId,
@@ -63,7 +65,7 @@ import { getFeatDescriptionContributions } from "../descriptionContributions";
 import { getDragonscarredResistanceStatusEntries } from "../dragonscarred";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "../types";
 
-const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>();
+const featDerivedStateCache = new WeakMap<object, Map<string, FeatDerivedState>>();
 
 function normalizeFeatRuntimeLevel(value: unknown): number {
   const parsed = Number(value);
@@ -75,22 +77,22 @@ function normalizeFeatRuntimeLevel(value: unknown): number {
   return Math.max(1, Math.min(20, Math.floor(parsed)));
 }
 
-function getCachedFeatDerivedState(feats: unknown, level: number): FeatDerivedState | undefined {
+function getCachedFeatDerivedState(feats: unknown, cacheKey: string): FeatDerivedState | undefined {
   if (!Array.isArray(feats)) {
     return undefined;
   }
 
-  return featDerivedStateCache.get(feats)?.get(level);
+  return featDerivedStateCache.get(feats)?.get(cacheKey);
 }
 
-function setCachedFeatDerivedState(feats: unknown, level: number, state: FeatDerivedState) {
+function setCachedFeatDerivedState(feats: unknown, cacheKey: string, state: FeatDerivedState) {
   if (!Array.isArray(feats)) {
     return;
   }
 
-  const cachedByLevel = featDerivedStateCache.get(feats) ?? new Map<number, FeatDerivedState>();
+  const cachedByLevel = featDerivedStateCache.get(feats) ?? new Map<string, FeatDerivedState>();
 
-  cachedByLevel.set(level, state);
+  cachedByLevel.set(cacheKey, state);
   featDerivedStateCache.set(feats, cachedByLevel);
 }
 
@@ -161,8 +163,13 @@ function projectFeatFreeCastEntries(
   }));
 }
 
-function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState {
-  const normalizedFeats = normalizeCharacterFeats(feats, level);
+function createFeatDerivedState(
+  feats: unknown,
+  level: number,
+  proficiencyBonus: number,
+  normalizationLimit?: number
+): FeatDerivedState {
+  const normalizedFeats = normalizeCharacterFeats(feats, level, normalizationLimit);
   const featsByFeat = new Map<FEATS, CharacterFeatEntry[]>();
   const featSet = new Set<FEATS>();
   const contributions: FeatureContributionSpec<FeatDerivedState>[] = [];
@@ -201,6 +208,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       entry,
       index,
       level,
+      proficiencyBonus,
       contribution,
       featCantripEntries,
       getFeatDescription
@@ -211,11 +219,15 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     { freeCastEntries: collectFeatureFreeCastEntries(contributions) },
     telepathicDetectThoughtsFreeCastContributionId
   );
-  const originResourceState = getOriginFeatResourceState(normalizedFeats, featSet, level);
+  const originResourceState = getOriginFeatResourceState(
+    normalizedFeats,
+    featSet,
+    proficiencyBonus
+  );
   const generalResourceState = getGeneralFeatResourceState(
     normalizedFeats,
     featSet,
-    level,
+    proficiencyBonus,
     telepathicDetectThoughtsFreeCastEntries
   );
   const epicBoonResourceState = getEpicBoonFeatResourceState(normalizedFeats, featSet);
@@ -636,15 +648,23 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
 export function collectFeatDerivedState(character: FeatRuntimeCharacter): FeatDerivedState {
   const level = normalizeFeatRuntimeLevel(getCharacterLevel(character));
-  const cachedState = getCachedFeatDerivedState(character.feats, level);
+  const proficiencyBonus = getProficiencyBonus(character);
+  const normalizationLimit = getProficiencyNormalizationLimit(character);
+  const cacheKey = `${level}:${proficiencyBonus}:${normalizationLimit ?? "default"}`;
+  const cachedState = getCachedFeatDerivedState(character.feats, cacheKey);
 
   if (cachedState) {
     return cachedState;
   }
 
-  const state = createFeatDerivedState(character.feats, level);
+  const state = createFeatDerivedState(
+    character.feats,
+    level,
+    proficiencyBonus,
+    normalizationLimit
+  );
 
-  setCachedFeatDerivedState(character.feats, level, state);
+  setCachedFeatDerivedState(character.feats, cacheKey, state);
   return state;
 }
 

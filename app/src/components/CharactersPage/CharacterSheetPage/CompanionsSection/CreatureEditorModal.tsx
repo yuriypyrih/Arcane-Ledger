@@ -1,4 +1,4 @@
-import { Search, Trash2 } from "lucide-react";
+import { Save, Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
 import {
@@ -989,6 +989,7 @@ function CreatureEditorModal({
                 onClick={() => void handleSave()}
                 disabled={saveDisabled}
                 loading={isSaving}
+                icon={<Save size={16} aria-hidden="true" />}
               >
                 {labels.saveButton}
               </ActionButton>
@@ -1008,6 +1009,7 @@ function CreatureEditorModal({
               onClick={() => void handleSave()}
               disabled={saveDisabled}
               loading={isSaving}
+              icon={isEditingExisting ? <Save size={16} aria-hidden="true" /> : undefined}
             >
               {isEditingExisting ? labels.saveButton : labels.createButton}
             </ActionButton>

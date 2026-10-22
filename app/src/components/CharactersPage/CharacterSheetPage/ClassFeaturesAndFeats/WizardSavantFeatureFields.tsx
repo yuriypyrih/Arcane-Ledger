@@ -1,14 +1,13 @@
 import clsx from "clsx";
 import { CLASS_FEATURE } from "../../../../codex/entries/enums";
-import {
-  getWizardSavantSpellIdsForCharacter,
-  setWizardSavantSpellIdsForCharacter
-} from "../../../../pages/CharactersPage/classFeatures";
+import { setWizardSavantSpellIdsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import {
   getWizardSavantConfigForFeature,
   getWizardSavantSelectionCount,
-  getWizardSavantSpellOptions
+  getWizardSavantSpellOptions,
+  normalizeWizardSavantSpellIds
 } from "../../../../pages/CharactersPage/classFeatures/wizard/savant";
+import { getClassLevel } from "../../../../pages/CharactersPage/multiclassState";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character } from "../../../../types";
@@ -41,27 +40,15 @@ function WizardSavantFeatureFields({
     return null;
   }
 
-  const selectionCount = getWizardSavantSelectionCount(character.level);
-  const currentSelections = getWizardSavantSpellIdsForCharacter(character);
+  const selectionCount = getWizardSavantSelectionCount(getClassLevel(character, "Wizard"));
+  const currentSelections = normalizeWizardSavantSpellIds(
+    character.classFeatureState?.wizard?.savantSpellIds,
+    character
+  );
   const availableSpells = getWizardSavantSpellOptions(character);
 
   if (selectionCount <= 0) {
     return null;
-  }
-
-  function getAvailableSpellsForSlot(slotIndex: number) {
-    const currentValue = currentSelections[slotIndex] ?? "";
-    const blockedSelections = new Set(
-      currentSelections.filter((selection, index) => index !== slotIndex)
-    );
-
-    return availableSpells.filter((spell) => {
-      if (spell.id === currentValue) {
-        return true;
-      }
-
-      return !blockedSelections.has(spell.id);
-    });
   }
 
   function updateSelection(slotIndex: number, nextValue: string) {
@@ -69,11 +56,14 @@ function WizardSavantFeatureFields({
       setWizardSavantSpellIdsForCharacter(
         currentCharacter,
         updateSelectionAtIndex(
-          getWizardSavantSpellIdsForCharacter(currentCharacter),
+          normalizeWizardSavantSpellIds(
+            currentCharacter.classFeatureState?.wizard?.savantSpellIds,
+            currentCharacter
+          ),
           selectionCount,
           slotIndex,
           nextValue
-        ).filter((selection): selection is string => selection.trim().length > 0)
+        )
       )
     );
   }
@@ -90,7 +80,10 @@ function WizardSavantFeatureFields({
     <div className={styles.featureSelectionGrid}>
       {Array.from({ length: selectionCount }, (_, slotIndex) => {
         const currentValue = currentSelections[slotIndex] ?? "";
-        const slotOptions = getAvailableSpellsForSlot(slotIndex);
+        const slotOptions = getWizardSavantSpellOptions(character, slotIndex);
+        const blockedSelections = new Set(
+          currentSelections.filter((_, index) => index !== slotIndex)
+        );
 
         return (
           <label
@@ -110,7 +103,11 @@ function WizardSavantFeatureFields({
             >
               <option value="">{`Select a ${savantConfig.schoolLabel} spell`}</option>
               {slotOptions.map((spell) => (
-                <option key={`${featureKey}-savant-${slotIndex}-${spell.id}`} value={spell.id}>
+                <option
+                  key={`${featureKey}-savant-${slotIndex}-${spell.id}`}
+                  value={spell.id}
+                  disabled={blockedSelections.has(spell.id)}
+                >
                   {formatWizardSavantSpellLabel(spell)}
                 </option>
               ))}

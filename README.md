@@ -14,6 +14,12 @@ management, and flexible enough for homebrew-heavy campaigns.
 - **Character roster and sheets**: create, manage, duplicate, import, share, and sync characters
   with rich sheet sections for profile, stats, skills, proficiencies, features, feats, companions,
   equipment, spellcasting, and gameplay.
+- **Manual stat overrides**: open a stat drawer and choose Overwrite to enable or disable an override.
+  Armor Class, Initiative, and Passive Perception accept whole numbers from 0–30; each movement
+  speed accepts 0–300 feet; Proficiency Bonus accepts 0–10 and applies throughout proficiency-based
+  calculations. Enabled overrides take priority over calculated values and hard-set effects, with
+  formulas marked `OVERWRITTEN`. Disabling them restores normal calculation. Overrides are retained
+  in saved, exported, and synced sheets.
 - **Gameplay tracking**: track hit points, temporary hit points, death saves, rests, resources,
   action economy, feature actions, traits, conditions, reactions, and dice-driven outcomes from one
   play-focused surface.
@@ -26,6 +32,10 @@ management, and flexible enough for homebrew-heavy campaigns.
   support references, prerequisites, and selection. Their 18 ability-score increases are tracked;
   other benefits remain reference-only. Dark Gifts are Origin feats with a dedicated compendium
   subset filter. The Ravenloft campaign prerequisite is informational.
+- **RHW backgrounds**: Haunted One, Investigator, Mist Wanderer, and Spirit Medium are available
+  in the compendium and character creation, including their Dark Gift choices and starting
+  equipment. They are marked Not Tracked; their granted feats remain reference-only. Data follows
+  the [RHW backgrounds on 5e.tools](https://5e.tools/backgrounds.html#haunted%20one_rhw), pp. 26–27.
 - **GM tools and prep tray**: build campaigns, organize party groups, prepare encounter templates,
   attach session notes, tune player visibility, and run live encounters with initiative and round
   tracking.

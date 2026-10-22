@@ -129,7 +129,7 @@ function getCultOfDragonInitiateDragonsTerrorSavingThrowFact(
   character: FeatRuntimeCharacter,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const wisdomModifier = getAbilityModifierForCharacter(
     {
       ...character,
@@ -300,7 +300,7 @@ function getTelekineticShoveSavingThrowFact(
   ability: AbilityKey,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const abilityModifier = getAbilityModifierForCharacter(
     {
       ...character,
@@ -369,7 +369,7 @@ function getFairyTricksterFlusteringStrikeSavingThrowFact(
   ability: AbilityKey,
   normalizedFeats: CharacterFeatEntry[]
 ): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const abilityModifier = getAbilityModifierForCharacter(
     {
       ...character,

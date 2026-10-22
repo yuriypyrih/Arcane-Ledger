@@ -1,11 +1,6 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getWarlockPactSlotState, spendWarlockPactSlot } from "../pactMagicPool";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { type SpellDescriptionEntry } from "../../../../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries/enums";
 import { warlockFeatures } from "../../../../../codex/classes";
@@ -246,7 +241,7 @@ function getWarlockFiendPatronDarkOnesBlessingFormulaFact(
 function getWarlockFiendPatronHurlThroughHellSpellDcFact(
   character: WarlockFiendPatronCharacter
 ): FeatureActionFact {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const dc = 8 + proficiencyBonus + charismaModifier;
   const formulaCell = formatFormulaCell({

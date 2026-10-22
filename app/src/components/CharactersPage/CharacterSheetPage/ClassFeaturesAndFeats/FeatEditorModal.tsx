@@ -36,6 +36,7 @@ type FeatEditorModalProps = {
   context: FeatEditorContext;
   activeFeatCategory: FEAT_CATEGORY;
   characterLevel: number;
+  proficiencyBonus?: number;
   visibleFeatCategories: FEAT_CATEGORY[];
   visibleFeatDefinitionsByCategory: Record<FEAT_CATEGORY, FeatDefinition[]>;
   featEligibilityByFeat: FeatEligibilityByFeat;
@@ -137,6 +138,7 @@ function FeatEditorModal({
   context,
   activeFeatCategory,
   characterLevel,
+  proficiencyBonus,
   visibleFeatCategories,
   visibleFeatDefinitionsByCategory,
   featEligibilityByFeat,
@@ -281,6 +283,7 @@ function FeatEditorModal({
                 featDefinition={featDefinition}
                 featEligibility={featEligibilityByFeat[featDefinition.feat]}
                 characterLevel={characterLevel}
+                proficiencyBonus={proficiencyBonus}
                 skillProficiencies={skillProficiencies}
                 savingThrowProficiencies={savingThrowProficiencies}
                 weaponProficiencies={weaponProficiencies}

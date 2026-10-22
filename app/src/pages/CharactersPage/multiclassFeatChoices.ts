@@ -1,5 +1,6 @@
 import type { Character, CharacterFeatEntry, CharacterMulticlass } from "../../types";
 import { normalizeCharacterFeats } from "./feats/normalization";
+import { getProficiencyNormalizationLimit } from "./statOverrides";
 
 /** Keep unavailable choices on their owner, outside the active feat/runtime list. */
 export function reconcileClassFeatChoices(
@@ -14,7 +15,8 @@ export function reconcileClassFeatChoices(
   const choices = new Map(
     normalizeCharacterFeats(
       [...state.classes.flatMap((entry) => entry.inactiveFeats ?? []), ...(character.feats ?? [])],
-      character.level
+      character.level,
+      getProficiencyNormalizationLimit(character)
     ).map((feat) => [feat.id, feat])
   );
   const feats: CharacterFeatEntry[] = [];

@@ -162,7 +162,7 @@ function isWarMagicSpell(
   );
 }
 
-function getFighterEldritchKnightWarMagicRemainingUses(
+export function getFighterEldritchKnightWarMagicRemainingUses(
   character: FighterEldritchKnightCharacter
 ): number {
   return Math.max(

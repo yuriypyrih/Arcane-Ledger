@@ -1,3 +1,4 @@
+import { getProficiencyBonus } from "../proficiencyBonus";
 import { cantripChoices } from "./cantripChoices";
 import { singleAbilityChoices, getSingleAbilityChoiceSummary } from "./singleAbilityChoices";
 import { getSpellEntriesForSpellListClass } from "../../../codex/classes/spellAccess";
@@ -593,10 +594,6 @@ export function normalizeRitualCasterChoice(value: unknown): RitualCasterChoice 
     )
   ].filter((spellId) => ritualCasterSpellOptionsById.has(spellId));
 
-  if (spellIds.length === 0) {
-    return undefined;
-  }
-
   return {
     ability: record.ability as RitualCasterChoice["ability"],
     spellIds,
@@ -1031,14 +1028,12 @@ export function normalizeMusicianChoice(value: unknown): MusicianChoice | undefi
   };
 }
 
-export function getFeatProficiencyBonusForLevel(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
+export const getFeatProficiencyBonusForLevel = getProficiencyBonus;
 
 export function normalizeLuckyChoice(
   value: unknown,
-  currentLevel: number
+  currentLevel: number,
+  proficiencyBonusLimit?: number
 ): LuckyChoice | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
@@ -1046,7 +1041,7 @@ export function normalizeLuckyChoice(
 
   const rawPointsExpended = Number((value as Partial<LuckyChoice>).pointsExpended);
   const pointsExpended = Number.isFinite(rawPointsExpended) ? Math.floor(rawPointsExpended) : 0;
-  const maxPoints = getFeatProficiencyBonusForLevel(currentLevel);
+  const maxPoints = proficiencyBonusLimit ?? getFeatProficiencyBonusForLevel(currentLevel);
   const normalizedPointsExpended = Math.max(0, Math.min(maxPoints, pointsExpended));
 
   return normalizedPointsExpended > 0

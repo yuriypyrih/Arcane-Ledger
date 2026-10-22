@@ -4,6 +4,7 @@ import type {
   Alignment,
   AttributeMode,
   CharacterArmorClassFormulaSelection,
+  CharacterStatOverrides,
   CharacterBackgroundChoices,
   CharacterCustomBackgroundConfig,
   CharacterCustomAction,
@@ -127,6 +128,7 @@ export type PortableCharacterSheetSession = {
 };
 
 export type PortableCharacterSheetPreferences = {
+  statOverrides?: CharacterStatOverrides;
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   hover?: boolean;
 };

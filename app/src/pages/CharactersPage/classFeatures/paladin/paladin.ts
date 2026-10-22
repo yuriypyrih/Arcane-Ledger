@@ -148,7 +148,7 @@ function getPaladinsSmiteDescription(): string[] {
   );
 }
 
-function getPaladinAdditionalAttackCount(
+export function getPaladinAdditionalAttackCount(
   character: Pick<Character, "className" | "level">
 ): number {
   return hasPaladinFeature(character, CLASS_FEATURE.EXTRA_ATTACK) ? 1 : 0;

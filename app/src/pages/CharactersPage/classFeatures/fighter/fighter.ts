@@ -281,7 +281,7 @@ export function hasFighterFeature(
   return getUnlockedFighterFeatures(getClassLevel(character, "Fighter")).has(feature);
 }
 
-function getFighterAdditionalAttackCount(
+export function getFighterAdditionalAttackCount(
   character: Pick<Character, "className" | "level">
 ): number {
   if (!hasFighterFeature(character, CLASS_FEATURE.EXTRA_ATTACK)) {

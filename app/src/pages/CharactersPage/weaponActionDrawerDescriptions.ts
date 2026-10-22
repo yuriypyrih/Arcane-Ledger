@@ -146,6 +146,7 @@ export function getWeaponActionDrawerDescriptionAdditions(
     | "descriptionAdditions"
     | "properties"
     | "proficiencyBonus"
+    | "proficiencyLabel"
   >
 ): SpellDescriptionEntry[][] {
   if (!isWeaponOrUnarmedAction(action)) {

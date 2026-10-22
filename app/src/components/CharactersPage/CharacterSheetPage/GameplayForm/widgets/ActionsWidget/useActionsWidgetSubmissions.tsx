@@ -1,5 +1,9 @@
 import { applyActionResourceTransition } from "./actionResourceTransition";
-import type { CharacterCompanion } from "../../../../../../types";
+import type { Character, CharacterCompanion } from "../../../../../../types";
+import {
+  canUseUndeadThrallsFreeCast,
+  undeadThrallsFreeCastEffectId
+} from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardNecromancerUndeadThralls";
 import {
   appendSpellSummonCompanionsForCast,
   canAddSpellSummonCompanionsForCast
@@ -17,6 +21,10 @@ import { createSpeciesFormSubmissions } from "./uiAdapters/species";
 import { createSorcererFormSubmissions } from "./uiAdapters/sorcerer";
 import { createRogueFormSubmissions } from "./uiAdapters/rogue";
 import { consumePhantomVoiceOfDeathUse } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
+import {
+  canPaySpellEconomy,
+  payEconomyForCharacterAction
+} from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
 import { createPaladinFormSubmissions } from "./uiAdapters/paladin";
 import { createFighterFormSubmissions } from "./uiAdapters/fighter";
 import { createFeatsFormSubmissions } from "./uiAdapters/feats";
@@ -48,8 +56,6 @@ import {
   consumeArtificerUnerringPathUseForCharacter,
   consumeRangerFavoredEnemyUseForCharacter,
   consumeNonMagicActionForCharacter,
-  consumeSharedEconomyMultiForCharacterAction,
-  createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForSpell,
   expendMonkFocusPointForCharacter,
   getMantleOfMajestyUsesRemainingForCharacter,
@@ -106,10 +112,7 @@ import {
   rogueSoulknifePsychicWhispersActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 
-import {
-  ACTION_CATEGORY,
-  getRoundTrackerResourceForEconomyType
-} from "../../../../../../pages/CharactersPage/actionEconomy";
+import { getRoundTrackerResourceForEconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 
 import { applySpellDurationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
@@ -333,11 +336,15 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   }
 
   function activateSelectedChannelDivinity(row: ChannelDivinityOptionRow) {
-    onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, row.option.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateFeatureActionOptionForCharacter(
-        preparedCharacter,
-        row.action.key,
-        row.option.key
-      )));
+    onPersistCharacter((currentCharacter) =>
+      applyActionResourceTransition(
+        currentCharacter,
+        row.option.economyType,
+        prepareCharacterForResourceConsumption,
+        (preparedCharacter) =>
+          activateFeatureActionOptionForCharacter(preparedCharacter, row.action.key, row.option.key)
+      )
+    );
 
     if (row.option.rollFormula) {
       openDiceRoller({
@@ -423,19 +430,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
           spellSlotLevel: spellLevel
         }
       );
-      const nextCharacterWithSharedMulti = roundTrackerResource
-        ? consumeSharedEconomyMultiForCharacterAction(
-            nextCharacterWithSpellCastEffects,
-            createEconomyMultiContextForSpell(spell)
-          )
-        : nextCharacterWithSpellCastEffects;
-
-      return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithSharedMulti,
-            roundTrackerResource
-          )
-        : nextCharacterWithSharedMulti;
+      if (!roundTrackerResource) return nextCharacterWithSpellCastEffects;
+      const paid = payEconomyForCharacterAction(
+        nextCharacterWithSpellCastEffects,
+        createEconomyMultiContextForSpell(spell)
+      );
+      return paid.status === "paid" ? paid.character : currentCharacter;
     });
 
     closeActionDrawer();
@@ -542,10 +542,15 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return;
     }
 
-    onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, selectedFeatureAction.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateFeatureActionForCharacter(
-        preparedCharacter,
-        selectedFeatureAction.key
-      )));
+    onPersistCharacter((currentCharacter) =>
+      applyActionResourceTransition(
+        currentCharacter,
+        selectedFeatureAction.economyType,
+        prepareCharacterForResourceConsumption,
+        (preparedCharacter) =>
+          activateFeatureActionForCharacter(preparedCharacter, selectedFeatureAction.key)
+      )
+    );
 
     openDiceRoller({
       title: selectedFeatureAction.name,
@@ -562,10 +567,15 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return;
     }
 
-    onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, selectedFeatureAction.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateFeatureActionForCharacter(
-        preparedCharacter,
-        selectedFeatureAction.key
-      )));
+    onPersistCharacter((currentCharacter) =>
+      applyActionResourceTransition(
+        currentCharacter,
+        selectedFeatureAction.economyType,
+        prepareCharacterForResourceConsumption,
+        (preparedCharacter) =>
+          activateFeatureActionForCharacter(preparedCharacter, selectedFeatureAction.key)
+      )
+    );
 
     openDiceRoller({
       title: selectedFeatureAction.name,
@@ -634,7 +644,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return;
     }
 
-    onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, action.economyType, prepareCharacterForResourceConsumption, preparedCharacter => activateFeatureActionForCharacter(preparedCharacter, action.key)));
+    onPersistCharacter((currentCharacter) =>
+      applyActionResourceTransition(
+        currentCharacter,
+        action.economyType,
+        prepareCharacterForResourceConsumption,
+        (preparedCharacter) => activateFeatureActionForCharacter(preparedCharacter, action.key)
+      )
+    );
 
     openDiceRoller({
       title: action.name,
@@ -662,18 +679,26 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return;
     }
 
-    onPersistCharacter((currentCharacter) => applyActionResourceTransition(currentCharacter, selectedFeatureAction.economyType, prepareCharacterForResourceConsumption, preparedCharacter => requiresRageOption && selectedRageOptionKey
-          ? activateBarbarianWildHeartRage(
-              preparedCharacter,
-              selectedRageOptionKey,
-              selectedRagePowerOptionKey ?? undefined,
-              {
+    onPersistCharacter((currentCharacter) =>
+      applyActionResourceTransition(
+        currentCharacter,
+        selectedFeatureAction.economyType,
+        prepareCharacterForResourceConsumption,
+        (preparedCharacter) =>
+          requiresRageOption && selectedRageOptionKey
+            ? activateBarbarianWildHeartRage(
+                preparedCharacter,
+                selectedRageOptionKey,
+                selectedRagePowerOptionKey ?? undefined,
+                {
+                  useRageOfTheGods: isRageOfTheGodsSelected
+                }
+              )
+            : activateBarbarianRage(preparedCharacter, {
                 useRageOfTheGods: isRageOfTheGodsSelected
-              }
-            )
-          : activateBarbarianRage(preparedCharacter, {
-              useRageOfTheGods: isRageOfTheGodsSelected
-            })));
+              })
+      )
+    );
 
     closeActionDrawer();
   }
@@ -814,14 +839,21 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
     );
-    const slotLevel = Math.max(minimumSlotLevel, selectedFixedSpellSlotLevel);
+    const useUndeadThralls =
+      options?.spellCastEffectIds?.includes(undeadThrallsFreeCastEffectId) === true;
+    if (useUndeadThralls && !canUseUndeadThrallsFreeCast(character, fixedSpellEntry)) return;
+    const slotLevel = useUndeadThralls
+      ? getSpellLevel(fixedSpellEntry)
+      : Math.max(minimumSlotLevel, selectedFixedSpellSlotLevel);
     const castsWithoutSpellSlot =
-      fixedSpellFreeCastSlotLevel !== null && slotLevel === fixedSpellFreeCastSlotLevel;
+      useUndeadThralls ||
+      (fixedSpellFreeCastSlotLevel !== null && slotLevel === fixedSpellFreeCastSlotLevel);
     const roundTrackerResource =
       options?.roundTrackerResourceOverride ??
       fixedSpellActionPaths[0]?.roundTrackerResource ??
       getRoundTrackerResourceForEconomyType(selectedFeatureAction.economyType);
     const fixedSpellActionPath =
+      fixedSpellActionPaths.find((path) => path.id === options?.spellActionPathId) ??
       fixedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
       fixedSpellActionPaths[0] ??
       null;
@@ -843,23 +875,33 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         ...(options?.spellCastEffectIds ?? [])
       ])
     ];
-    const sharedEconomyContext = fixedSpellActionPath
-      ? {
-          economyType: fixedSpellActionPath.economyType,
-          actionCategory: ACTION_CATEGORY.MAGIC,
-          spellLevel: fixedSpellEntry.spellLevel
-        }
-      : createEconomyMultiContextForFeatureAction(selectedFeatureAction);
+    const sharedEconomyContext = createEconomyMultiContextForSpell(fixedSpellEntry, {
+      ...fixedSpellActionPath,
+      roundTrackerResource
+    });
+    const canPaySelectedSpellEconomy = (currentCharacter: Character) =>
+      castAsRitual ||
+      canPaySpellEconomy(
+        currentCharacter,
+        fixedSpellEntry,
+        roundTrackerResource,
+        spellActionPathId
+      );
+    if (!canPaySelectedSpellEconomy(character)) return;
 
     if (useElementalSmite && elementalSmiteOption === null) {
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
+      if (!canPaySelectedSpellEconomy(currentCharacter)) return currentCharacter;
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
         roundTrackerResource
       );
+      if (useUndeadThralls && !canUseUndeadThrallsFreeCast(preparedCharacter, fixedSpellEntry)) {
+        return currentCharacter;
+      }
       let nextCharacter = preparedCharacter;
       const spellSlotTotals = getSheetSpellSlotTotals(preparedCharacter);
       const spellSlotsExpended = normalizeSpellSlotsExpended(
@@ -1049,6 +1091,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         spellCastEffectIds,
         {
           spellSlotLevel: slotLevel,
+          sourceSpellSlotLevel,
           castSource: spellImplementationCastSource,
           options: spellImplementationOptions,
           spellActionPathId
@@ -1072,23 +1115,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         fixedSpellEntry,
         { includeBardBattleMagic: !castAsRitual }
       );
-      const nextCharacterWithSharedMulti = roundTrackerResource
-        ? consumeSharedEconomyMultiForCharacterAction(
-            nextCharacterWithSpellCastEffects,
-            sharedEconomyContext
-          )
-        : nextCharacterWithSpellCastEffects;
-
-      if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
-        return nextCharacterWithSharedMulti;
-      }
-
-      return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithSharedMulti,
-            roundTrackerResource
-          )
-        : nextCharacterWithSharedMulti;
+      if (!roundTrackerResource) return nextCharacterWithSpellCastEffects;
+      const paid = payEconomyForCharacterAction(
+        nextCharacterWithSpellCastEffects,
+        sharedEconomyContext
+      );
+      return paid.status === "paid" ? paid.character : currentCharacter;
     });
 
     rollFixedSpellHuntersRimeTemporaryHitPoints(fixedSpellEntry);

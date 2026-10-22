@@ -229,7 +229,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPELLCASTING, {
         description: mysticArtsSpellcastingDescription,
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -238,7 +238,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           description: [
             "During your Attack action on your turn, you may replace one Unarmed Strike with a Sorcerer cantrip whose casting time is an action."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MYSTIC_FOCUS, {
@@ -249,7 +249,9 @@ export const monkSubclassEntries: SubclassEntry[] = [
         description: [
           "Using Stunning Strike gives the target <link:Disadvantage>Disadvantage</link> on saving throws against your spells until your next turn starts, whether it passes or fails the Stunning Strike save."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Its description appears in Unarmed Strike. Apply the target's saving throw Disadvantage manually."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_17,
@@ -258,7 +260,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           description: [
             "When using Flurry of Blows, you may replace two Unarmed Strikes with a level-1 or level-2 Sorcerer spell whose casting time is an action. Cast it as part of the same Bonus Action as Flurry of Blows."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       )
     ]

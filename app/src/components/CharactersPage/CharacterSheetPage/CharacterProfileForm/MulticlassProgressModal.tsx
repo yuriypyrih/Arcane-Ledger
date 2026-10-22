@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Character, CharacterMulticlass } from "../../../../types";
 import {
@@ -187,6 +187,7 @@ export default function MulticlassProgressModal({ character, onClose, onPersistC
                       setError("");
                     }}
                   >
+                    <X size={16} aria-hidden="true" />
                     Cancel XP
                   </SheetActionButton>
                 </>
@@ -258,6 +259,7 @@ export default function MulticlassProgressModal({ character, onClose, onPersistC
                       setError("");
                     }}
                   >
+                    <X size={16} aria-hidden="true" />
                     Cancel level
                   </SheetActionButton>
                 </>
@@ -334,7 +336,7 @@ export default function MulticlassProgressModal({ character, onClose, onPersistC
             xpMode !== null ||
             total > 100
           }
-          icon={<Check size={18} aria-hidden="true" />}
+          icon={<Save size={18} aria-hidden="true" />}
           onClick={save}
         >
           Save

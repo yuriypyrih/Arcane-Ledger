@@ -26,7 +26,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
-import { getCharacterLevel, getClassLevel } from "../../../multiclassState";
+import { getClassLevel } from "../../../multiclassState";
 import { getSpellAttackRollFormulaForCharacter } from "../../../shared/spellFormulas";
 import {
   appendSpellSummonCompanionsForCast,
@@ -51,7 +51,7 @@ export function getWarlockVestigeCompanionStatBlock(
   form: VestigeCompanionForm = "Celestial"
 ): MonsterRecord {
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   return createVestigeCompanionStatBlock({
     warlockLevel: getClassLevel(character, "Warlock"),
     charismaModifier,

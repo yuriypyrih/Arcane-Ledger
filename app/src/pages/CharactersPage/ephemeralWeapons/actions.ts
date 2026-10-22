@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "../multiclassState";
 import type { AbilityKey, Character } from "../../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../utils/codex";
 import { getAbilityModifierForCharacter } from "../abilities";
@@ -153,7 +152,7 @@ export function createEphemeralWeaponAction(
       proficiencyBonus:
         definition.isProficient === false
           ? 0
-          : getProficiencyBonus(getCharacterLevel(character) ?? 1),
+          : getProficiencyBonus(character),
       damageBonusEntries: definition.damageBonusEntries,
       cardBonusLabels: definition.cardBonusLabels,
       description,

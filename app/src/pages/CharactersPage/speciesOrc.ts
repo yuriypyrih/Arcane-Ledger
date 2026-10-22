@@ -1,5 +1,6 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
-import { getCharacterLevel } from "./multiclassState";
+
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -56,11 +57,6 @@ function getAdrenalineRushDescriptionAddition(): SpellDescriptionEntry[] {
           "You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
         ]
   );
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -125,7 +121,7 @@ export function getOrcAdrenalineRushUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isOrcSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 
@@ -160,7 +156,7 @@ export function applyOrcAdrenalineRushForCharacter(character: Character): Charac
   }
 
   const orcState = getOrcFeatureState(character);
-  const temporaryHitPoints = getSpeciesProficiencyBonus(getCharacterLevel(character));
+  const temporaryHitPoints = getSpeciesProficiencyBonus(character);
   const characterWithSpentCharge = setOrcFeatureState(character, {
     adrenalineRushUsesExpended: clampExpendedUses(orcState.adrenalineRushUsesExpended) + 1
   });

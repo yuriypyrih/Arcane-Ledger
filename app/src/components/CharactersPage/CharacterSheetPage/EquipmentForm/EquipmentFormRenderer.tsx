@@ -946,6 +946,7 @@ export function renderEquipmentForm(context: EquipmentFormRendererContext) {
                 className={styles.customEquipmentDeleteCancelButton}
                 onClick={() => setPendingDeleteCustomEquipmentId(null)}
               >
+                <X size={16} aria-hidden="true" />
                 Cancel
               </button>
               <button

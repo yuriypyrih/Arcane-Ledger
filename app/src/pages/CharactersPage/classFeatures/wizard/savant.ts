@@ -24,6 +24,16 @@ const wizardSavantConfigsBySubclassId = {
     feature: CLASS_FEATURE.ILLUSION_SAVANT,
     school: MAGIC_SCHOOL.ILLUSION,
     schoolLabel: "Illusion"
+  },
+  "wizard-necromancer": {
+    feature: CLASS_FEATURE.NECROMANCY_SAVANT,
+    school: MAGIC_SCHOOL.NECROMANCY,
+    schoolLabel: "Necromancy"
+  },
+  "wizard-transmuter": {
+    feature: CLASS_FEATURE.TRANSMUTATION_SAVANT,
+    school: MAGIC_SCHOOL.TRANSMUTATION,
+    schoolLabel: "Transmutation"
   }
 } as const;
 
@@ -88,8 +98,17 @@ export function hasWizardSavantFeature(
   );
 }
 
+function getSavantChoiceSpellLevelLimit(config: WizardSavantConfig, selectionIndex?: number) {
+  return (config.feature === CLASS_FEATURE.NECROMANCY_SAVANT ||
+    config.feature === CLASS_FEATURE.TRANSMUTATION_SAVANT) &&
+    selectionIndex !== undefined
+    ? Math.max(2, selectionIndex + 1)
+    : 9;
+}
+
 export function getWizardSavantSpellOptions(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  selectionIndex?: number
 ): SpellEntry[] {
   const savantConfig = getWizardSavantConfigForSubclassId(getClassSubclassId(character, "Wizard"));
 
@@ -102,7 +121,12 @@ export function getWizardSavantSpellOptions(
     getClassLevel(character, "Wizard"),
     getClassSubclassId(character, "Wizard")
   )
-    .filter((spell) => spell.magicSchool === savantConfig.school)
+    .filter(
+      (spell) =>
+        spell.magicSchool === savantConfig.school &&
+        spell.spellLevel > 0 &&
+        spell.spellLevel <= getSavantChoiceSpellLevelLimit(savantConfig, selectionIndex)
+    )
     .sort((left, right) => {
       if (left.spellLevel !== right.spellLevel) {
         return left.spellLevel - right.spellLevel;
@@ -121,18 +145,29 @@ export function normalizeWizardSavantSpellIds(
   }
 
   const selectionCount = getWizardSavantSelectionCount(getClassLevel(character, "Wizard"));
-  const availableSpellIds = new Set(
-    getWizardSavantSpellOptions(character).map((spell) => spell.id)
+  const savantConfig = getWizardSavantConfigForSubclassId(getClassSubclassId(character, "Wizard"));
+  const availableSpells = new Map(
+    getWizardSavantSpellOptions(character).map((spell) => [spell.id, spell])
   );
   const rawSpellIds = Array.isArray(value)
-    ? value
-        .filter((spellId): spellId is string => typeof spellId === "string")
-        .map((spellId) => spellId.trim())
+    ? value.map((spellId) => (typeof spellId === "string" ? spellId.trim() : ""))
     : [];
+  const selectedSpellIds = new Set<string>();
 
-  return [...new Set(rawSpellIds)]
-    .filter((spellId) => availableSpellIds.has(spellId))
-    .slice(0, selectionCount);
+  // Keep empty positions so choices retain the spell-level limit of their unlock slot.
+  return rawSpellIds.slice(0, selectionCount).map((spellId, index) => {
+    const spell = availableSpells.get(spellId);
+    if (
+      selectedSpellIds.has(spellId) ||
+      !spell ||
+      !savantConfig ||
+      spell.spellLevel > getSavantChoiceSpellLevelLimit(savantConfig, index)
+    ) {
+      return "";
+    }
+    selectedSpellIds.add(spellId);
+    return spellId;
+  });
 }
 
 export function getWizardSavantSpellIdsFromFeatureState(
@@ -142,5 +177,5 @@ export function getWizardSavantSpellIdsFromFeatureState(
   return normalizeWizardSavantSpellIds(
     character.classFeatureState?.wizard?.savantSpellIds,
     character
-  );
+  ).filter(Boolean);
 }

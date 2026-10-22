@@ -1,7 +1,7 @@
 import CharacterInspectionModal from "../../../components/CharactersPage/CharacterInspection/CharacterInspectionModal";
 import AdministrationUserCharacters from "./AdministrationUserCharacters";
 import { type FormEvent, useId, useState } from "react";
-import { Save } from "lucide-react";
+import { Save, X } from "lucide-react";
 import ActionButton from "../../../components/ActionButton";
 import SelectInput from "../../../components/CharactersPage/FormInputs/SelectInput";
 import {
@@ -116,6 +116,7 @@ function AdministrationUserModal({
             <ActionButton
               type="button"
               variant="OUTLINE"
+              icon={<X size={16} aria-hidden="true" />}
               fullWidth={false}
               disabled={isBusy}
               onClick={onClose}

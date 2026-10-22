@@ -15,6 +15,7 @@ import {
 } from "./enums";
 import { efaBackgroundEntries } from "./efaBackgroundData";
 import { frhofBackgroundEntries } from "./frhofBackgroundData";
+import { rhwBackgroundEntries } from "./rhwBackgroundData";
 import {
   addBackgroundDescription,
   type BackgroundEntryWithoutDescription
@@ -522,5 +523,6 @@ const coreBackgroundEntries: BackgroundEntryWithoutDescription[] = [
 export const backgroundEntries: BackgroundEntry[] = [
   ...coreBackgroundEntries.map(addBackgroundDescription),
   ...frhofBackgroundEntries,
-  ...efaBackgroundEntries
+  ...efaBackgroundEntries,
+  ...rhwBackgroundEntries
 ];

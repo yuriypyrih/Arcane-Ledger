@@ -152,15 +152,20 @@ export const spellGrantsBuilders: FeatContributionBuilders = {
 
     return true;
   },
-  [FEATS.RITUAL_CASTER]: ({ entry, contribution }) => {
+  [FEATS.RITUAL_CASTER]: ({ entry, contribution, proficiencyBonus }) => {
     if (!entry.ritualCaster) return false;
 
     const ritualCaster = entry.ritualCaster;
 
-    appendFeatSpellGrants(entry, contribution, getRitualCasterSpellEntries(entry), {
-      kind: "always-prepared-spell",
-      ability: ritualCaster.ability
-    });
+    appendFeatSpellGrants(
+      entry,
+      contribution,
+      getRitualCasterSpellEntries(entry).slice(0, proficiencyBonus),
+      {
+        kind: "always-prepared-spell",
+        ability: ritualCaster.ability
+      }
+    );
 
     return true;
   },

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { getSpellEntryById } from "../../../../codex/spells";
 import type { Character } from "../../../../types";
-import { ACTION_CATEGORY } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   normalizeRoundTracker,
   type RoundTrackerResource
@@ -12,7 +11,8 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import { applyFeatureSpellCastEffectsForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import {
-  consumeSharedEconomyMultiForCharacterAction,
+  canPaySpellEconomy,
+  payEconomyForCharacterAction,
   createEconomyMultiContextForSpell
 } from "../../../../pages/CharactersPage/classFeatures/economyMulti";
 import {
@@ -42,7 +42,6 @@ import type {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import CharacterSpellDrawer from "../SpellCastingForm/CharacterSpellDrawer";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
-import { consumeRoundTrackerResourceForCharacter } from "../GameplayForm/gameplayStateUtils";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
 import styles from "./EquipmentForm.module.css";
 
@@ -223,22 +222,24 @@ function EquipmentStoredSpellDrawer({
 
     const spell = activeSpellEntry;
     const selectedActionPath =
-      options?.roundTrackerResourceOverride !== undefined
+      actionPathStates.find((path) => path.id === options?.spellActionPathId) ??
+      (options?.roundTrackerResourceOverride !== undefined
         ? (actionPathStates.find(
             (path) => path.roundTrackerResource === options.roundTrackerResourceOverride
           ) ?? null)
-        : (actionPathStates[0] ?? null);
+        : (actionPathStates[0] ?? null));
     const roundTrackerResource =
       options?.roundTrackerResourceOverride ?? selectedActionPath?.roundTrackerResource ?? null;
-    const sharedEconomyContext = selectedActionPath
-      ? {
-          economyType: selectedActionPath.economyType,
-          actionCategory: ACTION_CATEGORY.MAGIC,
-          spellLevel: spell.spellLevel
-        }
-      : createEconomyMultiContextForSpell(spell);
+    const sharedEconomyContext = createEconomyMultiContextForSpell(spell, {
+      ...selectedActionPath,
+      roundTrackerResource
+    });
+    const canPaySelectedSpellEconomy = (currentCharacter: Character) =>
+      canPaySpellEconomy(currentCharacter, spell, roundTrackerResource, selectedActionPath?.id);
+    if (!canPaySelectedSpellEconomy(character)) return;
 
     onPersistCharacter((currentCharacter) => {
+      if (!canPaySelectedSpellEconomy(currentCharacter)) return currentCharacter;
       const targetStack = getInventoryStackForStoredSpellState(
         currentCharacter.inventoryItems,
         selectedStoredSpell
@@ -308,19 +309,11 @@ function EquipmentStoredSpellDrawer({
         return currentCharacter;
       }
 
-      const nextCharacterWithSharedMulti = roundTrackerResource
-        ? consumeSharedEconomyMultiForCharacterAction(
-            nextCharacterWithFeatCastEffects,
-            sharedEconomyContext
-          )
-        : nextCharacterWithFeatCastEffects;
-      const nextCharacterWithEconomy =
-        roundTrackerResource && nextCharacterWithSharedMulti === nextCharacterWithFeatCastEffects
-          ? consumeRoundTrackerResourceForCharacter(
-              nextCharacterWithSharedMulti,
-              roundTrackerResource
-            )
-          : nextCharacterWithSharedMulti;
+      const payment = roundTrackerResource
+        ? payEconomyForCharacterAction(nextCharacterWithFeatCastEffects, sharedEconomyContext)
+        : { status: "paid" as const, character: nextCharacterWithFeatCastEffects };
+      if (payment.status === "unavailable") return currentCharacter;
+      const nextCharacterWithEconomy = payment.character;
       const nextInventoryItems = shouldSpendCharges
         ? spendStoredSpellItemCharges(
             nextCharacterWithEconomy.inventoryItems,

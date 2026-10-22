@@ -370,6 +370,31 @@ export function getBackgroundOptions(): string[] {
   return [...backgroundEntriesByName.keys()].sort(sortBackgroundNames);
 }
 
+export function getBackgroundOriginFeatOptions(background: string): FEATS[] {
+  const entry = getBackgroundEntry(background);
+  return entry ? (entry.originFeatOptions ?? [entry.originFeat]) : [];
+}
+
+export function createSelectedBackgroundOriginFeatEntry(
+  background: string,
+  feat: FEATS,
+  level = 1
+): CharacterFeatEntry | null {
+  const entry = getBackgroundEntry(background);
+
+  if (!entry || !getBackgroundOriginFeatOptions(background).includes(feat)) {
+    return null;
+  }
+
+  if (feat === entry.originFeat) {
+    return createDefaultBackgroundOriginFeatEntry(background, level);
+  }
+
+  return createBackgroundFeatEntry({ ...entry, originFeat: feat }, level, {
+    source: { type: "background", background: entry.name }
+  });
+}
+
 export function getDefaultBackgroundChoices(
   background: string,
   context?: BackgroundChoiceContext
@@ -785,10 +810,13 @@ export function reconcileBackgroundOriginFeatEntries(
     (featEntry) =>
       featEntry.source?.type === "background" &&
       featEntry.source.background === entry.name &&
-      featEntry.feat === entry.originFeat
+      getBackgroundOriginFeatOptions(background).includes(featEntry.feat)
   );
   const nextBackgroundFeat = existingBackgroundFeat
-    ? ensureBackgroundFeatChoices(existingBackgroundFeat, entry)
+    ? ensureBackgroundFeatChoices(existingBackgroundFeat, {
+        ...entry,
+        originFeat: existingBackgroundFeat.feat
+      })
     : createDefaultBackgroundOriginFeatEntry(entry.name, level);
 
   return nextBackgroundFeat ? [...nonBackgroundFeats, nextBackgroundFeat] : nonBackgroundFeats;

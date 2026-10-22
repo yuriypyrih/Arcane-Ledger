@@ -286,6 +286,11 @@ Automatic retries are disabled so a flaky failure stays visible.
   its previous training choices before saving.
 - `app/tests/rules/multiclass.test.ts` separates total/class level, checks the slot/HP/Hit Dice rules,
   non-stacking attacks and AC, source-owned feats, and save/load across all 156 ordered built-in pairs.
+- `app/tests/rules/action-economy.test.ts` checks attack progression, Action Surge, cantrip
+  replacement order, Mystic spell costs, separate Monk/Retaliation grants, attack effects, and
+  restricted Pact weapon budgets. Spell-granted attacks require an actual Attack action and retain
+  pending uses across reload. `app/e2e/combat-workflows.spec.ts` exercises Fighter attack sequences,
+  Mystic cantrip sharing, and Flurry spell payments through real drawers and persisted sheets.
 - `app/tests/rules/multiclass-edge-cases.test.ts` checks real resource transitions, mixed-die spending,
   class removal/downgrades, distinct custom states, source-sensitive spell modifiers, companion HP,
   independent Channel Divinity recovery, editor validation, and backup write failures.

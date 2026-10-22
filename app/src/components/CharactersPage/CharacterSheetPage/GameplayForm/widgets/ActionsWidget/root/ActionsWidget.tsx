@@ -1662,7 +1662,7 @@ function ActionsWidget({
           savingThrowProficiency
         );
         const proficiencyContribution =
-          getProficiencyBonus(level) * getProficiencyMultiplier(savingThrowLevel);
+          getProficiencyBonus(character) * getProficiencyMultiplier(savingThrowLevel);
         const total =
           abilityModifier +
           proficiencyContribution +

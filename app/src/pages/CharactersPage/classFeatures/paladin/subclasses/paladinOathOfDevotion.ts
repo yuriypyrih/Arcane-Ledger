@@ -1,12 +1,7 @@
 import { activatePaladinTimedFeature } from "../timedActivation";
 import { replaceClassFeatureState } from "../../shared/resourceState";
 import { getSheetSpellSlotTotals } from "../../../multiclassSpellcasting";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries/enums";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
@@ -296,7 +291,7 @@ export function getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula(
   character: Pick<Character, "className"> & Partial<Pick<Character, "abilities" | "level">>
 ): string {
   const wisdomModifier = getWisdomModifier(character);
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const totalRadiantDamage = wisdomModifier + proficiencyBonus;
 
   return `${totalRadiantDamage} Radiant Damage = ${wisdomModifier} WIS + ${proficiencyBonus} Prof Bonus`;

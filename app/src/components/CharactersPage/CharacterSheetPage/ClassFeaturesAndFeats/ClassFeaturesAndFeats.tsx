@@ -1,3 +1,4 @@
+import { getProficiencyBonus } from "../../../../pages/CharactersPage/proficiencyBonus";
 import { withReadOnlySheet } from "../withReadOnlySheet";
 import { applyClassEditorChange } from "../../../../pages/CharactersPage/multiclass";
 import {
@@ -1584,7 +1585,11 @@ function ClassFeaturesAndFeats({
       return;
     }
 
-    const ritualCaster = decodePendingRitualCasterChoice(choice, getCharacterLevel(character));
+    const ritualCaster = decodePendingRitualCasterChoice(
+      choice,
+      getCharacterLevel(character),
+      getProficiencyBonus(character)
+    );
 
     if (!ritualCaster) {
       return;
@@ -2517,6 +2522,7 @@ function ClassFeaturesAndFeats({
           context={featEditorContext}
           activeFeatCategory={activeFeatCategory}
           characterLevel={getCharacterLevel(character)}
+          proficiencyBonus={getProficiencyBonus(character)}
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
           featEligibilityByFeat={featEligibilityByFeat}

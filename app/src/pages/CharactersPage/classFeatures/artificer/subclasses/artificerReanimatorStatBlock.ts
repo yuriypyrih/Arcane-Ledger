@@ -3,7 +3,7 @@ import { createReanimatedCompanionStatBlock } from "../../../../../codex/subclas
 import type { Character, MonsterRecord } from "../../../../../types";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getProficiencyBonus } from "../../../gameplay";
-import { getCharacterLevel, getClassLevel } from "../../../multiclassState";
+import { getClassLevel } from "../../../multiclassState";
 import {
   getSpellAttackRollFormulaForCharacter,
   getSpellSaveFormulaCell
@@ -11,7 +11,7 @@ import {
 
 export function getArtificerReanimatedCompanionStatBlock(character: Character): MonsterRecord {
   const intelligenceModifier = getAbilityModifierForCharacter(character, "INT");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const spellContext = {
     isAttackSpell: true,
     isSavingThrowSpell: true,

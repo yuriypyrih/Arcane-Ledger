@@ -2,7 +2,7 @@
   display: grid;
   gap: 0.18rem;
   border-radius: var(--radius-control);
-  background: rgba(47, 120, 255, 0.1);
+  background: color-mix(in srgb, var(--theme-state-info) 10%, transparent);
   margin-bottom: 0.9rem;
   padding: 0.75rem 0.82rem;
 }
@@ -29,9 +29,10 @@
 .arcaneRecoveryCard {
   display: grid;
   gap: 0.65rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-compact);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
   padding: 0.8rem 0.85rem;
 }
 
@@ -61,7 +62,7 @@
   align-items: center;
   border: 1px solid transparent;
   border-radius: var(--radius-compact);
-  background: linear-gradient(135deg, #2f6de0, #4a8eff);
+  background: var(--gradient-primary-action);
   color: #f7fbff;
   cursor: pointer;
   display: inline-flex;
@@ -83,7 +84,7 @@
 }
 
 .arcaneRecoveryControlButton:focus-visible {
-  box-shadow: 0 0 0 3px rgba(47, 109, 224, 0.28);
+  box-shadow: 0 0 0 3px var(--theme-focus-ring);
   outline: none;
 }
 

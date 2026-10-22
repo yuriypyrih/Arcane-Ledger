@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "./multiclassState";
 import type { AbilityKey, Character, SkillName, SkillProficiencyEntry } from "../../types";
 import { PROF_LEVEL } from "../../types";
 import { getProficiencyBonus } from "./gameplay";
@@ -57,7 +56,7 @@ export function getSkillRowsByAbility(
   character: Character,
   skillProficiencies: SkillProficiencyEntry[]
 ): SkillRowsByAbility[] {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
 
   return skillGroupsByAbility.map((group) => {

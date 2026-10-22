@@ -87,3 +87,125 @@ test("ending concentration from Traits and Conditions removes linked effects and
   await expect(page.getByRole("button", { name: /Poisoned/ })).toBeVisible();
   expect((await savedSheet(page)).session.statusEntries?.map((e) => e.value)).toEqual(["Poisoned"]);
 });
+
+test("Fighter Extra Attack and Action Surge provide two complete attack sequences after reload", async ({
+  page
+}) => {
+  await openLocalSheet(
+    page,
+    portableSheet({
+      progression: { className: "Fighter", subclassId: "fighter-champion", level: 5, xp: 0 }
+    })
+  );
+  await page.getByRole("button", { name: "Start round", exact: true }).click();
+  const openAttack = () => page.getByRole("button", { name: /^Unarmed Strike/ }).click();
+  await openAttack();
+  for (const remaining of [1, 0]) {
+    await page.getByRole("button", { name: /^Attack/ }).click();
+    await expect
+      .poll(
+        async () =>
+          (await savedSheet(page)).features.classFeatureState?.fighter
+            ?.extraAttacksRemainingThisTurn
+      )
+      .toBe(remaining);
+    const closeDice = page.getByRole("button", { name: "Close dice roller" });
+    if (await closeDice.isVisible()) await closeDice.click();
+  }
+  await expect(page.getByRole("button", { name: /^Attack/ })).toBeDisabled();
+  await page.reload();
+  await page.getByRole("button", { name: /^Action Surge Charges/ }).click();
+  await page.getByRole("button", { name: "Use Action Surge", exact: true }).click();
+  await openAttack();
+  for (const remaining of [1, 0]) {
+    await page.getByRole("button", { name: /^Attack/ }).click();
+    await expect
+      .poll(
+        async () =>
+          (await savedSheet(page)).features.classFeatureState?.fighter
+            ?.extraAttacksRemainingThisTurn
+      )
+      .toBe(remaining);
+    const closeDice = page.getByRole("button", { name: "Close dice roller" });
+    if (await closeDice.isVisible()) await closeDice.click();
+  }
+  await expect(page.getByRole("button", { name: /^Attack/ })).toBeDisabled();
+});
+
+test("Mystic cantrip first opens one shared attack and refuses a third cantrip", async ({
+  page
+}) => {
+  await openLocalSheet(
+    page,
+    portableSheet({
+      progression: {
+        className: "Monk",
+        subclassId: "monk-warrior-of-the-mystic-arts",
+        level: 6,
+        xp: 0
+      },
+      spellcasting: { cantripIds: ["spell-mage-hand"], spellSlotsExpended: Array(9).fill(0) },
+      features: { classFeatureState: {}, feats: [] }
+    })
+  );
+  await page.getByRole("button", { name: "Start round", exact: true }).click();
+  for (const remaining of [1, 0]) {
+    await page.getByText("Mage Hand", { exact: true }).last().click();
+    await page.getByRole("button", { name: /^Cast/ }).click();
+    await expect
+      .poll(
+        async () =>
+          (await savedSheet(page)).features.classFeatureState?.monk?.extraAttacksRemainingThisTurn
+      )
+      .toBe(remaining);
+    await page.reload();
+  }
+  await page.getByText("Mage Hand", { exact: true }).last().click();
+  await expect(page.getByRole("button", { name: /^Cast/ })).toBeDisabled();
+});
+
+test("Mystic Flurry spell path spends two strikes and one slot while retaining the ordinary Action", async ({
+  page
+}) => {
+  await openLocalSheet(
+    page,
+    portableSheet({
+      progression: {
+        className: "Monk",
+        subclassId: "monk-warrior-of-the-mystic-arts",
+        level: 17,
+        xp: 0
+      },
+      spellcasting: {
+        preparedSpellIds: ["spell-magic-missile"],
+        spellSlotsExpended: Array(9).fill(0)
+      },
+      features: { classFeatureState: {}, feats: [] }
+    })
+  );
+  await page.getByRole("button", { name: "Start round", exact: true }).click();
+  await page.getByText("Magic Missile", { exact: true }).last().click();
+  await expect(page.getByRole("button", { name: /^Cast/ })).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Flurry of Blows/ }).click();
+  await page.getByRole("button", { name: "Use Flurry of Blows", exact: true }).click();
+  await page.getByText("Magic Missile", { exact: true }).last().click();
+  const casts = page.getByRole("button", { name: /^Cast/ });
+  await expect(casts).toHaveCount(2);
+  await casts.nth(1).click();
+  await expect
+    .poll(
+      async () =>
+        (await savedSheet(page)).features.classFeatureState?.monk
+          ?.flurryOfBlowsAttacksRemainingThisTurn
+    )
+    .toBe(1);
+  await expect
+    .poll(async () => (await savedSheet(page)).spellcasting.spellSlotsExpended?.[0])
+    .toBe(1);
+  expect((await savedSheet(page)).session.roundTracker?.actionAvailable).toBe(true);
+  await page.reload();
+  await page.getByText("Magic Missile", { exact: true }).last().click();
+  await expect(casts.nth(0)).toBeEnabled();
+  await expect(casts.nth(1)).toBeDisabled();
+});

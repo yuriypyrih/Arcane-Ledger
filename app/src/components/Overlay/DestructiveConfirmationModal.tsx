@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import ActionButton from "../ActionButton";
 import {
@@ -51,7 +52,11 @@ function DestructiveConfirmationModal({
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <ActionButton variant="OUTLINE" onClick={onCancel}>
+          <ActionButton
+            variant="OUTLINE"
+            icon={<X size={16} aria-hidden="true" />}
+            onClick={onCancel}
+          >
             {cancelLabel}
           </ActionButton>
           <ActionButton actionType="ERROR" onClick={onConfirm}>

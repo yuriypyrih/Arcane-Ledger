@@ -191,7 +191,7 @@ function hasRangerWinterWalkerFrozenHauntFeature(
   return winterWalkerSubclass.hasRangerWinterWalkerFrozenHauntFeature(character);
 }
 
-function getRangerAdditionalAttackCount(character: Pick<Character, "className" | "level">): number {
+export function getRangerAdditionalAttackCount(character: Pick<Character, "className" | "level">): number {
   return hasRangerFeature(character, CLASS_FEATURE.EXTRA_ATTACK) ? 1 : 0;
 }
 

@@ -12,8 +12,9 @@ import {
   consumeSentinelUse
 } from "../../../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericGraveDomain";
 import { artificerLifeTransferReaction } from "./artificerLifeTransferReaction";
+import { extinguishUndeadReaction, harvestUndeadReaction } from "./necromancerReactions";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
+
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { normalizeSpellSlotsExpended } from "../../../../../../pages/CharactersPage/spellcasting";
@@ -182,6 +183,7 @@ export type ReactionDescriptorContext = {
   selectedCosmicOmenSelection: DruidCosmicOmenSelection;
   selectedEldritchCannonCompanionId: string;
   selectedLifeTransferCompanionId: string;
+  selectedExtinguishUndeadSlotId: string;
   selectedRangerHunterSuperiorHuntersDefenseDamageType: string | null;
   selectedReactionEntry: ReactionEntry;
   selectedSongOfDefenseDamageReduction: number;
@@ -190,6 +192,7 @@ export type ReactionDescriptorContext = {
   selectedSpellThiefSpellId: string;
   setSelectedEldritchCannonCompanionId: Dispatch<SetStateAction<string>>;
   setSelectedLifeTransferCompanionId: Dispatch<SetStateAction<string>>;
+  setSelectedExtinguishUndeadSlotId: Dispatch<SetStateAction<string>>;
   setSelectedSongOfDefenseSpellSlotLevel: Dispatch<SetStateAction<number>>;
   setSelectedSpellThiefSpellId: Dispatch<SetStateAction<string>>;
   setSpellThiefSearchQuery: Dispatch<SetStateAction<string>>;
@@ -496,12 +499,12 @@ function renderSpellThiefSelector(context: ReactionDescriptorContext): ReactNode
   );
 }
 
-function createInterceptionDamageReductionFormula(level: number): {
+function createInterceptionDamageReductionFormula(character: object): {
   formula: string;
   formulaDisplay: string;
   value: string;
 } {
-  const proficiencyBonus = getProficiencyBonus(level);
+  const proficiencyBonus = getProficiencyBonus(character);
   const minimum = 1 + proficiencyBonus;
   const maximum = 10 + proficiencyBonus;
   const formula = `1d10+${proficiencyBonus}`;
@@ -516,7 +519,7 @@ function createInterceptionDamageReductionFormula(level: number): {
 
 function createEnergyRedirectionSavingThrowFormula(character: Character): FeatureActionFact {
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const saveDc = 8 + constitutionModifier + proficiencyBonus;
   const formulaCell = formatFormulaCell({
     formula: String(saveDc),
@@ -596,7 +599,7 @@ function getBoonOfTerrorFleeFoolsReactionFacts(
   context: ReactionDescriptorContext
 ): FeatureActionFact[] {
   const charismaModifier = getAbilityModifierForCharacter(context.character, "CHA");
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(context.character));
+  const proficiencyBonus = getProficiencyBonus(context.character);
   const saveDc = 8 + charismaModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -631,7 +634,7 @@ function getMythalTouchedMythalWardReactionFacts(
 ): FeatureActionFact[] {
   const ability = getMythalTouchedMythalWardAbility(context.character);
   const abilityModifier = getAbilityModifierForCharacter(context.character, ability);
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(context.character));
+  const proficiencyBonus = getProficiencyBonus(context.character);
   const saveDc = 8 + abilityModifier + proficiencyBonus;
   const displayTerms = [
     "DC 8 (Base)",
@@ -674,7 +677,7 @@ function getInterceptionReactionFacts(context: ReactionDescriptorContext): Featu
   return [
     {
       label: "Damage Reduction Formula",
-      value: createInterceptionDamageReductionFormula(getCharacterLevel(context.character)).value,
+      value: createInterceptionDamageReductionFormula(context.character).value,
       fullWidth: true
     }
   ];
@@ -683,7 +686,7 @@ function getInterceptionReactionFacts(context: ReactionDescriptorContext): Featu
 function createInterceptionReactionRollRequest(
   context: ReactionDescriptorContext
 ): DiceRollerRequest {
-  const formula = createInterceptionDamageReductionFormula(getCharacterLevel(context.character));
+  const formula = createInterceptionDamageReductionFormula(context.character);
 
   return {
     title: "Interception",
@@ -728,6 +731,8 @@ function createCuttingWordsReactionRollRequest(
 }
 
 const descriptors: ReactionDescriptor[] = [
+  harvestUndeadReaction,
+  extinguishUndeadReaction,
   {
     id: artificerFlashOfGeniusReactionEntryId,
     getResourceWarning: (context) =>

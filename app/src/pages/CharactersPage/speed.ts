@@ -1,4 +1,5 @@
 import type { AbilityKey, Character } from "../../types";
+import { getSpeedOverride } from "./statOverrides";
 import { getDraconicTransformationSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/draconicTransformation";
 import { getGuardianOfNatureSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/guardianOfNature";
 import { getLongstriderSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/giftOfAlacrityLongstrider";
@@ -169,7 +170,25 @@ function resolveTotalFromBaseAndBonuses(
   };
 }
 
+function createOverwrittenSpeed(
+  character: Character,
+  type: MovementSpeedType
+): MovementSpeedBreakdown | null {
+  const value = getSpeedOverride(character, type);
+  return value === null ? null : {
+    type,
+    label: movementLabels[type],
+    total: value,
+    source: "OVERWRITTEN",
+    baseExpression: { kind: "fixed", value, label: "(OVERWRITTEN)" },
+    entries: [],
+    isModified: true
+  };
+}
+
 function createWalkSpeedBreakdown(character: Character): MovementSpeedBreakdown {
+  const override = createOverwrittenSpeed(character, "walk");
+  if (override) return override;
   const { speed: baseSpeed, source } = getSpeciesSpeedDetailsForCharacter(character);
   const bonuses = getMovementSpeedBonuses(character, "walk");
   const { total: preExhaustionTotal, entries } = resolveTotalFromBaseAndBonuses(baseSpeed, bonuses);
@@ -252,6 +271,8 @@ function createDerivedMovementSpeedBreakdown(
   movementType: Exclude<MovementSpeedType, "walk">,
   walkTotal: number
 ): MovementSpeedBreakdown {
+  const override = createOverwrittenSpeed(character, movementType);
+  if (override) return override;
   const bonuses = getMovementSpeedBonuses(character, movementType);
   const baseExpression = getMovementBaseExpression(movementType, walkTotal, bonuses);
   const baseTotal = getMovementBaseTotal(baseExpression);

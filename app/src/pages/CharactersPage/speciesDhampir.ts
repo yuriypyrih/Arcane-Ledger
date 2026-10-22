@@ -1,5 +1,6 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
-import { getCharacterLevel } from "./multiclassState";
+
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -74,11 +75,6 @@ function getDhampirDescriptionText(heading: string, fallback: string): string {
   const section = getDhampirDescriptionSection(heading);
 
   return section.length > 0 ? section.join("\n") : fallback;
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -184,7 +180,7 @@ export function getDhampirVampiricBiteUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDhampirSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 

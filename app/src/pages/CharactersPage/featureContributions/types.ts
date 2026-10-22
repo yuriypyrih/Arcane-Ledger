@@ -243,6 +243,8 @@ export type FeatureSpellActionPathContribution = {
 export type FeatureSpellCastEffectContext = {
   spell: Pick<SpellEntry, "id" | "spellLevel">;
   spellSlotLevel?: number | null;
+  /** The slot actually spent, independent of a free cast's effective spell level. */
+  sourceSpellSlotLevel?: number | null;
   castSource?: SpellImplementationCastSource;
   options?: SpellImplementationOptionValues;
   spellActionPathId?: string | null;

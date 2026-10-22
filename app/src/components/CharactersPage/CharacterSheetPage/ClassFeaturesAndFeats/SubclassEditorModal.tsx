@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Plus, X } from "lucide-react";
+import { Plus, Save, X } from "lucide-react";
 import type { Character } from "../../../../types";
 import {
   applyClassDefinitions,
@@ -127,7 +127,7 @@ export default function SubclassEditorModal({ character, onCancel, onSave }: Pro
           Cancel
         </ActionButton>
         <ActionButton
-          icon={<Check size={18} aria-hidden="true" />}
+          icon={<Save size={18} aria-hidden="true" />}
           disabled={!preview || !changed}
           onClick={() => {
             try {

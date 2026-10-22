@@ -1,4 +1,7 @@
 import { getCharacterLevel } from "./multiclassState";
+import { getStatOverride } from "./statOverrides";
+import { getProficiencyBonus } from "./proficiencyBonus";
+export { getProficiencyBonus } from "./proficiencyBonus";
 import {
   getSpellEntryById,
   type SpellDescriptionEntry,
@@ -1042,11 +1045,6 @@ export function createWeaponAction(
   };
 }
 
-export function getProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
-
 export function getMainAbilityForClass(className: string): AbilityKey | null {
   return getPrimaryAbilityForClass(className);
 }
@@ -1105,6 +1103,10 @@ export function getSavingThrowProficienciesForClass(className: string): AbilityK
 }
 
 export function getInitiativeBreakdownForCharacter(character: Character): InitiativeBreakdown {
+  const override = getStatOverride(character, "initiative");
+  if (override !== null) {
+    return { total: override, entries: [{ label: "(OVERWRITTEN)", value: override }] };
+  }
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
   const dexterityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "DEX", {
     customTraitEffectInput
@@ -1146,7 +1148,7 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
   if (hasFeatForCharacter(character, FEATS.ALERT)) {
     entries.push({
       label: "Proficiency Bonus (Alert)",
-      value: getProficiencyBonus(getCharacterLevel(character))
+      value: getProficiencyBonus(character)
     });
   }
 
@@ -1176,7 +1178,7 @@ function getSkillModifierForCharacter(
     customTraitEffectInput?: CustomTraitBonusInput;
   }
 ): number {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const skillProficiency = getSkillProficiencyForName(skill);
   const skillLevel = skillProficiency
     ? getSkillLevelFromEntries(character.skillProficiencies, skillProficiency)
@@ -1219,6 +1221,8 @@ function getSkillModifierForCharacter(
 }
 
 export function getPassivePerceptionForCharacter(character: Character): number {
+  const override = getStatOverride(character, "passivePerception");
+  if (override !== null) return override;
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
 
   return (
@@ -1274,7 +1278,7 @@ function createUnarmedStrikeAction(
     (options?.martialArtsDie ? `1${String(options.martialArtsDie).toLowerCase()}` : "1");
   const damageTypeLabel =
     unarmedStrikeConfig?.damageTypeLabel ?? getMonkUnarmedDamageTypeLabelForCharacter(character);
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
 
   return {
     ...createWeaponAction(character, {
@@ -1306,7 +1310,7 @@ function createUnarmedStrikeAction(
 }
 
 function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getProficiencyBonus(character);
   const effectiveWeaponProficiencies =
     getProficiencyRuntimeForCharacter(character).collections.weaponProficiencies;
   const effectiveAbilityScores = getAbilityScoresForCharacter(character);

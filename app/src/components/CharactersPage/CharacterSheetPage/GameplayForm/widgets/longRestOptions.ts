@@ -368,6 +368,21 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { restoreWizardAbjurerArcaneWardOnLongRest } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import {
+  getWondrousAlterationUsesRemaining,
+  hasWondrousAlteration,
+  restoreWondrousAlterationOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
+import {
+  getBolsterUndeadUsesRemaining,
+  hasDeathsMaster,
+  restoreBolsterUndeadOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardNecromancerDeathMaster";
+import {
+  hasUndeadThralls,
+  getUndeadThrallsUsesRemaining,
+  restoreUndeadThrallsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardNecromancerUndeadThralls";
+import {
   getWizardIllusionistIllusorySelfUsesTotal,
   getWizardIllusionistPhantasmalCreaturesUsesTotal,
   restoreWizardIllusionistIllusorySelfOnLongRest,
@@ -2412,6 +2427,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Arcane Recovery",
             apply: (currentCharacter: Character) =>
               restoreArcaneRecoveryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasDeathsMaster(character)
+      ? [
+          {
+            id: "restore-bolster-undead",
+            label: "Restore Bolster Undead",
+            charges: { current: getBolsterUndeadUsesRemaining(character), total: 1 },
+            apply: restoreBolsterUndeadOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasWondrousAlteration(character)
+      ? [
+          {
+            id: "restore-wondrous-alteration",
+            label: "Restore Wondrous Alteration",
+            charges: { current: getWondrousAlterationUsesRemaining(character), total: 1 },
+            apply: restoreWondrousAlterationOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasUndeadThralls(character)
+      ? [
+          {
+            id: "restore-undead-thralls",
+            label: "Restore Undead Thralls",
+            charges: { current: getUndeadThrallsUsesRemaining(character), total: 1 },
+            apply: restoreUndeadThrallsOnLongRest
           } satisfies RestOption
         ]
       : []),

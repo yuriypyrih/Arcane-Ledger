@@ -201,6 +201,7 @@ type FeatEditorCardProps = {
   featDefinition: FeatDefinition;
   featEligibility?: FeatEligibilityResult;
   characterLevel: number;
+  proficiencyBonus?: number;
   skillProficiencies: SkillProficiencyEntry[];
   savingThrowProficiencies: SavingThrowProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
@@ -333,6 +334,7 @@ type FeyTouchedChoiceEditorProps = {
 type RitualCasterChoiceEditorProps = {
   choice: PendingRitualCasterChoice;
   characterLevel: number;
+  proficiencyBonus?: number;
   summary: string | null;
   isValid: boolean;
   onCancel: () => void;
@@ -843,6 +845,7 @@ function FeyTouchedChoiceEditor({
 function RitualCasterChoiceEditor({
   choice,
   characterLevel,
+  proficiencyBonus,
   summary,
   isValid,
   onCancel,
@@ -850,7 +853,7 @@ function RitualCasterChoiceEditor({
   onChange
 }: RitualCasterChoiceEditorProps) {
   const spellOptions = getRitualCasterSpellOptions();
-  const spellCount = getRitualCasterSpellCountForLevel(characterLevel);
+  const spellCount = proficiencyBonus ?? getRitualCasterSpellCountForLevel(characterLevel);
   const selectedSpellIds = Array.from(
     { length: spellCount },
     (_, index) => choice.spellIds[index] ?? ritualCasterNoneOptionValue
@@ -2420,6 +2423,7 @@ function renderInlineEditor(
     featDefinition,
     featEligibility,
     characterLevel,
+    proficiencyBonus,
     skillProficiencies,
     savingThrowProficiencies,
     toolProficiencies,
@@ -2675,8 +2679,17 @@ function renderInlineEditor(
       <RitualCasterChoiceEditor
         choice={ritualCasterChoice}
         characterLevel={characterLevel}
-        summary={getPendingRitualCasterChoiceSummary(ritualCasterChoice, characterLevel)}
-        isValid={isPendingRitualCasterChoiceValid(ritualCasterChoice, characterLevel)}
+        proficiencyBonus={proficiencyBonus}
+        summary={getPendingRitualCasterChoiceSummary(
+          ritualCasterChoice,
+          characterLevel,
+          proficiencyBonus
+        )}
+        isValid={isPendingRitualCasterChoiceValid(
+          ritualCasterChoice,
+          characterLevel,
+          proficiencyBonus
+        )}
         onCancel={() =>
           onPendingFeatStateChange((current) => ({
             ...current,
@@ -3288,6 +3301,7 @@ function FeatEditorCard({
   featDefinition,
   featEligibility,
   characterLevel,
+  proficiencyBonus,
   skillProficiencies,
   savingThrowProficiencies,
   weaponProficiencies,
@@ -3452,6 +3466,7 @@ function FeatEditorCard({
         featDefinition,
         featEligibility,
         characterLevel,
+        proficiencyBonus,
         skillProficiencies,
         savingThrowProficiencies,
         weaponProficiencies,

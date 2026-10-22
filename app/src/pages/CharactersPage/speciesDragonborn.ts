@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
 import { getCharacterLevel } from "./multiclassState";
 import {
@@ -89,11 +90,6 @@ function getDragonbornDescriptionPlainText(heading: string, fallback: string): s
   return stripDescriptionMarkup(getDragonbornDescriptionText(heading, fallback))
     .replace(new RegExp(`^${heading}\\.\\s*`, "i"), "")
     .trim();
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -194,7 +190,7 @@ export function getDragonbornBreathWeaponUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isDragonbornSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 
@@ -299,7 +295,7 @@ export function getDragonbornBreathWeaponSaveDc(
   return (
     8 +
     getAbilityModifierForCharacter(character, "CON") +
-    getSpeciesProficiencyBonus(getCharacterLevel(character))
+    getSpeciesProficiencyBonus(character)
   );
 }
 
@@ -307,7 +303,7 @@ function getDragonbornBreathWeaponSaveDcFact(
   character: Pick<Character, "level" | "abilities"> & Partial<Pick<Character, "statusEntries">>
 ): FeatureActionFact {
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
-  const proficiencyBonus = getSpeciesProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getSpeciesProficiencyBonus(character);
   const saveDc = getDragonbornBreathWeaponSaveDc(character);
   const formulaCell = formatFormulaCell({
     formula: String(saveDc),

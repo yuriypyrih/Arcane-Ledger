@@ -76,7 +76,15 @@ const backgroundDescriptions: Record<string, string> = {
   "background-house-agent-efa":
     "House Agents serve the great dragonmarked houses, mixing noble access, investigation, and artisan ties to advance house goals.",
   "background-inquisitive-efa":
-    "Inquisitives are sharp investigators of crime and conspiracy, following clues through city shadows with patient suspicion."
+    "Inquisitives are sharp investigators of crime and conspiracy, following clues through city shadows with patient suspicion.",
+  "background-haunted-one-rhw":
+    "Haunted Ones carry painful memories they cannot escape, finding the resolve to endure despite their past.",
+  "background-investigator-rhw":
+    "Investigators pursue hidden truths, following evidence through ordinary crimes and supernatural mysteries.",
+  "background-mist-wanderer-rhw":
+    "Mist Wanderers travel between the Domains of Dread, searching for home and finding kinship with other lost travelers.",
+  "background-spirit-medium-rhw":
+    "Spirit Mediums channel the dead, receiving uncanny insight from spirits whose help can carry a terrible price."
 };
 
 export function addBackgroundDescription(

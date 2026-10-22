@@ -1,5 +1,6 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
-import { getCharacterLevel } from "./multiclassState";
+
 import {
   getSpeciesEntryByName,
   type SpeciesEntry,
@@ -94,12 +95,6 @@ function getKnowledgeFromPastLifeDescription(): SpellDescriptionEntry[] {
         "You gain proficiency in one skill of your choice.",
         "In addition, you can temporarily peer into the past to aid you in the present. When you fail an ability check, you can roll 1d6 and add the number rolled to the d20, potentially turning the failure into a success. You can do this a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
       ];
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -239,7 +234,7 @@ export function getRebornKnowledgeFromPastLifeUsesTotal(
   character: Partial<Pick<Character, "species" | "level">>
 ): number {
   return character.species && isRebornSpecies(character.species)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 

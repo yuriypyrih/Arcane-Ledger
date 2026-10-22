@@ -1,5 +1,6 @@
 import { type SpellEntry } from "../../../../../codex/entries";
 import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
+import { getClassLevel } from "../../../../../pages/CharactersPage/multiclassState";
 import {
   getAlwaysSpellbookSpellIdsForCharacter,
   getWizardSavantSpellIdsForCharacter,
@@ -83,7 +84,7 @@ export function createWizardFeatureChoiceModel({
 
     return (
       getWizardSavantSpellIdsForCharacter(character).length <
-      getWizardSavantSelectionCount(character.level)
+      getWizardSavantSelectionCount(getClassLevel(character, "Wizard"))
     );
   }
 

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import Checkbox from "../../../../FormInputs/Checkbox";
 import NumberInput from "../../../../FormInputs/NumberInput";
@@ -276,7 +276,7 @@ function CustomActionEditorModal({
           onClick={onCreate}
           icon={
             isEditing ? (
-              <Check size={18} aria-hidden="true" />
+              <Save size={18} aria-hidden="true" />
             ) : (
               <Plus size={18} aria-hidden="true" />
             )

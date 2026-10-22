@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
 import { getCharacterLevel } from "./multiclassState";
 import {
@@ -503,11 +504,6 @@ function getAasimarEntry(): SpeciesEntry | null {
 
 function isAasimarSpecies(species: string): boolean {
   return getSpeciesEntry(species)?.id === aasimarSpeciesId;
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function getAasimarFeatureState(
@@ -1582,11 +1578,12 @@ export function normalizeSpeciesStatusEntriesForCharacter(
 }
 
 export function getAasimarHealingHandsFormula(character: Pick<Character, "level">): string {
-  return `${getSpeciesProficiencyBonus(getCharacterLevel(character))}d4`;
+  const proficiencyBonus = getSpeciesProficiencyBonus(character);
+  return proficiencyBonus === 0 ? "0" : `${proficiencyBonus}d4`;
 }
 
 function getAasimarHealingHandsFormulaFact(character: Pick<Character, "level">): FeatureActionFact {
-  const proficiencyBonus = getSpeciesProficiencyBonus(getCharacterLevel(character));
+  const proficiencyBonus = getSpeciesProficiencyBonus(character);
   const formula = getAasimarHealingHandsFormula(character);
   const formulaCell = formatFormulaCell({
     formula,

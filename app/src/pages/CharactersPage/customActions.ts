@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "./multiclassState";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type {
   Character,
@@ -274,8 +273,8 @@ export function getCustomActionChargesMaxForCharacter(
   }
 
   return clampInteger(
-    getProficiencyBonus(getCharacterLevel(character)),
-    1,
+    getProficiencyBonus(character),
+    0,
     CUSTOM_ACTION_CHARGES_MAX,
     fallbackMax
   );

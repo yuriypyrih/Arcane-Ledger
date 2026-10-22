@@ -1,3 +1,4 @@
+import { Save, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { speciesOptions } from "../../../../pages/CharactersPage/constants";
 import {
@@ -1123,10 +1124,14 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
       </OverlayBody>
 
       <OverlayFooter className={styles.modalFooter}>
-        <ActionButton variant="OUTLINE" onClick={onCancel}>
+        <ActionButton variant="OUTLINE" icon={<X size={18} aria-hidden="true" />} onClick={onCancel}>
           Cancel
         </ActionButton>
-        <ActionButton onClick={saveSpecies} disabled={!isReady}>
+        <ActionButton
+          icon={<Save size={18} aria-hidden="true" />}
+          onClick={saveSpecies}
+          disabled={!isReady}
+        >
           Save
         </ActionButton>
       </OverlayFooter>

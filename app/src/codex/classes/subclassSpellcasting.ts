@@ -78,9 +78,41 @@ const arcaneTricksterSpellcastingProfile: SubclassSpellcastingProfile = {
   ]
 };
 
+// Arcana Unleashed, Warrior of the Mystic Arts Spellcasting (Monk levels 3–20).
+export const mysticArtsSpellcastingProgression: SubclassSpellcastingProgressionRow[] = [
+  { level: 3, cantrips: 2, preparedSpells: 3, spellSlots: [2, 0, 0, 0] },
+  { level: 4, cantrips: 2, preparedSpells: 4, spellSlots: [3, 0, 0, 0] },
+  { level: 5, cantrips: 2, preparedSpells: 4, spellSlots: [3, 0, 0, 0] },
+  { level: 6, cantrips: 2, preparedSpells: 4, spellSlots: [3, 0, 0, 0] },
+  { level: 7, cantrips: 2, preparedSpells: 5, spellSlots: [4, 2, 0, 0] },
+  { level: 8, cantrips: 2, preparedSpells: 6, spellSlots: [4, 2, 0, 0] },
+  { level: 9, cantrips: 2, preparedSpells: 6, spellSlots: [4, 2, 0, 0] },
+  { level: 10, cantrips: 3, preparedSpells: 7, spellSlots: [4, 3, 0, 0] },
+  { level: 11, cantrips: 3, preparedSpells: 8, spellSlots: [4, 3, 0, 0] },
+  { level: 12, cantrips: 3, preparedSpells: 8, spellSlots: [4, 3, 0, 0] },
+  { level: 13, cantrips: 3, preparedSpells: 9, spellSlots: [4, 3, 2, 0] },
+  { level: 14, cantrips: 3, preparedSpells: 10, spellSlots: [4, 3, 2, 0] },
+  { level: 15, cantrips: 3, preparedSpells: 10, spellSlots: [4, 3, 2, 0] },
+  { level: 16, cantrips: 3, preparedSpells: 11, spellSlots: [4, 3, 3, 0] },
+  { level: 17, cantrips: 3, preparedSpells: 11, spellSlots: [4, 3, 3, 0] },
+  { level: 18, cantrips: 3, preparedSpells: 11, spellSlots: [4, 3, 3, 0] },
+  { level: 19, cantrips: 3, preparedSpells: 12, spellSlots: [4, 3, 3, 1] },
+  { level: 20, cantrips: 3, preparedSpells: 13, spellSlots: [4, 3, 3, 1] }
+];
+
+const mysticArtsSpellcastingProfile: SubclassSpellcastingProfile = {
+  className: "Monk",
+  subclassId: "monk-warrior-of-the-mystic-arts",
+  classSpellListClasses: [SPELL_LIST_CLASS.SORCERER],
+  preparedSpellListClasses: [SPELL_LIST_CLASS.SORCERER],
+  usesSpellbook: false,
+  progression: mysticArtsSpellcastingProgression
+};
+
 const subclassSpellcastingProfiles: SubclassSpellcastingProfile[] = [
   eldritchKnightSpellcastingProfile,
-  arcaneTricksterSpellcastingProfile
+  arcaneTricksterSpellcastingProfile,
+  mysticArtsSpellcastingProfile
 ];
 
 function normalizeLevel(level: number): number {

@@ -1,10 +1,5 @@
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { BattleMasterManeuverId } from "../../../../../codex/subclasses/fighterBattleMaster";
@@ -528,7 +523,7 @@ function getCombatSuperiorityFacts(character: BattleMasterCharacter): FeatureAct
   const dexterityModifier = getBattleMasterAbilityModifier(character, "DEX");
   const chosenAbilityModifier = Math.max(strengthModifier, dexterityModifier);
   const chosenAbilityLabel = strengthModifier >= dexterityModifier ? "STR" : "DEX";
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const maneuverDc = 8 + chosenAbilityModifier + proficiencyBonus;
   const breakdown = [
     "8 Base",

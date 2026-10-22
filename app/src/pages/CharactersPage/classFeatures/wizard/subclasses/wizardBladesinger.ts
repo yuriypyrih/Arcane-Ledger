@@ -162,7 +162,7 @@ function hasWizardBladesingerSpellcastWeaponBonusActionFeature(
   );
 }
 
-function getWizardBladesingerAdditionalAttackCount(
+export function getWizardBladesingerAdditionalAttackCount(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
   return hasWizardBladesingerExtraAttackFeature(character) ? 1 : 0;
@@ -593,11 +593,11 @@ export function getWizardBladesongUsesRemaining(
 export function getWizardBladesingerBladeworkWeaponActionDescriptionAdditions(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>,
-  action: Pick<WeaponAction, "attackKind" | "proficiencyBonus">
+  action: Pick<WeaponAction, "attackKind" | "proficiencyLabel">
 ): SpellDescriptionEntry[][] {
   if (
     action.attackKind !== "weapon" ||
-    action.proficiencyBonus <= 0 ||
+    !action.proficiencyLabel.trim() ||
     !hasActiveWizardBladesong(character) ||
     wizardBladesingerBladeworkDescription.length <= 0
   ) {
@@ -816,7 +816,7 @@ function transformWizardBladesongWeaponAction(
   >,
   action: WeaponAction
 ): WeaponAction {
-  if (action.attackKind !== "weapon" || action.proficiencyBonus <= 0) {
+  if (action.attackKind !== "weapon" || !action.proficiencyLabel.trim()) {
     return action;
   }
 

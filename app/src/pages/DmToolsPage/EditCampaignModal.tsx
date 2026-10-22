@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { updateCampaign, type CampaignDetailRecord } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
@@ -104,6 +104,7 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
             <ActionButton
               type="button"
               variant="OUTLINE"
+              icon={<X size={16} aria-hidden="true" />}
               disabled={isSaving}
               fullWidth
               onClick={onClose}
@@ -112,7 +113,7 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
             </ActionButton>
             <ActionButton
               type="submit"
-              icon={<Pencil size={16} aria-hidden="true" />}
+              icon={<Save size={16} aria-hidden="true" />}
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving campaign"

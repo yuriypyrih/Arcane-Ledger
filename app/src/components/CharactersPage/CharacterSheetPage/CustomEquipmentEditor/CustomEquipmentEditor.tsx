@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Plus, Trash2, X } from "lucide-react";
+import { Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Checkbox from "../../FormInputs/Checkbox";
 import NumberInput from "../../FormInputs/NumberInput";
@@ -1077,7 +1077,7 @@ function CustomEquipmentEditor({
             loading={isSaving}
             loadingLabel="Saving custom item"
             onClick={handleSubmit}
-            icon={<Check size={16} aria-hidden="true" />}
+            icon={<Save size={16} aria-hidden="true" />}
           >
             Save
           </ActionButton>

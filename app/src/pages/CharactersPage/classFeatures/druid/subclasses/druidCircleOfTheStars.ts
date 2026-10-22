@@ -1,10 +1,6 @@
+import { getProficiencyBonus } from "../../../proficiencyBonus";
 import { replaceClassFeatureState } from "../../shared/resourceState";
-import {
-  hasCharacterClass,
-  getCharacterLevel,
-  getClassLevel,
-  getClassSubclassId
-} from "../../../multiclassState";
+import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../../multiclassState";
 import { getSpellEntryByName, type ReactionEntry } from "../../../../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, REACTION } from "../../../../../codex/entries/enums";
 import type {
@@ -150,10 +146,7 @@ function getCircleOfTheStarsFeatureDescription(
   );
 }
 
-function getProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
+
 
 function createRollFormula(baseFormula: string, modifier: number): string {
   if (modifier === 0) {
@@ -655,7 +648,7 @@ export function getCircleOfTheStarsWeaponActions(
 
   const wisdomModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "WIS");
   const wisdomModifier = wisdomModifierBreakdown.total;
-  const proficiencyBonus = getProficiencyBonus(getCharacterLevel(character) ?? 1);
+  const proficiencyBonus = getProficiencyBonus(character);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
   const hasTwinklingConstellations = hasDruidTwinklingConstellationsFeature(character);
   const damageFormula = hasTwinklingConstellations ? "2d8" : "1d8";

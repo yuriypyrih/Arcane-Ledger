@@ -1,7 +1,6 @@
 import type { SpellEntry } from "../../../codex/entries";
 import type { Character } from "../../../types";
 import {
-  ACTION_CATEGORY,
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
   type EconomyType
@@ -9,12 +8,16 @@ import {
 import {
   createEconomyMultiContextForSpell,
   getEconomyTypeForSpell,
-  getSharedEconomyMultiCountForCharacterAction
+  resolveEconomyPaymentForCharacterAction
 } from "../../../pages/CharactersPage/classFeatures/economyMulti";
 import type { FeatureActionCardUsage } from "../../../pages/CharactersPage/classFeatures";
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
+import {
+  hasMysticArtsFlurrySpellPath,
+  mysticArtsFlurrySpellPathId
+} from "../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheMysticArts";
 import { getFeatSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/feats/runtime";
 import { getSpeciesSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/species";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
@@ -51,23 +54,19 @@ function createSpellActionPathState(
   economyType: EconomyType,
   spell: Pick<SpellEntry, "castingTime" | "spellLevel">
 ): SpellActionPathState {
-  const sharedEconomyMultiCount =
-    economyType === getEconomyTypeForSpell(spell)
-      ? getSharedEconomyMultiCountForCharacterAction(
-          character,
-          createEconomyMultiContextForSpell(spell)
-        )
-      : getSharedEconomyMultiCountForCharacterAction(character, {
-          economyType,
-          actionCategory: ACTION_CATEGORY.MAGIC,
-          spellLevel: spell.spellLevel
-        });
-
+  const resolution = resolveEconomyPaymentForCharacterAction(
+    character,
+    createEconomyMultiContextForSpell(spell, { id, economyType })
+  );
   return {
     id,
     economyType,
     roundTrackerResource: getRoundTrackerResourceForEconomyType(economyType),
-    shapeState: getEconomyShapeState(economyType, roundTracker, sharedEconomyMultiCount)
+    shapeState: {
+      ...getEconomyShapeState(economyType, roundTracker, resolution.multiCount),
+      isAvailable: resolution.isAvailable,
+      isUsable: resolution.payment !== null
+    }
   };
 }
 
@@ -80,6 +79,20 @@ export function getSpellActionPathStates(
   const actionPaths = [
     createSpellActionPathState(character, roundTracker, "primary", primaryEconomyType, spell)
   ];
+
+  if (hasMysticArtsFlurrySpellPath(character, spell)) {
+    const path = createSpellActionPathState(
+      character,
+      roundTracker,
+      mysticArtsFlurrySpellPathId,
+      ECONOMY_TYPE.BONUS_ACTION,
+      spell
+    );
+    path.shapeState.disabledReason = path.shapeState.isUsable
+      ? null
+      : "Requires two remaining Flurry of Blows Unarmed Strikes.";
+    actionPaths.push(path);
+  }
 
   if (
     primaryEconomyType === ECONOMY_TYPE.ACTION &&

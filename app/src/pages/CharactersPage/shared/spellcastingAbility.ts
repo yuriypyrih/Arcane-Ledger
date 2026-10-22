@@ -23,6 +23,7 @@ const spellcastingAbilityBySubclassId: Record<string, AbilityKey> = {
   "fighter-arcane-archer": "INT",
   "fighter-eldritch-knight": "INT",
   "monk-warrior-of-the-elements": "WIS",
+  "monk-warrior-of-the-mystic-arts": "WIS",
   "rogue-arcane-trickster": "INT"
 };
 

@@ -1,4 +1,4 @@
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Save, Trash2, X } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import ActionButton from "../../../ActionButton";
@@ -656,10 +656,12 @@ function CreatureStatBlockEditorModal({
       </OverlayBody>
 
       <OverlayFooter className={styles.statBlockEditorFooter}>
-        <ActionButton variant="OUTLINE" onClick={onClose}>
+        <ActionButton variant="OUTLINE" icon={<X size={16} aria-hidden="true" />} onClick={onClose}>
           Cancel
         </ActionButton>
-        <ActionButton onClick={handleSave}>{saveLabel}</ActionButton>
+        <ActionButton icon={<Save size={16} aria-hidden="true" />} onClick={handleSave}>
+          {saveLabel}
+        </ActionButton>
       </OverlayFooter>
     </SheetModal>
   );

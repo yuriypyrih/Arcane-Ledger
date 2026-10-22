@@ -1961,9 +1961,10 @@ export function getRitualCasterSpellCountForLevel(level: number): number {
 
 export function decodePendingRitualCasterChoice(
   choice: PendingRitualCasterChoice,
-  characterLevel: number
+  characterLevel: number,
+  proficiencyBonus?: number
 ): RitualCasterChoice | null {
-  const requiredSpellCount = getRitualCasterSpellCountForLevel(characterLevel);
+  const requiredSpellCount = proficiencyBonus ?? getRitualCasterSpellCountForLevel(characterLevel);
   const spellIds = [
     ...new Set(
       choice.spellIds
@@ -1989,17 +1990,19 @@ export function decodePendingRitualCasterChoice(
 
 export function isPendingRitualCasterChoiceValid(
   choice: PendingRitualCasterChoice,
-  characterLevel: number
+  characterLevel: number,
+  proficiencyBonus?: number
 ): boolean {
-  return decodePendingRitualCasterChoice(choice, characterLevel) !== null;
+  return decodePendingRitualCasterChoice(choice, characterLevel, proficiencyBonus) !== null;
 }
 
 export function getPendingRitualCasterChoiceSummary(
   choice: PendingRitualCasterChoice,
-  characterLevel: number
+  characterLevel: number,
+  proficiencyBonus?: number
 ): string | null {
   return getRitualCasterChoiceSummary(
-    decodePendingRitualCasterChoice(choice, characterLevel) ?? undefined
+    decodePendingRitualCasterChoice(choice, characterLevel, proficiencyBonus) ?? undefined
   );
 }
 

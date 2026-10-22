@@ -1,4 +1,3 @@
-import { getCharacterLevel } from "../../../../../../pages/CharactersPage/multiclassState";
 import { useMemo, useState } from "react";
 import type { Character, CharacterCustomAction } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -37,10 +36,7 @@ export function useCustomActionsEditor({
     () => normalizeCharacterCustomActions(character.customActions),
     [character.customActions]
   );
-  const proficiencyBonus = useMemo(
-    () => getProficiencyBonus(getCharacterLevel(character)),
-    [character]
-  );
+  const proficiencyBonus = useMemo(() => getProficiencyBonus(character), [character]);
   const [draft, setDraft] = useState<CustomActionDraft | null>(null);
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
 

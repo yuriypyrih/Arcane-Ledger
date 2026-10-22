@@ -1,3 +1,4 @@
+import { getProficiencyBonus as getSpeciesProficiencyBonus } from "./proficiencyBonus";
 import { extractDescriptionSection } from "./shared/descriptionSections";
 import { getCharacterLevel } from "./multiclassState";
 import {
@@ -178,11 +179,6 @@ function getGenasiDescriptionText(heading: string, fallback: string): string {
   const section = getGenasiDescriptionSection(heading);
 
   return section.length > 0 ? section.join("\n") : fallback;
-}
-
-function getSpeciesProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
 function clampExpendedUses(value: unknown): number {
@@ -499,7 +495,7 @@ export function restoreGenasiLineageFreeCastsOnLongRest(character: Character): C
 
 export function getGenasiBladeWardBonusActionUsesTotal(character: GenasiRuntimeCharacter): number {
   return isEarthGenasi(character)
-    ? getSpeciesProficiencyBonus(getCharacterLevel(character) ?? 1)
+    ? getSpeciesProficiencyBonus(character)
     : 0;
 }
 
