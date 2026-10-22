@@ -11,7 +11,7 @@ services:
       - traefik.http.routers.alb.tls.certresolver=letsencrypt
 
   mongodb:
-    image: mongo
+    image: mongo:8.3.13
     networks: [traefik]
     env_file: [ mongo.env ]
     volumes: [arcane-ledger-backend-mongodb:/etc/mongodb]
