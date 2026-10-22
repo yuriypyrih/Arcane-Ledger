@@ -1,4 +1,5 @@
 import { bardManagedResources as bard } from "./classFeatures/bard/resourceManagement";
+import { artificerManagedResources as artificer } from "./classFeatures/artificer/resourceManagement";
 import { clericManagedResources as cleric } from "./classFeatures/cleric/resourceManagement";
 import { druidManagedResources as druid } from "./classFeatures/druid/resourceManagement";
 import { fighterManagedResources as fighter } from "./classFeatures/fighter/resourceManagement";
@@ -11,8 +12,34 @@ import { namedResources } from "./managedClassResources";
 import type { ResourceManagementTarget } from "./resourceManagement";
 import { spellSlotResource } from "./resourceManagement";
 import { getSpeciesSpellResource } from "./speciesResourceManagement";
+import { empoweredTransmutationEffectId } from "./classFeatures/wizard/subclasses/wizardTransmuterEmpoweredTransmutation";
+import { shapeShifterFreeCastEffectId } from "./classFeatures/wizard/subclasses/wizardTransmuterShapeShifter";
+import { splitEnchantmentEffectId } from "./classFeatures/wizard/subclasses/wizardEnchanterSplitEnchantment";
+import { splinteredSummonsEffectId } from "./classFeatures/wizard/subclasses/wizardConjurerSplinteredSummons";
+import { undeadThrallsFreeCastEffectId } from "./classFeatures/wizard/subclasses/wizardNecromancerUndeadThralls";
+import { wondrousAlterationFreeCastEffectId } from "./classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
+import {
+  spiritualManifestationFreeCastEffectId,
+  spiritualManifestationCoverEffectId
+} from "./classFeatures/bard/subclasses/bardCollegeOfSpiritsEmpowered";
+import { dispellingRecoveryEffectId } from "./classFeatures/cleric/subclasses/clericDomainSpellEffects";
 
 export const spellOptionResources: Record<string, readonly ResourceManagementTarget[]> = {
+  [undeadThrallsFreeCastEffectId]: [wizard.undeadThrallsUsesExpended],
+  [wondrousAlterationFreeCastEffectId]: [wizard.wondrousAlterationUsesExpended],
+  [spiritualManifestationFreeCastEffectId]: [bard.spiritualManifestationUsesExpended],
+  [spiritualManifestationCoverEffectId]: [bard.spiritualManifestationCoverUsesExpended],
+  [dispellingRecoveryEffectId]: [
+    cleric.dispellingRecoveryUsesExpended,
+    cleric.channelDivinityUsesExpended
+  ],
+  "jolt-to-life": [artificer.reanimatorJoltToLifeUsesExpended],
+  "misty-wanderer": [ranger.mistyWandererUsesExpended],
+  "fey-reinforcements": [ranger.feyReinforcementsUsesExpended],
+  [splinteredSummonsEffectId]: [wizard.splinteredSummonsUsesExpended],
+  [splitEnchantmentEffectId]: [wizard.splitEnchantmentUsesExpended],
+  [empoweredTransmutationEffectId]: [wizard.empoweredTransmutationUsesExpended],
+  [shapeShifterFreeCastEffectId]: [wizard.shapeShifterUsesExpended],
   "star-map": [druid.starMapGuidingBoltUsesExpended],
   "natural-recovery": [druid.naturalRecoveryUsesExpended],
   "blessing-of-moonlight": [bard.blessingOfMoonlightUsesExpended],

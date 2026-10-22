@@ -516,7 +516,7 @@ export const spellfireStorm = createFrhofSpellEntry({
     "<strong>Casting as a Circle Spell.</strong> In addition to the spell's usual components, you must provide a special component, a blue star sapphire worth 25,000+ GP, which the spell consumes. The spell's range increases to 1 mile, and it no longer requires Concentration. When the spell is cast, each secondary caster must expend a level 3+ spell slot; otherwise, the spell fails.",
     "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d10</strong> for every spell slot level above 4.",
     "The number of secondary casters determines the spell's area of effect and duration, as shown in the table below. The spell ends early if any caster who participated in this casting contributes to another casting of Spellfire Storm as a Circle spell.",
-    "| Secondary Casters | Area of Effect | Duration | |---|---|---| | 1-3 | 40-foot-radius, 40-foot-high Cylinder | 1 hour | | 4-6 | 60-foot-radius, 60-foot-high Cylinder | 8 hours | | 7+ | 100-foot-radius, 100-foot-high Cylinder | 24 hours |"
+    "| Secondary Casters | Area of Effect | Duration |\n|---|---|---|\n| 1-3 | 40-foot-radius, 40-foot-high Cylinder | 1 hour |\n| 4-6 | 60-foot-radius, 60-foot-high Cylinder | 8 hours |\n| 7+ | 100-foot-radius, 100-foot-high Cylinder | 24 hours |"
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,

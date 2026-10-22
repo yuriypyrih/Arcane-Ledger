@@ -368,10 +368,49 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { restoreWizardAbjurerArcaneWardOnLongRest } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import {
+  getSplinteredSummonsUsesRemaining,
+  hasSplinteredSummons,
+  restoreSplinteredSummonsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardConjurerSplinteredSummons";
+import {
+  getBenignTranspositionUsesRemaining,
+  getBenignTranspositionUsesTotal,
+  hasBenignTransposition,
+  restoreBenignTranspositionOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardConjurerBenignTransposition";
+import {
+  getSplitEnchantmentUsesRemaining,
+  getSplitEnchantmentUsesTotal,
+  hasSplitEnchantment,
+  restoreSplitEnchantmentOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEnchanterSplitEnchantment";
+import {
+  getInstinctiveCharmUsesRemaining,
+  hasInstinctiveCharm,
+  restoreInstinctiveCharmOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEnchanterInstinctiveCharm";
+import {
+  getHypnoticPresenceUsesRemaining,
+  getHypnoticPresenceUsesTotal,
+  hasHypnoticPresence,
+  restoreHypnoticPresenceOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEnchanterHypnoticPresence";
+import {
   getWondrousAlterationUsesRemaining,
   hasWondrousAlteration,
   restoreWondrousAlterationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
+import {
+  getEmpoweredTransmutationUsesRemaining,
+  getEmpoweredTransmutationUsesTotal,
+  hasEmpoweredTransmutation,
+  restoreEmpoweredTransmutationOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterEmpoweredTransmutation";
+import {
+  getShapeShifterUsesRemaining,
+  hasShapeShifter,
+  restoreShapeShifterOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterShapeShifter";
 import {
   getBolsterUndeadUsesRemaining,
   hasDeathsMaster,
@@ -2447,6 +2486,88 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Wondrous Alteration",
             charges: { current: getWondrousAlterationUsesRemaining(character), total: 1 },
             apply: restoreWondrousAlterationOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasEmpoweredTransmutation(character)
+      ? [
+          {
+            id: "restore-empowered-transmutation",
+            label: "Restore Empowered Transmutation",
+            charges: {
+              current: getEmpoweredTransmutationUsesRemaining(character),
+              total: getEmpoweredTransmutationUsesTotal(character)
+            },
+            apply: restoreEmpoweredTransmutationOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasHypnoticPresence(character)
+      ? [
+          {
+            id: "restore-hypnotic-presence",
+            label: "Restore Hypnotic Presence",
+            charges: {
+              current: getHypnoticPresenceUsesRemaining(character),
+              total: getHypnoticPresenceUsesTotal(character)
+            },
+            apply: restoreHypnoticPresenceOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasSplinteredSummons(character)
+      ? [
+          {
+            id: "restore-splintered-summons",
+            label: "Restore Splintered Summons",
+            charges: { current: getSplinteredSummonsUsesRemaining(character), total: 1 },
+            apply: restoreSplinteredSummonsOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasBenignTransposition(character)
+      ? [
+          {
+            id: "restore-benign-transposition",
+            label: "Restore Benign Transposition",
+            charges: {
+              current: getBenignTranspositionUsesRemaining(character),
+              total: getBenignTranspositionUsesTotal(character)
+            },
+            apply: restoreBenignTranspositionOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasSplitEnchantment(character)
+      ? [
+          {
+            id: "restore-split-enchantment",
+            label: "Restore Split Enchantment",
+            charges: {
+              current: getSplitEnchantmentUsesRemaining(character),
+              total: getSplitEnchantmentUsesTotal(character)
+            },
+            apply: restoreSplitEnchantmentOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasInstinctiveCharm(character)
+      ? [
+          {
+            id: "restore-instinctive-charm",
+            label: "Restore Instinctive Charm",
+            charges: { current: getInstinctiveCharmUsesRemaining(character), total: 1 },
+            apply: restoreInstinctiveCharmOnLongRest
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasShapeShifter(character)
+      ? [
+          {
+            id: "restore-shape-shifter",
+            label: "Restore Shape-shifter",
+            charges: { current: getShapeShifterUsesRemaining(character), total: 1 },
+            apply: restoreShapeShifterOnLongRest
           } satisfies RestOption
         ]
       : []),

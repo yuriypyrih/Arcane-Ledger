@@ -743,6 +743,7 @@ export function getSkillBonusesForCharacter(
 
   return [
     ...(collectActiveClassFeatureState(character).getSkillBonuses?.(skill, proficiencyLevel) ?? []),
+    ...(getSubclassDerivedFeatureState(character).getSkillBonuses?.(skill, proficiencyLevel) ?? []),
     ...getCustomTraitSkillBonuses(customTraitEffectInput, skill)
   ];
 }

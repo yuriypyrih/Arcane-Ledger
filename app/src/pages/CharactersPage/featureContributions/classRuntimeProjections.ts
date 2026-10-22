@@ -359,6 +359,12 @@ export function projectCompiledContributionsToSubclassDerivedFeatureState<
   if (hasKeys(compiled.coreStatIndicators)) state.coreStatIndicators = compiled.coreStatIndicators;
   if (hasKeys(compiled.skillIndicators)) state.skillIndicators = compiled.skillIndicators;
   if (compiled.weaponAttackIndicators.length > 0) state.weaponAttackIndicators = compiled.weaponAttackIndicators;
+  if (compiled.skillBonuses.length > 0) {
+    state.getSkillBonuses = (skill, proficiencyLevel) =>
+      compiled.skillBonuses.flatMap((contribution) =>
+        contribution.getBonuses(skill, proficiencyLevel)
+      );
+  }
   if (compiled.weaponDamageBonuses.length > 0) {
     state.getWeaponDamageBonuses = (context) =>
       compiled.weaponDamageBonuses.flatMap((contribution) => contribution.getBonuses(context));

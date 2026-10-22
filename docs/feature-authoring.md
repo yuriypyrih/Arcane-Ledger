@@ -25,6 +25,15 @@ the way from the collector through derived state to the displayed action, spell,
 or drawer. Keep a transition hook for spending, concentration replacement, status creation, or a
 specialized roll; a declaration alone does not execute those operations.
 
+## Formatting reference descriptions
+
+Use separate description entries for paragraphs and the existing list entries for bullet or numbered
+options. Use `<strong>Heading.</strong>` for bold subsection labels; raw underscore markers are not
+bold markup. `<em>` remains available for italic text. An isolated Markdown table string with a
+header, separator row, and one body row per line renders as a table in the shared description
+component, including spell inspectors. Cells use the existing rich-text renderer; unsupported HTML
+remains plain text. Malformed tables also fall back to plain text.
+
 ## Managing resources from drawer headers
 
 Action and spell header tags can carry a runtime-only `ResourceManagementTarget` in
@@ -34,6 +43,13 @@ including fallback tags. Existing actions are bound by explicit action IDs in ea
 `drawerResourceBindings.ts` aggregates those bindings in header order. Spell options use explicit
 option and spell IDs in `spellResourceBindings.ts`, with feat and species adapters preserving
 the owning feat record and individual free-cast spell.
+
+Spell drawers derive a missing Charges header tag from each option's `usage.charges` through
+`spellResourceHeaders.ts`, including unchecked and exhausted options. Explicit header tags keep
+their presentation and are not duplicated. Charge-plus-resource options also derive a missing
+cost tag from their bound counter or spell-slot pool, preserving fallback wording. Register the
+charge and optional fallback resource in `spellResourceBindings.ts` in that order so header
+controls adjust the correct saved counter; do not keep a second charge count for the header.
 
 Adapters read the saved character and manually adjust only their resource. Reuse counter-only
 spend/restore helpers, or `classCounterResource` when activation or rest helpers have other
@@ -157,15 +173,75 @@ uses cantrip scaling, class, subclass, feat, then species transforms. Spellbook 
 separate and supports Wizard as a secondary class. Intrinsic roll/apply behavior stays in the spell
 implementation registry. Do not add a competing transform chain to a component.
 
-Necromancer and Transmuter use the shared Savant dropdowns and always-spellbook grants, filtered to
-Necromancy and Transmutation respectively. Their choices retain their positions so the first two
-are limited to spell levels 1–2, with one further choice at each new Wizard spell-slot tier. These
-grants do not automatically prepare the chosen spells.
+Necromancer, Transmuter, Enchanter, and Conjurer use the shared Savant dropdowns and always-spellbook
+grants, filtered to Necromancy, Transmutation, Enchantment, and Conjuration respectively. Their
+choices retain their positions so the first two are limited to spell levels 1–2, with one further
+choice at each new Wizard spell-slot tier. These grants do not automatically prepare the chosen spells.
+
+Conjurer's level-3 Benign Transposition is a Bonus Action with the full feature description and
+Intelligence-modifier charges (minimum one). Activation spends one charge; explicit Long Rest
+recovery restores the pool, while Short Rests do not. Teleportation and swapping places remain
+manual, so Benign Transposition is semi-tracked; Conjuration Savant is tracked.
+
+At Wizard level 6, Distant Transposition adds its description to Benign Transposition and updates
+the displayed range to 60 feet; spell-slot recovery remains manual. Durable Summons adds sourced
+text to Conjuration spells supported by the shared summon-definition flow, including custom
+summoning spells. A cast that spends a spell slot gives only its fresh companions twice the Wizard
+level in Temporary Hit Points and appends plain-text feature notes, preserving their existing
+descriptions. Rituals and free casts do not grant this benefit. The companion transform runs after
+fresh-instance HP initialization, leaving saved definitions and existing companions unchanged.
+Both spell drawers and feature-action spell casts use this hook. Damage resistance remains manual,
+so both level-6 features are semi-tracked.
+
+Focused Conjuration adds its level-10 description only to Conjuration spells with Concentration;
+its protection from damage remains manual. At level 14, Splintered Summons adds its description
+and an optional one-charge footer control to all summoning Conjuration spells, including custom
+spells. Selecting it spends the shared charge when casting with a spell slot. Free casts and
+rituals cannot spend this charge. Long Rest recovery is explicit in camp; Short Rests do not
+restore it, and recovery with a level-5+ slot remains manual. Additional summons and their
+current/maximum HP are defined by the player, so both features are semi-tracked. Normal casting
+remains available when the optional charge is exhausted.
+
+Enchanter's level-3 Enchanting Conversationalist starts with an empty Deception, Intimidation, or
+Persuasion dropdown. The chosen skill receives a sourced proficiency floor and an Intelligence
+modifier bonus (minimum +1), which updates with the character's current Intelligence. Selecting an
+already-proficient skill is allowed for the bonus and preserves existing expertise. Changing or
+clearing the choice removes only this feature's old grant and bonus.
+
+Hypnotic Presence is a Magic action with Intelligence-modifier uses (minimum one), explicit Long
+Rest recovery, and the shared spell DC formula for a Wisdom save using Wizard's Intelligence.
+Activation spends one use; the target's saving throw and resulting conditions remain manual.
+
+At level 6, Split Enchantment adds its description and a charge checkbox to every Enchantment
+spell drawer. The checkbox requires casting with a spell slot and spends from one shared
+Intelligence-modifier pool (no minimum use), restored through an explicit Long Rest option.
+Additional targets and the effective spell-level increase remain manual. At level 10, Instinctive
+Charm appears in Traits & Conditions as a reaction with one Long Rest charge and the Wisdom save
+formula using Wizard's Intelligence. Its attack/save resolution and recovery from casting an
+Enchantment spell remain manual; the charge header supports that recovery.
+
+At Wizard level 14, Enchanter's Alter Memories adds its full sourced description to the 16
+leveled Enchantment spells listed in `app/src/codex/subclasses/wizardAlterMemories.ts`. The list
+was audited against all 55 current Enchantment spells, includes non-Wizard spell lists for
+multiclass/granted spells, and excludes charm immunity/removal and other spell schools.
+Antipathy/Sympathy qualifies for its Sympathy option only. Runtime checks use Set membership
+and the unlocked feature metadata, including the Wizard class level in multiclass characters.
+Keep the list aligned when spells are added or revised. This is reference text in spell and
+spellbook drawers: the description retains the spell-slot requirement, and resolving targets,
+saves, and memory changes remains manual.
 
 Transmuter's Wondrous Alteration grants always-prepared Alter Self and appends its feature text to
 the spell drawer. Its optional free cast uses one charge per Long Rest and casts at the base spell
 level without spending a slot, including when no slots remain. The charge has an explicit camp
 recovery option. Aquatic Adaptation, Change Appearance, and Natural Weapons benefits remain manual.
+
+At Wizard level 6, Empowered Transmutation adds its description and an optional charge use to
+leveled Transmutation spells without an attack roll or saving throw. The option requires a paid
+spell slot and spends from one shared Intelligence-modifier pool (minimum one use), with explicit
+Long Rest recovery. The effective spell-level increase remains manual. At level 10, Shape-shifter
+grants always-prepared Polymorph, its full feature description, and a separate optional free casting
+per Long Rest. Free Polymorph uses its base spell level and works with no slots remaining; the
+self-transformation modifications remain manual.
 
 Necromancy Spellbook adds Find Familiar without preparing it, grants Necrotic resistance, and
 sources its drawer additions from the codex. The optional Undead Vitality

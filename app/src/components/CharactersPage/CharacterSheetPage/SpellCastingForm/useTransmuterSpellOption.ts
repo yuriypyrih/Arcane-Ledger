@@ -8,22 +8,69 @@ import {
   hasWondrousAlteration,
   wondrousAlterationFreeCastEffectId
 } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
+import {
+  getShapeShifterUsesRemaining,
+  hasShapeShifter,
+  polymorphSpellId,
+  shapeShifterFreeCastEffectId
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterShapeShifter";
+import {
+  empoweredTransmutationEffectId,
+  getEmpoweredTransmutationUsesRemaining,
+  getEmpoweredTransmutationUsesTotal,
+  supportsEmpoweredTransmutation
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterEmpoweredTransmutation";
 import type { CharacterSpellDrawerActionOption } from "./CharacterSpellDrawer";
 
-export function useTransmuterSpellOption(
+export function useTransmuterFreeCastOption(
   character: Character,
   spell: SpellEntry,
   enabled: boolean
 ): CharacterSpellDrawerActionOption | null {
   const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
-  if (!enabled || spell.id !== alterSelfSpellId || !hasWondrousAlteration(character)) return null;
-  const remaining = getWondrousAlterationUsesRemaining(character);
+  if (!enabled) return null;
+  const feature =
+    spell.id === alterSelfSpellId && hasWondrousAlteration(character)
+      ? {
+          id: wondrousAlterationFreeCastEffectId,
+          label: "Wondrous Alteration",
+          remaining: getWondrousAlterationUsesRemaining(character)
+        }
+      : spell.id === polymorphSpellId && hasShapeShifter(character)
+        ? {
+            id: shapeShifterFreeCastEffectId,
+            label: "Shape-shifter",
+            remaining: getShapeShifterUsesRemaining(character)
+          }
+        : null;
+  if (!feature) return null;
+  const { remaining } = feature;
   return {
-    id: wondrousAlterationFreeCastEffectId,
-    label: "Wondrous Alteration: Free cast",
+    id: feature.id,
+    label: `${feature.label}: Free cast`,
     checked: selectedSpellId === spell.id && remaining > 0,
     disabled: remaining <= 0,
     onCheckedChange: (checked) => setSelectedSpellId(checked ? spell.id : null),
     usage: createChargesCardUsage(remaining, 1)
+  };
+}
+
+export function useEmpoweredTransmutationSpellOption(
+  character: Character,
+  spell: SpellEntry,
+  enabled: boolean,
+  spendsSpellSlot: boolean
+): CharacterSpellDrawerActionOption | null {
+  const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
+  if (!enabled || !supportsEmpoweredTransmutation(character, spell)) return null;
+  const remaining = getEmpoweredTransmutationUsesRemaining(character);
+  const total = getEmpoweredTransmutationUsesTotal(character);
+  return {
+    id: empoweredTransmutationEffectId,
+    label: "Empowered Transmutation",
+    checked: spendsSpellSlot && selectedSpellId === spell.id && remaining > 0,
+    disabled: !spendsSpellSlot || remaining <= 0,
+    onCheckedChange: (checked) => setSelectedSpellId(checked ? spell.id : null),
+    usage: createChargesCardUsage(remaining, total)
   };
 }

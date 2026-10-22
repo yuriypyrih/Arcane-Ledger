@@ -13,6 +13,7 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericGraveDomain";
 import { artificerLifeTransferReaction } from "./artificerLifeTransferReaction";
 import { extinguishUndeadReaction, harvestUndeadReaction } from "./necromancerReactions";
+import { instinctiveCharmReaction } from "./enchanterReactions";
 import { getSheetSpellSlotTotals } from "../../../../../../pages/CharactersPage/multiclassSpellcasting";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
@@ -731,6 +732,7 @@ function createCuttingWordsReactionRollRequest(
 }
 
 const descriptors: ReactionDescriptor[] = [
+  instinctiveCharmReaction,
   harvestUndeadReaction,
   extinguishUndeadReaction,
   {

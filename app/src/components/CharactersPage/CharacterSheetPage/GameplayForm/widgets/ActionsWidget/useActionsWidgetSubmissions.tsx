@@ -1,5 +1,6 @@
 import { applyActionResourceTransition } from "./actionResourceTransition";
 import type { Character, CharacterCompanion } from "../../../../../../types";
+import { getWizardSubclassSpellSummonTransform } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 import {
   canUseUndeadThrallsFreeCast,
   undeadThrallsFreeCastEffectId
@@ -1068,7 +1069,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
             ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(fixedSpellStatusEntries)
             : fixedSpellStatusEntries
         },
-        summonCompanions
+        summonCompanions,
+        getWizardSubclassSpellSummonTransform(
+          nextCharacterWithSpellImplementation,
+          spellForCast,
+          sourceSpellSlotLevel
+        )
       );
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellDuration)

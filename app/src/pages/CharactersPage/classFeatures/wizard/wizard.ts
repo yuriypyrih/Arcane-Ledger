@@ -5,7 +5,15 @@ import { getSheetSpellSlotTotals } from "../../multiclassSpellcasting";
 import { getNecromancySpellbookSpellIds } from "./subclasses/wizardNecromancer";
 import { normalizeUndeadThrallsUsesExpended } from "./subclasses/wizardNecromancerUndeadThralls";
 import { normalizeWondrousAlterationUsesExpended } from "./subclasses/wizardTransmuterWondrousAlteration";
+import { normalizeEmpoweredTransmutationUsesExpended } from "./subclasses/wizardTransmuterEmpoweredTransmutation";
+import { normalizeShapeShifterUsesExpended } from "./subclasses/wizardTransmuterShapeShifter";
 import { normalizeBolsterUndeadUsesExpended } from "./subclasses/wizardNecromancerDeathMaster";
+import { normalizeEnchantingConversationalistSkill } from "./subclasses/wizardEnchanter";
+import { normalizeHypnoticPresenceUsesExpended } from "./subclasses/wizardEnchanterHypnoticPresence";
+import { normalizeSplitEnchantmentUsesExpended } from "./subclasses/wizardEnchanterSplitEnchantment";
+import { normalizeInstinctiveCharmUsesExpended } from "./subclasses/wizardEnchanterInstinctiveCharm";
+import { normalizeBenignTranspositionUsesExpended } from "./subclasses/wizardConjurerBenignTransposition";
+import { normalizeSplinteredSummonsUsesExpended } from "./subclasses/wizardConjurerSplinteredSummons";
 import {
   hasCharacterClass,
   getClassLevel,
@@ -345,7 +353,39 @@ export function normalizeWizardFeatureState(
       record?.wondrousAlterationUsesExpended,
       character
     ),
+    empoweredTransmutationUsesExpended: normalizeEmpoweredTransmutationUsesExpended(
+      record?.empoweredTransmutationUsesExpended,
+      character
+    ),
+    shapeShifterUsesExpended: normalizeShapeShifterUsesExpended(
+      record?.shapeShifterUsesExpended,
+      character
+    ),
     scholar: hasScholar ? normalizeWizardScholarSelection(record?.scholar) : undefined,
+    enchantingConversationalistSkill: normalizeEnchantingConversationalistSkill(
+      record?.enchantingConversationalistSkill,
+      character
+    ),
+    hypnoticPresenceUsesExpended: normalizeHypnoticPresenceUsesExpended(
+      record?.hypnoticPresenceUsesExpended,
+      character
+    ),
+    benignTranspositionUsesExpended: normalizeBenignTranspositionUsesExpended(
+      record?.benignTranspositionUsesExpended,
+      character
+    ),
+    splinteredSummonsUsesExpended: normalizeSplinteredSummonsUsesExpended(
+      record?.splinteredSummonsUsesExpended,
+      character
+    ),
+    splitEnchantmentUsesExpended: normalizeSplitEnchantmentUsesExpended(
+      record?.splitEnchantmentUsesExpended,
+      character
+    ),
+    instinctiveCharmUsesExpended: normalizeInstinctiveCharmUsesExpended(
+      record?.instinctiveCharmUsesExpended,
+      character
+    ),
     savantSpellIds:
       getClassSubclassId(character, "Wizard") === undefined
         ? normalizeWizardTrackedSpellIds(record?.savantSpellIds, wizardSavantMaxSelectionCount)

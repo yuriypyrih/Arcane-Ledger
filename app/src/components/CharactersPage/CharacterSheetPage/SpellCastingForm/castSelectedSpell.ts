@@ -16,6 +16,10 @@ import {
   wondrousAlterationFreeCastEffectId
 } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterWondrousAlteration";
 import {
+  canUseShapeShifterFreeCast,
+  shapeShifterFreeCastEffectId
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardTransmuterShapeShifter";
+import {
   canUseDispellingRecovery,
   dispellingRecoveryEffectId
 } from "../../../../pages/CharactersPage/classFeatures/cleric/subclasses/clericDomainSpellEffects";
@@ -24,6 +28,7 @@ import {
   spareTheDyingSpellId
 } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
+import { getWizardSubclassSpellSummonTransform } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 import {
   canPaySpellEconomy,
   payEconomyForCharacterAction
@@ -175,6 +180,9 @@ export function castSelectedSpellWithContext(
   const useWondrousAlteration =
     options?.spellCastEffectIds?.includes(wondrousAlterationFreeCastEffectId) === true;
   if (useWondrousAlteration && !canUseWondrousAlterationFreeCast(character, selectedSpell)) return;
+  const useShapeShifter =
+    options?.spellCastEffectIds?.includes(shapeShifterFreeCastEffectId) === true;
+  if (useShapeShifter && !canUseShapeShifterFreeCast(character, selectedSpell)) return;
   if (
     useSpiritualManifestation &&
     !canUseSpiritualManifestationFreeCast(character, selectedSpell)
@@ -231,9 +239,16 @@ export function castSelectedSpellWithContext(
   const canAddSelectedSummonCompanions = (nextCharacter: Character) =>
     selectedSummonCompanions.length === 0 ||
     canAddSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions);
-  const appendSelectedSummonCompanions = (nextCharacter: Character) =>
+  const appendSelectedSummonCompanions = (
+    nextCharacter: Character,
+    sourceSpellSlotLevel: number | null = null
+  ) =>
     selectedSummonCompanions.length > 0
-      ? appendSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions)
+      ? appendSpellSummonCompanionsForCast(
+          nextCharacter,
+          selectedSummonCompanions,
+          getWizardSubclassSpellSummonTransform(nextCharacter, selectedSpell, sourceSpellSlotLevel)
+        )
       : nextCharacter;
 
   if (
@@ -668,10 +683,12 @@ export function castSelectedSpellWithContext(
     useSpiritualManifestation ||
     useDispellingRecovery ||
     useUndeadThralls ||
-    useWondrousAlteration
+    useWondrousAlteration ||
+    useShapeShifter
       ? spellLevel
       : slotPlan.slotLevel;
   const castsWithoutSpellSlot =
+    useShapeShifter ||
     useWondrousAlteration ||
     useUndeadThralls ||
     useSpiritQuery ||
@@ -735,6 +752,9 @@ export function castSelectedSpellWithContext(
       currentCharacter,
       roundTrackerResource
     );
+    if (useShapeShifter && !canUseShapeShifterFreeCast(preparedCharacter, selectedSpell)) {
+      return currentCharacter;
+    }
     if (useUndeadThralls && !canUseUndeadThrallsFreeCast(preparedCharacter, selectedSpell)) {
       return currentCharacter;
     }
@@ -1093,14 +1113,16 @@ export function castSelectedSpellWithContext(
 
     if (castsFreeViaTelekineticMaster && roundTrackerResource) {
       return appendSelectedSummonCompanions(
-        consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
+        consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource),
+        sourceSpellSlotLevel
       );
     }
 
-    if (!roundTrackerResource) return appendSelectedSummonCompanions(nextCharacterWithFleetStep);
+    if (!roundTrackerResource)
+      return appendSelectedSummonCompanions(nextCharacterWithFleetStep, sourceSpellSlotLevel);
     const paid = payEconomyForCharacterAction(nextCharacterWithFleetStep, sharedEconomyContext);
     return paid.status === "paid"
-      ? appendSelectedSummonCompanions(paid.character)
+      ? appendSelectedSummonCompanions(paid.character, sourceSpellSlotLevel)
       : currentCharacter;
   });
 

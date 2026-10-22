@@ -215,10 +215,18 @@ export type CharacterWizardFeatureState = {
   bladesingerCantripReplacementUsedThisTurn?: boolean;
   spellcastWeaponBonusActionAvailable?: boolean;
   scholar?: SkillName;
+  enchantingConversationalistSkill?: SkillName;
+  hypnoticPresenceUsesExpended?: number;
+  benignTranspositionUsesExpended?: number;
+  splinteredSummonsUsesExpended?: number;
+  splitEnchantmentUsesExpended?: number;
+  instinctiveCharmUsesExpended?: number;
   savantSpellIds?: string[];
   undeadThrallsUsesExpended?: number;
   bolsterUndeadUsesExpended?: number;
   wondrousAlterationUsesExpended?: number;
+  empoweredTransmutationUsesExpended?: number;
+  shapeShifterUsesExpended?: number;
   phantasmalCreaturesUsesExpended?: number;
   illusorySelfUsesExpended?: number;
   overchannelUsesSinceLongRest?: number;

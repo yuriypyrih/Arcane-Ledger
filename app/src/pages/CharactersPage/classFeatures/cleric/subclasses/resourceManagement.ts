@@ -1,4 +1,5 @@
 import { classCounterResource } from "../../../resourceManagement";
+import { getDispellingRecoveryRemaining, hasArcanaDomain } from "./clericArcanaDomain";
 import { getKeeperOfSoulsRemaining, hasGraveDomain } from "./clericGraveDomain";
 import {
   getDivineForeknowledgeUsesRemaining,
@@ -11,6 +12,13 @@ import {
 import { getClericWarPriestUsesRemaining, getClericWarPriestUsesTotal } from "./clericWarDomain";
 
 export const clericSubclassResources = {
+  dispellingRecoveryUsesExpended: classCounterResource(
+    "cleric",
+    "dispellingRecoveryUsesExpended",
+    "Dispelling Recovery",
+    (character) => Number(hasArcanaDomain(character, 6)),
+    getDispellingRecoveryRemaining
+  ),
   divineForeknowledgeUsesExpended: classCounterResource(
     "cleric",
     "divineForeknowledgeUsesExpended",

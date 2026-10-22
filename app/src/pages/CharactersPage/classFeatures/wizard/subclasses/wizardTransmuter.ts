@@ -1,4 +1,5 @@
 import { CLASS_FEATURE } from "../../../../../codex/entries/enums";
+import type { SpellEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import {
   createSubclassContributionSource,
@@ -12,9 +13,24 @@ import type { SubclassRuntimeCharacter, SubclassRuntimeResolver } from "../../su
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
 import {
   alterSelfSpellId,
+  getWondrousAlterationSpellCastEffects,
   hasWondrousAlteration,
+  restoreWondrousAlterationOnLongRest,
   transformWondrousAlterationSpell
 } from "./wizardTransmuterWondrousAlteration";
+import {
+  getEmpoweredTransmutationSpellCastEffects,
+  hasEmpoweredTransmutation,
+  restoreEmpoweredTransmutationOnLongRest,
+  transformEmpoweredTransmutationSpell
+} from "./wizardTransmuterEmpoweredTransmutation";
+import {
+  getShapeShifterSpellCastEffects,
+  hasShapeShifter,
+  polymorphSpellId,
+  restoreShapeShifterOnLongRest,
+  transformShapeShifterSpell
+} from "./wizardTransmuterShapeShifter";
 
 export const transmuterSubclassId = "wizard-transmuter";
 
@@ -45,6 +61,41 @@ function collectWizardTransmuterContributions(
           } satisfies FeatureContributionSpec
         ]
       : []),
+    ...(hasEmpoweredTransmutation(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: "wizard-transmuter-empowered-transmutation",
+              label: "Empowered Transmutation",
+              entryId: CLASS_FEATURE.EMPOWERED_TRANSMUTATION
+            }),
+            spellTransforms: [
+              {
+                id: "wizard-transmuter-empowered-transmutation-description",
+                transform: (spell) => transformEmpoweredTransmutationSpell(character, spell)
+              }
+            ]
+          } satisfies FeatureContributionSpec
+        ]
+      : []),
+    ...(hasShapeShifter(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: "wizard-transmuter-shape-shifter",
+              label: "Shape-shifter",
+              entryId: CLASS_FEATURE.SHAPE_SHIFTER
+            }),
+            alwaysPreparedSpellIds: [polymorphSpellId],
+            spellTransforms: [
+              {
+                id: "wizard-transmuter-shape-shifter-description",
+                transform: (spell) => transformShapeShifterSpell(character, spell)
+              }
+            ]
+          } satisfies FeatureContributionSpec
+        ]
+      : []),
     {
       source: createSubclassContributionSource({
         id: "wizard-transmuter-savant",
@@ -57,6 +108,33 @@ function collectWizardTransmuterContributions(
       })
     }
   ];
+}
+
+export function transformTransmuterSpell(
+  character: SubclassRuntimeCharacter,
+  spell: SpellEntry
+): SpellEntry {
+  return transformShapeShifterSpell(
+    character,
+    transformEmpoweredTransmutationSpell(
+      character,
+      transformWondrousAlterationSpell(character, spell)
+    )
+  );
+}
+
+export function getTransmuterSpellCastEffects(character: Character) {
+  return [
+    ...getWondrousAlterationSpellCastEffects(character),
+    ...getEmpoweredTransmutationSpellCastEffects(character),
+    ...getShapeShifterSpellCastEffects(character)
+  ];
+}
+
+export function restoreTransmuterOnLongRest(character: Character): Character {
+  return restoreShapeShifterOnLongRest(
+    restoreEmpoweredTransmutationOnLongRest(restoreWondrousAlterationOnLongRest(character))
+  );
 }
 
 export const getWizardTransmuterDerivedFeatureState: SubclassRuntimeResolver = (character) =>

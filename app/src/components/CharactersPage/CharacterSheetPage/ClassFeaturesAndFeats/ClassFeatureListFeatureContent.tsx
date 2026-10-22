@@ -9,6 +9,7 @@ const FighterArcaneShotFields = lazy(() => import("./FighterArcaneShotFields"));
 const FighterArcaneArcherLoreFields = lazy(() => import("./FighterArcaneArcherLoreFields"));
 const RoguePhantomFeatureFields = lazy(() => import("./RoguePhantomFeatureFields"));
 const WarlockVestigeSpellFields = lazy(() => import("./WarlockVestigeSpellFields"));
+const WizardEnchanterFeatureFields = lazy(() => import("./WizardEnchanterFeatureFields"));
 
 export function renderClassFeatureContent(context: ClassFeatureContentContext) {
   const {
@@ -892,6 +893,25 @@ export function renderClassFeatureContent(context: ClassFeatureContentContext) {
               </label>
             </div>
           ) : null}
+        </>
+      ) : featureRow.feature === CLASS_FEATURE.ENCHANTING_CONVERSATIONALIST &&
+        character.className === "Wizard" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <Suspense fallback={null}>
+            <WizardEnchanterFeatureFields
+              character={character}
+              disabled={!isUnlocked}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </Suspense>
         </>
       ) : isWizardSavantFeature(featureRow.feature) && character.className === "Wizard" ? (
         <>

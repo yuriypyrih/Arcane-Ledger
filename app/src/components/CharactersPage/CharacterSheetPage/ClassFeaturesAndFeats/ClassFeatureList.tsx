@@ -49,6 +49,7 @@ import {
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { isWizardSavantFeature } from "../../../../pages/CharactersPage/classFeatures/wizard/savant";
+import { getEnchantingConversationalistSkill } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEnchanter";
 import type {
   Character,
   CharacterFeatEntry,
@@ -675,6 +676,10 @@ function ClassFeatureList({
               featureRow.feature === CLASS_FEATURE.MYSTIC_ARCANUM &&
               character.className === "Warlock" &&
               isWarlockMysticArcanumInputRequired(featureRow.level)) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.ENCHANTING_CONVERSATIONALIST &&
+              character.className === "Wizard" &&
+              getEnchantingConversationalistSkill(character) === null) ||
             (isUnlocked &&
               isWizardSavantFeature(featureRow.feature) &&
               character.className === "Wizard" &&

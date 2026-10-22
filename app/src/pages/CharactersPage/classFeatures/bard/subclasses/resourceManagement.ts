@@ -1,4 +1,6 @@
 import { classCounterResource } from "../../../resourceManagement";
+import { getSpiritualManifestationRemaining } from "./bardCollegeOfSpiritsEmpowered";
+import { hasBardSpirits } from "./bardCollegeOfSpiritsState";
 import {
   getBardCollegeOfGlamourBeguilingMagicUsesRemaining,
   getBardCollegeOfGlamourBeguilingMagicUsesTotal,
@@ -13,6 +15,20 @@ import {
 } from "./bardCollegeOfTheMoon";
 
 export const bardSubclassResources = {
+  spiritualManifestationUsesExpended: classCounterResource(
+    "bard",
+    "spiritualManifestationUsesExpended",
+    "Spiritual Manifestation: Free cast",
+    (character) => Number(hasBardSpirits(character, 6)),
+    (character) => getSpiritualManifestationRemaining(character)
+  ),
+  spiritualManifestationCoverUsesExpended: classCounterResource(
+    "bard",
+    "spiritualManifestationCoverUsesExpended",
+    "Spiritual Manifestation: Half Cover",
+    (character) => Number(hasBardSpirits(character, 6)),
+    (character) => getSpiritualManifestationRemaining(character, true)
+  ),
   beguilingMagicUsesExpended: classCounterResource(
     "bard",
     "beguilingMagicUsesExpended",

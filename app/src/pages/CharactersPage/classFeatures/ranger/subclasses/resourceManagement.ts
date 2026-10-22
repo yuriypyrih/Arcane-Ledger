@@ -1,5 +1,11 @@
 import { classCounterResource } from "../../../resourceManagement";
 import {
+  getRangerFeyWandererFeyReinforcementsUsesRemaining,
+  getRangerFeyWandererFeyReinforcementsUsesTotal,
+  getRangerFeyWandererMistyWandererUsesRemaining,
+  getRangerFeyWandererMistyWandererUsesTotal
+} from "./rangerFeyWanderer";
+import {
   getRangerGloomStalkerDreadAmbusherUsesRemaining,
   getRangerGloomStalkerDreadAmbusherUsesTotal
 } from "./rangerGloomStalker";
@@ -11,6 +17,20 @@ import {
 } from "./rangerWinterWalker";
 
 export const rangerSubclassResources = {
+  feyReinforcementsUsesExpended: classCounterResource(
+    "ranger",
+    "feyReinforcementsUsesExpended",
+    "Fey Reinforcements",
+    getRangerFeyWandererFeyReinforcementsUsesTotal,
+    getRangerFeyWandererFeyReinforcementsUsesRemaining
+  ),
+  mistyWandererUsesExpended: classCounterResource(
+    "ranger",
+    "mistyWandererUsesExpended",
+    "Misty Wanderer",
+    getRangerFeyWandererMistyWandererUsesTotal,
+    getRangerFeyWandererMistyWandererUsesRemaining
+  ),
   dreadAmbusherUsesExpended: classCounterResource(
     "ranger",
     "dreadAmbusherUsesExpended",

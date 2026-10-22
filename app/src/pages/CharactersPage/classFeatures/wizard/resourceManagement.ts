@@ -16,6 +16,8 @@ export const wizardManagedResources = {
 
 /** Resource identities are explicit; presentation labels are never used for routing. */
 export const wizardActionResources: Record<string, readonly ResourceManagementTarget[]> = {
+  "wizard-conjurer-benign-transposition": [wizardManagedResources.benignTranspositionUsesExpended],
+  "wizard-enchanter-hypnotic-presence": [wizardManagedResources.hypnoticPresenceUsesExpended],
   "wizard-diviner-portent": [wizardManagedResources.portent],
   "wizard-arcane-recovery": [wizardManagedResources.arcaneRecoveryUsesExpended],
   "wizard-bladesinger-bladesong": [wizardManagedResources.bladesongUsesExpended]

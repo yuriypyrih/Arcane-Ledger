@@ -706,8 +706,8 @@ export const minorIllusion: SpellEntry = {
   duration: ["1 minute"],
   description: [
     "You create a sound or an image of an object within range that lasts for the duration. See the descriptions below for the effects of each. The illusion ends if you cast this spell again. If a creature takes a Study action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.",
-    "<strong>_Sound._</strong> If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.",
-    "<strong>_Image._</strong> If you create an image of an object—such as a chair, muddy footprints, or a small chest—it must be no larger than a 5-foot Cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, since things can pass through it."
+    "<strong>Sound.</strong> If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.",
+    "<strong>Image.</strong> If you create an image of an object—such as a chair, muddy footprints, or a small chest—it must be no larger than a 5-foot Cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, since things can pass through it."
   ],
   damage: [],
   healing: [],
@@ -789,12 +789,12 @@ export const prestidigitation: SpellEntry = {
   duration: ["1 hour"],
   description: [
     "You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time.",
-    "<strong>_Sensory Effect._</strong> You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.",
-    "<strong>_Fire Play._</strong> You instantaneously light or snuff out a candle, a torch, or a small campfire.",
-    "<strong>_Clean or Soil._</strong> You instantaneously clean or soil an object no larger than 1 cubic foot.",
-    "<strong>_Minor Sensation._</strong> You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.",
-    "<strong>_Magic Mark._</strong> You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.",
-    "<strong>_Minor Creation._</strong> You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth."
+    "<strong>Sensory Effect.</strong> You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.",
+    "<strong>Fire Play.</strong> You instantaneously light or snuff out a candle, a torch, or a small campfire.",
+    "<strong>Clean or Soil.</strong> You instantaneously clean or soil an object no larger than 1 cubic foot.",
+    "<strong>Minor Sensation.</strong> You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.",
+    "<strong>Magic Mark.</strong> You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.",
+    "<strong>Minor Creation.</strong> You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth."
   ],
   damage: [],
   healing: [],
@@ -1151,12 +1151,12 @@ export const thaumaturgy: SpellEntry = {
   duration: ["1 minute"],
   description: [
     "You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.",
-    "<strong>_Altered Eyes._</strong> You alter the appearance of your eyes for 1 minute.",
-    "<strong>_Booming Voice._</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks.",
-    "<strong>_Fire Play._</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.",
-    "<strong>_Invisible Hand._</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.",
-    "<strong>_Phantom Sound._</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.",
-    "<strong>_Tremors._</strong> You cause harmless tremors in the ground for 1 minute."
+    "<strong>Altered Eyes.</strong> You alter the appearance of your eyes for 1 minute.",
+    "<strong>Booming Voice.</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks.",
+    "<strong>Fire Play.</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.",
+    "<strong>Invisible Hand.</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.",
+    "<strong>Phantom Sound.</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.",
+    "<strong>Tremors.</strong> You cause harmless tremors in the ground for 1 minute."
   ],
   damage: [],
   healing: [],

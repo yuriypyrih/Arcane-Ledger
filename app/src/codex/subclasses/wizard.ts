@@ -393,7 +393,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
             "When spending a slot to cast a Transmutation spell that neither makes an attack roll nor requires a saving throw, such as <spell:Fly>Fly</spell> or <spell:Magic Weapon>Magic Weapon</spell>, you may increase its effective spell level by 1.",
             "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a <link:long-rest>Long Rest</link>."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "Eligible Transmutation spell drawers show this feature and an optional charge use. Charges equal your Intelligence modifier (minimum one) and recover on a Long Rest. Apply the effective spell-level increase manually."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.POTENT_STONE, {
@@ -412,7 +414,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Game Statistics.</strong> Besides what Polymorph normally retains, keep your memories, ability to communicate, <link:Intelligence>Intelligence</link>, <link:Wisdom>Wisdom</link>, <link:Charisma>Charisma</link>, proficiencies, class features, and feats.",
           "<strong>Transmute Spells.</strong> In the new form, you may cast Transmutation spells whose Material components have no specified cost and are not consumed. No other spells can be cast while transformed."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Polymorph is always prepared and has one optional free casting per Long Rest. Its spell drawer includes the full feature description; apply and track the self-transformation modifications manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.MASTER_TRANSMUTER, {
         description: [
@@ -442,40 +446,48 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           description: [
             "Gain proficiency in Deception, Intimidation, or Persuasion. Add your <link:Intelligence>Intelligence</link> modifier, with a minimum bonus of +1, to ability checks using the chosen skill."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ENCHANTMENT_SAVANT, {
         description: createSchoolSavantDescription("Enchantment"),
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HYPNOTIC_PRESENCE, {
         description: [
           "As a Magic action, choose a creature you can see within 10 feet that can see or hear you. It makes a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes it <link:Charmed>Charmed</link> for 1 minute, with <link:Incapacitated>Incapacitated</link> and Speed 0 while <link:Charmed>Charmed</link> this way. The effect ends early if it moves more than 10 feet from you, can neither see nor hear you, or takes damage.",
           "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one. Recover all uses after a <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The Magic action tracks uses equal to your Intelligence modifier (minimum one), recovers on a Long Rest, and displays your spell save DC formula for the target's Wisdom save. Resolve the target's saving throw and effects manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.SPLIT_ENCHANTMENT, {
         description: [
           "When spending a slot to cast an Enchantment spell that can target an additional creature at a higher slot level, such as <spell:Charm Person>Charm Person</spell>, you may increase the spell's effective level by 1.",
           "Uses equal your <link:Intelligence>Intelligence</link> modifier. Recover all uses after a <link:long-rest>Long Rest</link>."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Enchantment spell drawers include this feature and an optional charge use when casting with a spell slot. Charges equal your Intelligence modifier and recover on a Long Rest. Apply the additional target and effective spell-level increase manually."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.INSTINCTIVE_CHARM, {
         description: [
           "When a creature you can see within 30 feet hits you with an attack roll, use a Reaction to require a <link:Wisdom>Wisdom</link> saving throw against your spell save DC. A failure makes the attack miss you. If another creature other than the attacker is within the attack's range, redirect the same attack roll to it; choose the new target if several qualify.",
           "Recover this Reaction after a <link:long-rest>Long Rest</link> or by casting an Enchantment spell with a spell slot."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The reaction tracks one charge per Long Rest and displays the Wisdom save DC formula. Resolve the attack and saving throw manually; recovery from casting an Enchantment spell can be applied with the charge controls."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.ALTER_MEMORIES, {
         description: [
           "When you spend a slot to cast an Enchantment spell that causes <link:Charmed>Charmed</link>, choose one target that will remain unaware you <link:Charmed>Charmed</link> it.",
           "Once before that spell ends, you may use a Magic action to require an <link:Intelligence>Intelligence</link> saving throw from the chosen target against your spell save DC. On a failure, erase up to 1 + your <link:Intelligence>Intelligence</link> modifier hours of its memories (minimum capacity 1 hour). You may erase less time, and cannot erase more time than the spell's duration."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The full feature description appears on the catalog's leveled Enchantment spells that impose Charmed. It requires a spell-slot casting; Antipathy/Sympathy qualifies only with Sympathy. Resolve the target, saving throw, and memory changes manually."
       })
     ]
   },
@@ -496,12 +508,14 @@ export const wizardSubclassEntries: SubclassEntry[] = [
             "As a Bonus Action, teleport up to 30 feet to an unoccupied space you can see. Alternatively, choose a space in range occupied by a willing Medium or smaller creature and teleport to swap places.",
             "Uses equal your <link:Intelligence>Intelligence</link> modifier, minimum one; recover all uses after a <link:long-rest>Long Rest</link>."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "The Bonus Action tracks uses equal to your Intelligence modifier (minimum one), restored on a Long Rest. Resolve the teleport or exchange of places manually."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CONJURATION_SAVANT, {
         description: createSchoolSavantDescription("Conjuration"),
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -510,14 +524,18 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           description: [
             "Benign Transposition reaches 60 feet. You may also spend a level 3+ spell slot without an action to restore one use."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "Adds this description to Benign Transposition and updates its displayed range to 60 feet. Restoring a use with a spell slot is handled manually."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.DURABLE_SUMMONS, {
         description: [
           "When a Conjuration spell cast with a slot creates or summons a creature, it gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to twice your Wizard level on appearing. While those <link:Temporary Hit Points>Temporary Hit Points</link> remain, it resists all damage types except Force, Necrotic, Psychic, and Radiant."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "Adds this description to summoning Conjuration spells. Casting one with a spell slot grants its newly summoned companions Temporary Hit Points equal to twice your Wizard level and adds the feature to their descriptions. Apply the damage resistances manually while those Temporary Hit Points remain."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
@@ -526,7 +544,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           description: [
             "Damage cannot end your <link:Concentration>Concentration</link> on a Conjuration spell."
           ],
-          trackingState: TRACKER.NOT_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "The description of this feature is included in all Conjuration spells that require Concentration. Handle its protection from damage manually."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SPLINTERED_SUMMONS, {
@@ -534,7 +554,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "When you spend a slot to cast a Conjuration spell that summons a spirit with statistics in the spell description, such as <spell:Summon Aberration>Summon Aberration</spell>, you may summon two of the same kind instead. They follow the spell's statistics and rules, appear in different unoccupied spaces within range that you choose, and each has half the usual current and maximum Hit Points. Losing <link:Concentration>Concentration</link> dismisses both.",
           "Recover this modification after a <link:long-rest>Long Rest</link>, or spend a level 5+ slot without an action to restore it."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description of this feature is included in all conjuration summoning spells (including the useage tracking) but you have to incldue the secondary summons yourself when you define them and adjust their hit points. The charge is restored on a Long Rest; restoring it with a spell slot is handled manually."
       })
     ]
   }

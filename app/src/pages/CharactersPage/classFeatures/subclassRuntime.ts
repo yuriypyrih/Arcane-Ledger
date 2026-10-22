@@ -1,6 +1,6 @@
 import { getSpellEntryByName, type ReactionEntry, type SpellEntry } from "../../../codex/entries";
 import { ACTION_TYPE } from "../../../codex/entries/enums";
-import type { AbilityKey, Character } from "../../../types";
+import type { AbilityKey, Character, PROF_LEVEL, SkillName } from "../../../types";
 import type { WeaponAction } from "../gameplay";
 export { createDefaultFeatureActionDescription } from "./featureActionDescription";
 import type {
@@ -21,6 +21,7 @@ import type {
   MagicTemporaryHitPointsFeature,
   FeatureSavingThrowBonus,
   FeatureSavingThrowProficiencyEntry,
+  FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   SpellSourceMap,
   SpellFeatureContext,
@@ -47,6 +48,7 @@ export type SubclassDerivedFeatureState = {
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
   coreStatIndicators?: CoreStatIndicatorMap;
   skillIndicators?: SkillIndicatorMap;
+  getSkillBonuses?: (skill: SkillName, proficiencyLevel: PROF_LEVEL) => FeatureSkillBonus[];
   weaponAttackIndicators?: FeatureIndicator[];
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
   getSpellDamageBonuses?: (context: SpellFeatureContext) => FeatureDamageBonus[];

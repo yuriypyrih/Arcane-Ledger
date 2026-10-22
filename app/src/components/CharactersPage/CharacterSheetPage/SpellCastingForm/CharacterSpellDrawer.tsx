@@ -1,7 +1,11 @@
-import { bindResourceHeaderTags } from "../../../../pages/CharactersPage/drawerResourceBindings";
-import { getSpellOptionResourceTargets } from "../../../../pages/CharactersPage/spellResourceBindings";
+import { getSpellOptionHeaderTags } from "../../../../pages/CharactersPage/spellResourceHeaders";
 import { useClericDomainSpellOptions } from "./useClericDomainSpellOptions";
-import { useTransmuterSpellOption } from "./useTransmuterSpellOption";
+import { useSplitEnchantmentSpellOption } from "./useSplitEnchantmentSpellOption";
+import { useSplinteredSummonsSpellOption } from "./useSplinteredSummonsSpellOption";
+import {
+  useEmpoweredTransmutationSpellOption,
+  useTransmuterFreeCastOption
+} from "./useTransmuterSpellOption";
 import {
   useNecromancerSpellOption,
   useUndeadThrallsSpellOption
@@ -59,7 +63,6 @@ import {
   clampNumber,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { appendMysticArtsSpellDescription } from "../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheMysticArts";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
@@ -548,12 +551,12 @@ function CharacterSpellDrawer({
     mode === "standard" && actionConsumesSpellSlot
   );
   const undeadThrallsFreeCast = undeadThrallsOption?.checked === true;
-  const wondrousAlterationOption = useTransmuterSpellOption(
+  const transmuterFreeCastOption = useTransmuterFreeCastOption(
     character,
     spell,
     mode === "standard" && actionConsumesSpellSlot
   );
-  const wondrousAlterationFreeCast = wondrousAlterationOption?.checked === true;
+  const transmuterFreeCast = transmuterFreeCastOption?.checked === true;
   const allActionOptions: CharacterSpellDrawerActionOption[] = [
     ...phantomOption.options,
     ...clericOptions.options,
@@ -562,7 +565,7 @@ function CharacterSpellDrawer({
     ...(reanimatorOption ? [reanimatorOption] : []),
     ...spiritsOptions.options,
     ...(undeadThrallsOption ? [undeadThrallsOption] : []),
-    ...(wondrousAlterationOption ? [wondrousAlterationOption] : [])
+    ...(transmuterFreeCastOption ? [transmuterFreeCastOption] : [])
   ];
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const isQuickRitualSelected = allActionOptions.some(
@@ -592,7 +595,7 @@ function CharacterSpellDrawer({
       : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
   const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
-    wondrousAlterationFreeCast ||
+    transmuterFreeCast ||
     undeadThrallsFreeCast ||
     phantomOption.selected ||
     spiritsOptions.freeCast ||
@@ -604,44 +607,57 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
+  const spendsSpellSlotForOptionalEffects =
+    actionConsumesSpellSlot &&
+    !transmuterFreeCast &&
+    !undeadThrallsFreeCast &&
+    !selectedSlotIsFreeCast &&
+    !selectedSlotIsFreeUse &&
+    !isRitualCastingSelected &&
+    !ritualCastingRequired &&
+    !isQuickRitualSelected &&
+    !phantomOption.selected &&
+    !spiritsOptions.freeCast &&
+    !clericOptions.dispellingRecovery &&
+    (selectedSpellRemainingSlots ?? 0) > 0;
   const necromancerOption = useNecromancerSpellOption(
     character,
     spell,
     normalizedSelectedSpellSlotLevel,
     mode === "standard",
-    actionConsumesSpellSlot &&
-      !wondrousAlterationFreeCast &&
-      !undeadThrallsFreeCast &&
-      !selectedSlotIsFreeCast &&
-      !selectedSlotIsFreeUse &&
-      !isRitualCastingSelected &&
-      !ritualCastingRequired &&
-      !isQuickRitualSelected &&
-      !phantomOption.selected &&
-      !spiritsOptions.freeCast &&
-      !clericOptions.dispellingRecovery &&
-      (selectedSpellRemainingSlots ?? 0) > 0
+    spendsSpellSlotForOptionalEffects
+  );
+  const empoweredTransmutationOption = useEmpoweredTransmutationSpellOption(
+    character,
+    spell,
+    mode === "standard",
+    spendsSpellSlotForOptionalEffects
+  );
+  const splitEnchantmentOption = useSplitEnchantmentSpellOption(
+    character,
+    spell,
+    mode === "standard",
+    spendsSpellSlotForOptionalEffects
+  );
+  const splinteredSummonsOption = useSplinteredSummonsSpellOption(
+    character,
+    spell,
+    mode === "standard",
+    spendsSpellSlotForOptionalEffects
   );
   const visibleActionOptions = [
     ...allActionOptions,
-    ...(necromancerOption ? [necromancerOption] : [])
+    ...(necromancerOption ? [necromancerOption] : []),
+    ...(empoweredTransmutationOption ? [empoweredTransmutationOption] : []),
+    ...(splitEnchantmentOption ? [splitEnchantmentOption] : []),
+    ...(splinteredSummonsOption ? [splinteredSummonsOption] : [])
   ];
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
-    option.headerTags?.length
-      ? bindResourceHeaderTags(
-          option.usage?.mode === "charges-or-resource"
-            ? markUsageHeaderTagsAsFallback(option.headerTags)
-            : option.headerTags,
-          getSpellOptionResourceTargets(option.id, spell.id)
-        ).map((tag, index) => ({
-          key: `${option.id}-header-tag-${index}`,
-          value: tag
-        }))
-      : []
+    getSpellOptionHeaderTags(character, spell.id, option)
   );
   const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
-    !wondrousAlterationFreeCast &&
+    !transmuterFreeCast &&
     !undeadThrallsFreeCast &&
     !phantomOption.required &&
     !spiritsOptions.freeCast &&
@@ -749,8 +765,11 @@ function CharacterSpellDrawer({
       ...clericOptions.effectIds,
       ...spiritsOptions.effectIds,
       ...(undeadThrallsFreeCast ? [undeadThrallsOption.id] : []),
-      ...(wondrousAlterationFreeCast ? [wondrousAlterationOption.id] : []),
-      ...(necromancerOption?.checked ? [necromancerOption.id] : [])
+      ...(transmuterFreeCast ? [transmuterFreeCastOption.id] : []),
+      ...(necromancerOption?.checked ? [necromancerOption.id] : []),
+      ...(empoweredTransmutationOption?.checked ? [empoweredTransmutationOption.id] : []),
+      ...(splitEnchantmentOption?.checked ? [splitEnchantmentOption.id] : []),
+      ...(splinteredSummonsOption?.checked ? [splinteredSummonsOption.id] : [])
     ],
     spellImplementationOptions: activeSpellImplementationOptionValues,
     summonCompanions: isSpellSummonDefinitionRequired ? activeSpellSummonDefinitions : []
@@ -912,8 +931,8 @@ function CharacterSpellDrawer({
   const spellDescriptionSections = orderDescriptionAdditionSections(
     appendMysticArtsSpellDescription(character, spell).descriptionAdditions ?? []
   );
-  const availabilityText = wondrousAlterationFreeCast
-    ? `Wondrous Alteration casts this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
+  const availabilityText = transmuterFreeCast
+    ? `Cast this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
     : phantomOption.required
       ? "Spirit Query spends 1 Soul Trinket to cast Augury as a Magic action without a spell slot or components."
       : undeadThrallsFreeCast
@@ -1015,10 +1034,7 @@ function CharacterSpellDrawer({
             <div className={styles.headerActions}>
               {visibleHeaderTags.length > 0 ? (
                 <div className={gameplayActionStyles.resourceBadgeRow}>
-                  <FeatureActionHeaderTags
-                    tags={visibleHeaderTags.map((tag) => tag.value)}
-                    tagKeyPrefix={spell.name}
-                  />
+                  <FeatureActionHeaderTags tags={visibleHeaderTags} tagKeyPrefix={spell.name} />
                 </div>
               ) : null}
               <FeatureTrackingBadgeButton

@@ -34,6 +34,16 @@ const wizardSavantConfigsBySubclassId = {
     feature: CLASS_FEATURE.TRANSMUTATION_SAVANT,
     school: MAGIC_SCHOOL.TRANSMUTATION,
     schoolLabel: "Transmutation"
+  },
+  "wizard-enchanter": {
+    feature: CLASS_FEATURE.ENCHANTMENT_SAVANT,
+    school: MAGIC_SCHOOL.ENCHANTMENT,
+    schoolLabel: "Enchantment"
+  },
+  "wizard-conjurer": {
+    feature: CLASS_FEATURE.CONJURATION_SAVANT,
+    school: MAGIC_SCHOOL.CONJURATION,
+    schoolLabel: "Conjuration"
   }
 } as const;
 
@@ -100,7 +110,9 @@ export function hasWizardSavantFeature(
 
 function getSavantChoiceSpellLevelLimit(config: WizardSavantConfig, selectionIndex?: number) {
   return (config.feature === CLASS_FEATURE.NECROMANCY_SAVANT ||
-    config.feature === CLASS_FEATURE.TRANSMUTATION_SAVANT) &&
+    config.feature === CLASS_FEATURE.TRANSMUTATION_SAVANT ||
+    config.feature === CLASS_FEATURE.ENCHANTMENT_SAVANT ||
+    config.feature === CLASS_FEATURE.CONJURATION_SAVANT) &&
     selectionIndex !== undefined
     ? Math.max(2, selectionIndex + 1)
     : 9;

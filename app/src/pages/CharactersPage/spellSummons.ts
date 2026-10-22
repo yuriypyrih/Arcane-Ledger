@@ -379,7 +379,8 @@ function createCompanionForSpellCast(companion: CharacterCompanion): CharacterCo
 
 export function appendSpellSummonCompanionsForCast(
   character: Character,
-  companions: readonly CharacterCompanion[] | null | undefined
+  companions: readonly CharacterCompanion[] | null | undefined,
+  transformCompanion?: (companion: CharacterCompanion) => CharacterCompanion
 ): Character {
   const companionsToAdd = companions ?? [];
 
@@ -394,7 +395,10 @@ export function appendSpellSummonCompanionsForCast(
     ...character,
     companions: [
       ...(character.companions ?? []),
-      ...companionsToAdd.map(createCompanionForSpellCast)
+      ...companionsToAdd.map((companion) => {
+        const summoned = createCompanionForSpellCast(companion);
+        return transformCompanion ? transformCompanion(summoned) : summoned;
+      })
     ]
   };
 }

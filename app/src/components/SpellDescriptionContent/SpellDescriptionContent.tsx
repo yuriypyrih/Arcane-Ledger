@@ -5,6 +5,7 @@ import {
   type RenderCodexRichTextOptions
 } from "../../utils/codex/renderCodexRichText";
 import styles from "./SpellDescriptionContent.module.css";
+import { parseDescriptionTable } from "./parseDescriptionTable";
 
 type SpellDescriptionContentProps = RenderCodexRichTextOptions & {
   description: SpellDescriptionEntry[];
@@ -24,20 +25,54 @@ function SpellDescriptionContent({
   onOpenDivinity,
   onOpenFeat
 }: SpellDescriptionContentProps) {
+  const renderText = (text: string) =>
+    renderCodexRichText(text, {
+      linkClassName,
+      strongClassName,
+      onOpenKeyword,
+      onOpenSpell,
+      onOpenDivinity,
+      onOpenFeat
+    });
+
   return (
     <div className={className}>
       {description.map((entry, index) => {
         if (typeof entry === "string") {
+          const table = parseDescriptionTable(entry);
+          if (table) {
+            return (
+              <div
+                key={`description-${index}`}
+                className={clsx(styles.tableWrapper, entryClassName)}
+              >
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      {table.headers.map((header, columnIndex) => (
+                        <th key={columnIndex} scope="col">
+                          {renderText(header)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {table.rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, columnIndex) => (
+                          <td key={columnIndex}>{renderText(cell)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+
           return (
             <p key={`description-${index}`} className={clsx(styles.text, entryClassName)}>
-              {renderCodexRichText(entry, {
-                linkClassName,
-                strongClassName,
-                onOpenKeyword,
-                onOpenSpell,
-                onOpenDivinity,
-                onOpenFeat
-              })}
+              {renderText(entry)}
             </p>
           );
         }
@@ -51,14 +86,7 @@ function SpellDescriptionContent({
                 key={`description-list-${index}-item-${itemIndex}`}
                 className={clsx(styles.text, styles.listItem, entryClassName)}
               >
-                {renderCodexRichText(item, {
-                  linkClassName,
-                  strongClassName,
-                  onOpenKeyword,
-                  onOpenSpell,
-                  onOpenDivinity,
-                  onOpenFeat
-                })}
+                {renderText(item)}
               </li>
             ))}
           </ListTag>

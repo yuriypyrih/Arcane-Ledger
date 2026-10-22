@@ -26,9 +26,35 @@ import {
   wizardBladesongActionKey
 } from "./wizardBladesinger";
 import { divinerSubclassId, getWizardDivinerDerivedFeatureState } from "./wizardDiviner";
+import {
+  conjurerSubclassId,
+  getWizardConjurerDerivedFeatureState,
+  restoreConjurerOnLongRest,
+  transformConjurerSpell
+} from "./wizardConjurer";
+import { getDurableSummonsCompanionTransform } from "./wizardConjurerDurableSummons";
+import { getSplinteredSummonsSpellCastEffects } from "./wizardConjurerSplinteredSummons";
+import {
+  activateBenignTransposition,
+  benignTranspositionActionKey
+} from "./wizardConjurerBenignTransposition";
 import { restoreWizardDivinerPortentOnLongRest } from "./wizardDivinerPortent";
 import {
+  enchanterSubclassId,
+  getWizardEnchanterDerivedFeatureState,
+  restoreEnchanterOnLongRest,
+  transformEnchanterSpell
+} from "./wizardEnchanter";
+import {
+  activateHypnoticPresence,
+  hypnoticPresenceActionKey
+} from "./wizardEnchanterHypnoticPresence";
+import { getSplitEnchantmentSpellCastEffects } from "./wizardEnchanterSplitEnchantment";
+import {
   getWizardTransmuterDerivedFeatureState,
+  getTransmuterSpellCastEffects,
+  restoreTransmuterOnLongRest,
+  transformTransmuterSpell,
   transmuterSubclassId
 } from "./wizardTransmuter";
 import {
@@ -39,11 +65,6 @@ import {
   transformNecromancerSpell
 } from "./wizardNecromancer";
 import { restoreUndeadThrallsOnLongRest } from "./wizardNecromancerUndeadThralls";
-import {
-  getWondrousAlterationSpellCastEffects,
-  restoreWondrousAlterationOnLongRest,
-  transformWondrousAlterationSpell
-} from "./wizardTransmuterWondrousAlteration";
 import {
   activateBolsterUndead,
   bolsterUndeadActionKey,
@@ -66,20 +87,24 @@ import {
 } from "./wizardIllusionist";
 
 const wizardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+  [conjurerSubclassId]: getWizardConjurerDerivedFeatureState,
   [abjurerSubclassId]: getWizardAbjurerDerivedFeatureState,
   [bladesingerSubclassId]: getWizardBladesingerDerivedFeatureState,
   [divinerSubclassId]: getWizardDivinerDerivedFeatureState,
+  [enchanterSubclassId]: getWizardEnchanterDerivedFeatureState,
   [evokerSubclassId]: getWizardEvokerDerivedFeatureState,
   [illusionistSubclassId]: getWizardIllusionistDerivedFeatureState,
   [necromancerSubclassId]: getWizardNecromancerDerivedFeatureState,
   [transmuterSubclassId]: getWizardTransmuterDerivedFeatureState
 };
 const wizardLongRestRestorers: Record<string, (character: Character) => Character> = {
+  [conjurerSubclassId]: restoreConjurerOnLongRest,
   [abjurerSubclassId]: restoreWizardAbjurerArcaneWardOnLongRest,
   [bladesingerSubclassId]: restoreWizardBladesongOnLongRest,
   [divinerSubclassId]: restoreWizardDivinerPortentOnLongRest,
+  [enchanterSubclassId]: restoreEnchanterOnLongRest,
   [evokerSubclassId]: restoreWizardEvokerOverchannelOnLongRest,
-  [transmuterSubclassId]: restoreWondrousAlterationOnLongRest,
+  [transmuterSubclassId]: restoreTransmuterOnLongRest,
   [necromancerSubclassId]: (character) =>
     restoreBolsterUndeadOnLongRest(restoreUndeadThrallsOnLongRest(character)),
   [illusionistSubclassId]: (character) =>
@@ -130,6 +155,20 @@ export function activateWizardSubclassFeatureAction(
   }
 
   if (
+    getClassSubclassId(character, "Wizard") === conjurerSubclassId &&
+    actionKey === benignTranspositionActionKey
+  ) {
+    return activateBenignTransposition(character);
+  }
+
+  if (
+    getClassSubclassId(character, "Wizard") === enchanterSubclassId &&
+    actionKey === hypnoticPresenceActionKey
+  ) {
+    return activateHypnoticPresence(character);
+  }
+
+  if (
     getClassSubclassId(character, "Wizard") === necromancerSubclassId &&
     actionKey === bolsterUndeadActionKey
   ) {
@@ -168,6 +207,14 @@ export function getWizardSubclassSpellbookSpellEntry(
     return spell;
   }
 
+  if (getClassSubclassId(character, "Wizard") === conjurerSubclassId) {
+    return transformConjurerSpell(character, spell);
+  }
+
+  if (getClassSubclassId(character, "Wizard") === enchanterSubclassId) {
+    return transformEnchanterSpell(character, spell);
+  }
+
   if (getClassSubclassId(character, "Wizard") === evokerSubclassId) {
     return getWizardEvokerSpellbookSpellEntry(character, spell);
   }
@@ -177,15 +224,31 @@ export function getWizardSubclassSpellbookSpellEntry(
   }
 
   if (getClassSubclassId(character, "Wizard") === transmuterSubclassId) {
-    return transformWondrousAlterationSpell(character, spell);
+    return transformTransmuterSpell(character, spell);
   }
 
   return spell;
 }
 
+export function getWizardSubclassSpellSummonTransform(
+  character: Character,
+  spell: SpellEntry,
+  sourceSpellSlotLevel: number | null
+) {
+  return getClassSubclassId(character, "Wizard") === conjurerSubclassId
+    ? getDurableSummonsCompanionTransform(character, spell, sourceSpellSlotLevel)
+    : undefined;
+}
+
 export function getWizardSubclassSpellCastEffects(character: Character) {
+  if (getClassSubclassId(character, "Wizard") === conjurerSubclassId) {
+    return getSplinteredSummonsSpellCastEffects(character);
+  }
+  if (getClassSubclassId(character, "Wizard") === enchanterSubclassId) {
+    return getSplitEnchantmentSpellCastEffects(character);
+  }
   if (getClassSubclassId(character, "Wizard") === transmuterSubclassId) {
-    return getWondrousAlterationSpellCastEffects(character);
+    return getTransmuterSpellCastEffects(character);
   }
   return getClassSubclassId(character, "Wizard") === necromancerSubclassId
     ? getNecromancerSpellCastEffects(character)

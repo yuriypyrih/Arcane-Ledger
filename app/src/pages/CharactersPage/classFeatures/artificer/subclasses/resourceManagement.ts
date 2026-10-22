@@ -1,5 +1,9 @@
 import { classCounterResource } from "../../../resourceManagement";
 import {
+  getArtificerJoltToLifeUsesRemaining,
+  getArtificerJoltToLifeUsesTotal
+} from "./artificerReanimatorSkillSet";
+import {
   getArtificerConjuredCauldronUsesRemaining,
   getArtificerConjuredCauldronUsesTotal
 } from "./artificerAlchemistChemicalMastery";
@@ -37,6 +41,13 @@ import {
 } from "./artificerReanimatorRefinedReanimation";
 
 export const artificerSubclassResources = {
+  reanimatorJoltToLifeUsesExpended: classCounterResource(
+    "artificer",
+    "reanimatorJoltToLifeUsesExpended",
+    "Jolt to Life",
+    getArtificerJoltToLifeUsesTotal,
+    getArtificerJoltToLifeUsesRemaining
+  ),
   conjuredCauldronUsesExpended: classCounterResource(
     "artificer",
     "conjuredCauldronUsesExpended",

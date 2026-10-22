@@ -9,6 +9,25 @@ export type PatchNote = {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: "v1.2.0",
+    title: "Arcana Unleashed",
+    date: "2026-10-22",
+    description: [
+      "This is the first major expansion to Arcane Ledger, bringing a lot of playable adaptation from Arcana Unleashed and more.",
+      "<strong>Overview</strong>",
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "15 new subclasses added!",
+          "New backgrounds, feats, and spells, with gameplay implementation for some arriving in a future update.",
+          'Resource tags (like "Charges") in drawer headers are now interactive, so you can manage resources directly. Previously, resetting a single charge required a Rest action with every other refill disabled.',
+          "General stats, such as AC and Speed, can now be overwritten directly."
+        ]
+      }
+    ]
+  },
+  {
     version: "v1.1.0",
     title: "Multiclass expansion",
     date: "2026-09-25",
