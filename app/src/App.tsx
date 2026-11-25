@@ -47,6 +47,9 @@ const ForgotPasswordPage = lazyWithTrackedLoad(
 );
 const HomePage = lazyWithTrackedLoad(() => import("./pages/HomePage"));
 const ItemCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/ItemCodexEntryPage"));
+const GoogleSignInCompletePage = lazyWithTrackedLoad(
+  () => import("./pages/AuthPages/GoogleSignInCompletePage")
+);
 const LoginPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/LoginPage"));
 const MonsterCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/MonsterCodexEntryPage"));
 const PartyGroupDetailPage = lazyWithTrackedLoad(
@@ -133,6 +136,7 @@ function App() {
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/google/complete" element={<GoogleSignInCompletePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />

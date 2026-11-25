@@ -14,6 +14,7 @@ import {
   updateUserPreferences,
   verifyEmail
 } from "../controllers/authController.js";
+import { finishGoogleSignIn, startGoogleSignIn } from "../controllers/googleAuthController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
 const AUTH_WRITE_WINDOW_MS = 15 * 60 * 1000;
@@ -40,6 +41,8 @@ authRoutes.patch("/preferences", requireAuth, updateUserPreferences);
 authRoutes.post("/register", authWriteRateLimit, register);
 authRoutes.post("/login", authWriteRateLimit, login);
 authRoutes.post("/logout", logout);
+authRoutes.get("/google", authWriteRateLimit, startGoogleSignIn);
+authRoutes.get("/google/callback", authWriteRateLimit, finishGoogleSignIn);
 authRoutes.post("/email-verification/verify", authWriteRateLimit, verifyEmail);
 authRoutes.post("/email-verification/resend", authWriteRateLimit, resendEmailVerification);
 authRoutes.post("/password/forgot", authWriteRateLimit, forgotPassword);

@@ -109,6 +109,12 @@ npm run db:docker:up
 npm run dev
 ```
 
+**Google sign-in (optional)**: create a Web OAuth client in Google Cloud with the redirect URI
+`http://localhost:3001/api/v1/auth/google/callback`, then set `GOOGLE_CLIENT_ID`,
+`GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` in the untracked `server/.env`. Without them the
+"Continue with Google" button shows a "not available" message. An existing account is linked only
+when Google reports the email as verified.
+
 Build each project from its own directory:
 
 ```bash
