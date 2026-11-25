@@ -109,6 +109,8 @@ npm run db:docker:up
 npm run dev
 ```
 
+**Local email testing**: set `LOCAL_EMAIL_FILE_PATH=.local-emails.log` in `server/.env` to write verification and password-reset emails to a local file instead of sending them via Resend. This file is ignored by git.
+
 Build each project from its own directory:
 
 ```bash

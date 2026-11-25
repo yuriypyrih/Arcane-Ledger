@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { promises as fs } from "fs";
+import { dirname, resolve } from "path";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { recordEmailSentMetric, type AnalyticsEmailKind } from "./analyticsService.js";
@@ -25,6 +27,29 @@ function createHtmlEmail(text: string): string {
 
 export async function sendAuthEmail({ kind = "transactional", to, subject, text }: AuthEmailOptions) {
   const config = getAppConfig();
+
+  if (config.localEmailFilePath && config.nodeEnv !== "production") {
+    const timestamp = new Date().toISOString();
+    const entry = [
+      `\n--- ${timestamp} ---`,
+      `Kind: ${kind}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      text
+    ].join("\n");
+
+    const filePath = resolve(config.localEmailFilePath);
+    const fileDir = dirname(filePath);
+
+    try {
+      await fs.mkdir(fileDir, { recursive: true });
+      await fs.appendFile(filePath, entry);
+      return;
+    } catch (error) {
+      console.error("Failed to write local email file:", error);
+      throw new AppError("Failed to write email to local file.", 500, "LOCAL_EMAIL_WRITE_FAILED", error);
+    }
+  }
 
   if (!hasRequiredResendConfig(config)) {
     if (config.nodeEnv === "production") {

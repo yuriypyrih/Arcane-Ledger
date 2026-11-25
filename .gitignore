@@ -31,3 +31,6 @@ server/backups/
 # Automated test artifacts
 playwright-report/
 test-results/
+
+# Local POC documentation and planning (not tracked)
+poc/
