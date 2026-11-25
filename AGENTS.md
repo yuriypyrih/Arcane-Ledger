@@ -6,7 +6,7 @@
 - Keep changes focused. Do not combine a test-foundation change with architectural refactoring or unrelated cleanup.
 - Prefer small modules with clear ownership. Extract a concern when necessary instead of expanding an already mixed component; file splitting is a means, not the first priority of every task.
 - Derive rules from codex content and character state. Avoid repeating class/subclass rules in UI components or maintaining duplicate resource counters.
-- Run the relevant automated tests and existing lint/build checks. Browser tests and local test servers are part of normal verification. Use synthetic data and isolated services; never run destructive tests against a developer or production database.
+- Run relevant non-browser tests and existing lint/build checks for routine verification. Run browser suites locally when requested and relevant to the work. Use synthetic data and isolated services; never run destructive tests against a developer or production database.
 - Keep documentation aligned with the code. Distinguish established behavior from proposed migrations, and report verification that could not run.
 
 ## Repository map
@@ -23,7 +23,8 @@ Run from the repository root:
 
 - `npm run lint`
 - `npm test`: frontend rule/component/persistence tests and backend HTTP/database tests.
-- `npm run test:e2e`: browser journeys on desktop and mobile, including the real local backend.
+- `npm run test:e2e`: local browser journeys on desktop and mobile, including the real local backend.
+- `npm run test:updates`: local browser journeys for application updates.
 - `npm run test:types`: type-check the test code and configurations.
 - `npm --prefix app run build`
 - `npm --prefix server run build`

@@ -144,10 +144,10 @@ workflows over demo-only scaffolding.
 
 ## Tests
 
-Run `npm test` for rule, component, persistence, and backend/database checks. Run `npm run test:e2e`
-for desktop/mobile browser journeys, and `npm run test:types` to type-check the test code.
-See [the testing guide](docs/testing.md) for installation, isolated test services, coverage, and
-failure artifacts. Pull requests run these checks through `.github/workflows/tests.yml`.
+Pull requests run lint, test type checks, the non-browser suites (`npm test`), and both production
+builds through `.github/workflows/tests.yml`. Run the Playwright suites (`npm run test:e2e` and
+`npm run test:updates`) locally when requested for the work under development. See
+[the testing guide](docs/testing.md) for setup, coverage, and local failure artifacts.
 
 After `npm --prefix app run build`, run `npm --prefix app run bundle:report` to measure all
 compiled JavaScript, gzip JavaScript, CSS, other assets, and the main entry chunk. See the
