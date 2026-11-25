@@ -5,15 +5,13 @@ the mounted sheet, persistence, HTTP/database behavior, and browser workflows us
 characters and isolated databases. Coverage includes refusal, recovery, cancellation, and reload
 cases as well as successful interactions. This is not an exhaustive certification of every rule.
 
-## When to run browser end-to-end tests
+## When to run browser tests
 
-Do not run browser end-to-end tests by default when implementing new features. Run them only when
-the user explicitly requests browser end-to-end testing or asks for a complete test round. This
-applies to both full and filtered browser suites; a new feature alone does not authorize a run.
+The Playwright end-to-end and application update suites run locally during development. Run a full
+or filtered browser suite when the user requests browser testing or approves it as part of a test
+round. Select the cases that cover the behavior under development.
 
-Default feature verification uses the relevant existing non-browser tests and lint, type, and build
-checks. This opt-in rule is the specific exception to the general existing-test guidance in
-`AGENTS.md`. It governs agent-initiated local runs; the automated CI configuration is unchanged.
+Default feature verification uses the relevant non-browser tests and lint, type, and build checks.
 
 ## Install and run
 
@@ -26,16 +24,20 @@ From the repository root:
 npm ci
 npm ci --prefix app
 npm ci --prefix server
-cd app
-PLAYWRIGHT_BROWSERS_PATH=../.cache/playwright npx playwright install chromium
-cd ..
 npm test
-# Only when explicitly requested or included in a complete test round:
-npm run test:e2e
 npm run test:types
 npm run lint
 npm --prefix app run build
 npm --prefix server run build
+```
+
+For an approved local browser end-to-end run, install Chromium and run the suite:
+
+```sh
+cd app
+PLAYWRIGHT_BROWSERS_PATH=../.cache/playwright npx playwright install chromium
+cd ..
+npm run test:e2e
 ```
 
 On Linux, install browser system dependencies with `npx playwright install --with-deps chromium` from
@@ -244,13 +246,12 @@ balances. It does not simulate process crashes or prove multi-document atomicity
 
 ## CI and failures
 
-`.github/workflows/tests.yml` runs lint, test type checks, both test suites, both builds, and browser
-journeys on pull requests and pushes to `main`. This workflow does not deploy. Configure branch
-protection in GitHub if merges must require its success; adding a workflow alone does not enforce that.
+The required `verify` job in `.github/workflows/tests.yml` runs lint, test type checks, the non-browser
+frontend and backend suites, and both production builds on pull requests and pushes to `main`.
 
-Browser failures retain screenshots and Playwright traces under `app/test-results/`, with a report in
-`app/playwright-report/`. CI uploads them on failure. From `app/`, open a local report with
-`npx playwright show-report` or inspect a trace with Playwright's trace viewer.
+Local browser failures retain screenshots and Playwright traces under `app/test-results/`, with a
+report in `app/playwright-report/`. From `app/`, open the report with `npx playwright show-report`
+or inspect a trace with Playwright's trace viewer.
 Automatic retries are disabled so a flaky failure stays visible.
 
 ## Multiclass coverage
@@ -395,10 +396,10 @@ to restore a retry state without another automatic navigation, then verifies suc
 reconnection. Chromium completes that same update while offline. This is an engine-specific
 verification boundary, not a claim that all Safari offline navigations succeed.
 
-Firefox is included in the suite and CI configuration, but neither the existing nor
-a freshly downloaded Firefox binary launched successfully on this Mac: Playwright timed out during
-startup with macOS sandbox-extension and software-renderer errors, before loading any test page.
-That local Firefox run is unverified, not a passing result.
+The local suite includes Firefox. Both the existing and freshly downloaded Firefox binaries
+timed out during startup on the Mac used for verification. Playwright reported macOS sandbox
+extension and software rendering errors before loading a test page. That Firefox run remains
+unverified.
 
 Verification on October 5, 2026: all 15 update cases passed in Chromium and mobile-emulated WebKit
 (30 journeys, including the explicit WebKit offline failure/reconnection case). The existing suites
