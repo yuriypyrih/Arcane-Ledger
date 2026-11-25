@@ -1,7 +1,7 @@
 import { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries/enums";
 import type { FeatDefinition } from "../types";
 
-// Arcana Unleashed. Only ability-score choices have runtime support.
+// Arcana Unleashed.
 export const auFeatDefinitions: FeatDefinition[] = [
   {
     feat: FEATS.ABJURATION_ADEPT,
@@ -32,7 +32,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 26,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Minor Illusion>Minor Illusion</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Inspiring Magic.</strong> When you cast an Illusion spell, one ally within 30 feet who can see you may gain Heroic Inspiration. This benefit is usable once per <link:long-rest>Long Rest</link>."
@@ -44,7 +44,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 26,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Vicious Mockery>Vicious Mockery</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Smooth Talker.</strong> You may add 1d4 to a Charisma check using Deception, Intimidation, or Persuasion."
@@ -56,7 +56,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 26,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Friends>Friends</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Cunning Diversion.</strong> You may Dodge as a Bonus Action. You have uses equal to your <link:Proficiency Bonus>Proficiency Bonus</link>, all restored by a <link:long-rest>Long Rest</link>."
@@ -68,7 +68,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Guidance>Guidance</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Helpful Premonition.</strong> When you or a creature you can see within 30 feet fails a saving throw, a Reaction lets you add 1d4 to that save, possibly making it succeed. Uses equal your <link:Proficiency Bonus>Proficiency Bonus</link>; a <link:long-rest>Long Rest</link> restores all uses."
@@ -80,7 +80,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Fire Bolt>Fire Bolt</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Power Surge.</strong> When you cast an Evocation spell and deal damage with it, you may add your <link:Proficiency Bonus>Proficiency Bonus</link> to one of its damage rolls. This benefit is usable once per <link:long-rest>Long Rest</link>."
@@ -92,7 +92,9 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "Resistance and its Bonus Action uses are tracked. Resolve Sheltering Aid at the table.",
     description: [
       "<strong>Cantrip.</strong> Learn <spell:Resistance>Resistance</spell>. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat. You may cast this cantrip as a Bonus Action a number of times equal to your <link:Proficiency Bonus>Proficiency Bonus</link>, regaining all uses after a <link:long-rest>Long Rest</link>.",
       "<strong>Sheltering Aid.</strong> When you Help an ally with an ability check, that ally also gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to your <link:Proficiency Bonus>Proficiency Bonus</link>."

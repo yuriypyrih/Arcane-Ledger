@@ -189,7 +189,7 @@ export type FeatureSavingThrowBonusContribution = {
 
 export type FeatureSkillBonusContribution = {
   id: string;
-  getBonuses: (skill: SkillName, proficiencyLevel: PROF_LEVEL) => FeatureSkillBonus[];
+  getBonuses: (skill: SkillName, proficiencyLevel: PROF_LEVEL, ability?: AbilityKey) => FeatureSkillBonus[];
 };
 
 export type FeatureArmorClassModeContribution = {
@@ -241,7 +241,7 @@ export type FeatureSpellActionPathContribution = {
 };
 
 export type FeatureSpellCastEffectContext = {
-  spell: Pick<SpellEntry, "id" | "spellLevel">;
+  spell: Pick<SpellEntry, "id" | "spellLevel"> & Partial<Pick<SpellEntry, "magicSchool">>;
   spellSlotLevel?: number | null;
   /** The slot actually spent, independent of a free cast's effective spell level. */
   sourceSpellSlotLevel?: number | null;

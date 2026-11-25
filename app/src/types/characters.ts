@@ -151,6 +151,7 @@ export type CharacterBackgroundChoices = {
   toolProficiencies?: TOOL_PROFICIENCY[];
   toolProficiency?: TOOL_PROFICIENCY;
   equipmentMode?: CharacterBackgroundEquipmentMode;
+  equipmentTool?: TOOL_PROFICIENCY;
 };
 
 export type CharacterSpeciesChoices = {

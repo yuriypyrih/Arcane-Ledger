@@ -1,3 +1,7 @@
+import {
+  getArcaneCantripAbility,
+  isArcaneCantripFeat
+} from "../../../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
 import { singleAbilityChoices } from "../../../../../pages/CharactersPage/feats/singleAbilityChoices";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -339,6 +343,7 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     emeraldEnclaveFledglingChoice: null,
     harperAgentChoice: null,
     purpleDragonRookChoice: null,
+    arcaneCantripChoice: null,
     spellfireSparkChoice: null,
     musicianChoice: null,
     epicBoonAbilityChoice: null,
@@ -992,6 +997,10 @@ export function createPendingFeatStateForFeat(
     };
   }
 
+  if (isArcaneCantripFeat(feat)) {
+    return { ...createEmptyPendingFeatState(), arcaneCantripChoice: { feat, ability: "none" } };
+  }
+
   if (feat === FEATS.SPELLFIRE_SPARK) {
     return {
       ...createEmptyPendingFeatState(),
@@ -1092,6 +1101,13 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       purpleDragonRookChoice: {
         skill: entry.purpleDragonRook.skill
       }
+    };
+  }
+
+  if (isArcaneCantripFeat(entry.feat)) {
+    return {
+      ...createEmptyPendingFeatState(),
+      arcaneCantripChoice: { feat: entry.feat, ability: getArcaneCantripAbility(entry) ?? "none" }
     };
   }
 

@@ -1140,6 +1140,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   }
 
   function castDivineInterventionSpell(options?: {
+    spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
     useGoliathAncestry?: boolean;
     spellImplementationOptions?: SpellImplementationOptionValues;
@@ -1208,8 +1209,16 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
-      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
         nextCharacterWithGoliathAncestry,
+        selectedDivineInterventionSpell,
+        options?.spellCastEffectIds,
+        { castSource: "divine-intervention", options: options?.spellImplementationOptions }
+      );
+      if (!nextCharacterWithFeatCastEffects) return currentCharacter;
+
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        nextCharacterWithFeatCastEffects,
         selectedDivineInterventionSpell
       );
 
@@ -1234,6 +1243,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   }
 
   function castMysticArcanumSpell(options?: {
+    spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
     useGoliathAncestry?: boolean;
     spellImplementationOptions?: SpellImplementationOptionValues;
@@ -1299,8 +1309,16 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
-      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
         nextCharacterWithGoliathAncestry,
+        selectedMysticArcanumSpell,
+        options?.spellCastEffectIds,
+        { castSource: "mystic-arcanum", options: options?.spellImplementationOptions }
+      );
+      if (!nextCharacterWithFeatCastEffects) return currentCharacter;
+
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        nextCharacterWithFeatCastEffects,
         selectedMysticArcanumSpell
       );
 

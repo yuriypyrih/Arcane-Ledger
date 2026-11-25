@@ -1,6 +1,8 @@
 import { FEATS } from "../../../../codex/entries/enums";
 import type { FeatureDescriptionContribution } from "../../featureContributions";
 import { getFeatDefinition, getFeatLabel } from "../catalog";
+import { smoothTalkerSkills } from "./arcaneEloquence";
+import { cunningDiversionDodgeActionKey } from "./constants";
 import {
   filterDescriptionEntries,
   isArcheryWeaponActionDescriptionEntry,
@@ -114,6 +116,18 @@ export const featDescriptionTargetKeys = {
 } as const;
 
 const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinition[] = [
+  ...smoothTalkerSkills.map((skill) => ({
+    feat: FEATS.ARCANE_ELOQUENCE,
+    target: "skill" as const,
+    targetKey: skill,
+    predicate: (entry: string) => entry.startsWith("<strong>Smooth Talker.</strong>")
+  })),
+  {
+    feat: FEATS.ARCANE_INFILTRATOR,
+    target: "commonAction",
+    targetKey: cunningDiversionDodgeActionKey,
+    predicate: (entry) => entry.startsWith("<strong>Cunning Diversion.</strong>")
+  },
   {
     feat: FEATS.ATHLETE,
     target: "stat",

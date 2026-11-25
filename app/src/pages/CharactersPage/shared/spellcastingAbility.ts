@@ -3,7 +3,10 @@ import {
   areCharacterClassRulesEnforced,
   getCharacterClassRulesSpellcastingAbility
 } from "../customClass";
-import { getFeatSpellcastingAbilityForCharacter } from "../feats/runtime/spellcasting";
+import {
+  getArcaneCantripFeatSpellcastingAbilityForSpell,
+  getFeatSpellcastingAbilityForCharacter
+} from "../feats/runtime/spellcasting";
 import { getSpeciesSpellcastingAbilityForCharacter } from "../species";
 import { getArcaneArcherLoreSpellcastingAbility } from "../classFeatures/fighter/subclasses/fighterArcaneArcher";
 
@@ -57,6 +60,7 @@ export function getSpellcastingAbilityForCharacterSpell(
   spellId: string
 ): AbilityKey | null {
   return (
+    getArcaneCantripFeatSpellcastingAbilityForSpell(character, spellId) ??
     getArcaneArcherLoreSpellcastingAbility(character, spellId) ??
     getSpeciesSpellcastingAbilityForCharacter(character, spellId) ??
     getFeatSpellcastingAbilityForCharacter(character, spellId) ??

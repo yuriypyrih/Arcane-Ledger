@@ -1,6 +1,12 @@
 import { getEldritchInvocationEntryById } from "../../../codex/entries";
 import { CLASS_FEATURE, ELDRITCH_INVOCATION, FEATS } from "../../../codex/entries/enums";
 import type {
+  ArcaneArtistState,
+  ArcaneEloquenceChoice,
+  ArcaneInfiltratorState,
+  ArcaneOmensState,
+  ArcaneOverloadState,
+  ArcaneSafeguardState,
   AthleteChoice,
   BlessedWarriorChoice,
   CharacterFeatEntry,
@@ -125,6 +131,14 @@ import {
   normalizeSkilledChoice
 } from "./choices";
 import { normalizeCrafterChoice } from "./crafter";
+import {
+  normalizeArcaneArtistState,
+  normalizeArcaneEloquenceChoice,
+  normalizeArcaneInfiltratorState,
+  normalizeArcaneOmensState,
+  normalizeArcaneOverloadState,
+  normalizeArcaneSafeguardState
+} from "./arcaneCantripChoices";
 import { featDefinitions } from "./definitions";
 import { normalizeHarperAgentChoice } from "./harperAgent";
 import { normalizePurpleDragonRookChoice } from "./purpleDragonRook";
@@ -618,6 +632,24 @@ export function normalizeCharacterFeats(
         magicInitiate,
         cultOfDragonInitiate,
         emeraldEnclaveFledgling,
+        ...(feat === FEATS.ARCANE_ARTIST
+          ? { arcaneArtist: normalizeArcaneArtistState(record.arcaneArtist) }
+          : {}),
+        ...(feat === FEATS.ARCANE_ELOQUENCE
+          ? { arcaneEloquence: normalizeArcaneEloquenceChoice(record.arcaneEloquence) }
+          : {}),
+        ...(feat === FEATS.ARCANE_INFILTRATOR
+          ? { arcaneInfiltrator: normalizeArcaneInfiltratorState(record.arcaneInfiltrator) }
+          : {}),
+        ...(feat === FEATS.ARCANE_OMENS
+          ? { arcaneOmens: normalizeArcaneOmensState(record.arcaneOmens) }
+          : {}),
+        ...(feat === FEATS.ARCANE_OVERLOAD
+          ? { arcaneOverload: normalizeArcaneOverloadState(record.arcaneOverload) }
+          : {}),
+        ...(feat === FEATS.ARCANE_SAFEGUARD
+          ? { arcaneSafeguard: normalizeArcaneSafeguardState(record.arcaneSafeguard) }
+          : {}),
         crafter,
         boonOfEnergyResistance,
         boonOfFate,
@@ -693,6 +725,12 @@ export function createCharacterFeatEntry(
     magicInitiate?: MagicInitiateChoice;
     cultOfDragonInitiate?: CultOfDragonInitiateChoice;
     emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
+    arcaneArtist?: ArcaneArtistState;
+    arcaneEloquence?: ArcaneEloquenceChoice;
+    arcaneInfiltrator?: ArcaneInfiltratorState;
+    arcaneOmens?: ArcaneOmensState;
+    arcaneOverload?: ArcaneOverloadState;
+    arcaneSafeguard?: ArcaneSafeguardState;
     harperAgent?: HarperAgentChoice;
     purpleDragonRook?: PurpleDragonRookChoice;
     fairyTrickster?: FairyTricksterState;
@@ -769,6 +807,24 @@ export function createCharacterFeatEntry(
       feat === FEATS.CULT_OF_THE_DRAGON_INITIATE ? options?.cultOfDragonInitiate : undefined,
     emeraldEnclaveFledgling:
       feat === FEATS.EMERALD_ENCLAVE_FLEDGLING ? options?.emeraldEnclaveFledgling : undefined,
+    ...(feat === FEATS.ARCANE_ARTIST
+      ? { arcaneArtist: normalizeArcaneArtistState(options?.arcaneArtist) }
+      : {}),
+    ...(feat === FEATS.ARCANE_ELOQUENCE
+      ? { arcaneEloquence: normalizeArcaneEloquenceChoice(options?.arcaneEloquence) }
+      : {}),
+    ...(feat === FEATS.ARCANE_INFILTRATOR
+      ? { arcaneInfiltrator: normalizeArcaneInfiltratorState(options?.arcaneInfiltrator) }
+      : {}),
+    ...(feat === FEATS.ARCANE_OMENS
+      ? { arcaneOmens: normalizeArcaneOmensState(options?.arcaneOmens) }
+      : {}),
+    ...(feat === FEATS.ARCANE_OVERLOAD
+      ? { arcaneOverload: normalizeArcaneOverloadState(options?.arcaneOverload) }
+      : {}),
+    ...(feat === FEATS.ARCANE_SAFEGUARD
+      ? { arcaneSafeguard: normalizeArcaneSafeguardState(options?.arcaneSafeguard) }
+      : {}),
     harperAgent: feat === FEATS.HARPER_AGENT ? options?.harperAgent : undefined,
     purpleDragonRook: feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
     fairyTrickster: feat === FEATS.FAIRY_TRICKSTER ? options?.fairyTrickster : undefined,

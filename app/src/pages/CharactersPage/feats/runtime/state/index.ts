@@ -129,6 +129,7 @@ function createFeatContribution(
     statuses: [],
     descriptionAdditions: [],
     abilityScoreBonuses: [],
+    skillBonuses: [],
     speedBonuses: [],
     spellGrants: [],
     spellTransforms: [],
@@ -559,6 +560,9 @@ function createFeatDerivedState(
     telepathicDetectThoughtsFreeCastEntries: finalTelepathicDetectThoughtsFreeCastEntries,
     boonOfRevelryIrresistibleDanceFreeCastEntries,
     abilityScoreBonuses: compiledContributionState.abilityScoreBonuses,
+    skillBonuses: [
+      ...new Map(compiledContributionState.skillBonuses.map((bonus) => [bonus.id, bonus])).values()
+    ],
     speedBonuses: compiledContributionState.speedBonuses,
     hitPointMaximumBonus: compiledContributionState.hitPointMaximumBonus,
     derivedStatusEntries: compiledContributionState.statuses,

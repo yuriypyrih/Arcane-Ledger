@@ -23,6 +23,7 @@ import type {
   FeatureSpellActionPathContribution,
   FeatureSpellCastEffectContribution,
   FeatureSpellcastingAbilityEntry,
+  FeatureSkillBonusContribution,
   FeatureSpellTransform,
   FeatureWeaponActionTransform
 } from "../../featureContributions";
@@ -91,6 +92,7 @@ export type FeatDerivedState = {
   }>;
   abilityScoreBonuses: FeatureAbilityScoreBonus[];
   speedBonuses: FeatureSpeedBonus[];
+  skillBonuses: FeatureSkillBonusContribution[];
   hitPointMaximumBonus: number;
   derivedStatusEntries: CharacterStatusEntry[];
   actions: FeatureActionCard[];

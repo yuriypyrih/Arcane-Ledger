@@ -448,6 +448,9 @@ export function normalizeBackgroundChoices(
     entry,
     record.toolProficiency ?? toolProficiencies[0]
   );
+  const equipmentMode = normalizeEquipmentMode(record.equipmentMode);
+  const equipmentToolOptions = getBackgroundEquipmentChoice(background, { equipmentMode })
+    ?.find((reference) => reference.type === "tool-choice")?.options;
 
   return {
     abilityScoreIncrease: normalizeAbilityScoreIncrease(
@@ -461,7 +464,13 @@ export function normalizeBackgroundChoices(
     skillProficiencies: normalizeBackgroundSkillProficiencies(entry, record.skillProficiencies),
     toolProficiencies,
     toolProficiency,
-    equipmentMode: normalizeEquipmentMode(record.equipmentMode)
+    equipmentMode,
+    ...(equipmentToolOptions?.length && {
+      equipmentTool:
+        record.equipmentTool && equipmentToolOptions.includes(record.equipmentTool)
+          ? record.equipmentTool
+          : equipmentToolOptions[0]
+    })
   };
 }
 

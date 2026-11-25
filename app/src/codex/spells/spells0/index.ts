@@ -698,6 +698,7 @@ export const minorIllusion: SpellEntry = {
   source: srdSpellSource("srd-2024_minor-illusion"),
   trackingState: TRACKER.SEMI_TRACKED,
   trackingMessage: spellDurationOnlyTrackingMessage,
+  usesSpellSaveDc: true,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",

@@ -18,8 +18,23 @@ import {
 } from "../descriptionMatchers";
 
 import type { FeatContributionBuilders } from "./types";
+import { getFeatLabel } from "../../catalog";
 
 export const statusesBuilders: FeatContributionBuilders = {
+  [FEATS.ABERRANT_ANATOMY]: ({ entry, contribution }) => {
+    const sourceId = "feat-aberrant-anatomy-blindsight";
+    contribution.statuses!.push({
+      id: `${sourceId}-${entry.id}`,
+      group: STATUS_ENTRY_GROUP.SENSES,
+      value: SENSE.BLINDSIGHT,
+      source: getFeatLabel(entry.feat),
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+      duration: { kind: STATUS_DURATION_KIND.INFINITE },
+      sourceId,
+      rangeFeet: 15
+    });
+    return true;
+  },
   [FEATS.BOON_OF_POISON_MASTERY]: ({ entry, contribution, getFeatDescription }) => {
     const derivedStatusEntries = contribution.statuses!;
 

@@ -6,6 +6,11 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
 import { createTextHeaderTag } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
+  helpfulPremonitionReactionId,
+  helpfulPremonitionResource,
+  spendHelpfulPremonitionForReaction
+} from "../../../../../../pages/CharactersPage/feats/runtime/arcaneOmens";
+import {
   sentinelAtDeathsDoorId,
   getSentinelUsesRemaining,
   getSentinelUsesTotal,
@@ -735,6 +740,29 @@ const descriptors: ReactionDescriptor[] = [
   instinctiveCharmReaction,
   harvestUndeadReaction,
   extinguishUndeadReaction,
+  {
+    id: helpfulPremonitionReactionId,
+    footerActionName: helpfulPremonitionResource.label,
+    createRollRequest: () => ({
+      title: helpfulPremonitionResource.label,
+      description: "Add the result to the failed saving throw.",
+      entries: [{ label: "Saving Throw Bonus", formula: "1d4", formulaDisplay: "1d4" }]
+    }),
+    getResourceWarning: ({ character }) =>
+      helpfulPremonitionResource.remaining(character) <= 0
+        ? "No Helpful Premonition uses remaining."
+        : null,
+    getHeaderTags: ({ character }) => [
+      createChargesHeaderTag(
+        helpfulPremonitionResource.remaining(character),
+        helpfulPremonitionResource.total(character),
+        undefined,
+        helpfulPremonitionResource
+      )
+    ],
+    apply: spendHelpfulPremonitionForReaction,
+    skipReactionWhenUnchanged: true
+  },
   {
     id: artificerFlashOfGeniusReactionEntryId,
     getResourceWarning: (context) =>

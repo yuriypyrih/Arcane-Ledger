@@ -611,8 +611,21 @@ export function castSelectedSpellWithContext(
         nextCharacterWithSpellDuration
       );
 
-      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
         nextCharacterWithGoliathAncestry,
+        selectedSpell,
+        selectedSpellCastEffectIds,
+        {
+          spellSlotLevel: null,
+          castSource: spellImplementationCastSource,
+          options: spellImplementationOptions,
+          spellActionPathId
+        }
+      );
+      if (!nextCharacterWithFeatCastEffects) return currentCharacter;
+
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        nextCharacterWithFeatCastEffects,
         selectedSpell,
         { includeBardBattleMagic: false, useRadiantSoul }
       );

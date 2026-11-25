@@ -499,6 +499,11 @@ import {
 
 import type { RestOption } from "./restOptionTypes";
 import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
+import { inspiringMagicResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneArtist";
+import { helpfulPremonitionResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneOmens";
+import { powerSurgeResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneOverload";
+import { arcaneSafeguardResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneSafeguard";
+import { cunningDiversionResource } from "../../../../../pages/CharactersPage/feats/runtime/resourceManagement";
 
 export function createLongRestOptions(character: Character): RestOption[] {
   const spellSlotTotal = getSheetSpellSlotTotals(character).reduce((sum, value) => sum + value, 0);
@@ -1259,6 +1264,27 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...[
+      { id: "restore-arcane-artist-inspiring-magic", resource: inspiringMagicResource },
+      { id: "restore-arcane-infiltrator-cunning-diversion", resource: cunningDiversionResource },
+      { id: "restore-arcane-omens-helpful-premonition", resource: helpfulPremonitionResource },
+      { id: "restore-arcane-overload-power-surge", resource: powerSurgeResource },
+      { id: "restore-arcane-safeguard", resource: arcaneSafeguardResource }
+    ].flatMap(({ id, resource }): RestOption[] => {
+      const total = resource.total(character);
+      if (total === 0) return [];
+
+      const remaining = resource.remaining(character);
+      return [
+        {
+          id,
+          label: `Restore ${resource.label}`,
+          charges: { current: remaining, total },
+          disabled: remaining >= total,
+          apply: resource.restoreAll
+        }
+      ];
+    }),
     ...(featDerivedState.hasSpellfireSpark
       ? [
           {

@@ -3,12 +3,13 @@ import {
   type StarterPackEquipmentChoice
 } from "../../../codex/classes/starterPack";
 import { fetchItemsByKeys } from "../../../api/items";
-import type { CharacterInventoryItem, ItemRecord } from "../../../types";
+import type { CharacterInventoryItem, ItemRecord, TOOL_PROFICIENCY } from "../../../types";
 import { addInventoryItemCopies } from "../../../pages/CharactersPage/inventoryItems";
 
 type StarterPackResolutionContext = {
   selectedToolProficiencies: string[];
   selectionValues: Record<string, string>;
+  equipmentTool?: TOOL_PROFICIENCY;
 };
 
 type ResolvedStarterPackRequest =
@@ -28,15 +29,16 @@ function resolveSelectedToolItemRequest(
   reference: Extract<
     StarterPackEquipmentChoice[number],
     {
-      type: "selected-tool";
+      type: "selected-tool" | "tool-choice";
     }
   >,
   context: StarterPackResolutionContext
 ): { request: ResolvedStarterPackRequest | null; warnings: string[] } {
   const selectedTool =
-    (reference.selectionId ? context.selectionValues[reference.selectionId] : null) ??
-    context.selectedToolProficiencies[0] ??
-    null;
+    reference.type === "tool-choice"
+      ? reference.options.find((tool) => tool === context.equipmentTool)
+      : ((reference.selectionId ? context.selectionValues[reference.selectionId] : null) ??
+        context.selectedToolProficiencies[0]);
 
   if (!selectedTool) {
     return {
@@ -59,7 +61,7 @@ function resolveSelectedToolItemRequest(
       type: "item",
       itemKey: mapping.itemKey,
       label: mapping.label,
-      quantity: reference.quantity ?? 1
+      quantity: reference.type === "selected-tool" ? (reference.quantity ?? 1) : 1
     },
     warnings: []
   };

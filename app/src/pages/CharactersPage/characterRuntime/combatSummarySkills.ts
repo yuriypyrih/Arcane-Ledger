@@ -14,6 +14,8 @@ import {
 } from "../classFeatures";
 import { getAbilityScoresForCharacter } from "../abilities";
 import { formatCustomTraitBonusRollFormulaTerm } from "../customTraitEffects";
+import { collectFeatDerivedState } from "../feats/runtime/state";
+import { getFeatureDescriptionAdditions } from "../featureContributions";
 import {
   getDisplayArmorProficiencyEntries,
   getDisplayLanguageProficiencyEntries,
@@ -205,10 +207,12 @@ function createSkillReference(
   const rollMinimumLabel = minimumTotalSource
     ? `${minimumTotalSource.label} minimum`
     : undefined;
-  const skillDescriptionAdditions = getSkillReferenceDescriptionAdditionsForCharacter(
-    character,
-    row.name
-  );
+  const skillDescriptionAdditions = [
+    ...getSkillReferenceDescriptionAdditionsForCharacter(character, row.name),
+    ...getFeatureDescriptionAdditions(collectFeatDerivedState(character), "skill", {
+      targetKey: row.name
+    })
+  ];
   const skillFormulaTerms = getSkillRollFormulaTerms(row);
   const skillRollFormula = formatSkillRollFormula(
     row.totalModifier,

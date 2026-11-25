@@ -1,3 +1,4 @@
+import { applyFeatureSpellCastEffectsForCharacter } from "../../../../../../pages/CharactersPage/feats/runtime";
 import {
   artificerLifeTransferReactionEntryId,
   getArtificerLifeTransferCompanions
@@ -615,6 +616,7 @@ export function useReactionDrawerState({
 
   function castSelectedReactionSpell(options?: {
     castAsRitual?: boolean;
+    spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
     useStepsOfTheFey?: boolean;
     spellImplementationOptions?: SpellImplementationOptionValues;
@@ -717,8 +719,16 @@ export function useReactionDrawerState({
             }
           )
         };
-        const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
           nextCharacterWithSpellDuration,
+          selectedReactionSpell,
+          options?.spellCastEffectIds,
+          { castSource: "reaction", options: spellImplementationOptions }
+        );
+        if (!nextCharacterWithFeatCastEffects) return currentCharacter;
+
+        const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+          nextCharacterWithFeatCastEffects,
           selectedReactionSpell,
           { includeBardBattleMagic: false }
         );
@@ -791,8 +801,18 @@ export function useReactionDrawerState({
         )
       };
 
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
+        nextCharacterWithSpellDuration,
+        selectedReactionSpell,
+        options?.spellCastEffectIds,
+        { spellSlotLevel: slotLevel, castSource: "reaction", options: spellImplementationOptions }
+      );
+      if (!nextCharacterWithFeatCastEffects) return currentCharacter;
+
       return applySpellCastFeatureEffectsForCharacter(
-        restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithSpellDuration),
+        restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
+          nextCharacterWithFeatCastEffects
+        ),
         selectedReactionSpell,
         { includeBardBattleMagic: false }
       );

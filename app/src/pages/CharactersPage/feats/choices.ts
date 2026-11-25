@@ -73,6 +73,7 @@ import { getToolProficiencyLabel, musicalInstrumentToolProficiencies } from "../
 import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
 import { getCrafterChoiceSummary } from "./crafter";
 import { getHarperAgentChoiceSummary } from "./harperAgent";
+import { getArcaneCantripAbility, isArcaneCantripFeat } from "./arcaneCantripChoices";
 import { getSpellfireSparkChoiceSummary } from "./spellfireSpark";
 import {
   getCultOfDragonInitiateLanguageLabel,
@@ -1528,6 +1529,11 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.PURPLE_DRAGON_ROOK) {
     return getPurpleDragonRookChoiceSummary(entry.purpleDragonRook);
+  }
+
+  if (isArcaneCantripFeat(entry.feat)) {
+    const ability = getArcaneCantripAbility(entry);
+    return ability ? `Spellcasting Ability: ${ability}` : "Choose a spellcasting ability.";
   }
 
   if (entry.feat === FEATS.SPELLFIRE_SPARK) {

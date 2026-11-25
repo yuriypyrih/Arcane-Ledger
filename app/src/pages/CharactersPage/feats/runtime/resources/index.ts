@@ -3,6 +3,9 @@ import { getWizardSubclassSpellCastEffects } from "../../../classFeatures/wizard
 import { getPhantomSpiritQueryCastEffects } from "../../../classFeatures/rogue/subclasses/roguePhantomTokens";
 import { getBardSpiritsSpellCastEffects } from "../../../classFeatures/bard/subclasses/bardCollegeOfSpiritsEmpowered";
 import { updateFeatEntries } from "./stateAdapter";
+import { inspiringMagicEffectId } from "../arcaneArtist";
+import { powerSurgeEffectId } from "../arcaneOverload";
+import { arcaneSafeguardResistanceBonusActionId } from "../arcaneSafeguard";
 import { getResourceUsageState } from "../../../classFeatures/shared/resourceState";
 import {
   type ReactionEntry,
@@ -782,7 +785,7 @@ export function spendSpellfireSparkSpellfireFlameForCharacter(character: Charact
 
 export function applyFeatureSpellCastEffectsForCharacter(
   character: Character,
-  spell: Pick<SpellEntry, "id" | "spellLevel">,
+  spell: FeatureSpellCastEffectContext["spell"],
   spellCastEffectIds: readonly string[] | null | undefined,
   context: Omit<FeatureSpellCastEffectContext, "spell" | "spellCastEffectIds"> = {}
 ): Character | null {
@@ -792,9 +795,19 @@ export function applyFeatureSpellCastEffectsForCharacter(
     return character;
   }
 
+  const derivedState = collectFeatDerivedState(character);
+  if (
+    (effectIds.includes(inspiringMagicEffectId) && !derivedState.featSet.has(FEATS.ARCANE_ARTIST)) ||
+    (effectIds.includes(powerSurgeEffectId) && !derivedState.featSet.has(FEATS.ARCANE_OVERLOAD)) ||
+    (effectIds.includes(arcaneSafeguardResistanceBonusActionId) &&
+      !derivedState.featSet.has(FEATS.ARCANE_SAFEGUARD))
+  ) {
+    return null;
+  }
+
   return applyFeatureSpellCastEffects(
     [
-      ...collectFeatDerivedState(character).spellCastEffects,
+      ...derivedState.spellCastEffects,
       ...getBardSpiritsSpellCastEffects(character),
       ...getPhantomSpiritQueryCastEffects(character),
       ...getClericDomainSpellCastEffects(character),
@@ -821,7 +834,7 @@ export function applyFeatureSpellCastEffectsForCharacter(
 
 export function applyFeatSpellCastEffectsForCharacter(
   character: Character,
-  spell: Pick<SpellEntry, "id" | "spellLevel">,
+  spell: FeatureSpellCastEffectContext["spell"],
   spellCastEffectIds: readonly string[] | null | undefined,
   context: Omit<FeatureSpellCastEffectContext, "spell" | "spellCastEffectIds"> = {}
 ): Character | null {

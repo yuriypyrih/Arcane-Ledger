@@ -84,7 +84,27 @@ const backgroundDescriptions: Record<string, string> = {
   "background-mist-wanderer-rhw":
     "Mist Wanderers travel between the Domains of Dread, searching for home and finding kinship with other lost travelers.",
   "background-spirit-medium-rhw":
-    "Spirit Mediums channel the dead, receiving uncanny insight from spirits whose help can carry a terrible price."
+    "Spirit Mediums channel the dead, receiving uncanny insight from spirits whose help can carry a terrible price.",
+  "background-agent-of-the-ninth-quill-au":
+    "The Ninth Quill taught you how to burgle a mage’s study. You know which relics to take and how to leave before their owner notices.",
+  "background-bejeweled-conclave-spy-au":
+    "The Conclave trained you to listen for secrets while playing the charming guest. A little enchantment helps when wit alone won’t open a door.",
+  "background-cosmic-dawn-experiment-au":
+    "A transmutation experiment by the Bringers of the Cosmic Dawn changed your body. You’ve learned to put its unfamiliar strengths to use.",
+  "background-covenant-of-the-grave-recruit-au":
+    "You studied death with the Covenant, piecing together what healers, historians, and necromancers each know about the end of a life.",
+  "background-crucible-storm-chaser-au":
+    "The Crucible Keepers study disasters up close. Whether you’re working molten glass or watching a magical storm form, you’re used to heat and danger.",
+  "background-familiar-trainer-au":
+    "You grew up alongside a familiar. Years of working together have taught you to read each other’s signals, even when an adventure goes awry.",
+  "background-horizon-weaver-initiate-au":
+    "You set out to see the world and met the Horizon Weavers on the road. Their conjurers showed you how to cross a gap with a single magical step.",
+  "background-phantasmic-circus-trouper-au":
+    "On the road with the Phantasmic Circus, you learned that an illusion depends as much on where the audience looks as on the spell itself.",
+  "background-seer-apprentice-au":
+    "The Seers of Sea and Sky taught you to read omens in clouds and water. Now you carry what you learned in their libraries to people who need guidance.",
+  "background-ward-of-the-sheltering-hands-au":
+    "The Sheltering Hands gave you refuge when you needed it. You learned their protective magic so you could offer someone else the same help."
 };
 
 export function addBackgroundDescription(

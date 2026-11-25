@@ -1,7 +1,13 @@
 import { appendFeatSpellGrants } from "./spellGrantBuilder";
 import { FEATS } from "../../../../../codex/entries/enums";
+import { getSpellEntryById } from "../../../../../codex/spells";
 
 import { getFeatLabel } from "../../catalog";
+import {
+  arcaneCantripFeats,
+  getArcaneCantripAbility,
+  isArcaneCantripFeat
+} from "../../arcaneCantripChoices";
 
 import {
   getBoonOfRevelryIrresistibleDanceSpellEntry,
@@ -16,7 +22,7 @@ import {
   getTelepathicDetectThoughtsSpellEntry
 } from "../spells";
 
-import type { FeatContributionBuilders } from "./types";
+import type { FeatContributionBuilder, FeatContributionBuilders } from "./types";
 export const magicInitiateFreeCastContributionId = "feat-magic-initiate-free-cast";
 export const feyTouchedFreeCastContributionId = "feat-fey-touched-free-cast";
 export const shadowTouchedFreeCastContributionId = "feat-shadow-touched-free-cast";
@@ -24,7 +30,25 @@ export const telepathicDetectThoughtsFreeCastContributionId =
   "feat-telepathic-detect-thoughts-free-cast";
 export const boonOfRevelryIrresistibleDanceFreeCastContributionId =
   "feat-boon-of-revelry-irresistible-dance-free-cast";
+const grantArcaneCantrip: FeatContributionBuilder = ({ entry, contribution }) => {
+  if (!isArcaneCantripFeat(entry.feat)) return false;
+  const spell = getSpellEntryById(arcaneCantripFeats[entry.feat].cantripId);
+  if (!spell) return false;
+
+  contribution.spellGrants!.push(
+    { kind: "granted-cantrip", spell },
+    { kind: "always-prepared-cantrip", spell, spellcastingAbility: getArcaneCantripAbility(entry) }
+  );
+  return true;
+};
+
 export const spellGrantsBuilders: FeatContributionBuilders = {
+  [FEATS.ARCANE_ARTIST]: grantArcaneCantrip,
+  [FEATS.ARCANE_ELOQUENCE]: grantArcaneCantrip,
+  [FEATS.ARCANE_INFILTRATOR]: grantArcaneCantrip,
+  [FEATS.ARCANE_OMENS]: grantArcaneCantrip,
+  [FEATS.ARCANE_OVERLOAD]: grantArcaneCantrip,
+  [FEATS.ARCANE_SAFEGUARD]: grantArcaneCantrip,
   [FEATS.MAGIC_INITIATE]: ({ entry, contribution, featCantripEntries }) => {
     if (!entry.magicInitiate) return false;
 

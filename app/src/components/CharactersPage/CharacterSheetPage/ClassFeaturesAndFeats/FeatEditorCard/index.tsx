@@ -1,3 +1,4 @@
+import { arcaneCantripSpellcastingAbilityOptions } from "../../../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
 import {
   singleAbilityChoices,
@@ -269,6 +270,7 @@ type FeatEditorCardProps = {
   onSavePendingEmeraldEnclaveFledglingChoice: () => void;
   onSavePendingHarperAgentChoice: () => void;
   onSavePendingPurpleDragonRookChoice: () => void;
+  onSavePendingArcaneCantripChoice: () => void;
   onSavePendingSpellfireSparkChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
@@ -440,7 +442,9 @@ type PurpleDragonRookChoiceEditorProps = {
   onChange: (nextValue: string) => void;
 };
 
-type SpellfireSparkChoiceEditorProps = {
+type SpellcastingAbilityChoiceEditorProps = {
+  title: string;
+  abilities: readonly string[];
   choice: PendingSpellfireSparkChoice;
   summary: string | null;
   isValid: boolean;
@@ -1799,18 +1803,20 @@ function PurpleDragonRookChoiceEditor({
   );
 }
 
-function SpellfireSparkChoiceEditor({
+function SpellcastingAbilityChoiceEditor({
+  title,
+  abilities,
   choice,
   summary,
   isValid,
   onCancel,
   onSave,
   onChange
-}: SpellfireSparkChoiceEditorProps) {
+}: SpellcastingAbilityChoiceEditorProps) {
   return (
     <InlineEditorFrame
-      title="Spellfire Spark"
-      cancelLabel="Cancel Spellfire Spark spellcasting ability selection"
+      title={title}
+      cancelLabel={`Cancel ${title} spellcasting ability selection`}
       onCancel={onCancel}
       footer={
         <div className={modalStyles.editorActions}>
@@ -1834,7 +1840,7 @@ function SpellfireSparkChoiceEditor({
               label: "-",
               value: spellfireSparkNoneOptionValue
             },
-            ...spellfireSparkSpellcastingAbilityOptions.map((ability) => ({
+            ...abilities.map((ability) => ({
               label: ability,
               value: ability
             }))
@@ -2458,6 +2464,7 @@ function renderInlineEditor(
     onSavePendingEmeraldEnclaveFledglingChoice,
     onSavePendingHarperAgentChoice,
     onSavePendingPurpleDragonRookChoice,
+    onSavePendingArcaneCantripChoice,
     onSavePendingSpellfireSparkChoice,
     onSavePendingMusicianChoice,
     onSavePendingSkilledChoice
@@ -3115,11 +3122,38 @@ function renderInlineEditor(
     );
   }
 
+  const arcaneCantripChoice = pendingFeatState.arcaneCantripChoice;
+  if (arcaneCantripChoice?.feat === featDefinition.feat) {
+    const { ability } = arcaneCantripChoice;
+
+    return (
+      <SpellcastingAbilityChoiceEditor
+        title={featDefinition.label}
+        abilities={arcaneCantripSpellcastingAbilityOptions}
+        choice={{ spellcastingAbility: ability }}
+        summary={ability !== "none" ? `Spellcasting Ability: ${ability}` : null}
+        isValid={ability !== "none"}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({ ...current, arcaneCantripChoice: null }))
+        }
+        onSave={onSavePendingArcaneCantripChoice}
+        onChange={({ spellcastingAbility }) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            arcaneCantripChoice: { ...arcaneCantripChoice, ability: spellcastingAbility }
+          }))
+        }
+      />
+    );
+  }
+
   if (featDefinition.feat === FEATS.SPELLFIRE_SPARK && pendingFeatState.spellfireSparkChoice) {
     const choice = pendingFeatState.spellfireSparkChoice;
 
     return (
-      <SpellfireSparkChoiceEditor
+      <SpellcastingAbilityChoiceEditor
+        title={featDefinition.label}
+        abilities={spellfireSparkSpellcastingAbilityOptions}
         choice={choice}
         summary={getPendingSpellfireSparkChoiceSummary(choice)}
         isValid={isPendingSpellfireSparkChoiceValid(choice)}
@@ -3369,6 +3403,7 @@ function FeatEditorCard({
   onSavePendingEmeraldEnclaveFledglingChoice,
   onSavePendingHarperAgentChoice,
   onSavePendingPurpleDragonRookChoice,
+  onSavePendingArcaneCantripChoice,
   onSavePendingSpellfireSparkChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
@@ -3528,6 +3563,7 @@ function FeatEditorCard({
         onSavePendingEmeraldEnclaveFledglingChoice,
         onSavePendingHarperAgentChoice,
         onSavePendingPurpleDragonRookChoice,
+        onSavePendingArcaneCantripChoice,
         onSavePendingSpellfireSparkChoice,
         onSavePendingMusicianChoice,
         onSavePendingSkilledChoice

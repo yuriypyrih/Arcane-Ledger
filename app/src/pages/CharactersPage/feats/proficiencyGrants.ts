@@ -41,6 +41,7 @@ import {
 } from "../proficiency/core";
 import { getSkillLevelFromEntries } from "../proficiency/manual";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
+import { getFeatLabel } from "./catalog";
 
 export type FeatProficiencyCollections = {
   armorProficiencies: ArmorProficiencyEntry[];
@@ -279,6 +280,18 @@ function getFeatProficiencyGrantDescriptors(
             skill: SKILL.INTIMIDATION,
             level: PROF_LEVEL.EXPERT
           }
+        ]
+      }
+    ];
+  }
+
+  if (featEntry.feat === FEATS.ABERRANT_ANATOMY) {
+    return [
+      {
+        label: getFeatLabel(featEntry.feat),
+        skillLevels: [
+          { skill: SKILL.PERCEPTION, level: PROF_LEVEL.PROFICIENT },
+          { skill: SKILL.PERCEPTION, level: PROF_LEVEL.EXPERT }
         ]
       }
     ];

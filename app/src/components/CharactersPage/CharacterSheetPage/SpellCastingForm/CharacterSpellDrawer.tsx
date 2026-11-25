@@ -2,6 +2,12 @@ import { getSpellOptionHeaderTags } from "../../../../pages/CharactersPage/spell
 import { useClericDomainSpellOptions } from "./useClericDomainSpellOptions";
 import { useSplitEnchantmentSpellOption } from "./useSplitEnchantmentSpellOption";
 import { useSplinteredSummonsSpellOption } from "./useSplinteredSummonsSpellOption";
+import { useInspiringMagicSpellOption } from "./useInspiringMagicSpellOption";
+import { usePowerSurgeSpellOption } from "./usePowerSurgeSpellOption";
+import { appendInspiringMagicSpellDescription } from "../../../../pages/CharactersPage/feats/runtime/arcaneArtist";
+import { appendPowerSurgeSpellDescription } from "../../../../pages/CharactersPage/feats/runtime/arcaneOverload";
+import { appendArcaneSafeguardSpellDescriptionForCharacter } from "../../../../pages/CharactersPage/feats/runtime/arcaneSafeguard";
+import { getProficiencyBonus } from "../../../../pages/CharactersPage/proficiencyBonus";
 import {
   useEmpoweredTransmutationSpellOption,
   useTransmuterFreeCastOption
@@ -645,15 +651,24 @@ function CharacterSpellDrawer({
     mode === "standard",
     spendsSpellSlotForOptionalEffects
   );
+  const availableInspiringMagicOption = useInspiringMagicSpellOption(character, spell);
+  const inspiringMagicOption = mode !== "prepare-preview" ? availableInspiringMagicOption : null;
+  const availablePowerSurgeOption = usePowerSurgeSpellOption(character, spell);
+  const powerSurgeOption = mode !== "prepare-preview" ? availablePowerSurgeOption : null;
   const visibleActionOptions = [
     ...allActionOptions,
     ...(necromancerOption ? [necromancerOption] : []),
     ...(empoweredTransmutationOption ? [empoweredTransmutationOption] : []),
     ...(splitEnchantmentOption ? [splitEnchantmentOption] : []),
-    ...(splinteredSummonsOption ? [splinteredSummonsOption] : [])
+    ...(splinteredSummonsOption ? [splinteredSummonsOption] : []),
+    ...(inspiringMagicOption ? [inspiringMagicOption] : []),
+    ...(powerSurgeOption ? [powerSurgeOption] : [])
   ];
-  const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
-    getSpellOptionHeaderTags(character, spell.id, option)
+  const managedActionPaths = shouldShowActionFooter
+    ? actionPaths?.filter(({ usage }) => usage && "charges" in usage && usage.charges.management)
+    : undefined;
+  const visibleHeaderTags = [...visibleActionOptions, ...(managedActionPaths ?? [])].flatMap(
+    (option) => getSpellOptionHeaderTags(character, spell.id, option)
   );
   const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
@@ -769,7 +784,9 @@ function CharacterSpellDrawer({
       ...(necromancerOption?.checked ? [necromancerOption.id] : []),
       ...(empoweredTransmutationOption?.checked ? [empoweredTransmutationOption.id] : []),
       ...(splitEnchantmentOption?.checked ? [splitEnchantmentOption.id] : []),
-      ...(splinteredSummonsOption?.checked ? [splinteredSummonsOption.id] : [])
+      ...(splinteredSummonsOption?.checked ? [splinteredSummonsOption.id] : []),
+      ...(inspiringMagicOption?.checked ? [inspiringMagicOption.id] : []),
+      ...(powerSurgeOption?.checked ? [powerSurgeOption.id] : [])
     ],
     spellImplementationOptions: activeSpellImplementationOptionValues,
     summonCompanions: isSpellSummonDefinitionRequired ? activeSpellSummonDefinitions : []
@@ -928,8 +945,13 @@ function CharacterSpellDrawer({
   ]);
 
   const hasBaseDescription = spell.description.length > 0;
+  const spellWithFeatDescription = availablePowerSurgeOption
+    ? appendPowerSurgeSpellDescription(spell)
+    : availableInspiringMagicOption
+      ? appendInspiringMagicSpellDescription(spell)
+      : appendArcaneSafeguardSpellDescriptionForCharacter(character, spell);
   const spellDescriptionSections = orderDescriptionAdditionSections(
-    appendMysticArtsSpellDescription(character, spell).descriptionAdditions ?? []
+    appendMysticArtsSpellDescription(character, spellWithFeatDescription).descriptionAdditions ?? []
   );
   const availabilityText = transmuterFreeCast
     ? `Cast this spell at level ${spellLevel} without expending a spell slot. Recharges on a Long Rest.`
@@ -1117,6 +1139,12 @@ function CharacterSpellDrawer({
                   getSpellDamageDetailForCharacter(character, spell, spellcastingAbilityOverride)
                 }
               />
+              {powerSurgeOption?.checked ? (
+                <CellContainer
+                  label="Power Surge"
+                  content={`+${getProficiencyBonus(character)} to one damage roll`}
+                />
+              ) : null}
             </div>
 
             {hasBaseDescription || spellDescriptionSections.length > 0 ? (

@@ -6,6 +6,8 @@ import { appPwaPlugins } from "./pwa.config";
 const buildId = new Date().toISOString();
 
 export default defineConfig({
+  // Keep the app's optimized dependencies separate from standalone Vite checks.
+  cacheDir: "node_modules/.vite/app",
   define: {
     __ARCANE_LEDGER_BUILD_ID__: JSON.stringify(buildId),
     // Drop SDK diagnostic logging while retaining error reporting and breadcrumbs.

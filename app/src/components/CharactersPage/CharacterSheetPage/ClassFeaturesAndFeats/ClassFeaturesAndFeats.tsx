@@ -1,3 +1,7 @@
+import {
+  getArcaneCantripChoiceUpdate,
+  isArcaneCantripSpellcastingAbility
+} from "../../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { getProficiencyBonus } from "../../../../pages/CharactersPage/proficiencyBonus";
 import { withReadOnlySheet } from "../withReadOnlySheet";
 import { applyClassEditorChange } from "../../../../pages/CharactersPage/multiclass";
@@ -2008,6 +2012,21 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingArcaneCantripChoice() {
+    const choice = pendingFeatState.arcaneCantripChoice;
+    if (!choice || !isArcaneCantripSpellcastingAbility(choice.ability)) return;
+
+    const editingEntry = featEditorDraftRef.current.feats.find(
+      (entry) => entry.id === editingFeatEntryId && entry.feat === choice.feat
+    );
+    upsertFeatForContext(
+      createContextualFeatEntry(
+        choice.feat,
+        getArcaneCantripChoiceUpdate(choice.feat, choice.ability, editingEntry)
+      )
+    );
+  }
+
   function savePendingSpellfireSparkChoice() {
     const choice = pendingFeatState.spellfireSparkChoice;
 
@@ -2590,6 +2609,7 @@ function ClassFeaturesAndFeats({
           onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
           onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
           onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
+          onSavePendingArcaneCantripChoice={savePendingArcaneCantripChoice}
           onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}

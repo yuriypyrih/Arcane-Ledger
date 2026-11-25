@@ -4,6 +4,8 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterCurvingShot";
 import { consumeArcaneShot } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneShot";
 import { applyActionResourceTransition } from "./actionResourceTransition";
+import { cunningDiversionDodgeActionKey } from "../../../../../../pages/CharactersPage/feats/runtime/constants";
+import { payCunningDiversionDodge } from "./commonActionEconomy";
 import {
   formOfDreadActionKey,
   getFormOfDreadTemporaryHitPointsFormula
@@ -950,6 +952,22 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     action: FeatureActionCard,
     economyType: EconomyType = action.economyType
   ) {
+    if (action.key === cunningDiversionDodgeActionKey && economyType === ECONOMY_TYPE.BONUS_ACTION) {
+      onPersistCharacter((currentCharacter) => {
+        const spentCharacter = payCunningDiversionDodge(currentCharacter, action);
+        if (spentCharacter === currentCharacter) return currentCharacter;
+
+        return grantMonkFleetStepFollowUpIfEligible(
+          activateFeatureActionForCharacter(spentCharacter, action.key),
+          action.key,
+          economyType
+        );
+      });
+      closeActionDrawer();
+      setIsCommonActionsOpen(false);
+      return;
+    }
+
     const isBonusActionDash =
       action.key === "common-action-dash" && economyType === ECONOMY_TYPE.BONUS_ACTION;
 

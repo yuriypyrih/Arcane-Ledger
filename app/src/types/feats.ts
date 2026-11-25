@@ -292,6 +292,37 @@ export type EmeraldEnclaveFledglingChoice = {
   spellcastingAbility: "INT" | "WIS" | "CHA";
 };
 
+export type ArcaneCantripSpellcastingAbility = "INT" | "WIS" | "CHA";
+
+export type ArcaneArtistState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  inspiringMagicExpended?: boolean;
+};
+
+export type ArcaneEloquenceChoice = {
+  spellcastingAbility: ArcaneCantripSpellcastingAbility;
+};
+
+export type ArcaneInfiltratorState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  cunningDiversionUsesExpended?: number;
+};
+
+export type ArcaneOmensState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  helpfulPremonitionUsesExpended?: number;
+};
+
+export type ArcaneOverloadState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  powerSurgeExpended?: boolean;
+};
+
+export type ArcaneSafeguardState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  resistanceBonusActionUsesExpended?: number;
+};
+
 export type SpellfireSparkChoice = {
   spellcastingAbility: "INT" | "WIS" | "CHA";
   spellfireFlameExpended?: number;
@@ -404,6 +435,12 @@ export type CharacterFeatEntry = {
   magicInitiate?: MagicInitiateChoice;
   cultOfDragonInitiate?: CultOfDragonInitiateChoice;
   emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
+  arcaneArtist?: ArcaneArtistState;
+  arcaneEloquence?: ArcaneEloquenceChoice;
+  arcaneInfiltrator?: ArcaneInfiltratorState;
+  arcaneOmens?: ArcaneOmensState;
+  arcaneOverload?: ArcaneOverloadState;
+  arcaneSafeguard?: ArcaneSafeguardState;
   spellfireSpark?: SpellfireSparkChoice;
   harperAgent?: HarperAgentChoice;
   purpleDragonRook?: PurpleDragonRookChoice;

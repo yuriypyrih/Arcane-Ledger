@@ -1,4 +1,5 @@
 import { type SpellEntry } from "../../../../codex/entries";
+import { arcaneCantripFeats, isArcaneCantripFeat } from "../arcaneCantripChoices";
 import { FEATS } from "../../../../codex/entries/enums";
 import type { AbilityKey } from "../../../../types";
 import type { SpellSourceMap } from "../../classFeatures/types";
@@ -45,6 +46,21 @@ export function getFeatAlwaysPreparedSpellSourceMapForCharacter(
   character: FeatRuntimeCharacter
 ): SpellSourceMap {
   return collectFeatDerivedState(character).alwaysPreparedSpellSourceMap;
+}
+
+export function getArcaneCantripFeatSpellcastingAbilityForSpell(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): AbilityKey | null {
+  if (!Object.values(arcaneCantripFeats).some((feat) => feat.cantripId === spellId)) {
+    return null;
+  }
+
+  return (
+    collectFeatDerivedState(character).spellcastingAbilityEntries.find(
+      (entry) => entry.spellId === spellId && isArcaneCantripFeat(entry.sourceId)
+    )?.ability ?? null
+  );
 }
 
 export function getFeatSpellcastingAbilityForCharacter(

@@ -11,6 +11,7 @@ import { skillGroupsByAbility } from "./skillDefinitions";
 import { getExhaustionD20TestPenalty } from "./statusEntries";
 import { formatCustomTraitBonusFormulaTerm } from "./customTraitEffects";
 import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
+import { collectFeatDerivedState } from "./feats/runtime/state";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
 
@@ -58,6 +59,7 @@ export function getSkillRowsByAbility(
 ): SkillRowsByAbility[] {
   const proficiencyBonus = getProficiencyBonus(character);
   const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+  const featSkillBonuses = collectFeatDerivedState(character).skillBonuses;
 
   return skillGroupsByAbility.map((group) => {
     return {
@@ -89,7 +91,13 @@ export function getSkillRowsByAbility(
           { customTraitEffectInput }
         );
         const effectiveAbilityModifier = effectiveAbilityModifierBreakdown.total;
-        const bonusEntries = featureBonuses.flatMap<SkillBonusEntry>((entry) => {
+        const resolvedBonuses = [
+          ...featureBonuses,
+          ...featSkillBonuses.flatMap((bonus) =>
+            bonus.getBonuses(skill, proficiencyLevel, effectiveAbility)
+          )
+        ];
+        const bonusEntries = resolvedBonuses.flatMap<SkillBonusEntry>((entry) => {
           if (entry.replacesBaseAbility && entry.abilityModifierSource) {
             return [];
           }

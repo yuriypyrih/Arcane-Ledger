@@ -20,6 +20,7 @@ import type {
   MagicInitiateChoice,
   PurpleDragonRookChoice,
   SpellfireSparkChoice,
+  ArcaneCantripSpellcastingAbility,
   SkillName
 } from "../../../types";
 import {
@@ -29,6 +30,11 @@ import {
   standardLanguageEntries
 } from "../../../types";
 import { FEATS } from "../../../codex/entries/enums";
+import {
+  getArcaneCantripAbility,
+  getArcaneCantripChoiceUpdate,
+  isArcaneCantripFeat
+} from "../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
   getBackgroundEntryByName,
@@ -226,6 +232,7 @@ type CharacterFormProps = {
 type CreationStep = 1 | 2 | 3;
 
 type CharacterFormValues = CharacterDraft & {
+  speciesChoices: CharacterSpeciesChoices;
   startingEquipmentChoiceIndex: string;
   starterPackSelectionValues: Record<string, string>;
 };
@@ -460,6 +467,10 @@ function updateSpellfireSparkFeatEntry(
   };
 }
 
+function isArcaneCantripAbilityReady(entry: CharacterFeatEntry | null): boolean {
+  return !entry || !isArcaneCantripFeat(entry.feat) || Boolean(getArcaneCantripAbility(entry));
+}
+
 function updatePurpleDragonRookFeatEntry(
   featEntry: CharacterFeatEntry | null,
   skill: PurpleDragonRookChoice["skill"]
@@ -590,6 +601,8 @@ function createFormValues(
 
   return {
     ...draft,
+    // Keep cleared choices defined for React Hook Form's dirty-field comparison.
+    speciesChoices: draft.speciesChoices ?? {},
     customClass: normalizedCustomClass,
     customSubclass: normalizeCustomSubclassConfig(draft.customSubclass, {
       className: draft.className
@@ -1510,6 +1523,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     resolvedBackgroundChoices,
     wizardStep
   ]);
+  const backgroundEquipmentToolChoice = selectedBackgroundEquipmentChoice?.find(
+    (reference) => reference.type === "tool-choice"
+  );
+  const selectedBackgroundEquipmentTool = displayedBackgroundChoices?.equipmentTool;
   const selectedBackgroundFeatEntry = getBackgroundFeatEntry(resolvedFeats, resolvedBackground);
   const reconciledHumanOriginFeats = useMemo(
     () =>
@@ -1790,8 +1807,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     !backgroundEntry ||
     isCustomBackgroundSelected ||
     isEditing ||
-    isBackgroundEquipmentModeReady(displayedBackgroundChoices?.equipmentMode);
+    (isBackgroundEquipmentModeReady(displayedBackgroundChoices?.equipmentMode) &&
+      (!backgroundEquipmentToolChoice ||
+        (selectedBackgroundEquipmentTool !== undefined &&
+          backgroundEquipmentToolChoice.options.includes(selectedBackgroundEquipmentTool))));
   const isBackgroundSetupReady =
+    (isEditing || isArcaneCantripAbilityReady(selectedBackgroundFeatEntry)) &&
     isBackgroundAbilitySelectionReady &&
     isBackgroundSkillSelectionReady &&
     isBackgroundToolSelectionReady &&
@@ -1830,7 +1851,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     humanSkillProficiencyOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.humanSkillProficiency);
   const isSpeciesHumanOriginFeatReady =
-    humanOriginFeatOptions.length === 0 || Boolean(normalizedSpeciesChoices?.humanOriginFeat);
+    humanOriginFeatOptions.length === 0 ||
+    (Boolean(normalizedSpeciesChoices?.humanOriginFeat) &&
+      (isEditing || isArcaneCantripAbilityReady(selectedHumanOriginFeatEntry)));
   const isSpeciesKalashtarSkillProficiencyReady =
     kalashtarSkillProficiencyOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.kalashtarSkillProficiency);
@@ -2003,7 +2026,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   useEffect(() => {
     const currentChoices = getValues("speciesChoices");
-    const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, currentChoices);
+    const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, currentChoices) ?? {};
 
     if (!areJsonValuesEqual(currentChoices, nextChoices)) {
       setValue("speciesChoices", nextChoices, {
@@ -2161,6 +2184,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         selectionValues: normalizedStarterPackSelectionValues
       }),
       previewStarterPackChoiceWarnings(selectedBackgroundEquipmentChoice, {
+        equipmentTool: resolvedBackgroundChoices?.equipmentTool,
         selectedToolProficiencies: resolvedBackgroundChoices?.toolProficiency
           ? [resolvedBackgroundChoices.toolProficiency]
           : [],
@@ -2510,6 +2534,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     if (nextEntry) {
       commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateArcaneCantripAbility(
+    entry: CharacterFeatEntry | null,
+    spellcastingAbility: ArcaneCantripSpellcastingAbility,
+    commit: (entry: CharacterFeatEntry) => void
+  ) {
+    if (entry && isArcaneCantripFeat(entry.feat)) {
+      commit({ ...entry, ...getArcaneCantripChoiceUpdate(entry.feat, spellcastingAbility, entry) });
     }
   }
 
@@ -2874,6 +2908,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       materializedClassStarterPack.inventoryItems,
       selectedBackgroundChoice,
       {
+        equipmentTool: normalizedDraft.backgroundChoices?.equipmentTool,
         selectedToolProficiencies: normalizedDraft.backgroundChoices?.toolProficiency
           ? [normalizedDraft.backgroundChoices.toolProficiency]
           : [],
@@ -2909,7 +2944,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       !isCustomClassNameReady ||
       !isCustomSubclassNameReady ||
       !isCustomSpeciesReady ||
-      !isCustomBackgroundReady
+      !isCustomBackgroundReady ||
+      (!isEditing &&
+        (!isArcaneCantripAbilityReady(selectedBackgroundFeatEntry) ||
+          !isArcaneCantripAbilityReady(selectedHumanOriginFeatEntry)))
     ) {
       setAttemptedBuildAdvance(true);
       return;
@@ -3051,6 +3089,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const recommendedDraft = createRecommendedCharacterDraft(snapshot);
 
     reset(recommendedDraft);
+    if (
+      !isArcaneCantripAbilityReady(
+        getBackgroundFeatEntry(recommendedDraft.feats, recommendedDraft.background)
+      )
+    ) {
+      setStepOneSnapshot(snapshot);
+      setWizardStep(2);
+      setAttemptedBuildAdvance(false);
+      return;
+    }
     await submitResolvedDraft(recommendedDraft);
   }
 
@@ -3485,7 +3533,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                       shouldValidate: true
                     }
                   );
-                  setValue("speciesChoices", undefined, {
+                  setValue("speciesChoices", {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -4132,6 +4180,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         onCultOfDragonInitiateLanguageChange={updateBackgroundCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateBackgroundEmeraldEnclaveFledgling}
         onSpellfireSparkChange={updateBackgroundSpellfireSpark}
+        onArcaneCantripAbilityChange={(ability) =>
+          updateArcaneCantripAbility(selectedBackgroundFeatEntry, ability, commitBackgroundFeat)
+        }
         onPurpleDragonRookSkillChange={updateBackgroundPurpleDragonRookSkill}
         onToolFeatSelection={updateBackgroundToolFeatSelection}
         onSkilledSelection={updateBackgroundSkilledSelection}
@@ -4152,6 +4203,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         onCultOfDragonInitiateLanguageChange={updateHumanCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateHumanEmeraldEnclaveFledgling}
         onSpellfireSparkChange={updateHumanSpellfireSpark}
+        onArcaneCantripAbilityChange={(ability) =>
+          updateArcaneCantripAbility(selectedHumanOriginFeatEntry, ability, commitHumanOriginFeat)
+        }
         onPurpleDragonRookSkillChange={updateHumanPurpleDragonRookSkill}
         onToolFeatSelection={updateHumanToolFeatSelection}
         onSkilledSelection={updateHumanSkilledSelection}
@@ -4697,9 +4751,36 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   );
                 })}
               </div>
+              {backgroundEquipmentToolChoice && (
+                <label className={styles.field}>
+                  <span>{backgroundEquipmentToolChoice.label}</span>
+                  <SelectInput
+                    className={styles.fieldInput}
+                    invalid={attemptedBuildAdvance && !isBackgroundEquipmentSelectionReady}
+                    value={selectedBackgroundEquipmentTool ?? ""}
+                    onChange={(event) =>
+                      commitBackgroundChoices({
+                        ...getBackgroundChoiceDraftBase(),
+                        equipmentTool: backgroundEquipmentToolChoice.options.find(
+                          (tool) => tool === event.target.value
+                        )
+                      })
+                    }
+                  >
+                    <option value="">-</option>
+                    {backgroundEquipmentToolChoice.options.map((tool) => (
+                      <option key={tool} value={tool}>
+                        {getToolProficiencyLabel(tool)}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+              )}
               {attemptedBuildAdvance && !isBackgroundEquipmentSelectionReady ? (
                 <p className={styles.errorText}>
-                  Choose a background starting equipment option before continuing.
+                  {backgroundEquipmentToolChoice
+                    ? "Choose the tool included in your starting equipment before continuing."
+                    : "Choose a background starting equipment option before continuing."}
                 </p>
               ) : null}
             </fieldset>
@@ -5118,7 +5199,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                         changelingSkillProficiencies
                       });
 
-                      setValue("speciesChoices", nextChoices, {
+                      setValue("speciesChoices", nextChoices ?? {}, {
                         shouldDirty: true,
                         shouldValidate: true
                       });
@@ -5154,7 +5235,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     draconicAncestry: nextAncestry || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5189,7 +5270,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     elvenLineage: nextLineage || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5224,7 +5305,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     elvenSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5259,7 +5340,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     elvenSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5294,7 +5375,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     genasiLineage: nextLineage || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5329,7 +5410,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     genasiSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5364,7 +5445,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     gnomeLineage: nextLineage || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5399,7 +5480,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     gnomeSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5434,7 +5515,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     hexbloodSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5469,7 +5550,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     giantAncestry: nextAncestry || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5504,7 +5585,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     humanSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5539,7 +5620,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     kalashtarSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5578,7 +5659,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     khoravarToolProficiency: nextProficiencyChoice.khoravarToolProficiency
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5634,7 +5715,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     khoravarCantripId: nextCantripId || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5669,7 +5750,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     khoravarSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5704,7 +5785,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     lupinSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5739,7 +5820,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     rebornSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5774,7 +5855,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     rebornResistance: nextResistance || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5809,7 +5890,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     shifterSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5844,7 +5925,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     warforgedSkillProficiency: nextSkill || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5879,7 +5960,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     warforgedToolProficiency: nextTool || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5914,7 +5995,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     humanOriginFeat: nextFeat || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5949,7 +6030,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     tieflingLegacy: nextLegacy || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
@@ -5984,7 +6065,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     tieflingSpellcastingAbility: nextAbility || undefined
                   });
 
-                  setValue("speciesChoices", nextChoices, {
+                  setValue("speciesChoices", nextChoices ?? {}, {
                     shouldDirty: true,
                     shouldValidate: true
                   });

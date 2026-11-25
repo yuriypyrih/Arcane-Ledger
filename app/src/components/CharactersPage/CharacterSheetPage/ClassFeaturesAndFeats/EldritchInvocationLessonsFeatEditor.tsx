@@ -1,3 +1,7 @@
+import {
+  getArcaneCantripChoiceUpdate,
+  isArcaneCantripSpellcastingAbility
+} from "../../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { useState } from "react";
 import type { SetStateAction } from "react";
 import { FEATS } from "../../../../codex/entries/enums";
@@ -178,6 +182,18 @@ function EldritchInvocationLessonsFeatEditor({
     );
   }
 
+  function savePendingArcaneCantripChoice() {
+    const choice = pendingFeatState.arcaneCantripChoice;
+    if (!choice || !isArcaneCantripSpellcastingAbility(choice.ability)) return;
+
+    saveConfiguredFeatEntry(
+      createSelectedFeatEntry(
+        choice.feat,
+        getArcaneCantripChoiceUpdate(choice.feat, choice.ability)
+      )
+    );
+  }
+
   function savePendingSpellfireSparkChoice() {
     const choice = pendingFeatState.spellfireSparkChoice;
     const spellfireSpark = choice ? decodePendingSpellfireSparkChoice(choice) : null;
@@ -296,6 +312,7 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
         onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
         onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
+        onSavePendingArcaneCantripChoice={savePendingArcaneCantripChoice}
         onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
         onSavePendingCrafterChoice={savePendingCrafterChoice}
         onSavePendingDruidicWarriorChoice={noopSavePendingChoice}

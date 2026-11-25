@@ -1,9 +1,10 @@
 import type { Character } from "../../../../../../types";
+import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures/types";
 import {
   createEconomyMultiContextForFeatureAction,
   getSharedEconomyMultiCountForCharacterAction,
-  type FeatureActionCard
-} from "../../../../../../pages/CharactersPage/classFeatures";
+  payEconomyForCharacterAction
+} from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
 import {
   ECONOMY_TYPE,
   type EconomyType
@@ -25,6 +26,8 @@ import {
 } from "../../../../../../pages/CharactersPage/species";
 import { hasExpeditiousRetreatDashBonusActionPath } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
+import { cunningDiversionDodgeActionKey } from "../../../../../../pages/CharactersPage/feats/runtime/constants";
+import { cunningDiversionResource } from "../../../../../../pages/CharactersPage/feats/runtime/resourceManagement";
 
 type RoundTrackerAvailability = {
   isInCombat?: boolean;
@@ -98,6 +101,8 @@ function getSecondaryCommonActionPathState(
   const hasRogueBonusPath = hasRogueCunningActionCommonActionBonusPath(character, action.key);
   const hasKeenMindBonusPath = hasKeenMindStudyBonusActionPath(character, action.key);
   const hasObservantBonusPath = hasObservantSearchBonusActionPath(character, action.key);
+  const hasCunningDiversionBonusPath =
+    action.key === cunningDiversionDodgeActionKey && cunningDiversionResource.total(character) > 0;
   const hasBoonOfSpeedBonusPath = hasBoonOfSpeedDisengageBonusActionPath(character, action.key);
   const hasOrcBonusPath = hasOrcAdrenalineRushCommonActionBonusPath(character, action.key);
   const hasExpeditiousRetreatBonusPath = hasExpeditiousRetreatDashBonusActionPath(
@@ -110,6 +115,7 @@ function getSecondaryCommonActionPathState(
     !hasRogueBonusPath &&
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
+    !hasCunningDiversionBonusPath &&
     !hasBoonOfSpeedBonusPath &&
     !hasOrcBonusPath &&
     !hasExpeditiousRetreatBonusPath
@@ -123,6 +129,7 @@ function getSecondaryCommonActionPathState(
     !shouldTrackRoundResources &&
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
+    !hasCunningDiversionBonusPath &&
     !hasBoonOfSpeedBonusPath &&
     !hasOrcBonusPath &&
     !hasExpeditiousRetreatBonusPath
@@ -154,10 +161,14 @@ function getSecondaryCommonActionPathState(
     hasOrcBonusPath && !hasNonOrcBonusPath && getOrcAdrenalineRushUsesRemaining(character) <= 0
       ? "Adrenaline Rush recharges when you finish a Long Rest."
       : null;
+  const cunningDiversionDisabledReason =
+    hasCunningDiversionBonusPath && cunningDiversionResource.remaining(character) === 0
+      ? "Cunning Diversion recharges when you finish a Long Rest."
+      : null;
   const disabledReason =
     action.disabled === true
       ? (action.disabledReason ?? "This action is unavailable.")
-      : orcDisabledReason;
+      : (orcDisabledReason ?? cunningDiversionDisabledReason);
 
   return {
     id: "secondary",
@@ -185,4 +196,18 @@ export function getCommonActionPathStates(
   const secondaryPath = getSecondaryCommonActionPathState(character, action, roundTracker);
 
   return secondaryPath ? [primaryPath, secondaryPath] : [primaryPath];
+}
+
+export function payCunningDiversionDodge(
+  character: Character,
+  action: Pick<FeatureActionCard, "actionCategory">
+): Character {
+  const payment = payEconomyForCharacterAction(
+    character,
+    createEconomyMultiContextForFeatureAction({ ...action, economyType: ECONOMY_TYPE.BONUS_ACTION })
+  );
+  if (payment.status === "unavailable") return character;
+
+  const spentCharacter = cunningDiversionResource.spendOne(payment.character);
+  return spentCharacter === payment.character ? character : spentCharacter;
 }

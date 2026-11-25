@@ -80,6 +80,11 @@ The root `AGENTS.md` contains the working agreements. This document owns test-sp
 
 ### Character-sheet workflows
 
+`character-creation.test.tsx` covers randomizing a new character, changing species and clearing
+species choices while moving between profile and customization, and submitting the latest profile
+edits after repeated randomization. These component tests use the locked dependencies; the frontend
+Docker build also installs from `app/package-lock.json` with `npm ci`.
+
 HP coverage checks automatic totals after class declaration, level reallocation, Hit Die overrides,
 and reload, with Tough and Aid kept separate from base HP. Both single-class and multiclass
 calculations and editor ranges apply a minimum gain of 1 HP per level, including low Constitution.

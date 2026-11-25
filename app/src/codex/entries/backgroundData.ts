@@ -13,6 +13,7 @@ import {
   FEATS,
   SPELL_LIST_CLASS
 } from "./enums";
+import { auBackgroundEntries } from "./auBackgroundData";
 import { efaBackgroundEntries } from "./efaBackgroundData";
 import { frhofBackgroundEntries } from "./frhofBackgroundData";
 import { rhwBackgroundEntries } from "./rhwBackgroundData";
@@ -524,5 +525,6 @@ export const backgroundEntries: BackgroundEntry[] = [
   ...coreBackgroundEntries.map(addBackgroundDescription),
   ...frhofBackgroundEntries,
   ...efaBackgroundEntries,
-  ...rhwBackgroundEntries
+  ...rhwBackgroundEntries,
+  ...auBackgroundEntries
 ];

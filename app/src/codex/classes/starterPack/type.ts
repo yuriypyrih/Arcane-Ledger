@@ -34,10 +34,18 @@ export type StarterPackCurrencyReference = {
   currency: CURRENCY_TYPE;
 };
 
+// A choice of equipment independent of any tool proficiency the character has.
+export type StarterPackToolChoice = {
+  type: "tool-choice";
+  label: string;
+  options: TOOL_PROFICIENCY[];
+};
+
 export type StarterPackEquipmentReference =
   | StarterPackItemReference
   | StarterPackPackReference
   | StarterPackSelectedToolReference
+  | StarterPackToolChoice
   | StarterPackCurrencyReference;
 
 export type StarterPackEquipmentChoice = StarterPackEquipmentReference[];

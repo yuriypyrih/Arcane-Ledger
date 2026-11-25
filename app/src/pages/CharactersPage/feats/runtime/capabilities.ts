@@ -14,6 +14,7 @@ export type FeatRuntimeCapability =
   | "proficiency"
   | "reaction"
   | "restRecovery"
+  | "skillBonus"
   | "speed"
   | "spellGrant"
   | "spellTransform"
@@ -484,7 +485,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.ABERRANT_ANATOMY]: {
     feat: FEATS.ABERRANT_ANATOMY,
-    capabilities: []
+    capabilities: ["proficiency", "status"]
   },
   [FEATS.ABJURATION_ADEPT]: {
     feat: FEATS.ABJURATION_ADEPT,
@@ -492,27 +493,27 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.ARCANE_ARTIST]: {
     feat: FEATS.ARCANE_ARTIST,
-    capabilities: []
+    capabilities: ["choice", "restRecovery", "spellGrant", "spellTransform"]
   },
   [FEATS.ARCANE_ELOQUENCE]: {
     feat: FEATS.ARCANE_ELOQUENCE,
-    capabilities: []
+    capabilities: ["choice", "skillBonus", "spellGrant"]
   },
   [FEATS.ARCANE_INFILTRATOR]: {
     feat: FEATS.ARCANE_INFILTRATOR,
-    capabilities: []
+    capabilities: ["choice", "commonActionTransform", "restRecovery", "spellGrant"]
   },
   [FEATS.ARCANE_OMENS]: {
     feat: FEATS.ARCANE_OMENS,
-    capabilities: []
+    capabilities: ["choice", "reaction", "restRecovery", "spellGrant"]
   },
   [FEATS.ARCANE_OVERLOAD]: {
     feat: FEATS.ARCANE_OVERLOAD,
-    capabilities: []
+    capabilities: ["choice", "restRecovery", "spellGrant", "spellTransform"]
   },
   [FEATS.ARCANE_SAFEGUARD]: {
     feat: FEATS.ARCANE_SAFEGUARD,
-    capabilities: []
+    capabilities: ["choice", "restRecovery", "spellGrant", "spellTransform"]
   },
   [FEATS.ARCANE_UNDERTAKER]: {
     feat: FEATS.ARCANE_UNDERTAKER,

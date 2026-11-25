@@ -32,6 +32,9 @@ management, and flexible enough for homebrew-heavy campaigns.
   support references, prerequisites, and selection. Their 18 ability-score increases are tracked;
   other benefits remain reference-only. Dark Gifts are Origin feats with a dedicated compendium
   subset filter. The Ravenloft campaign prerequisite is informational.
+- **AU backgrounds**: All ten [Arcana Unleashed backgrounds](https://5e.tools/backgrounds.html#agent%20of%20the%20ninth%20quill_au)
+  (pp. 21–25) are available in the compendium and character creation. Each grants its origin feat
+  and proficiencies, with a choice of starting gear or 50 GP. The feats’ benefits are reference-only.
 - **RHW backgrounds**: Haunted One, Investigator, Mist Wanderer, and Spirit Medium are available
   in the compendium and character creation, including their Dark Gift choices and starting
   equipment. They are marked Not Tracked; their granted feats remain reference-only. Data follows

@@ -22,6 +22,12 @@ import {
   spellfireSparkSpellcastingAbilityOptions
 } from "../../../pages/CharactersPage/feats";
 import { getFeatLabel } from "../../../pages/CharactersPage/feats/catalog";
+import {
+  arcaneCantripSpellcastingAbilityOptions,
+  getArcaneCantripAbility,
+  isArcaneCantripFeat,
+  isArcaneCantripSpellcastingAbility
+} from "../../../pages/CharactersPage/feats/arcaneCantripChoices";
 import { purpleDragonRookSkillOptions } from "../../../pages/CharactersPage/feats/purpleDragonRook";
 import { getSourceChoiceSkillOptions } from "../../../pages/CharactersPage/proficiency";
 import {
@@ -52,6 +58,7 @@ type OriginFeatSetupControlsProps = {
   onCultOfDragonInitiateLanguageChange: (language: LANGUAGE_PROFICIENCY) => void;
   onEmeraldEnclaveFledglingChange: (partialChoice: Partial<EmeraldEnclaveFledglingChoice>) => void;
   onSpellfireSparkChange: (partialChoice: Partial<SpellfireSparkChoice>) => void;
+  onArcaneCantripAbilityChange: (ability: (typeof arcaneCantripSpellcastingAbilityOptions)[number]) => void;
   onPurpleDragonRookSkillChange: (skill: PurpleDragonRookChoice["skill"]) => void;
   onToolFeatSelection: (
     feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
@@ -88,6 +95,7 @@ function OriginFeatSetupControls({
   onCultOfDragonInitiateLanguageChange,
   onEmeraldEnclaveFledglingChange,
   onSpellfireSparkChange,
+  onArcaneCantripAbilityChange,
   onPurpleDragonRookSkillChange,
   onToolFeatSelection,
   onSkilledSelection
@@ -275,6 +283,33 @@ function OriginFeatSetupControls({
             }
           >
             {emeraldEnclaveFledglingSpellcastingAbilityOptions.map((ability) => (
+              <option key={ability} value={ability}>
+                {ability}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      </div>
+    );
+  }
+
+  if (isArcaneCantripFeat(feat)) {
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Spellcasting ability</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={getArcaneCantripAbility(featEntry) ?? ""}
+            onChange={(event) => {
+              const ability = event.target.value;
+              if (isArcaneCantripSpellcastingAbility(ability)) onArcaneCantripAbilityChange(ability);
+            }}
+          >
+            <option value="" disabled>
+              Choose a spellcasting ability
+            </option>
+            {arcaneCantripSpellcastingAbilityOptions.map((ability) => (
               <option key={ability} value={ability}>
                 {ability}
               </option>
@@ -490,7 +525,7 @@ function OriginFeatSetupControls({
 
   return (
     <p className={styles.helperText}>
-      {getFeatLabel(feat)} is granted by this {sourceLabel} and has no setup choices.
+      {getFeatLabel(feat)} is granted by this {sourceLabel}.
     </p>
   );
 }

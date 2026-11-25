@@ -16,6 +16,9 @@ import {
 } from "../customEquipment";
 import { transformSpeciesCommonActionForCharacter } from "../species";
 import { getExpeditiousRetreatCommonActionForCharacter } from "./spellImplementations";
+import { createChargesCardUsage, createChargesHeaderTag } from "../classFeatures/cardUsage";
+import { cunningDiversionDodgeActionKey } from "../feats/runtime/constants";
+import { cunningDiversionResource } from "../feats/runtime/resourceManagement";
 
 export type CharacterCombatSummaryActions = {
   roundTracker: ReturnType<typeof normalizeRoundTracker>;
@@ -29,15 +32,34 @@ export type CharacterCombatSummaryActions = {
 export function createCombatSummaryActions(character: Character): CharacterCombatSummaryActions {
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const combatActions = getCombatActionsForCharacter(character);
-  const commonActionCards = getCommonActionCards().map((action) =>
-    getExpeditiousRetreatCommonActionForCharacter(
+  const commonActionCards = getCommonActionCards().map((action) => {
+    const transformedAction = getExpeditiousRetreatCommonActionForCharacter(
       character,
       transformSpeciesCommonActionForCharacter(
         character,
         transformCommonActionForCharacter(character, action)
       )
-    )
-  );
+    );
+    if (action.key !== cunningDiversionDodgeActionKey) return transformedAction;
+
+    const total = cunningDiversionResource.total(character);
+    if (total === 0) return transformedAction;
+
+    const remaining = cunningDiversionResource.remaining(character);
+    return {
+      ...transformedAction,
+      cardUsage: createChargesCardUsage(remaining, total),
+      headerTags: [
+        ...(transformedAction.headerTags ?? []),
+        createChargesHeaderTag(
+          remaining,
+          total,
+          cunningDiversionResource.label,
+          cunningDiversionResource
+        )
+      ]
+    };
+  });
   const commonActions = commonActionCards.map((action) => createCommonActionDefinition(action));
   const selectableActions = [...combatActions, ...commonActions];
   const customWeaponEntriesById = new Map(

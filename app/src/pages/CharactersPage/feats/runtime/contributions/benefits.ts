@@ -1,7 +1,28 @@
 import { singleAbilityChoices, type SingleAbilityFeat } from "../../singleAbilityChoices";
 import type { FeatContributionContext } from "./types";
+import { helpfulPremonitionReactionId } from "../arcaneOmens";
+import {
+  appendPowerSurgeSpellDescription,
+  isPowerSurgeSpell,
+  powerSurgeEffectId,
+  powerSurgeResource
+} from "../arcaneOverload";
+import { getFeatLabel } from "../../catalog";
+import {
+  appendArcaneSafeguardSpellDescription,
+  arcaneSafeguardResistanceBonusActionId,
+  arcaneSafeguardResistanceCastEffect,
+  arcaneSafeguardResistancePath
+} from "../arcaneSafeguard";
+import { smoothTalkerSkillBonus } from "../arcaneEloquence";
+import {
+  appendInspiringMagicSpellDescription,
+  inspiringMagicEffectId,
+  inspiringMagicResource,
+  isInspiringMagicSpell
+} from "../arcaneArtist";
 
-import { FEATS } from "../../../../../codex/entries/enums";
+import { FEATS, REACTION } from "../../../../../codex/entries/enums";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -62,6 +83,57 @@ function singleAbilityBonusBuilder(feat: SingleAbilityFeat): FeatContributionBui
 }
 
 export const benefitsBuilders: FeatContributionBuilders = {
+  [FEATS.ARCANE_OMENS]: ({ contribution, getFeatDescription }) => {
+    contribution.reactions!.push({
+      id: helpfulPremonitionReactionId,
+      reaction: REACTION.HELPFUL_PREMONITION,
+      name: "Helpful Premonition",
+      sourceType: "feat",
+      sourceLabel: getFeatLabel(FEATS.ARCANE_OMENS),
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.ARCANE_OMENS),
+        (entry) => entry.startsWith("<strong>Helpful Premonition.</strong>")
+      )
+    });
+    return true;
+  },
+  [FEATS.ARCANE_OVERLOAD]: ({ contribution }) => {
+    contribution.spellTransforms!.push({
+      id: powerSurgeEffectId,
+      transform: appendPowerSurgeSpellDescription
+    });
+    contribution.spellCastEffects!.push({
+      id: powerSurgeEffectId,
+      apply: (character, { spell }) =>
+        isPowerSurgeSpell(spell) ? powerSurgeResource.spendOne(character) : character
+    });
+    return true;
+  },
+  [FEATS.ARCANE_SAFEGUARD]: ({ contribution }) => {
+    contribution.spellTransforms!.push({
+      id: arcaneSafeguardResistanceBonusActionId,
+      transform: appendArcaneSafeguardSpellDescription
+    });
+    contribution.spellActionPaths!.push(arcaneSafeguardResistancePath);
+    contribution.spellCastEffects!.push(arcaneSafeguardResistanceCastEffect);
+    return true;
+  },
+  [FEATS.ARCANE_ELOQUENCE]: ({ contribution }) => {
+    contribution.skillBonuses!.push(smoothTalkerSkillBonus);
+    return true;
+  },
+  [FEATS.ARCANE_ARTIST]: ({ contribution }) => {
+    contribution.spellTransforms!.push({
+      id: inspiringMagicEffectId,
+      transform: appendInspiringMagicSpellDescription
+    });
+    contribution.spellCastEffects!.push({
+      id: inspiringMagicEffectId,
+      apply: (character, { spell }) =>
+        isInspiringMagicSpell(spell) ? inspiringMagicResource.spendOne(character) : character
+    });
+    return true;
+  },
   [FEATS.ABILITY_SCORE_IMPROVEMENT]: ({ entry, index, contribution }) => {
     if (!entry.abilityScoreImprovement) return false;
     const abilityScoreBonuses = contribution.abilityScoreBonuses!;

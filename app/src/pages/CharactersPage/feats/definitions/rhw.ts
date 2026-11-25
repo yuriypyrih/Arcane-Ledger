@@ -1,7 +1,7 @@
 import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries/enums";
 import type { FeatDefinition } from "../types";
 
-// Ravenloft: The Horrors Within. All benefits remain reference-only.
+// Ravenloft: The Horrors Within.
 export const rhwFeatDefinitions: FeatDefinition[] = [
   {
     feat: FEATS.ABERRANT_ANATOMY,
@@ -12,7 +12,9 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "Perception Expertise and Blindsight are tracked. Breathless and Warping Flesh are resolved at the table.",
     description: [
       "Alien influence has reshaped your body.",
       "<strong>Breathless.</strong> You can hold your breath for up to 1 hour.",

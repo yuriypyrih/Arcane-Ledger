@@ -191,12 +191,12 @@ function getResolvedCustomTraitFormulaEntries(
 export function getSpellSaveFormulaCell(
   spell: Pick<
     SpellEntry,
-    "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+    "isAttackSpell" | "isSavingThrowSpell" | "usesSpellSaveDc" | "savingThrowAbility" | "spellLists"
   >,
   character?: Character | null,
   spellcastingAbilityOverride?: AbilityKey | null
 ): SpellFormulaCell | null {
-  if (spell.isSavingThrowSpell !== true) {
+  if (spell.isSavingThrowSpell !== true && spell.usesSpellSaveDc !== true) {
     return null;
   }
 
@@ -250,7 +250,7 @@ export function getSpellSaveFormulaCell(
 export function getSpellFormulaCellsForCharacter(
   spell: Pick<
     SpellEntry,
-    "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+    "isAttackSpell" | "isSavingThrowSpell" | "usesSpellSaveDc" | "savingThrowAbility" | "spellLists"
   >,
   character?: Character | null,
   spellcastingAbilityOverride?: AbilityKey | null
@@ -264,7 +264,12 @@ export function getSpellFormulaCellsForCharacter(
 export function getSpellFormulaCellsForCharacterSpell(
   spell: Pick<
     SpellEntry,
-    "id" | "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+    | "id"
+    | "isAttackSpell"
+    | "isSavingThrowSpell"
+    | "usesSpellSaveDc"
+    | "savingThrowAbility"
+    | "spellLists"
   >,
   character: Character
 ): SpellFormulaCell[] {
