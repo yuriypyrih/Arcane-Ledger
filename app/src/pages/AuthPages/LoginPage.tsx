@@ -1,6 +1,6 @@
 import { LogIn, MailCheck } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, resendEmailVerification } from "../../api/auth";
 import { markAuthSessionActive } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
@@ -13,11 +13,14 @@ import {
   useAppSelector
 } from "../../store";
 import { getApiErrorCode, getApiErrorMessage } from "./authPageUtils";
+import GoogleSignInButton from "./GoogleSignInButton";
+import { getGoogleSignInErrorMessage } from "./googleSignIn";
 import styles from "./AuthPages.module.css";
 
 function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { error, loading } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,9 +28,15 @@ function LoginPage() {
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
 
+  const [googleError] = useState(() => searchParams.get("error"));
+
   useEffect(() => {
-    dispatch(setAuthError(null));
-  }, [dispatch]);
+    dispatch(setAuthError(googleError ? getGoogleSignInErrorMessage(googleError) : null));
+
+    if (googleError) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [dispatch, googleError, setSearchParams]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -119,6 +128,8 @@ function LoginPage() {
             ) : null}
           </div>
         </form>
+
+        <GoogleSignInButton />
 
         <div className={styles.linkRow}>
           <Link className={styles.link} to="/register">

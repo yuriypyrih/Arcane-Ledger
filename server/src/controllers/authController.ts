@@ -241,7 +241,7 @@ export const login = asyncHandler(async (request: Request, response: Response<Au
     active: true
   }).select("+passwordHash");
 
-  if (!user || !(await argon2.verify(user.passwordHash, password))) {
+  if (!user || !user.passwordHash || !(await argon2.verify(user.passwordHash, password))) {
     throw new AppError("Incorrect email or password.", 401, "INVALID_CREDENTIALS");
   }
 
@@ -412,7 +412,7 @@ export const changePassword = asyncHandler(
       active: true
     }).select("+passwordHash");
 
-    if (!user || !(await argon2.verify(user.passwordHash, currentPassword))) {
+    if (!user || !user.passwordHash || !(await argon2.verify(user.passwordHash, currentPassword))) {
       throw new AppError("Current password is incorrect.", 401, "INVALID_CREDENTIALS");
     }
 

@@ -13,7 +13,8 @@ export type UserRecord = {
   email: string;
   nickname: string;
   role: UserRole;
-  passwordHash: string;
+  passwordHash?: string;
+  googleSubject?: string;
   emailVerifiedAt?: Date | null;
   emailVerificationTokenHash?: string;
   emailVerificationTokenExpiresAt?: Date;
@@ -89,7 +90,12 @@ const userSchema = new Schema<UserRecord>(
     },
     passwordHash: {
       type: String,
-      required: true,
+      select: false
+    },
+    googleSubject: {
+      type: String,
+      unique: true,
+      sparse: true,
       select: false
     },
     emailVerifiedAt: {
