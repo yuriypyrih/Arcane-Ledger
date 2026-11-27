@@ -1,5 +1,6 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
+import CreatureDefensesEditor from "./CreatureDefensesEditor";
 import CreatureImageUrlField from "./CreatureImageUrlField";
 import CreatureResistanceVisibilityToggle from "./CreatureResistanceVisibilityToggle";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
@@ -517,6 +518,17 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
                 );
               }
             }}
+          />
+        ) : null}
+        {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
+          <CreatureDefensesEditor
+            key={JSON.stringify(
+              participant.creature.inheritedCreatureEntry?.resistances_and_immunities ?? null
+            )}
+            creature={participant.creature as EncounterTemplateCreatureRecord}
+            onUpdate={(update) =>
+              handleUpdateCreature(participant.creatureId ?? participant.creature.id, update)
+            }
           />
         ) : null}
         {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
