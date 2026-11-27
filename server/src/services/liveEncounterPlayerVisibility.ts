@@ -78,12 +78,10 @@ export function resolveLiveEncounterCreaturePlayerVisibilitySettings(options: {
 }): PlayerVisibilitySettingsRecord {
   return {
     ...DEFAULT_PLAYER_VISIBILITY_SETTINGS,
-    ...(
-      normalizeVisibilitySettings(options.creatureVisibilitySettings) ??
+    ...(normalizeVisibilitySettings(options.creatureVisibilitySettings) ??
       normalizeVisibilitySettings(options.encounterVisibilitySettings) ??
       normalizeVisibilitySettings(options.campaignVisibilitySettings) ??
-      DEFAULT_PLAYER_VISIBILITY_SETTINGS
-    )
+      DEFAULT_PLAYER_VISIBILITY_SETTINGS)
   };
 }
 
@@ -283,6 +281,11 @@ export function createPlayerVisibleLiveEncounterCreature(
 
   if (settings.showMonsterType && creature.type) {
     visibleCreature.type = creature.type;
+  }
+
+  // The picture identifies the creature just like its type, so it follows the same visibility.
+  if (settings.showMonsterType && creature.imageUrl) {
+    visibleCreature.imageUrl = creature.imageUrl;
   }
 
   if (settings.showDmDescription && creature.description) {

@@ -13,6 +13,7 @@ import {
   removeCampaignSessionNoteById,
   startCampaignLiveEncounterById,
   updateCampaign,
+  turnCampaignLiveEncounterById,
   updateCampaignLiveEncounterById,
   updateCampaignParty,
   updateCampaignPreparedEncounterById,
@@ -34,6 +35,7 @@ campaignRoutes.patch("/:campaignId/visibility-settings", requireAuth, updateCamp
 campaignRoutes.patch("/:campaignId/selected-party", requireAuth, updateCampaignParty);
 campaignRoutes.post("/:campaignId/live-encounter", requireAuth, startCampaignLiveEncounterById);
 campaignRoutes.patch("/:campaignId/live-encounter", requireAuth, updateCampaignLiveEncounterById);
+campaignRoutes.post("/:campaignId/live-encounter/turn", requireAuth, turnCampaignLiveEncounterById);
 campaignRoutes.delete("/:campaignId/live-encounter", requireAuth, removeCampaignLiveEncounterById);
 campaignRoutes.post("/:campaignId/session-notes", requireAuth, createCampaignSessionNoteById);
 campaignRoutes.put(

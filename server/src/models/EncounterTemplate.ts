@@ -14,6 +14,8 @@ export type EncounterTemplateCreatureRecord = {
   duration: Record<string, unknown>;
   inheritedCreatureEntry?: Record<string, unknown>;
   inheritedCreatureEntryModified?: boolean;
+  /** GM-supplied https picture shown on trackers; players only see it when the creature's type is visible. */
+  imageUrl?: string;
 };
 
 export type EncounterTemplateRecord = {
@@ -83,6 +85,11 @@ export const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreat
     },
     inheritedCreatureEntryModified: {
       type: Boolean
+    },
+    imageUrl: {
+      type: String,
+      trim: true,
+      maxlength: 500
     }
   },
   {

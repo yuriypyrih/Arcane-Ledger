@@ -1,9 +1,8 @@
+import { stepForward } from "./liveEncounterTurnLogic.js";
+import { publishCampaignEvent } from "./campaignEventBus.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
-import {
-  Campaign,
-  type CampaignLiveEncounterParticipantRefRecord
-} from "../models/Campaign.js";
+import { Campaign, type CampaignLiveEncounterParticipantRefRecord } from "../models/Campaign.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
 import {
   createReconciledCampaignLiveEncounterTrackerSnapshot,
@@ -78,9 +77,8 @@ function createTurnInitiativeOrder(options: {
 
   return options.rawInitiativeOrder
     .map((participant) => canonicalParticipantById.get(participant.participantId))
-    .filter(
-      (participant): participant is CampaignLiveEncounterParticipantRefRecord =>
-        Boolean(participant)
+    .filter((participant): participant is CampaignLiveEncounterParticipantRefRecord =>
+      Boolean(participant)
     );
 }
 
@@ -158,18 +156,15 @@ function createPartyMemberTurnState(options: {
     return null;
   }
 
-  const isLastParticipant = participantIndex === options.initiativeOrder.length - 1;
-  const nextParticipantIndex = isLastParticipant ? 0 : participantIndex + 1;
-  const nextParticipant = options.initiativeOrder[nextParticipantIndex];
+  const next = stepForward({
+    activeParticipantId: characterParticipantId,
+    initiativeOrder: options.initiativeOrder,
+    roundNumber: options.roundNumber
+  });
 
-  if (!nextParticipant) {
-    return null;
-  }
-
-  return {
-    activeParticipantId: nextParticipant.participantId,
-    roundNumber: isLastParticipant ? options.roundNumber + 1 : options.roundNumber
-  };
+  return next.activeParticipantId
+    ? { activeParticipantId: next.activeParticipantId, roundNumber: next.roundNumber }
+    : null;
 }
 
 function findLatestPartyLiveEncounterCampaign(partyGroupObjectId: Types.ObjectId) {
@@ -227,7 +222,8 @@ export async function updateMemberVisibleCampaignLiveEncounterTrackerTurn(option
       if (error instanceof AppError) {
         return {
           partyGroupId: options.partyGroupId,
-          liveEncounterTracker: await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(campaign),
+          liveEncounterTracker:
+            await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(campaign),
           turnUpdated: false
         };
       }
@@ -254,7 +250,8 @@ export async function updateMemberVisibleCampaignLiveEncounterTrackerTurn(option
     if (!nextTurnState) {
       return {
         partyGroupId: options.partyGroupId,
-        liveEncounterTracker: await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(campaign),
+        liveEncounterTracker:
+          await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(campaign),
         turnUpdated: false
       };
     }
@@ -291,6 +288,12 @@ export async function updateMemberVisibleCampaignLiveEncounterTrackerTurn(option
     if (!updatedCampaign?.liveEncounterTracker) {
       continue;
     }
+
+    publishCampaignEvent({
+      type: "live-encounter.updated",
+      campaignId: updatedCampaign.id as string,
+      revision: updatedCampaign.liveEncounterTracker.revision
+    });
 
     return {
       partyGroupId: options.partyGroupId,

@@ -16,6 +16,7 @@ import {
   removePartyGroupCharacterById,
   resetPartyGroupInviteToken,
   updatePartyGroupMasterChestContent,
+  updatePartyGroupLiveEncounterInitiative,
   updatePartyGroupLiveEncounterTurn,
   updatePartyGroup
 } from "../controllers/partyGroupController.js";
@@ -23,7 +24,11 @@ import { requireAuth } from "../middleware/authMiddleware.js";
 
 const partyGroupRoutes = Router();
 
-partyGroupRoutes.get("/:partyGroupId/characters/:characterSheetId", requireAuth, inspectPartyCharacter);
+partyGroupRoutes.get(
+  "/:partyGroupId/characters/:characterSheetId",
+  requireAuth,
+  inspectPartyCharacter
+);
 
 partyGroupRoutes.get("/", requireAuth, listPartyGroups);
 partyGroupRoutes.post("/", requireAuth, createPartyGroup);
@@ -37,6 +42,11 @@ partyGroupRoutes.patch(
   "/:partyGroupId/live-encounter/turn",
   requireAuth,
   updatePartyGroupLiveEncounterTurn
+);
+partyGroupRoutes.patch(
+  "/:partyGroupId/live-encounter/initiative",
+  requireAuth,
+  updatePartyGroupLiveEncounterInitiative
 );
 partyGroupRoutes.get("/:partyGroupId/inventories", requireAuth, getPartyGroupInventoryContent);
 partyGroupRoutes.get("/:partyGroupId/master-chest", requireAuth, getPartyGroupMasterChestContent);

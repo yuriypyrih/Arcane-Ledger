@@ -224,6 +224,39 @@ export function normalizeEncounterTemplateName(value: unknown) {
   return name;
 }
 
+/** Picture links must be plain https URLs: no embedded credentials, no other schemes. */
+function normalizeCreatureImageUrl(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  const invalid = () =>
+    new AppError(
+      "Picture link must be a valid https:// URL.",
+      400,
+      "INVALID_ENCOUNTER_TEMPLATE_CREATURE",
+      { field: "imageUrl" }
+    );
+
+  if (typeof value !== "string" || value.trim().length > 500) {
+    throw invalid();
+  }
+
+  let url: URL;
+
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw invalid();
+  }
+
+  if (url.protocol !== "https:" || url.username || url.password) {
+    throw invalid();
+  }
+
+  return url.toString();
+}
+
 export function normalizeEncounterTemplateCreature(
   creatureId: string,
   value: unknown
@@ -259,6 +292,7 @@ export function normalizeEncounterTemplateCreature(
     "temporaryHitPointsSource"
   );
   const primalBeastKind = normalizePrimalBeastKind(value.primalBeastKind);
+  const imageUrl = normalizeCreatureImageUrl(value.imageUrl);
 
   if (!duration) {
     throw new AppError("duration is required.", 400, "INVALID_ENCOUNTER_TEMPLATE_CREATURE", {
@@ -282,6 +316,7 @@ export function normalizeEncounterTemplateCreature(
     ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
     ...(deathSaves ? { deathSaves } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
+    ...(imageUrl ? { imageUrl } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
     ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
       ? { inheritedCreatureEntryModified: true }

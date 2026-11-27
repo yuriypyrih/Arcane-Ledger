@@ -26,6 +26,7 @@ import {
 import {
   removeCampaignLiveEncounterTracker,
   startCampaignLiveEncounterTracker,
+  applyCampaignLiveEncounterTurn,
   updateCampaignLiveEncounterTracker
 } from "../services/campaignLiveEncounterTrackerService.js";
 
@@ -223,7 +224,8 @@ export const copyEncounterTemplateToCampaignById = asyncHandler(
     response.status(201).json(
       await copyEncounterTemplateToCampaign({
         campaignId: request.params.campaignId ?? "",
-        encounterTemplateId: typeof body.encounterTemplateId === "string" ? body.encounterTemplateId : "",
+        encounterTemplateId:
+          typeof body.encounterTemplateId === "string" ? body.encounterTemplateId : "",
         ownerId: response.locals.authUser._id
       })
     );
@@ -306,6 +308,20 @@ export const removeCampaignPreparedEncounterCreatureById = asyncHandler(
         creatureId: request.params.creatureId ?? "",
         ownerId: response.locals.authUser._id,
         preparedEncounterId: request.params.preparedEncounterId ?? ""
+      })
+    );
+  }
+);
+
+export const turnCampaignLiveEncounterById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    assertObjectBody(request.body);
+
+    response.json(
+      await applyCampaignLiveEncounterTurn({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id,
+        payload: request.body
       })
     );
   }
