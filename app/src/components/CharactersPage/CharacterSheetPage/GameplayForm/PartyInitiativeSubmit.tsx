@@ -31,8 +31,16 @@ function PartyInitiativeSubmit({
     (participant) => participant.kind === "party-member" && participant.characterId === characterId
   );
 
-  if (!member || (member.initiative !== null && member.initiative !== undefined)) {
+  if (!member) {
     return null;
+  }
+
+  if (member.initiative !== null && member.initiative !== undefined) {
+    return member.pendingInitiative !== null && member.pendingInitiative !== undefined ? (
+      <p className={styles.label}>
+        {`Your re-roll (${member.pendingInitiative}) is waiting for the GM to approve.`}
+      </p>
+    ) : null;
   }
 
   async function handleSubmit(event: FormEvent) {

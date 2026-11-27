@@ -294,9 +294,7 @@ export function updatePartyGroupLiveEncounterInitiative(
   payload: { characterId: string; initiative: number },
   options?: ApiRequestOptions
 ) {
-  return apiPatch<PartyGroupLiveEncounterEnvelope & { initiativeUpdated: boolean }>(
-    `/party-groups/${partyGroupId}/live-encounter/initiative`,
-    payload,
-    options
-  );
+  return apiPatch<
+    PartyGroupLiveEncounterEnvelope & { initiativeUpdated: boolean; requested: boolean }
+  >(`/party-groups/${partyGroupId}/live-encounter/initiative`, payload, options);
 }

@@ -1,3 +1,5 @@
+import { getPartyGroupLiveEncounter } from "../../../../api/partyGroups";
+import { useAppSelector } from "../../../../store";
 import {
   getClassLevel,
   getClassSubclassId
@@ -42,6 +44,7 @@ import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
 import StatReferenceDrawer, { type SelectedStatReference } from "./StatReferenceDrawer";
 import { applyInitiativeRollCharacterEffects, createInitiativeRollRequest } from "./initiativeRoll";
+import InitiativeRerollModal from "./InitiativeRerollModal";
 import type { CoreStatCard } from "./coreStatModel";
 
 type CoreStatReferenceDrawerResult = {
@@ -58,6 +61,15 @@ export function useCoreStatReferenceDrawer(
     null
   );
   const [isHitDiceManagementOpen, setIsHitDiceManagementOpen] = useState(false);
+  const membership = useAppSelector((state) => {
+    const remoteId = character.storageMetadata?.sync?.remoteId;
+
+    return remoteId ? state.dmTools.membershipsByCharacterId[remoteId] : undefined;
+  });
+  const [rerollPrompt, setRerollPrompt] = useState<{
+    current: number;
+    pending: number | null;
+  } | null>(null);
   const [selectedCoreStatKey, setSelectedCoreStatKey] = useState<string | null>(null);
   const [editingOverride, setEditingOverride] = useState<StatOverrideKey | null>(null);
   const [useUncannyMetabolismOnInitiative, setUseUncannyMetabolismOnInitiative] = useState(false);
@@ -213,6 +225,36 @@ export function useCoreStatReferenceDrawer(
     );
   }
 
+  /** Rolling again while combat already has this character's initiative asks the GM first. */
+  async function requestInitiativeRoll() {
+    if (readOnly) return;
+
+    if (membership) {
+      try {
+        const { liveEncounterTracker } = await getPartyGroupLiveEncounter(membership.partyGroupId, {
+          suppressFailureToast: true
+        });
+        const mine =
+          liveEncounterTracker?.status.state === "valid"
+            ? [...liveEncounterTracker.partyMembers, ...liveEncounterTracker.initiativeOrder].find(
+                (participant) =>
+                  participant.kind === "party-member" &&
+                  participant.characterId === membership.characterId
+              )
+            : undefined;
+
+        if (mine && mine.initiative !== null && mine.initiative !== undefined) {
+          setRerollPrompt({ current: mine.initiative, pending: mine.pendingInitiative ?? null });
+          return;
+        }
+      } catch {
+        // Offline or the tracker is unreachable: roll as usual.
+      }
+    }
+
+    rollInitiative();
+  }
+
   function rollInitiative() {
     if (readOnly) return;
     onPersistCharacter((currentCharacter) => {
@@ -261,6 +303,15 @@ export function useCoreStatReferenceDrawer(
 
   const coreStatReferenceDrawer = (
     <>
+      {rerollPrompt && membership ? (
+        <InitiativeRerollModal
+          character={character}
+          currentInitiative={rerollPrompt.current}
+          membership={membership}
+          pendingInitiative={rerollPrompt.pending}
+          onClose={() => setRerollPrompt(null)}
+        />
+      ) : null}
       {!readOnly && isHitDiceManagementOpen ? (
         <HitDiceManagementModal
           character={character}
@@ -325,7 +376,7 @@ export function useCoreStatReferenceDrawer(
                 onUseTandemFootworkChange={setUseTandemFootworkOnInitiative}
                 isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
                 onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
-                onRollInitiative={rollInitiative}
+                onRollInitiative={() => void requestInitiativeRoll()}
               />
             ) : null
           }
