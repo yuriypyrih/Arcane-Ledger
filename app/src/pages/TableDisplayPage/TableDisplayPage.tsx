@@ -4,12 +4,11 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { CampaignLiveEncounterTrackerRecord } from "../../api/campaigns";
 import { getPartyGroupLiveEncounter } from "../../api/partyGroups";
 import { usePartyEvents } from "../../lib/useCampaignEvents";
-import { AppHeader } from "../../components/AppShell";
+import { SidebarNav } from "../../components/AppShell/SidebarNav/SidebarNav";
 import {
   applyThemeModePreferenceToDocument,
   getThemeModePreference,
-  updateThemeModePreference,
-  type ThemeModePreference
+  PREFERENCES_CHANGED_EVENT
 } from "../../storage/preferences";
 import { useAppSelector } from "../../store";
 import { getDmToolsApiErrorMessage } from "../DmToolsPage/dmToolsApiErrors";
@@ -217,6 +216,10 @@ function PackBox({ cards }: { cards: TableDisplayCard[] }) {
  * Full-screen, read-only view of the live encounter for a projector or a player's second screen.
  * It shows exactly what players are allowed to see and updates live over SSE.
  */
+function ignore() {
+  // The broad layout switch only exists on character sheets.
+}
+
 function TableDisplayPage() {
   const { partyGroupId = "" } = useParams();
   const authStatus = useAppSelector((state) => state.auth.status);
@@ -224,19 +227,10 @@ function TableDisplayPage() {
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeModePreference>(() => getThemeModePreference());
   const [searchParams, setSearchParams] = useSearchParams();
   // The link wins (a shared or popped-out window), then this device's last pick, then the classic grid.
   const viewMode: TableViewMode =
     parseTableViewMode(searchParams.get("view")) ?? readStoredTableViewMode() ?? "classic";
-
-  function toggleThemeMode() {
-    const nextThemeMode: ThemeModePreference = themeMode === "dark" ? "light" : "dark";
-
-    setThemeMode(nextThemeMode);
-    updateThemeModePreference(nextThemeMode);
-    applyThemeModePreferenceToDocument(nextThemeMode);
-  }
 
   function selectViewMode(mode: TableViewMode) {
     storeTableViewMode(mode);
@@ -278,6 +272,16 @@ function TableDisplayPage() {
   }, [authStatus, refresh]);
   usePartyEvents(authStatus === "authenticated" ? partyGroupId : null, refresh);
 
+  // This screen sits outside the app shell, so it applies a theme change from the sidebar itself.
+  useEffect(() => {
+    const syncTheme = () => applyThemeModePreferenceToDocument(getThemeModePreference());
+
+    syncTheme();
+    window.addEventListener(PREFERENCES_CHANGED_EVENT, syncTheme);
+
+    return () => window.removeEventListener(PREFERENCES_CHANGED_EVENT, syncTheme);
+  }, []);
+
   useEffect(() => {
     const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
 
@@ -300,9 +304,13 @@ function TableDisplayPage() {
 
   return (
     <div className={styles.frame} data-fit={viewMode !== "classic" || undefined}>
-      {/* Browser full screen is for the projector, so the app bar steps aside there. */}
+      {/* Browser full screen is for the projector, so the sidebar steps aside there. */}
       {isFullscreen ? null : (
-        <AppHeader flush themeMode={themeMode} onToggleThemeMode={toggleThemeMode} />
+        <SidebarNav
+          broadLayout={false}
+          showBroadLayoutSwitch={false}
+          onToggleBroadLayout={ignore}
+        />
       )}
       <main className={styles.screen} data-fit={viewMode !== "classic" || undefined}>
         <header className={styles.header}>

@@ -89,8 +89,10 @@
   flex: 0 0 auto;
   width: 0.94rem;
   height: 0.94rem;
-  filter: drop-shadow(0 0 1px rgba(255, 255, 246, 0.28))
-    drop-shadow(0 0 4px rgba(88, 181, 255, 0.4)) drop-shadow(0 0 6px rgba(0, 96, 255, 0.18));
+  filter:
+    drop-shadow(0 0 1px rgba(255, 255, 246, 0.28))
+    drop-shadow(0 0 4px rgba(88, 181, 255, 0.4))
+    drop-shadow(0 0 6px rgba(0, 96, 255, 0.18));
   animation: lazyLoadingSpin 850ms linear infinite;
 }
 
@@ -276,7 +278,8 @@ button.syncStatusBadge:focus-visible {
 
 .navLink:hover svg,
 .navButton:hover svg {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 246, 0.32))
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 246, 0.32))
     drop-shadow(0 0 5px rgba(72, 162, 255, 0.36));
 }
 
@@ -325,8 +328,10 @@ button.syncStatusBadge:focus-visible {
 
 .navLinkActive svg,
 .navLink.navLinkActive:hover svg {
-  filter: drop-shadow(0 0 1px rgba(255, 255, 246, 0.28))
-    drop-shadow(0 0 4px rgba(88, 181, 255, 0.4)) drop-shadow(0 0 6px rgba(0, 96, 255, 0.18));
+  filter:
+    drop-shadow(0 0 1px rgba(255, 255, 246, 0.28))
+    drop-shadow(0 0 4px rgba(88, 181, 255, 0.4))
+    drop-shadow(0 0 6px rgba(0, 96, 255, 0.18));
 }
 
 .broadLayoutSwitchActive:hover,

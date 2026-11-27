@@ -21,7 +21,6 @@ import { requestImmediateLiveEncounterTrackerSync } from "../../../liveEncounter
 import { useIsLazyLoading } from "../../../lib/lazyLoadTracker";
 import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
-import SessionNotificationsBell from "../../SessionNotificationsBell";
 import type { LiveEncounterTrackerSaveStatus } from "../../../store";
 import type { CharacterSheetSyncStatus } from "../../../types";
 import type { ThemeModePreference } from "../../../storage/preferences";
@@ -343,7 +342,6 @@ function PrimaryNav({
             </span>
           </button>
         ) : null}
-        {isAuthenticated ? <SessionNotificationsBell /> : null}
         {isAuthenticated ? (
           <div className={styles.accountMenuRoot} ref={accountMenuRef}>
             <button

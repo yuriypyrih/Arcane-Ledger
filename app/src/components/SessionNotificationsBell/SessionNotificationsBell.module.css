@@ -4,6 +4,18 @@
   align-items: center;
 }
 
+.rootBlock {
+  display: block;
+  width: 100%;
+}
+
+.icon {
+  position: relative;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+}
+
 .button {
   position: relative;
   display: inline-flex;
@@ -26,8 +38,8 @@
 
 .badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: -6px;
+  right: -8px;
   min-width: 16px;
   padding: 0 4px;
   border-radius: var(--radius-pill);
@@ -77,4 +89,12 @@
   font: inherit;
   font-size: 0.85rem;
   font-weight: 700;
+}
+
+/* Beside the sidebar: positioned from the button's rectangle when it opens. */
+.popoverSide {
+  position: fixed;
+  top: auto;
+  right: auto;
+  z-index: 60;
 }

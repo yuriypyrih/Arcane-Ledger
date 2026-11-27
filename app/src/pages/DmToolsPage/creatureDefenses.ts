@@ -1,4 +1,3 @@
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
 import { DAMAGE_TYPE } from "../../codex/entries/enums";
 import { CONDITION_NAME } from "../../types/traits";
 
@@ -91,9 +90,12 @@ function referenceNames(references: unknown) {
 }
 
 /** The creature's saved defenses as lowercase entries per field. */
-export function getCreatureDefenseEntries(creature: EncounterTemplateCreatureRecord) {
+export function getCreatureDefenseEntries(creature: {
+  inheritedCreatureEntry?: { resistances_and_immunities?: unknown } | null;
+}) {
   const defenses = creature.inheritedCreatureEntry?.resistances_and_immunities as
     | Record<string, unknown>
+    | null
     | undefined;
 
   return Object.fromEntries(

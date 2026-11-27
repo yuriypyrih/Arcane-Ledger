@@ -1,7 +1,7 @@
 /* Table view: a dark, arcane backdrop with bronze-framed portrait cards (players gold, monsters crimson). */
 .frame {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   min-height: 100vh;
   min-height: 100dvh;
   background: #0a0c11;
@@ -13,7 +13,10 @@
   height: 100dvh;
 }
 
+/* Column 2 even without the sidebar (browser full screen), so the screen never shrinks to its content. */
 .screen {
+  grid-column: 2;
+  min-width: 0;
   --table-bronze: #b8793b;
   --table-gold: #f0c26a;
   --table-ink: #0d1016;
@@ -610,4 +613,14 @@
 .tag[data-tone="condition"] {
   border-color: rgba(120, 190, 150, 0.55);
   background: rgba(50, 110, 80, 0.3);
+}
+
+@media (max-width: 899px) {
+  .frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .screen {
+    grid-column: 1;
+  }
 }

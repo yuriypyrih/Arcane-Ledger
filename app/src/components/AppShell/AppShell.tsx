@@ -12,7 +12,7 @@ import {
 import type { ThemeModePreference } from "../../storage/preferences";
 import { MEDIA_QUERIES } from "../../styles/breakpoints";
 import ToastHost from "../ToastViewport";
-import AppHeader from "./AppHeader";
+import { SidebarNav } from "./SidebarNav/SidebarNav";
 import type { AppShellOutletContext } from "./outletContext";
 import styles from "./AppShell.module.css";
 
@@ -84,13 +84,10 @@ function AppShell() {
 
   return (
     <div className={isBroadLayoutActive ? `${styles.shell} ${styles.shellBroad}` : styles.shell}>
-      <AppHeader
+      <SidebarNav
         broadLayout={broadLayout}
-        characterSheetId={characterSheetLocalId}
         showBroadLayoutSwitch={showBroadLayoutSwitch}
-        themeMode={themeMode}
         onToggleBroadLayout={toggleBroadLayout}
-        onToggleThemeMode={toggleThemeMode}
       />
       <main className={styles.main}>
         <Outlet context={outletContext} />

@@ -2,9 +2,9 @@
   --shell-gutter: var(--space-shell-gutter);
   --shell-content-max-width: 1200px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: auto 1fr;
   min-height: 100dvh;
-  padding: 0 var(--shell-gutter) var(--shell-gutter);
+  padding: 0;
 }
 
 .shellBroad {
@@ -12,40 +12,28 @@
 }
 
 .header {
-  position: relative;
-  z-index: 40;
-  display: block;
-  min-height: 52px;
-  max-height: 64px;
-  margin: 0 calc(var(--shell-gutter, 0px) * -1) var(--space-page-gap);
-  border-bottom: 1px solid rgba(255, 221, 164, 0.18);
-  background:
-    linear-gradient(90deg, rgba(97, 39, 29, 0.34), rgba(166, 84, 42, 0.16), rgba(54, 28, 20, 0)),
-    linear-gradient(180deg, rgba(42, 22, 17, 0.99), rgba(25, 15, 12, 0.99));
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 6px rgba(32, 18, 12, 0.9);
+  display: none;
 }
 
 .headerInner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1200px;
-  min-height: 52px;
-  max-height: 64px;
-  margin: 0 auto;
-  padding: 0 var(--shell-gutter, var(--space-shell-gutter));
-}
-
-.headerFlush {
-  margin: 0;
+  display: none;
 }
 
 .main {
   margin: 0 auto;
   max-width: var(--shell-content-max-width);
   min-height: 0;
+  padding: var(--shell-gutter);
   padding-bottom: var(--space-page-end-padding);
   width: 100%;
+}
+
+@media (max-width: 899px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .main {
+    padding-top: calc(var(--shell-gutter) + 56px + env(safe-area-inset-top, 0px));
+  }
 }
