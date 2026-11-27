@@ -14,9 +14,11 @@ import {
   getOwnedGameSession,
   listGameSessionsForMember,
   listOwnedGameSessions,
+  dismissGameSessionLogReminder,
   getCampaignPlayerStatus,
   getPreviousGameSessionLog,
   listGameSessionsForPlayer,
+  listPendingGameSessionLogs,
   proposeGameSessionReschedule,
   setGameSessionAvailability,
   setGameSessionHidden,
@@ -267,3 +269,15 @@ export const getCampaignStatus = asyncHandler(async (request: Request, response:
     })
   );
 });
+
+export const listPendingSessionLogs = asyncHandler(async (_request: Request, response: Locals) => {
+  response.json({
+    gameSessions: await listPendingGameSessionLogs({ ownerId: response.locals.authUser._id })
+  });
+});
+
+export const dismissSessionLogReminder = asyncHandler(
+  async (request: Request, response: Locals) => {
+    response.json(await dismissGameSessionLogReminder(getSessionOptions(request, response)));
+  }
+);

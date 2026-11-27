@@ -17,6 +17,8 @@ const AVAILABILITY_OPTIONS: { label: string; state: GameSessionAvailabilityState
 ];
 
 type SessionListRowProps = {
+  /** True for the session an email or notification linked to. */
+  isFocused?: boolean;
   myVote: GameSessionAvailabilityState | undefined;
   row: SessionRow;
   onJoin: (row: SessionRow) => void;
@@ -44,6 +46,7 @@ function getStatusLabel(row: SessionRow) {
 
 /** One session: where and when, what state it is in, and what the user can do with it. */
 function SessionListRow({
+  isFocused = false,
   myVote,
   row,
   onJoin,
@@ -55,7 +58,13 @@ function SessionListRow({
   const relative = row.status === "planned" ? formatRelativeDay(row.scheduledAt) : null;
 
   return (
-    <li className={styles.row} data-status={row.status} data-hidden={row.hidden || undefined}>
+    <li
+      id={`session-${row.id}`}
+      className={styles.row}
+      data-status={row.status}
+      data-hidden={row.hidden || undefined}
+      data-focus={isFocused || undefined}
+    >
       <span className={styles.thumb}>
         <ExternalImage
           src={row.campaignImageUrl}

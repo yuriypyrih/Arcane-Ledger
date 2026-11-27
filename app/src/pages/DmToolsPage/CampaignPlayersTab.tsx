@@ -149,7 +149,7 @@ function CampaignPlayersTab({ campaignId, hasParty }: CampaignPlayersTabProps) {
       <DmToolsEmptyState icon={<UserRound size={18} aria-hidden="true" />}>
         {hasParty
           ? "No other players are in this campaign's party yet."
-          : "Pick a party on the Overview tab to see its players here."}
+          : "Pick a party above to see its players here."}
       </DmToolsEmptyState>
     );
   }
@@ -187,7 +187,7 @@ function CampaignPlayersTab({ campaignId, hasParty }: CampaignPlayersTabProps) {
         </h3>
         {sessions.length === 0 ? (
           <p className={styles.muted}>
-            No planned or live sessions. Schedule one on the Overview tab.
+            No planned or live sessions. Schedule one on the Sessions tab.
           </p>
         ) : (
           <ul className={styles.sessions}>

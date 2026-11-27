@@ -1,4 +1,4 @@
-import { Bell, BellOff, EyeOff } from "lucide-react";
+import { Bell, BellOff, EyeOff, NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { setGameSessionHidden } from "../../api/gameSessions";
@@ -8,6 +8,7 @@ import {
   updatePreferences
 } from "../../storage/preferences";
 import PlayerSessionsList, { useUpcomingSessions } from "../PlayerSessionsPanel";
+import { usePendingSessionLogs } from "./usePendingSessionLogs";
 import styles from "./SessionNotificationsBell.module.css";
 
 type SessionNotificationsBellProps = {
@@ -29,6 +30,7 @@ function SessionNotificationsBell({
 }: SessionNotificationsBellProps) {
   const navigate = useNavigate();
   const { attentionCount, refresh, sessions, userId, vote } = useUpcomingSessions();
+  const { dismiss: dismissLog, logs: pendingLogs } = usePendingSessionLogs();
   const [showBadge, setShowBadge] = useState(() => loadPreferences().notificationBadge);
   const [isDismissing, setIsDismissing] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -103,6 +105,7 @@ function SessionNotificationsBell({
     setIsOpen((open) => !open);
   }
 
+  const needsYouCount = attentionCount + pendingLogs.length;
   const defaultLook = !buttonClassName;
   const buttonClasses = [
     defaultLook ? styles.button : buttonClassName,
@@ -123,8 +126,8 @@ function SessionNotificationsBell({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={
-          showBadge && attentionCount > 0
-            ? `Notifications, ${attentionCount} need you`
+          showBadge && needsYouCount > 0
+            ? `Notifications, ${needsYouCount} need you`
             : "Notifications"
         }
         title={label ? undefined : "Notifications"}
@@ -132,8 +135,8 @@ function SessionNotificationsBell({
       >
         <span className={styles.icon}>
           <Bell size={defaultLook ? 16 : 22} aria-hidden="true" />
-          {showBadge && attentionCount > 0 ? (
-            <span className={styles.badge}>{attentionCount}</span>
+          {showBadge && needsYouCount > 0 ? (
+            <span className={styles.badge}>{needsYouCount}</span>
           ) : null}
         </span>
         {label ? <span>{label}</span> : null}
@@ -147,7 +150,41 @@ function SessionNotificationsBell({
           role="dialog"
           aria-label="Notifications"
         >
-          <strong className={styles.title}>Session notifications</strong>
+          <strong className={styles.title}>Notifications</strong>
+          {pendingLogs.length > 0 ? (
+            <ul className={styles.logReminders} aria-label="Session logs to write">
+              {pendingLogs.map((log) => (
+                <li key={log.id} className={styles.logReminder}>
+                  <NotebookPen size={18} aria-hidden="true" />
+                  <div className={styles.logReminderText}>
+                    <strong>{log.title} ended</strong>
+                    <span>Write the log so your players can catch up. {log.campaignName}</span>
+                  </div>
+                  <div className={styles.logActions}>
+                    <button
+                      type="button"
+                      className={styles.logAction}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate(
+                          `/gm-tools/campaign-manager/${log.campaignId}?tab=sessions&session=${log.id}`
+                        );
+                      }}
+                    >
+                      Write log
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quiet}
+                      onClick={() => void dismissLog(log.id)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {sessions.length > 0 ? (
             <PlayerSessionsList
               sessions={sessions}
@@ -155,9 +192,9 @@ function SessionNotificationsBell({
               onNavigate={() => setIsOpen(false)}
               onVote={vote}
             />
-          ) : (
-            <p className={styles.empty}>No upcoming sessions.</p>
-          )}
+          ) : pendingLogs.length === 0 ? (
+            <p className={styles.empty}>Nothing needs you right now.</p>
+          ) : null}
           <div className={styles.actions}>
             <button
               type="button"

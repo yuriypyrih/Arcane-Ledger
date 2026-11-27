@@ -10,7 +10,7 @@ import {
   Tv,
   X
 } from "lucide-react";
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelGameSession,
   createGameSession,
@@ -27,6 +27,7 @@ import {
 import ActionButton from "../../components/ActionButton";
 import { patchSelectedCampaign, useAppDispatch } from "../../store";
 import { useCampaignEvents } from "../../lib/useCampaignEvents";
+import { notifySessionLogReminderChanged } from "../../lib/sessionLogReminder";
 import CampaignSessionDetailsEditor from "./CampaignSessionDetailsEditor";
 import {
   openLiveEncounterTrackerWindow,
@@ -40,6 +41,8 @@ import styles from "./CampaignSessionsSection.module.css";
 type CampaignSessionsSectionProps = {
   campaignId: string;
   className?: string;
+  /** A session to scroll to and open, for example from an email or a notification. */
+  focusSessionId?: string | null;
   hasLiveEncounter: boolean;
   partyGroupId: string | null;
   preparedEncounters: CampaignPreparedEncounterRecord[];
@@ -68,6 +71,7 @@ function countAvailability(session: GameSessionRecord) {
 function CampaignSessionsSection({
   campaignId,
   className,
+  focusSessionId = null,
   hasLiveEncounter,
   partyGroupId,
   preparedEncounters
@@ -96,6 +100,24 @@ function CampaignSessionsSection({
 
   useEffect(refresh, [refresh]);
   useCampaignEvents([campaignId], refresh);
+
+  // Bring a linked session into view once, as soon as the list has it.
+  const scrolledToRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (
+      !focusSessionId ||
+      scrolledToRef.current === focusSessionId ||
+      !sessions.some((session) => session.id === focusSessionId)
+    ) {
+      return;
+    }
+
+    scrolledToRef.current = focusSessionId;
+    document
+      .getElementById(`session-${focusSessionId}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusSessionId, sessions]);
 
   const sessionsByDay = useMemo(() => {
     const byDay = new Map<string, GameSessionRecord[]>();
@@ -273,14 +295,21 @@ function CampaignSessionsSection({
           {visibleSessions.map((session) => {
             const counts = countAvailability(session);
             const isBusy = busyId === session.id;
+            const needsLog = session.status === "ended" && !session.recap;
 
             return (
-              <li key={session.id} className={styles.sessionItem}>
+              <li
+                key={session.id}
+                id={`session-${session.id}`}
+                className={styles.sessionItem}
+                data-focus={session.id === focusSessionId || undefined}
+              >
                 <div>
                   <strong>{session.title}</strong>
                   <span className={styles.status} data-status={session.status}>
                     {session.status}
                   </span>
+                  {needsLog ? <span className={styles.needsLog}>Needs a log</span> : null}
                   <p className={styles.meta}>
                     {formatSessionDate(session.scheduledAt)}
                     {session.status === "planned"
@@ -391,6 +420,8 @@ function CampaignSessionsSection({
                             session.id,
                             async () => {
                               await endGameSession(session.id, { suppressFailureToast: true });
+                              // The bell now reminds the GM to write this session's log.
+                              notifySessionLogReminderChanged();
                               // The server closes the combat hosted by this session.
                               dispatch(
                                 patchSelectedCampaign({
@@ -410,6 +441,7 @@ function CampaignSessionsSection({
                 </div>
                 <CampaignSessionDetailsEditor
                   key={`${session.id}-${session.revision}`}
+                  defaultOpen={needsLog || session.id === focusSessionId}
                   preparedEncounters={preparedEncounters}
                   session={session}
                   onSaved={refresh}

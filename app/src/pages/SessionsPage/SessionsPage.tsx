@@ -1,6 +1,6 @@
 import { CalendarDays, Eye, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { listCampaigns } from "../../api/campaigns";
 import {
   listAllMyGameSessions,
@@ -38,6 +38,8 @@ function storeShowHidden(value: boolean) {
 /** Every session the user plays in or runs, grouped into today, upcoming and past. */
 function SessionsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const focusSessionId = searchParams.get("session");
   const userId = useAppSelector((state) => state.auth.user?.id ?? null);
   const [rows, setRows] = useState<SessionRow[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -131,6 +133,27 @@ function SessionsPage() {
       refresh();
     }
   });
+
+  // A link to a session (from an email or the bell) shows it even if the player had hidden it,
+  // then brings it into view once.
+  const focusedRow = focusSessionId ? rows.find((row) => row.id === focusSessionId) : undefined;
+  const scrolledToRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!focusedRow || scrolledToRef.current === focusedRow.id) {
+      return;
+    }
+
+    if (focusedRow.hidden && !showHidden) {
+      setShowHidden(true);
+      return;
+    }
+
+    scrolledToRef.current = focusedRow.id;
+    document
+      .getElementById(`session-${focusedRow.id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusedRow, showHidden]);
 
   const hiddenCount = rows.filter((row) => row.hidden).length;
   const visibleRows = useMemo(
@@ -229,6 +252,7 @@ function SessionsPage() {
                       <SessionListRow
                         key={`${row.role}-${row.id}`}
                         row={row}
+                        isFocused={row.id === focusSessionId}
                         myVote={row.availability.find((entry) => entry.userId === userId)?.state}
                         onJoin={(target) => navigate(`/characters/${target.characterClientId}`)}
                         onOpenCampaign={(target) =>

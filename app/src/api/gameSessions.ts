@@ -60,7 +60,10 @@ export function listMyUpcomingGameSessions(options?: ApiRequestOptions) {
 
 /** Every session the player can see, past and hidden ones included (flagged). */
 export function listAllMyGameSessions(options?: ApiRequestOptions) {
-  return apiGet<{ gameSessions: PlayerGameSessionRecord[] }>("/game-sessions/mine?scope=all", options);
+  return apiGet<{ gameSessions: PlayerGameSessionRecord[] }>(
+    "/game-sessions/mine?scope=all",
+    options
+  );
 }
 
 export function setGameSessionHidden(
@@ -100,7 +103,10 @@ export function proposeGameSessionReschedule(
 }
 
 export function withdrawGameSessionReschedule(gameSessionId: string, options?: ApiRequestOptions) {
-  return apiDelete<GameSessionEnvelope>(`/game-sessions/${gameSessionId}/propose-reschedule`, options);
+  return apiDelete<GameSessionEnvelope>(
+    `/game-sessions/${gameSessionId}/propose-reschedule`,
+    options
+  );
 }
 
 export type CampaignPlayerStatusPlayer = {
@@ -164,6 +170,27 @@ export function setGameSessionAvailability(
   return apiPut<GameSessionEnvelope>(
     `/game-sessions/${gameSessionId}/availability`,
     { state },
+    options
+  );
+}
+
+export type PendingSessionLog = {
+  id: string;
+  campaignId: string;
+  campaignName: string;
+  title: string;
+  endedAt: string | null;
+};
+
+/** The GM's recently ended sessions that still have no log. */
+export function listPendingSessionLogs(options?: ApiRequestOptions) {
+  return apiGet<{ gameSessions: PendingSessionLog[] }>("/game-sessions/pending-logs", options);
+}
+
+export function dismissSessionLogReminder(gameSessionId: string, options?: ApiRequestOptions) {
+  return apiPost<{ dismissed: boolean }>(
+    `/game-sessions/${gameSessionId}/dismiss-log-reminder`,
+    {},
     options
   );
 }

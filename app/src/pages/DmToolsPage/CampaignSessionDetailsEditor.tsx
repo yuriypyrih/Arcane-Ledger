@@ -1,12 +1,15 @@
 import { type FormEvent, useState } from "react";
 import type { CampaignPreparedEncounterRecord } from "../../api/campaigns";
 import { updateGameSession, type GameSessionRecord } from "../../api/gameSessions";
+import { notifySessionLogReminderChanged } from "../../lib/sessionLogReminder";
 import ActionButton from "../../components/ActionButton";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import dmStyles from "./DmToolsPage.module.css";
 import styles from "./CampaignSessionsSection.module.css";
 
 type CampaignSessionDetailsEditorProps = {
+  /** Open the editor straight away, for a session that needs its log written. */
+  defaultOpen?: boolean;
   preparedEncounters: CampaignPreparedEncounterRecord[];
   session: GameSessionRecord;
   onSaved: () => void;
@@ -15,6 +18,7 @@ type CampaignSessionDetailsEditorProps = {
 const RECAP_MAX_LENGTH = 20000;
 
 function CampaignSessionDetailsEditor({
+  defaultOpen = false,
   preparedEncounters,
   session,
   onSaved
@@ -23,6 +27,7 @@ function CampaignSessionDetailsEditor({
   const [duration, setDuration] = useState(session.durationMinutes?.toString() ?? "");
   const [recap, setRecap] = useState(session.recap);
   const [linkedIds, setLinkedIds] = useState(session.linkedPreparedEncounterIds);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +59,8 @@ function CampaignSessionDetailsEditor({
         { suppressFailureToast: true }
       );
       onSaved();
+      // A log written here clears the bell's reminder to write it.
+      notifySessionLogReminderChanged();
     } catch (saveError) {
       setError(getDmToolsApiErrorMessage(saveError, "Unable to save session details."));
     } finally {
@@ -62,8 +69,12 @@ function CampaignSessionDetailsEditor({
   }
 
   return (
-    <details className={styles.details}>
-      <summary>Details</summary>
+    <details
+      className={styles.details}
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    >
+      <summary>{session.status === "ended" ? "Session log" : "Details"}</summary>
       <form className={styles.detailsForm} onSubmit={(event) => void handleSubmit(event)}>
         {isPlanned ? (
           <>
@@ -96,7 +107,9 @@ function CampaignSessionDetailsEditor({
           </>
         ) : null}
         <label className={styles.field}>
-          Recap
+          {session.status === "ended"
+            ? "What happened (your players can read this)"
+            : "Session log (players can read this after the session)"}
           <textarea
             className={styles.input}
             rows={5}
@@ -107,7 +120,7 @@ function CampaignSessionDetailsEditor({
         </label>
         {error ? <p className={dmStyles.modalError}>{error}</p> : null}
         <ActionButton type="submit" fullWidth={false} size="sm" loading={isSaving}>
-          Save details
+          {session.status === "ended" ? "Save log" : "Save details"}
         </ActionButton>
       </form>
     </details>

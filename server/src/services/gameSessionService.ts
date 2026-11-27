@@ -782,3 +782,55 @@ export async function getCampaignPlayerStatus(options: {
     }))
   };
 }
+
+const PENDING_LOG_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const PENDING_LOG_LIMIT = 10;
+
+/**
+ * The GM's recently ended sessions that still have no log, so the GM can be reminded to write
+ * "last session's notes" for the players. A reminder goes away when the log is written or dismissed.
+ */
+export async function listPendingGameSessionLogs(options: { ownerId: Types.ObjectId }) {
+  const sessions = await GameSession.find({
+    ownerId: options.ownerId,
+    status: "ended",
+    recap: "",
+    logReminderDismissed: { $ne: true },
+    endedAt: { $gte: new Date(Date.now() - PENDING_LOG_WINDOW_MS) }
+  })
+    .sort({ endedAt: -1 })
+    .limit(PENDING_LOG_LIMIT)
+    .select({ campaignId: 1, title: 1, endedAt: 1 })
+    .exec();
+  const campaigns = await Campaign.find({
+    _id: { $in: sessions.map((session) => session.campaignId) }
+  })
+    .select({ name: 1 })
+    .lean()
+    .exec();
+
+  return sessions.map((session) => ({
+    id: session.id as string,
+    campaignId: session.campaignId.toString(),
+    campaignName:
+      campaigns.find((campaign) => campaign._id.equals(session.campaignId))?.name ?? "Campaign",
+    title: session.title,
+    endedAt: toIsoTimestamp(session.endedAt)
+  }));
+}
+
+export async function dismissGameSessionLogReminder(options: {
+  gameSessionId: string;
+  ownerId: Types.ObjectId;
+}) {
+  const session = await findOwnedSession(options);
+
+  if (!session.logReminderDismissed) {
+    await GameSession.updateOne(
+      { _id: session._id },
+      { $set: { logReminderDismissed: true } }
+    ).exec();
+  }
+
+  return { dismissed: true };
+}

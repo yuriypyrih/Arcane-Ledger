@@ -7,6 +7,15 @@ import { captureServerError } from "../sentry.js";
 import { sendAuthEmail } from "./authEmailService.js";
 import { getCampaignPlayerUserIds } from "./campaignMembershipService.js";
 
+/** A link that opens the Sessions page on this session, so the player can review it and answer. */
+function getSessionReviewLink(sessionId: string) {
+  const url = new URL("/sessions", getAppConfig().frontendUrl);
+
+  url.searchParams.set("session", sessionId);
+
+  return url.toString();
+}
+
 function formatInviteDate(date: Date) {
   return (
     date.toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short", timeZone: "UTC" }) +
@@ -69,14 +78,13 @@ export async function sendGameSessionInvites(session: GameSessionDocument) {
   }
 
   const recipients = await findSessionEmailRecipients(campaign, "emailNewSession");
-  const { frontendUrl } = getAppConfig();
   const text = [
     `A new session is scheduled for ${campaign.name}.`,
     "",
     `${session.title}`,
     `When: ${formatInviteDate(scheduledAt)}`,
     "",
-    `Mark whether you can attend: ${frontendUrl}`
+    `Review the session and say whether you can attend: ${getSessionReviewLink(session.id as string)}`
   ].join("\n");
 
   for (const recipient of recipients) {
@@ -127,7 +135,6 @@ export async function sendGameSessionRescheduleEmails(
   }
 
   const recipients = await findSessionEmailRecipients(campaign, "emailReschedule");
-  const { frontendUrl } = getAppConfig();
   const text = [
     `The GM proposed a new time for a ${campaign.name} session.`,
     "",
@@ -136,7 +143,7 @@ export async function sendGameSessionRescheduleEmails(
     `Proposed: ${formatInviteDate(proposal.proposedAt)}`,
     ...(proposal.message ? ["", `Note from the GM: ${proposal.message}`] : []),
     "",
-    `Tell the GM whether you can make it: ${frontendUrl}`
+    `Review the proposal and tell the GM whether you can make it: ${getSessionReviewLink(session.id as string)}`
   ].join("\n");
 
   for (const recipient of recipients) {
