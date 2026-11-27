@@ -22,7 +22,10 @@ import {
   type CampaignLiveEncounterTrackerParticipantRecord,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
 import { ApiRequestFailedError } from "../../api/client";
 import {
   clearLiveEncounterTrackerSaveStatus,
@@ -323,6 +326,17 @@ function CampaignLiveEncounterTrackerPage() {
     [displayTracker, inspectedParticipantId]
   );
 
+  // How many creatures share the inspected creature's type, so the drawer can say it is linked.
+  const inspectedTypeGroupId =
+    inspectedParticipant?.kind === "creature" ? inspectedParticipant.creature.typeGroupId : null;
+  const inspectedTypeSize =
+    inspectedTypeGroupId && tracker?.status.state === "valid"
+      ? [...tracker.creatures, ...tracker.initiativeOrder].filter(
+          (entry) =>
+            entry.kind === "creature" && entry.creature.typeGroupId === inspectedTypeGroupId
+        ).length
+      : 0;
+
   useEffect(() => {
     return () => clearTrackerRefreshCooldown();
   }, [clearTrackerRefreshCooldown]);
@@ -447,7 +461,7 @@ function CampaignLiveEncounterTrackerPage() {
   // overwrite one another with stale hit points.
   function handleUpdateInspectedCreature(
     creatureId: string,
-    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
   ) {
     const run = creatureUpdateQueueRef.current.then(() =>
       applyCreatureUpdate(creatureId, updateCreature)
@@ -498,7 +512,7 @@ function CampaignLiveEncounterTrackerPage() {
 
   async function applyCreatureUpdate(
     creatureId: string,
-    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
   ) {
     const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
     const latestTracker = latestCampaign?.liveEncounterTracker;
@@ -770,6 +784,7 @@ function CampaignLiveEncounterTrackerPage() {
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer
                 participant={inspectedParticipant}
+                linkedCreatureCount={inspectedTypeSize}
                 readOnly={!isGmViewEnabled}
                 onClose={() => setInspectedParticipantId(null)}
                 onSetResistanceVisibility={handleSetResistanceVisibility}

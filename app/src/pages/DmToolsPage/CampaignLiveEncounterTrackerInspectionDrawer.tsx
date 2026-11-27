@@ -1,6 +1,7 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
 import CreatureDefensesEditor from "./CreatureDefensesEditor";
+import CreatureTypeLinkNotice from "./CreatureTypeLinkNotice";
 import CreatureImageUrlField from "./CreatureImageUrlField";
 import CreatureResistanceVisibilityToggle from "./CreatureResistanceVisibilityToggle";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
@@ -22,7 +23,10 @@ import type {
   CampaignLiveEncounterTrackerPartyCompanionRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
 import type { CharacterCompanion } from "../../types";
 import companionStyles from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionsSection.module.css";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
@@ -40,17 +44,19 @@ import {
 } from "../CharactersPage/deathSaves";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
-import { toEncounterCreatureRecord } from "./encounterCreatureUtils";
+import { preserveEncounterExtras, toEncounterCreatureRecord } from "./encounterCreatureUtils";
 import { createEncounterStatBlockRendererModel } from "./liveEncounterTrackerStatBlockAdapter";
 
 type LiveEncounterCreatureUpdate = (
   creatureId: string,
-  update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  update: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
 ) => void | Promise<void>;
 
 type CampaignLiveEncounterTrackerInspectionDrawerProps = {
   participant: CampaignLiveEncounterTrackerParticipantRecord;
   readOnly?: boolean;
+  /** How many creatures share this creature's type (itself included); 0 or 1 means it is on its own. */
+  linkedCreatureCount?: number;
   onClose: () => void;
   onSetResistanceVisibility?: (creatureId: string, show: boolean) => void | Promise<void>;
   onUpdateCreature?: LiveEncounterCreatureUpdate;
@@ -384,11 +390,13 @@ function LiveEncounterHitPointsPanel({
   function updateCreatureWithCompanionHelper(
     update: (creature: CharacterCompanion) => CharacterCompanion
   ) {
-    return updateCreature((currentCreature) => ({
-      ...toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature))),
-      // The companion shape has no picture; keep the GM's link through HP edits.
-      ...(currentCreature.imageUrl ? { imageUrl: currentCreature.imageUrl } : {})
-    }));
+    return updateCreature((currentCreature) =>
+      // The companion shape has no picture or creature type; keep them through HP edits.
+      preserveEncounterExtras(
+        currentCreature,
+        toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature)))
+      )
+    );
   }
 
   return (
@@ -447,6 +455,7 @@ function LiveEncounterHitPointsPanel({
 function CampaignLiveEncounterTrackerInspectionDrawer({
   participant,
   readOnly = true,
+  linkedCreatureCount = 0,
   onClose,
   onSetResistanceVisibility,
   onUpdateCreature
@@ -458,7 +467,7 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
 
   async function handleUpdateCreature(
     creatureId: string,
-    update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+    update: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
   ) {
     if (!onUpdateCreature) {
       return;
@@ -518,6 +527,23 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
                 );
               }
             }}
+          />
+        ) : null}
+        {participant.kind === "creature" &&
+        !readOnly &&
+        onUpdateCreature &&
+        linkedCreatureCount > 1 ? (
+          <CreatureTypeLinkNotice
+            linkedCount={linkedCreatureCount}
+            onMakeIndependent={() =>
+              handleUpdateCreature(
+                participant.creatureId ?? participant.creature.id,
+                (creature) => ({
+                  ...creature,
+                  unlinkFromType: true
+                })
+              )
+            }
           />
         ) : null}
         {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
