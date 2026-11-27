@@ -1,7 +1,6 @@
 .panel {
   display: grid;
   gap: 0.5rem;
-  margin: 0 var(--shell-gutter) var(--space-section-gap);
 }
 
 .item {

@@ -17,7 +17,7 @@
   display: block;
   min-height: 52px;
   max-height: 64px;
-  margin: 0 calc(var(--shell-gutter) * -1) var(--space-page-gap);
+  margin: 0 calc(var(--shell-gutter, 0px) * -1) var(--space-page-gap);
   border-bottom: 1px solid rgba(255, 221, 164, 0.18);
   background:
     linear-gradient(90deg, rgba(97, 39, 29, 0.34), rgba(166, 84, 42, 0.16), rgba(54, 28, 20, 0)),
@@ -35,7 +35,11 @@
   min-height: 52px;
   max-height: 64px;
   margin: 0 auto;
-  padding: 0 var(--shell-gutter);
+  padding: 0 var(--shell-gutter, var(--space-shell-gutter));
+}
+
+.headerFlush {
+  margin: 0;
 }
 
 .main {

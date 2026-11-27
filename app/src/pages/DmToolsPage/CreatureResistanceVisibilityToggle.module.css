@@ -17,3 +17,41 @@
   font-size: 0.78rem;
   font-weight: 400;
 }
+
+.wrapper {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.entries {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+.entryGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+}
+
+.groupLabel {
+  min-width: 100%;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--theme-text-primary);
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.entry input {
+  accent-color: var(--theme-accent);
+}

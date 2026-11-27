@@ -1,13 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  listMyUpcomingGameSessions,
-  setGameSessionAvailability,
-  type GameSessionAvailabilityState,
-  type PlayerGameSessionRecord
-} from "../../api/gameSessions";
-import { useCampaignEvents } from "../../lib/useCampaignEvents";
-import { useAppSelector } from "../../store";
+import type { GameSessionAvailabilityState, PlayerGameSessionRecord } from "../../api/gameSessions";
 import ActionButton from "../ActionButton";
 import styles from "./PlayerSessionsPanel.module.css";
 
@@ -17,45 +9,19 @@ const AVAILABILITY_OPTIONS: { state: GameSessionAvailabilityState; label: string
   { state: "no", label: "No" }
 ];
 
-/** Player-side view of upcoming sessions: vote on availability and join a live session. */
-function PlayerSessionsPanel() {
+type PlayerSessionsListProps = {
+  sessions: PlayerGameSessionRecord[];
+  userId: string | null;
+  onNavigate?: () => void;
+  onVote: (sessionId: string, state: GameSessionAvailabilityState) => void | Promise<void>;
+};
+
+/** Upcoming sessions for a player: vote on availability and join a live session. */
+function PlayerSessionsList({ sessions, userId, onNavigate, onVote }: PlayerSessionsListProps) {
   const navigate = useNavigate();
-  const user = useAppSelector((state) => state.auth.user);
-  const userId = user?.id ?? null;
-  const [sessions, setSessions] = useState<PlayerGameSessionRecord[]>([]);
-
-  const refresh = useCallback(() => {
-    if (!userId) {
-      setSessions([]);
-      return;
-    }
-
-    listMyUpcomingGameSessions({ suppressFailureToast: true })
-      .then(({ gameSessions }) => setSessions(gameSessions))
-      .catch(() => undefined);
-  }, [userId]);
-
-  useEffect(refresh, [refresh]);
-  useCampaignEvents(
-    sessions.map((session) => session.campaignId),
-    refresh
-  );
-
-  async function handleVote(sessionId: string, state: GameSessionAvailabilityState) {
-    try {
-      await setGameSessionAvailability(sessionId, state, { suppressFailureToast: true });
-      refresh();
-    } catch {
-      refresh();
-    }
-  }
-
-  if (!userId || sessions.length === 0) {
-    return null;
-  }
 
   return (
-    <aside className={styles.panel} aria-label="Upcoming game sessions">
+    <div className={styles.panel}>
       {sessions.map((session) => {
         const myVote = session.availability.find((entry) => entry.userId === userId)?.state;
 
@@ -76,7 +42,10 @@ function PlayerSessionsPanel() {
                 fullWidth={false}
                 size="sm"
                 disabled={!session.characterClientId}
-                onClick={() => navigate(`/characters/${session.characterClientId}`)}
+                onClick={() => {
+                  onNavigate?.();
+                  navigate(`/characters/${session.characterClientId}`);
+                }}
               >
                 Join session
               </ActionButton>
@@ -93,7 +62,7 @@ function PlayerSessionsPanel() {
                     fullWidth={false}
                     size="sm"
                     aria-pressed={myVote === option.state}
-                    onClick={() => void handleVote(session.id, option.state)}
+                    onClick={() => void onVote(session.id, option.state)}
                   >
                     {option.label}
                   </ActionButton>
@@ -103,8 +72,8 @@ function PlayerSessionsPanel() {
           </div>
         );
       })}
-    </aside>
+    </div>
   );
 }
 
-export default PlayerSessionsPanel;
+export default PlayerSessionsList;

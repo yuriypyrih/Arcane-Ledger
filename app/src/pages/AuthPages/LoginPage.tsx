@@ -1,6 +1,6 @@
 import { LogIn, MailCheck } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { login, resendEmailVerification } from "../../api/auth";
 import { markAuthSessionActive } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
@@ -21,7 +21,9 @@ function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { error, loading } = useAppSelector((state) => state.auth);
+  const { error, loading, status } = useAppSelector((state) => state.auth);
+  // Set while this page signs the user in, so only an already signed-in visitor is sent away.
+  const justSignedInRef = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [canResendVerification, setCanResendVerification] = useState(false);
@@ -48,6 +50,7 @@ function LoginPage() {
     try {
       const { user } = await login({ email, password }, { suppressFailureToast: true });
       markAuthSessionActive();
+      justSignedInRef.current = true;
       dispatch(setAuthenticatedSession(user));
       navigate("/");
     } catch (error) {
@@ -69,6 +72,10 @@ function LoginPage() {
     } finally {
       setResending(false);
     }
+  }
+
+  if (status === "authenticated" && !justSignedInRef.current) {
+    return <Navigate replace to="/account" />;
   }
 
   return (

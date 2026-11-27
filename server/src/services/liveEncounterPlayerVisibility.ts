@@ -1,6 +1,7 @@
 import type {
   CampaignPreparedEncounterCreatureRecord,
   CampaignPreparedEncounterRecord,
+  PlayerVisibilityFlagsRecord,
   PlayerVisibilitySettingsRecord
 } from "../models/Campaign.js";
 
@@ -23,7 +24,7 @@ const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
 
 const playerVisibilitySettingKeys = Object.keys(
   DEFAULT_PLAYER_VISIBILITY_SETTINGS
-) as (keyof PlayerVisibilitySettingsRecord)[];
+) as (keyof PlayerVisibilityFlagsRecord)[];
 
 export type LiveEncounterCreatureWithEffectiveVisibility =
   CampaignPreparedEncounterCreatureRecord & {
@@ -68,7 +69,66 @@ function normalizeVisibilitySettings(
     settings[key] = typeof value[key] === "boolean" ? value[key] : settings[key];
   });
 
+  if (Array.isArray(value.revealedDefenses)) {
+    settings.revealedDefenses = value.revealedDefenses.filter(
+      (entry): entry is string => typeof entry === "string"
+    );
+  }
+
   return settings;
+}
+
+// Entry ids are `<field>:<lowercased entry>`; the app builds the same ids from the saved text.
+const DEFENSE_FIELDS = [
+  {
+    id: "damageResistances",
+    display: "damage_resistances_display",
+    references: "damage_resistances"
+  },
+  { id: "damageImmunities", display: "damage_immunities_display", references: "damage_immunities" },
+  {
+    id: "damageVulnerabilities",
+    display: "damage_vulnerabilities_display",
+    references: "damage_vulnerabilities"
+  },
+  {
+    id: "conditionImmunities",
+    display: "condition_immunities_display",
+    references: "condition_immunities"
+  }
+] as const;
+
+/** Keeps only the entries the GM revealed; without a reveal list everything stays visible. */
+function filterRevealedDefenses(defenses: unknown, revealed: string[] | undefined) {
+  if (!revealed || !isObjectRecord(defenses)) {
+    return defenses;
+  }
+
+  const next = clonePlainObject(defenses);
+
+  DEFENSE_FIELDS.forEach(({ id, display, references }) => {
+    const isRevealed = (name: string) => revealed.includes(`${id}:${name.trim().toLowerCase()}`);
+    const text = next[display];
+
+    if (typeof text === "string") {
+      const kept = text
+        .split(/[;,]/)
+        .map((entry) => entry.trim())
+        .filter((entry) => entry && isRevealed(entry));
+
+      next[display] = kept.length > 0 ? kept.join(", ") : null;
+    }
+
+    const entries = next[references];
+
+    if (Array.isArray(entries)) {
+      next[references] = entries.filter(
+        (entry) => isObjectRecord(entry) && typeof entry.name === "string" && isRevealed(entry.name)
+      );
+    }
+  });
+
+  return next;
 }
 
 export function resolveLiveEncounterCreaturePlayerVisibilitySettings(options: {
@@ -140,7 +200,14 @@ function createPlayerVisibleMonsterRecord(
   }
 
   if (settings.showResistancesAndImmunities) {
-    copyFields(value, monster, ["resistances_and_immunities"]);
+    const defenses = filterRevealedDefenses(
+      value.resistances_and_immunities,
+      settings.revealedDefenses
+    );
+
+    if (defenses !== undefined) {
+      monster.resistances_and_immunities = defenses;
+    }
   }
 
   if (settings.showSkills) {

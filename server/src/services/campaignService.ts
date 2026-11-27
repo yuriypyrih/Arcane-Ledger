@@ -16,6 +16,7 @@ import {
   type CampaignPreparedEncounterRecord,
   type CampaignRecord,
   type CampaignSessionNoteRecord,
+  type PlayerVisibilityFlagsRecord,
   type PlayerVisibilitySettingsRecord
 } from "../models/Campaign.js";
 import {
@@ -67,7 +68,10 @@ const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
 
 const PLAYER_VISIBILITY_SETTING_KEYS = Object.keys(
   DEFAULT_PLAYER_VISIBILITY_SETTINGS
-) as (keyof PlayerVisibilitySettingsRecord)[];
+) as (keyof PlayerVisibilityFlagsRecord)[];
+
+const MAX_REVEALED_DEFENSES = 100;
+const MAX_REVEALED_DEFENSE_LENGTH = 120;
 
 type DocumentIdSource = {
   _id?: Types.ObjectId | { toString(): string };
@@ -258,6 +262,17 @@ function normalizePlayerVisibilitySettings(
           ? value[key]
           : DEFAULT_PLAYER_VISIBILITY_SETTINGS[key];
   });
+
+  if (Array.isArray(value.revealedDefenses)) {
+    settings.revealedDefenses = value.revealedDefenses
+      .filter(
+        (entry): entry is string =>
+          typeof entry === "string" &&
+          entry.length > 0 &&
+          entry.length <= MAX_REVEALED_DEFENSE_LENGTH
+      )
+      .slice(0, MAX_REVEALED_DEFENSES);
+  }
 
   return settings;
 }

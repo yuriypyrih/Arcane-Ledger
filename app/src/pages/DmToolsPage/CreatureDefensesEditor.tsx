@@ -2,6 +2,13 @@ import { useState } from "react";
 import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
 import ActionButton from "../../components/ActionButton";
 import { createEmptyMonsterRecord } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureStatBlockEditorModel";
+import {
+  DEFENSE_FIELDS,
+  getCreatureDefenseEntries,
+  getDefenseOptions,
+  type DefenseFieldKey
+} from "./creatureDefenses";
+import DefenseEntryPicker from "./DefenseEntryPicker";
 import styles from "./CreatureDefensesEditor.module.css";
 
 type CreatureDefensesEditorProps = {
@@ -11,60 +18,10 @@ type CreatureDefensesEditorProps = {
   ) => void | Promise<void>;
 };
 
-type DefensesDraft = {
-  conditionImmunities: string;
-  damageImmunities: string;
-  damageResistances: string;
-  damageVulnerabilities: string;
-};
+type DefensesDraft = Record<DefenseFieldKey, string[]>;
 
-const FIELDS: { hint: string; key: keyof DefensesDraft; label: string }[] = [
-  { hint: "fire, cold", key: "damageResistances", label: "Resistances" },
-  { hint: "poison", key: "damageImmunities", label: "Damage immunities" },
-  { hint: "radiant", key: "damageVulnerabilities", label: "Vulnerabilities" },
-  {
-    hint: "charmed, frightened",
-    key: "conditionImmunities",
-    label: "Condition (status) immunities"
-  }
-];
-
-function referenceNames(references: unknown) {
-  return Array.isArray(references)
-    ? references
-        .map((entry) =>
-          entry && typeof entry === "object" ? (entry as { name?: unknown }).name : null
-        )
-        .filter((name): name is string => typeof name === "string")
-        .join(", ")
-    : "";
-}
-
-function toText(display: unknown, references: unknown) {
-  return typeof display === "string" && display.trim() ? display : referenceNames(references);
-}
-
-function toDraft(creature: EncounterTemplateCreatureRecord): DefensesDraft {
-  const defenses = creature.inheritedCreatureEntry?.resistances_and_immunities;
-
-  return {
-    conditionImmunities: toText(
-      defenses?.condition_immunities_display,
-      defenses?.condition_immunities
-    ),
-    damageImmunities: toText(defenses?.damage_immunities_display, defenses?.damage_immunities),
-    damageResistances: toText(defenses?.damage_resistances_display, defenses?.damage_resistances),
-    damageVulnerabilities: toText(
-      defenses?.damage_vulnerabilities_display,
-      defenses?.damage_vulnerabilities
-    )
-  };
-}
-
-function optionalText(value: string) {
-  const trimmed = value.trim();
-
-  return trimmed ? trimmed : null;
+function optionalText(entries: string[]) {
+  return entries.length > 0 ? entries.join(", ") : null;
 }
 
 /**
@@ -72,10 +29,10 @@ function optionalText(value: string) {
  * editor, each list is saved as text. A creature without a stat block gets a minimal custom one.
  */
 function CreatureDefensesEditor({ creature, onUpdate }: CreatureDefensesEditorProps) {
-  const saved = toDraft(creature);
+  const saved = getCreatureDefenseEntries(creature);
   const [draft, setDraft] = useState<DefensesDraft>(saved);
   const [isSaving, setIsSaving] = useState(false);
-  const isDirty = FIELDS.some(({ key }) => draft[key] !== saved[key]);
+  const isDirty = DEFENSE_FIELDS.some(({ key }) => draft[key].join(",") !== saved[key].join(","));
 
   async function save() {
     setIsSaving(true);
@@ -113,27 +70,21 @@ function CreatureDefensesEditor({ creature, onUpdate }: CreatureDefensesEditorPr
   }
 
   return (
-    <details className={styles.details} open={FIELDS.some(({ key }) => saved[key])}>
+    <details
+      className={styles.details}
+      open={DEFENSE_FIELDS.some(({ key }) => saved[key].length > 0)}
+    >
       <summary className={styles.summary}>Resistances &amp; immunities</summary>
       <div className={styles.fields}>
-        {FIELDS.map(({ hint, key, label }) => (
-          <label key={key} className={styles.field}>
-            {label}
-            <input
-              className={styles.input}
-              type="text"
-              placeholder={hint}
-              value={draft[key]}
-              maxLength={200}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, [key]: event.target.value }))
-              }
-            />
-          </label>
+        {DEFENSE_FIELDS.map(({ key, kind, label }) => (
+          <DefenseEntryPicker
+            key={key}
+            label={label}
+            options={getDefenseOptions(kind)}
+            selected={draft[key]}
+            onChange={(selected) => setDraft((current) => ({ ...current, [key]: selected }))}
+          />
         ))}
-        <p className={styles.hint}>
-          Separate entries with commas. Leave a field empty to clear it.
-        </p>
         <ActionButton
           fullWidth={false}
           size="sm"

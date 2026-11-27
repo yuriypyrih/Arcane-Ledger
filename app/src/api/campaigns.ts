@@ -28,7 +28,10 @@ export type CampaignVisibilitySettings = {
   showActionsAndReactions: boolean;
 };
 
-export type PlayerVisibilitySettings = CampaignVisibilitySettings;
+export type PlayerVisibilitySettings = CampaignVisibilitySettings & {
+  /** Creature level: resistance/immunity entries players may see (`<field>:<entry>`); unset shows all. */
+  revealedDefenses?: string[];
+};
 
 export type CampaignSelectedPartySummary = {
   id: string;

@@ -6,6 +6,7 @@ import type {
   CampaignLiveEncounterTrackerRecord,
   PlayerVisibilitySettings
 } from "../../api/campaigns";
+import { filterRevealedDefenses } from "./creatureDefenses";
 import { getDeathSaveStatusLabel, normalizeDeathSaveTrack } from "../CharactersPage/deathSaves";
 
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettings = {
@@ -95,6 +96,13 @@ function createPlayerVisibleMonsterRecord(
 
   if (settings.showResistancesAndImmunities) {
     copyFields(source, monster, ["resistances_and_immunities"]);
+
+    if (monster.resistances_and_immunities) {
+      monster.resistances_and_immunities = filterRevealedDefenses(
+        monster.resistances_and_immunities as Record<string, unknown>,
+        settings.revealedDefenses
+      );
+    }
   }
 
   if (settings.showSkills) {

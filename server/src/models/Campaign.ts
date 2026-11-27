@@ -10,7 +10,7 @@ export type CampaignSessionNoteRecord = {
   description: string;
 };
 
-export type PlayerVisibilitySettingsRecord = {
+export type PlayerVisibilityFlagsRecord = {
   showVitalityStatus: boolean;
   showHpBar: boolean;
   showDeathSaves: boolean;
@@ -25,6 +25,11 @@ export type PlayerVisibilitySettingsRecord = {
   showSenses: boolean;
   showLanguages: boolean;
   showActionsAndReactions: boolean;
+};
+
+export type PlayerVisibilitySettingsRecord = PlayerVisibilityFlagsRecord & {
+  /** Creature level: which resistance/immunity entries players may see; unset shows them all. */
+  revealedDefenses?: string[];
 };
 
 export type CampaignVisibilitySettingsRecord = PlayerVisibilitySettingsRecord & {
@@ -214,6 +219,10 @@ const campaignVisibilitySettingsSchema = new Schema<CampaignVisibilitySettingsRe
       type: Boolean,
       default: false,
       required: true
+    },
+    revealedDefenses: {
+      type: [String],
+      default: undefined
     }
   },
   {

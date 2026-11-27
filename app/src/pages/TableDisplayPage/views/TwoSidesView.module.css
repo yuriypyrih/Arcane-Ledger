@@ -1,0 +1,303 @@
+/* Table 2: party and foes face each other; each row is filled to the creature's remaining health. */
+.board {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 0.5vh minmax(0, 1fr);
+  gap: 3vh;
+  min-height: 0;
+  padding-top: 2vh;
+
+  /* --fit (0-1) shrinks a crowded board; essential text never drops below 2vh. */
+  --name-size: max(1.8vh, calc(3.2vh * var(--fit, 1)));
+  --meta-size: max(1.6vh, calc(2.2vh * var(--fit, 1)));
+  --hp-size: max(2.2vh, calc(4.6vh * var(--fit, 1)));
+  --face-size: calc(6.4vh * var(--fit, 1));
+  --badge-size: max(2.6vh, calc(4.4vh * var(--fit, 1)));
+}
+
+.spine {
+  align-self: stretch;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, rgba(184, 121, 59, 0.7) 15% 85%, transparent);
+}
+
+.column {
+  --side: #d9a84e;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.8vh;
+  min-width: 0;
+  min-height: 0;
+}
+
+.column[data-side="monster"] {
+  --side: #c4513f;
+}
+
+.columnTitle {
+  display: flex;
+  align-items: center;
+  gap: 1.4vh;
+  margin: 0;
+  color: var(--side);
+  font-family: var(--table-display);
+  font-size: 3.6vh;
+  font-variant: small-caps;
+  letter-spacing: 0.1em;
+}
+
+.columnTitle svg {
+  width: 3.6vh;
+  height: 3.6vh;
+}
+
+.columnCount {
+  display: grid;
+  place-items: center;
+  min-width: 4vh;
+  height: 4vh;
+  padding: 0 1vh;
+  border: 1px solid var(--side);
+  border-radius: 999px;
+  font-family: var(--table-sans);
+  font-size: 2.2vh;
+  font-weight: 800;
+}
+
+.rows,
+.packRows {
+  display: grid;
+  gap: calc(1.4vh * var(--fit, 1));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rows {
+  flex: 1;
+  grid-auto-rows: minmax(min-content, 12vh);
+  align-content: start;
+  min-height: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--table-muted);
+  font-family: var(--table-sans);
+  font-size: 2.6vh;
+}
+
+.row {
+  --side: #d9a84e;
+  --health: #52c97a;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2vh;
+  min-height: calc(8.4vh * var(--fit, 1));
+  padding: calc(1.1vh * var(--fit, 1)) 2.4vh calc(1.1vh * var(--fit, 1)) 1.4vh;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--side) 45%, transparent);
+  border-radius: 1.6vh;
+  background: rgba(14, 17, 23, 0.94);
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.row[data-side="monster"] {
+  --side: #c4513f;
+}
+
+.rowHealth {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--hp) * 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--health) 22%, transparent),
+    color-mix(in srgb, var(--health) 6%, transparent)
+  );
+  border-bottom: max(0.4vh, calc(0.8vh * var(--fit, 1))) solid var(--health);
+  transition: width 0.5s ease;
+}
+
+.rowHealth[data-tone="hurt"] {
+  --health: #e6c040;
+}
+
+.rowHealth[data-tone="critical"] {
+  --health: #e2553a;
+}
+
+.row > :not(.rowHealth):not(.acting) {
+  position: relative;
+}
+
+.row[data-active] {
+  border-width: 3px;
+  border-color: var(--side);
+  box-shadow:
+    0 0 4vh color-mix(in srgb, var(--side) 55%, transparent),
+    0 1.2vh 3vh rgba(0, 0, 0, 0.6);
+  transform: scale(1.025);
+  z-index: 1;
+}
+
+.row[data-down] {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.order {
+  display: grid;
+  place-items: center;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  border-radius: 50%;
+  background: var(--side);
+  color: #14100a;
+  font-family: var(--table-sans);
+  font-size: calc(var(--badge-size) * 0.55);
+  font-weight: 800;
+}
+
+.face {
+  width: var(--face-size);
+  height: var(--face-size);
+  border: 2px solid var(--side);
+  border-radius: 1.4vh;
+}
+
+.who {
+  display: grid;
+  gap: 0.4vh;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--table-display);
+  font-size: var(--name-size);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2vh 2.2vh;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4vh 2vh;
+  color: #c3c8d4;
+  font-family: var(--table-sans);
+  font-size: var(--meta-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.tags {
+  --tag-size: max(1.5vh, calc(1.9vh * var(--fit, 1)));
+
+  margin-top: 0.4vh;
+}
+
+.hp {
+  font-size: var(--hp-size);
+  text-align: right;
+}
+
+.acting {
+  position: absolute;
+  top: 0;
+  right: 2vh;
+  padding: 0.2vh 1.2vh;
+  border-radius: 0 0 1vh 1vh;
+  background: var(--side);
+  color: #14100a;
+  font-family: var(--table-sans);
+  font-size: 1.7vh;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pack {
+  display: grid;
+  gap: 1.2vh;
+  padding: 1.2vh 1.2vh 1.4vh;
+  border: 2px dashed color-mix(in srgb, var(--side) 65%, transparent);
+  border-radius: 2vh;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pack[data-active] {
+  border-style: solid;
+  box-shadow: 0 0 4vh color-mix(in srgb, var(--side) 45%, transparent);
+}
+
+.packHeader {
+  display: flex;
+  align-items: center;
+  gap: 1.4vh;
+  margin: 0;
+  padding: 0 0.6vh;
+}
+
+.packOrder {
+  display: grid;
+  place-items: center;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  border-radius: 50%;
+  background: var(--side);
+  color: #14100a;
+  font-family: var(--table-sans);
+  font-size: calc(var(--badge-size) * 0.55);
+  font-weight: 800;
+}
+
+.packTitle {
+  font-family: var(--table-display);
+  font-size: var(--name-size);
+}
+
+.packCount {
+  margin-left: auto;
+  color: var(--table-muted);
+  font-family: var(--table-sans);
+  font-size: 2.1vh;
+  font-weight: 700;
+}
+
+.row[data-in-pack] {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: calc(8vh * var(--fit, 1));
+}
+
+.row[data-in-pack] .order {
+  display: none;
+}
+
+.row[data-in-pack] .face {
+  width: calc(var(--face-size) * 0.86);
+  height: calc(var(--face-size) * 0.86);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .rowHealth {
+    transition: none;
+  }
+}

@@ -3,7 +3,10 @@ import { useId, useState } from "react";
 import CreatureDefensesEditor from "./CreatureDefensesEditor";
 import CreatureTypeLinkNotice from "./CreatureTypeLinkNotice";
 import CreatureImageUrlField from "./CreatureImageUrlField";
-import CreatureResistanceVisibilityToggle from "./CreatureResistanceVisibilityToggle";
+import CreatureResistanceVisibilityToggle, {
+  type ResistanceVisibilityChange
+} from "./CreatureResistanceVisibilityToggle";
+import { getCreatureDefenseEntries } from "./creatureDefenses";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer/MonsterEntryRenderer";
@@ -58,7 +61,10 @@ type CampaignLiveEncounterTrackerInspectionDrawerProps = {
   /** How many creatures share this creature's type (itself included); 0 or 1 means it is on its own. */
   linkedCreatureCount?: number;
   onClose: () => void;
-  onSetResistanceVisibility?: (creatureId: string, show: boolean) => void | Promise<void>;
+  onSetResistanceVisibility?: (
+    creatureId: string,
+    change: ResistanceVisibilityChange
+  ) => void | Promise<void>;
   onUpdateCreature?: LiveEncounterCreatureUpdate;
 };
 
@@ -510,16 +516,20 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
         {drawerNotice ? <p className={styles.modalError}>{drawerNotice}</p> : null}
         {participant.kind === "creature" && !readOnly && onSetResistanceVisibility ? (
           <CreatureResistanceVisibilityToggle
+            entries={getCreatureDefenseEntries(participant.creature)}
             isVisible={
               participant.creature.effectivePlayerVisibilitySettings.showResistancesAndImmunities
             }
-            onChange={async (show) => {
+            revealedDefenses={
+              participant.creature.effectivePlayerVisibilitySettings.revealedDefenses
+            }
+            onChange={async (change) => {
               setDrawerNotice(null);
 
               try {
                 await onSetResistanceVisibility(
                   participant.creatureId ?? participant.creature.id,
-                  show
+                  change
                 );
               } catch (visibilityError) {
                 setDrawerNotice(

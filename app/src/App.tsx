@@ -61,6 +61,7 @@ const PartyGroupDetailPage = lazyWithTrackedLoad(
 const PatchNotesPage = lazyWithTrackedLoad(() => import("./pages/PatchNotesPage"));
 const RegisterPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/RegisterPage"));
 const ResetPasswordPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/ResetPasswordPage"));
+const SessionsPage = lazyWithTrackedLoad(() => import("./pages/SessionsPage"));
 const SupportPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/SupportPage"));
 const VerifyEmailPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/VerifyEmailPage"));
 
@@ -138,6 +139,7 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/administration" element={<AdministrationPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/sessions" element={<SessionsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth/google/complete" element={<GoogleSignInCompletePage />} />

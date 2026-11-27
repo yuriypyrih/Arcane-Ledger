@@ -4,13 +4,15 @@ import {
   Eye,
   EyeOff,
   ExternalLink,
+  HeartPulse,
   RefreshCw,
+  RotateCcw,
   ScrollText,
   Swords,
   Tv,
   X
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useHref, useNavigate, useParams } from "react-router-dom";
 import {
   applyCampaignLiveEncounterTurn,
@@ -39,6 +41,7 @@ import {
   useAppSelector
 } from "../../store";
 import ActionButton from "../../components/ActionButton";
+import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { useCampaignEvents } from "../../lib/useCampaignEvents";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
@@ -60,7 +63,13 @@ import {
   openTableDisplayWindow
 } from "./liveEncounterTrackerWindow";
 import { applyDamageToEncounterCreature } from "./encounterCreatureDamage";
+import {
+  getCreaturesNeedingRestore,
+  resetTrackerOrder,
+  restoreCreatureToFullHealth
+} from "./liveEncounterReset";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
+import type { ResistanceVisibilityChange } from "./CreatureResistanceVisibilityToggle";
 
 const trackerRefreshCooldownMs = 5_000;
 
@@ -194,6 +203,9 @@ function CampaignLiveEncounterTrackerPage() {
   const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isTurnBusy, setIsTurnBusy] = useState(false);
+  const [pendingReset, setPendingReset] = useState<"soft" | "hard" | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const resetTitleId = useId();
   const trackerRefreshCooldownRef = useRef<number | null>(null);
   const creatureUpdateQueueRef = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -472,8 +484,11 @@ function CampaignLiveEncounterTrackerPage() {
     return run;
   }
 
-  /** Lets players see (or hide) one creature's resistances and immunities; other settings stay as they are. */
-  async function handleSetResistanceVisibility(creatureId: string, show: boolean) {
+  /** Lets players see (or hide) one creature's resistances and immunities, entry by entry; other settings stay as they are. */
+  async function handleSetResistanceVisibility(
+    creatureId: string,
+    { revealedDefenses, show }: ResistanceVisibilityChange
+  ) {
     const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
     const latestTracker = latestCampaign?.liveEncounterTracker;
     const creature = latestTracker?.creatures
@@ -490,7 +505,8 @@ function CampaignLiveEncounterTrackerPage() {
       creatureId,
       {
         ...creature.creature.effectivePlayerVisibilitySettings,
-        showResistancesAndImmunities: show
+        showResistancesAndImmunities: show,
+        revealedDefenses
       },
       { suppressFailureToast: true }
     );
@@ -618,6 +634,36 @@ function CampaignLiveEncounterTrackerPage() {
     }
   }
 
+  /** Reset sends everyone back to waiting; hard reset also heals monsters (never the players). */
+  async function handleConfirmReset(kind: "soft" | "hard") {
+    if (!tracker || tracker.status.state !== "valid" || isResetting) {
+      return;
+    }
+
+    setActionError(null);
+    setIsResetting(true);
+
+    try {
+      const monstersToRestore = kind === "hard" ? getCreaturesNeedingRestore(tracker) : [];
+
+      handleTrackerChange(resetTrackerOrder(tracker));
+      setInspectedParticipantId(null);
+
+      // Save the new order first; the creature writes below must not race with it.
+      await flushPendingSave();
+
+      for (const creatureId of monstersToRestore) {
+        await handleUpdateInspectedCreature(creatureId, restoreCreatureToFullHealth);
+      }
+
+      setPendingReset(null);
+    } catch (resetError) {
+      setActionError(getDmToolsApiErrorMessage(resetError, "Unable to reset the encounter."));
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
   function handleTrackerChange(nextTracker: CampaignLiveEncounterTrackerRecord) {
     setDraftTracker(nextTracker);
     queueSave(nextTracker);
@@ -694,6 +740,28 @@ function CampaignLiveEncounterTrackerPage() {
               onClick={() => setIsGmViewEnabled((currentValue) => !currentValue)}
             >
               GM View
+            </ActionButton>
+            <ActionButton
+              actionType="WARNING"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!isTrackerValid || !isGmViewEnabled || isResetting}
+              icon={<RotateCcw size={16} aria-hidden="true" />}
+              title="Bring everyone back and clear initiative and the round"
+              onClick={() => setPendingReset("soft")}
+            >
+              Reset
+            </ActionButton>
+            <ActionButton
+              actionType="ERROR"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!isTrackerValid || !isGmViewEnabled || isResetting}
+              icon={<HeartPulse size={16} aria-hidden="true" />}
+              title="Reset, and heal every monster to full. Player hit points are not touched"
+              onClick={() => setPendingReset("hard")}
+            >
+              Hard reset
             </ActionButton>
             <ActionButton
               actionType={isTrackerRefreshCoolingDown ? "SUCCESS" : "INFO"}
@@ -781,6 +849,25 @@ function CampaignLiveEncounterTrackerPage() {
                 void handleTurnAction(action, afterParticipantId)
               }
             />
+            {pendingReset ? (
+              <DestructiveConfirmationModal
+                titleId={resetTitleId}
+                title={pendingReset === "hard" ? "Hard reset encounter?" : "Reset encounter?"}
+                message={
+                  pendingReset === "hard"
+                    ? "Everyone goes back to waiting with no initiative, the round restarts, and every monster returns to full hit points. Player hit points are not changed."
+                    : "Everyone goes back to waiting with no initiative, packs are cleared and the round restarts. Hit points are not changed."
+                }
+                confirmLabel={
+                  isResetting ? "Resetting..." : pendingReset === "hard" ? "Hard reset" : "Reset"
+                }
+                closeLabel="Close reset confirmation"
+                onCancel={() => setPendingReset(null)}
+                onConfirm={() => {
+                  void handleConfirmReset(pendingReset);
+                }}
+              />
+            ) : null}
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer
                 participant={inspectedParticipant}

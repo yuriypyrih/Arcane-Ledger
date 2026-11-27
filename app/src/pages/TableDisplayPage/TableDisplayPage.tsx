@@ -1,14 +1,32 @@
 import { Maximize, Minimize, Shield, Swords } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { CampaignLiveEncounterTrackerRecord } from "../../api/campaigns";
 import { getPartyGroupLiveEncounter } from "../../api/partyGroups";
 import { usePartyEvents } from "../../lib/useCampaignEvents";
+import { AppHeader } from "../../components/AppShell";
+import {
+  applyThemeModePreferenceToDocument,
+  getThemeModePreference,
+  updateThemeModePreference,
+  type ThemeModePreference
+} from "../../storage/preferences";
 import { useAppSelector } from "../../store";
 import { getDmToolsApiErrorMessage } from "../DmToolsPage/dmToolsApiErrors";
 import { normalizeLiveEncounterTracker } from "../DmToolsPage/liveEncounterTrackerUtils";
 import { getHitPointTone, toTableDisplayCards, type TableDisplayCard } from "./tableDisplayModel";
 import styles from "./TableDisplayPage.module.css";
+import ArcaneCircleView from "./views/ArcaneCircleView";
+import BattleLineView from "./views/BattleLineView";
+import SpotlightView from "./views/SpotlightView";
+import TwoSidesView from "./views/TwoSidesView";
+import {
+  TABLE_VIEW_OPTIONS,
+  parseTableViewMode,
+  readStoredTableViewMode,
+  storeTableViewMode,
+  type TableViewMode
+} from "./views/tableViewMode";
 
 function DamageTags({ label, values, tone }: { label: string; tone: string; values: string[] }) {
   if (values.length === 0) {
@@ -120,14 +138,12 @@ function CombatantCard({ card, compact = false }: { card: TableDisplayCard; comp
         ) : null}
       </div>
 
-      {compact ? null : (
-        <div className={styles.tags}>
-          <DamageTags label="Resist" tone="resist" values={card.resistances} />
-          <DamageTags label="Immune" tone="immune" values={card.immunities} />
-          <DamageTags label="Status immune" tone="condition" values={card.conditionImmunities} />
-          <DamageTags label="Vulnerable" tone="vulnerable" values={card.vulnerabilities} />
-        </div>
-      )}
+      <div className={styles.tags}>
+        <DamageTags label="Resist" tone="resist" values={card.resistances} />
+        <DamageTags label="Immune" tone="immune" values={card.immunities} />
+        <DamageTags label="Status immune" tone="condition" values={card.conditionImmunities} />
+        <DamageTags label="Vulnerable" tone="vulnerable" values={card.vulnerabilities} />
+      </div>
     </li>
   );
 }
@@ -208,6 +224,33 @@ function TableDisplayPage() {
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeModePreference>(() => getThemeModePreference());
+  const [searchParams, setSearchParams] = useSearchParams();
+  // The link wins (a shared or popped-out window), then this device's last pick, then the classic grid.
+  const viewMode: TableViewMode =
+    parseTableViewMode(searchParams.get("view")) ?? readStoredTableViewMode() ?? "classic";
+
+  function toggleThemeMode() {
+    const nextThemeMode: ThemeModePreference = themeMode === "dark" ? "light" : "dark";
+
+    setThemeMode(nextThemeMode);
+    updateThemeModePreference(nextThemeMode);
+    applyThemeModePreferenceToDocument(nextThemeMode);
+  }
+
+  function selectViewMode(mode: TableViewMode) {
+    storeTableViewMode(mode);
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        next.set("view", mode);
+
+        return next;
+      },
+      { replace: true }
+    );
+  }
 
   const refresh = useCallback(() => {
     if (!partyGroupId) {
@@ -256,62 +299,90 @@ function TableDisplayPage() {
   const activeCard = cards.find((card) => card.isActive);
 
   return (
-    <main className={styles.screen}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{validTracker?.preparedEncounterName ?? "Table View"}</h1>
-        <div className={styles.headerRight}>
-          <div className={styles.controls}>
-            <button type="button" className={styles.controlButton} onClick={toggleFullscreen}>
-              {isFullscreen ? (
-                <Minimize size={16} aria-hidden="true" />
-              ) : (
-                <Maximize size={16} aria-hidden="true" />
-              )}
-              <span>{isFullscreen ? "Exit full screen" : "Full screen"}</span>
-            </button>
-            <Link className={styles.controlButton} to="/">
-              Leave table view
-            </Link>
-          </div>
-          {validTracker ? (
-            <div className={styles.roundPlaque}>
-              <span className={styles.roundLabel}>Current round</span>
-              <span className={styles.roundNumber}>{validTracker.roundNumber}</span>
-            </div>
-          ) : null}
-        </div>
-      </header>
-
-      <p className={styles.srOnly} role="status" aria-live="polite">
-        {validTracker && activeCard
-          ? `Round ${validTracker.roundNumber}. ${activeCard.name}'s turn.`
-          : ""}
-      </p>
-
-      {authStatus === "guest" ? (
-        <p className={styles.message}>Sign in to view this table.</p>
-      ) : error ? (
-        <p className={styles.message}>{error}</p>
-      ) : !hasLoaded ? (
-        <p className={styles.message}>Gathering the party…</p>
-      ) : !validTracker ? (
-        <p className={styles.message}>
-          No encounter in progress. This screen updates the moment combat begins.
-        </p>
-      ) : cards.length === 0 ? (
-        <p className={styles.message}>Waiting for initiative…</p>
-      ) : (
-        <ol className={styles.cards} aria-label="Initiative order">
-          {toTurnSlots(cards).map((slot) =>
-            slot.type === "single" ? (
-              <CombatantCard key={slot.card.id} card={slot.card} />
-            ) : (
-              <PackBox key={slot.cards.map((card) => card.id).join("+")} cards={slot.cards} />
-            )
-          )}
-        </ol>
+    <div className={styles.frame} data-fit={viewMode !== "classic" || undefined}>
+      {/* Browser full screen is for the projector, so the app bar steps aside there. */}
+      {isFullscreen ? null : (
+        <AppHeader flush themeMode={themeMode} onToggleThemeMode={toggleThemeMode} />
       )}
-    </main>
+      <main className={styles.screen} data-fit={viewMode !== "classic" || undefined}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>{validTracker?.preparedEncounterName ?? "Table View"}</h1>
+          <div className={styles.headerRight}>
+            <div className={styles.controls}>
+              <div className={styles.viewSwitch} role="group" aria-label="Table layout">
+                {TABLE_VIEW_OPTIONS.map((option) => (
+                  <button
+                    key={option.mode}
+                    type="button"
+                    className={styles.viewButton}
+                    aria-pressed={viewMode === option.mode}
+                    title={option.description}
+                    onClick={() => selectViewMode(option.mode)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className={styles.controlButton} onClick={toggleFullscreen}>
+                {isFullscreen ? (
+                  <Minimize size={16} aria-hidden="true" />
+                ) : (
+                  <Maximize size={16} aria-hidden="true" />
+                )}
+                <span>{isFullscreen ? "Exit full screen" : "Full screen"}</span>
+              </button>
+              <Link className={styles.controlButton} to="/">
+                Leave table view
+              </Link>
+            </div>
+            {validTracker ? (
+              <div className={styles.roundPlaque}>
+                <span className={styles.roundLabel}>Current round</span>
+                <span className={styles.roundNumber}>{validTracker.roundNumber}</span>
+              </div>
+            ) : null}
+          </div>
+        </header>
+
+        <p className={styles.srOnly} role="status" aria-live="polite">
+          {validTracker && activeCard
+            ? `Round ${validTracker.roundNumber}. ${activeCard.name}'s turn.`
+            : ""}
+        </p>
+
+        {authStatus === "guest" ? (
+          <p className={styles.message}>Sign in to view this table.</p>
+        ) : error ? (
+          <p className={styles.message}>{error}</p>
+        ) : !hasLoaded ? (
+          <p className={styles.message}>Gathering the party…</p>
+        ) : !validTracker ? (
+          <p className={styles.message}>
+            No encounter in progress. This screen updates the moment combat begins.
+          </p>
+        ) : cards.length === 0 ? (
+          <p className={styles.message}>Waiting for initiative…</p>
+        ) : viewMode === "1" ? (
+          <SpotlightView cards={cards} roundNumber={validTracker.roundNumber} />
+        ) : viewMode === "2" ? (
+          <TwoSidesView cards={cards} roundNumber={validTracker.roundNumber} />
+        ) : viewMode === "3" ? (
+          <ArcaneCircleView cards={cards} roundNumber={validTracker.roundNumber} />
+        ) : viewMode === "4" ? (
+          <BattleLineView cards={cards} roundNumber={validTracker.roundNumber} />
+        ) : (
+          <ol className={styles.cards} aria-label="Initiative order">
+            {toTurnSlots(cards).map((slot) =>
+              slot.type === "single" ? (
+                <CombatantCard key={slot.card.id} card={slot.card} />
+              ) : (
+                <PackBox key={slot.cards.map((card) => card.id).join("+")} cards={slot.cards} />
+              )
+            )}
+          </ol>
+        )}
+      </main>
+    </div>
   );
 }
 
