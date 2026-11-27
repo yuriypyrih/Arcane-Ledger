@@ -14,13 +14,16 @@ import {
   setLiveEncounterTrackerSaveStatus,
   useAppDispatch
 } from "../../store";
+import { ApiRequestFailedError } from "../../api/client";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import {
   toLiveEncounterTrackerUpdateInput,
   withLiveEncounterTrackerRevision
 } from "./liveEncounterTrackerUtils";
 
-const liveEncounterTrackerSaveDebounceMs = 20_000;
+// Short debounce: players follow the GM live over SSE, so edits must reach the server promptly.
+const liveEncounterTrackerSaveDebounceMs = 500;
+const REVISION_CONFLICT_CODE = "LIVE_ENCOUNTER_REVISION_CONFLICT";
 
 type LiveEncounterTrackerSaveResult = {
   hasPendingChanges: boolean;
@@ -29,6 +32,8 @@ type LiveEncounterTrackerSaveResult = {
 
 type UseLiveEncounterTrackerPersistenceOptions = {
   campaignId: string;
+  /** Called after a revision conflict dropped the unsaved edit; reload the authoritative tracker. */
+  onConflict?: () => void;
   onSavedTracker: (
     savedTracker: CampaignLiveEncounterTrackerRecord,
     options: { hasPendingChanges: boolean }
@@ -37,6 +42,7 @@ type UseLiveEncounterTrackerPersistenceOptions = {
 
 export function useLiveEncounterTrackerPersistence({
   campaignId,
+  onConflict,
   onSavedTracker
 }: UseLiveEncounterTrackerPersistenceOptions) {
   const dispatch = useAppDispatch();
@@ -139,6 +145,26 @@ export function useLiveEncounterTrackerPersistence({
 
             return { hasPendingChanges: false, savedTracker: null };
           } catch (saveError) {
+            if (
+              saveError instanceof ApiRequestFailedError &&
+              saveError.code === REVISION_CONFLICT_CODE
+            ) {
+              // Someone else (another tab or a player's turn) changed the encounter first. The stale edit
+              // is dropped rather than overwriting their change.
+              pendingTrackerRef.current = null;
+              dispatch(
+                setLiveEncounterTrackerSaveStatus({
+                  campaignId,
+                  error:
+                    "The encounter was changed elsewhere. Your last edit was not saved; the latest state has been loaded.",
+                  status: "error"
+                })
+              );
+              onConflict?.();
+
+              return { hasPendingChanges: false, savedTracker: null };
+            }
+
             pendingTrackerRef.current = pendingTracker;
             dispatch(
               setLiveEncounterTrackerSaveStatus({
@@ -170,7 +196,7 @@ export function useLiveEncounterTrackerPersistence({
           }
         }
       }
-    }, [campaignId, clearSaveTimeout, dispatch, onSavedTracker]);
+    }, [campaignId, clearSaveTimeout, dispatch, onConflict, onSavedTracker]);
 
   const queueSave = useCallback(
     (tracker: CampaignLiveEncounterTrackerRecord) => {

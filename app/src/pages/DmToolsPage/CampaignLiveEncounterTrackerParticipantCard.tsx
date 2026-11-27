@@ -1,7 +1,15 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import clsx from "clsx";
-import { Fragment, type CSSProperties } from "react";
-import { ArrowRightFromLine, ChessRook, GripVertical, Shield, Undo2 } from "lucide-react";
+import { Fragment, useState, type CSSProperties } from "react";
+import {
+  ArrowRightFromLine,
+  ChessRook,
+  GripVertical,
+  Link2,
+  Shield,
+  Undo2,
+  Unlink
+} from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import CollaborationIcon from "../../assets/svg/collaboration.svg";
@@ -25,6 +33,7 @@ import {
   normalizeDeathSaveTrack,
   type DeathSaveTrackState
 } from "../CharactersPage/deathSaves";
+import { clampInitiative, INITIATIVE_MAX, INITIATIVE_MIN } from "./liveEncounterInitiative";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
 import styles from "./CampaignLiveEncounterTrackerParticipantCard.module.css";
 
@@ -34,6 +43,11 @@ type CampaignLiveEncounterTrackerParticipantCardProps = {
   listKey: LiveEncounterTrackerListKey;
   onInspect: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onSelectActiveParticipant?: (participantId: string) => void;
+  canGroup?: boolean;
+  groupPosition?: "single" | "first" | "middle" | "last";
+  isActiveSlot?: boolean;
+  onChangeInitiative?: (participantId: string, initiative: number | null) => void;
+  onToggleGroup?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onToggleInitiative?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participant: CampaignLiveEncounterTrackerParticipantRecord;
   readOnly?: boolean;
@@ -41,7 +55,9 @@ type CampaignLiveEncounterTrackerParticipantCardProps = {
 
 type CampaignLiveEncounterTrackerReadOnlyParticipantCardProps = {
   activeParticipantId: string | null;
+  groupPosition?: "single" | "first" | "middle" | "last";
   initiativeOrderNumber?: number;
+  isActiveSlot?: boolean;
   onInspect: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participant: CampaignLiveEncounterTrackerParticipantRecord;
 };
@@ -218,8 +234,7 @@ function getCreatureVitalityLabel(
     return creature.vitalityStatusLabel;
   }
 
-  return typeof creature.currentHitPoints === "number" &&
-    typeof creature.maxHitPoints === "number"
+  return typeof creature.currentHitPoints === "number" && typeof creature.maxHitPoints === "number"
     ? getDeathSaveStatusLabel(
         creature.currentHitPoints,
         Math.max(1, creature.maxHitPoints),
@@ -256,9 +271,11 @@ function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerPart
     return <span className={styles.creaturePortraitIcon} style={companionPortraitStyle} />;
   }
 
-  const monsterImage = participant.creature.inheritedCreatureEntry
-    ? getLiveEncounterMonsterImageUrl(participant.creature.inheritedCreatureEntry)
-    : null;
+  const monsterImage =
+    participant.creature.imageUrl ||
+    (participant.creature.inheritedCreatureEntry
+      ? getLiveEncounterMonsterImageUrl(participant.creature.inheritedCreatureEntry)
+      : null);
 
   return monsterImage ? (
     <img src={monsterImage} alt="" className={styles.portraitImage} />
@@ -442,10 +459,7 @@ function NestedCompanionRows({
           >
             <span className={styles.companionBranch} aria-hidden="true" />
             <span className={styles.companionPortrait} aria-hidden="true">
-              <span
-                className={styles.creaturePortraitIcon}
-                style={companionPortraitStyle}
-              />
+              <span className={styles.creaturePortraitIcon} style={companionPortraitStyle} />
             </span>
             <span className={styles.companionRowBody}>
               <span className={styles.titleRow}>
@@ -503,6 +517,63 @@ function ParticipantPortraitControl({
   );
 }
 
+function InitiativeValue({
+  name,
+  onChange,
+  participantId,
+  value
+}: {
+  name: string;
+  onChange?: (participantId: string, initiative: number | null) => void;
+  participantId: string;
+  value: number | null;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+
+  if (!onChange) {
+    return value === null ? null : (
+      <span className={styles.cardInitiativeValue} aria-label={`Initiative ${value}`}>
+        {value}
+      </span>
+    );
+  }
+
+  function commit() {
+    if (draft === null) {
+      return;
+    }
+
+    const parsed = draft.trim() === "" ? null : Number(draft);
+
+    setDraft(null);
+
+    if (parsed === null || Number.isInteger(parsed)) {
+      onChange?.(participantId, parsed === null ? null : clampInitiative(parsed));
+    }
+  }
+
+  return (
+    <input
+      className={styles.cardInitiativeInput}
+      type="number"
+      inputMode="numeric"
+      min={INITIATIVE_MIN}
+      max={INITIATIVE_MAX}
+      step={1}
+      aria-label={`Initiative for ${name}`}
+      placeholder="Init"
+      value={draft ?? (value === null ? "" : String(value))}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
 function ParticipantCardFrame({
   activeParticipantId,
   cardRef,
@@ -511,15 +582,20 @@ function ParticipantCardFrame({
   isDragging = false,
   initiativeOrderNumber,
   listKey,
+  canGroup = false,
+  groupPosition = "single",
+  isActiveSlot,
+  onChangeInitiative,
   onInspect,
   onSelectActiveParticipant,
+  onToggleGroup,
   onToggleInitiative,
   participant,
   readOnly = false
 }: ParticipantCardFrameProps) {
   const isInInitiative = listKey === "initiativeOrder";
   const isActiveParticipant =
-    isInInitiative && activeParticipantId === participant.participantId;
+    isInInitiative && (isActiveSlot ?? activeParticipantId === participant.participantId);
   const isAllyParticipant =
     participant.kind === "party-member" || participant.kind === "party-companion";
   const viewModel = getParticipantViewModel(participant, { readOnly });
@@ -616,17 +692,51 @@ function ParticipantCardFrame({
     <div
       ref={cardRef}
       style={cardStyle}
-      className={clsx(
-        styles.cardNumberedRow,
-        isActiveParticipant && styles.cardNumberedRowActive
-      )}
+      className={clsx(styles.cardNumberedRow, isActiveParticipant && styles.cardNumberedRowActive)}
+      data-pack-position={groupPosition === "single" ? undefined : groupPosition}
     >
-      <span
-        className={styles.cardOrderNumber}
-        aria-label={`Initiative order ${initiativeOrderNumber}`}
-      >
-        {initiativeOrderNumber}
-      </span>
+      <div className={styles.cardOrderColumn}>
+        <span
+          className={styles.cardOrderNumber}
+          aria-label={`Initiative order ${initiativeOrderNumber}`}
+        >
+          {initiativeOrderNumber}
+        </span>
+        <InitiativeValue
+          name={
+            participant.kind === "creature" ? participant.creature.name : participant.summary.name
+          }
+          onChange={onChangeInitiative}
+          participantId={participant.participantId}
+          value={participant.initiative ?? null}
+        />
+        {!readOnly && isInInitiative && participant.kind === "creature" && onToggleGroup ? (
+          <button
+            type="button"
+            className={styles.packButton}
+            disabled={!participant.groupId && !canGroup}
+            aria-label={
+              participant.groupId
+                ? `Take ${viewModel.title} out of its pack`
+                : `Pack ${viewModel.title} with the creature above`
+            }
+            title={
+              participant.groupId
+                ? "Leave pack"
+                : canGroup
+                  ? "Pack with the creature above (one shared turn)"
+                  : "Place another creature above to pack them"
+            }
+            onClick={() => onToggleGroup(participant)}
+          >
+            {participant.groupId ? (
+              <Unlink size={14} aria-hidden="true" />
+            ) : (
+              <Link2 size={14} aria-hidden="true" />
+            )}
+          </button>
+        ) : null}
+      </div>
       {card}
     </div>
   );
@@ -684,14 +794,18 @@ function CampaignLiveEncounterTrackerSortableParticipantCard(
 
 function CampaignLiveEncounterTrackerReadOnlyParticipantCard({
   activeParticipantId,
+  groupPosition,
   initiativeOrderNumber,
+  isActiveSlot,
   onInspect,
   participant
 }: CampaignLiveEncounterTrackerReadOnlyParticipantCardProps) {
   return (
     <ParticipantCardFrame
       activeParticipantId={activeParticipantId}
+      groupPosition={groupPosition}
       initiativeOrderNumber={initiativeOrderNumber}
+      isActiveSlot={isActiveSlot}
       listKey="initiativeOrder"
       onInspect={onInspect}
       participant={participant}

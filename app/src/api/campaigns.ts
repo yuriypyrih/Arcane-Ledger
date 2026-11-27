@@ -77,6 +77,10 @@ export type CampaignLiveEncounterTrackerParticipantRefRecord = {
   characterId?: string;
   companionId?: string;
   creatureId?: string;
+  /** Initiative value; null until rolled or entered. */
+  initiative?: number | null;
+  /** Creatures sharing a group id take one turn together as a pack. */
+  groupId?: string | null;
 };
 
 export type CampaignLiveEncounterTrackerStatusRecord =
@@ -154,6 +158,8 @@ export type CampaignLiveEncounterTrackerRecord = {
   partyMembers: CampaignLiveEncounterTrackerPartyParticipantRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
+  /** True while the last turn action can still be undone. */
+  canUndo?: boolean;
   revision: number;
   createdAt: string | null;
   updatedAt: string | null;
@@ -303,10 +309,7 @@ export function removeCampaignLiveEncounterTracker(
   campaignId: string,
   options?: ApiRequestOptions
 ) {
-  return apiDelete<CampaignPatchEnvelope>(
-    `/campaigns/${campaignId}/live-encounter`,
-    options
-  );
+  return apiDelete<CampaignPatchEnvelope>(`/campaigns/${campaignId}/live-encounter`, options);
 }
 
 export function createCampaignSessionNote(
@@ -441,6 +444,24 @@ export function updateCampaignPreparedEncounterCreatureVisibilitySettings(
   return apiPatch<CampaignPatchEnvelope>(
     `/campaigns/${campaignId}/prepared-encounters/${preparedEncounterId}/creatures/${creatureId}/visibility-settings`,
     visibilitySettings,
+    options
+  );
+}
+
+export type CampaignLiveEncounterTurnAction = "next" | "previous" | "skip" | "delay" | "undo";
+
+export function applyCampaignLiveEncounterTurn(
+  campaignId: string,
+  payload: {
+    action: CampaignLiveEncounterTurnAction;
+    afterParticipantId?: string;
+    revision: number;
+  },
+  options?: ApiRequestOptions
+) {
+  return apiPost<CampaignPatchEnvelope>(
+    `/campaigns/${campaignId}/live-encounter/turn`,
+    payload,
     options
   );
 }

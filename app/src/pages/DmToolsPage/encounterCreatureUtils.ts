@@ -54,7 +54,8 @@ export function toEncounterCreatureRecord(
       : {}),
     ...(normalizedCreature.inheritedCreatureEntryModified
       ? { inheritedCreatureEntryModified: true }
-      : {})
+      : {}),
+    ...("imageUrl" in creature && creature.imageUrl ? { imageUrl: creature.imageUrl } : {})
   };
 }
 

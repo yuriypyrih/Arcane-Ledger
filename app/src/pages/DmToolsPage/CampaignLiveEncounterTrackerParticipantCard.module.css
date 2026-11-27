@@ -1,14 +1,21 @@
 .cardNumberedRow {
   display: grid;
   align-items: stretch;
-  grid-template-columns: 1.35rem minmax(0, 1fr);
+  grid-template-columns: 3.1rem minmax(0, 1fr);
   gap: 0;
   min-width: 0;
 }
 
+.cardOrderColumn {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  padding-right: 0.35rem;
+}
+
 .cardOrderNumber {
-  align-self: center;
-  justify-self: start;
   color: var(--theme-text-muted);
   font-size: 0.8rem;
   font-weight: 800;
@@ -469,4 +476,81 @@ label.portraitControl {
   .ownerLabel {
     padding-top: 0;
   }
+}
+
+.cardInitiativeInput,
+.cardInitiativeValue {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 2.75rem;
+  padding: 0.25rem 0.1rem;
+  border: 1px solid var(--theme-border-medium);
+  border-radius: var(--radius-control);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+  font-weight: 700;
+  text-align: center;
+}
+
+.cardInitiativeValue {
+  border-color: var(--theme-border-subtle);
+}
+
+.cardInitiativeInput:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+}
+
+.packButton {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: 6px;
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.packButton:hover:not(:disabled),
+.packButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
+.packButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.packButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Creatures packed into one turn read as a single bracketed block. */
+.cardNumberedRow[data-pack-position] {
+  position: relative;
+}
+
+.cardNumberedRow[data-pack-position]::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.15rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--theme-accent);
+  content: "";
+  opacity: 0.8;
+}
+
+.cardNumberedRow[data-pack-position="first"]::before {
+  top: 0.3rem;
+}
+
+.cardNumberedRow[data-pack-position="last"]::before {
+  bottom: 0.3rem;
 }

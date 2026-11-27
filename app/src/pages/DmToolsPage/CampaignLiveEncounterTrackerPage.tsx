@@ -3,21 +3,26 @@ import {
   CircleCheck,
   Eye,
   EyeOff,
+  ExternalLink,
   RefreshCw,
   ScrollText,
   Swords,
+  Tv,
   X
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHref, useNavigate, useParams } from "react-router-dom";
 import {
+  applyCampaignLiveEncounterTurn,
   getCampaign,
+  type CampaignLiveEncounterTurnAction,
   removeCampaignLiveEncounterTracker,
   upsertCampaignPreparedEncounterCreature,
   type CampaignLiveEncounterTrackerParticipantRecord,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
 import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import { ApiRequestFailedError } from "../../api/client";
 import {
   clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
@@ -25,10 +30,12 @@ import {
   setSelectedCampaign,
   setSelectedCampaignError,
   setSelectedCampaignLoading,
+  store,
   useAppDispatch,
   useAppSelector
 } from "../../store";
 import ActionButton from "../../components/ActionButton";
+import { useCampaignEvents } from "../../lib/useCampaignEvents";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
 import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
@@ -44,6 +51,10 @@ import {
   withLiveEncounterTrackerRevision
 } from "./liveEncounterTrackerUtils";
 import { createPlayerVisibleLiveEncounterTracker } from "./liveEncounterPlayerVisibility";
+import {
+  openLiveEncounterTrackerWindow,
+  openTableDisplayWindow
+} from "./liveEncounterTrackerWindow";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
 
 const trackerRefreshCooldownMs = 5_000;
@@ -151,8 +162,12 @@ function CampaignLiveEncounterTrackerPage() {
   const { campaignId = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const trackerHref = useHref(`/gm-tools/campaign-manager/${campaignId}/live-encounter`);
   const authStatus = useAppSelector((state) => state.auth.status);
   const campaign = useAppSelector((state) => state.dmTools.selectedCampaignsById[campaignId]);
+  const tableDisplayHref = useHref(
+    `/table/${campaign?.liveEncounterTracker?.partyGroupId ?? campaign?.selectedPartyId ?? ""}`
+  );
   const status = useAppSelector(
     (state) => state.dmTools.selectedCampaignStatusById[campaignId] ?? "idle"
   );
@@ -173,6 +188,7 @@ function CampaignLiveEncounterTrackerPage() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isTurnBusy, setIsTurnBusy] = useState(false);
   const trackerRefreshCooldownRef = useRef<number | null>(null);
 
   const clearTrackerRefreshCooldown = useCallback(() => {
@@ -242,8 +258,19 @@ function CampaignLiveEncounterTrackerPage() {
     []
   );
 
+  const reloadCampaignFromServer = useCallback(() => {
+    if (!campaignId || authStatus !== "authenticated") {
+      return;
+    }
+
+    void getCampaign(campaignId, { suppressFailureToast: true })
+      .then(({ campaign: nextCampaign }) => dispatch(setSelectedCampaign(nextCampaign)))
+      .catch(() => undefined);
+  }, [authStatus, campaignId, dispatch]);
+
   const { flushPendingSave, queueSave } = useLiveEncounterTrackerPersistence({
     campaignId,
+    onConflict: reloadCampaignFromServer,
     onSavedTracker: handleSavedTracker
   });
 
@@ -254,6 +281,31 @@ function CampaignLiveEncounterTrackerPage() {
         : null,
     [campaign?.liveEncounterTracker]
   );
+  const serverRevision = serverTracker?.revision ?? 0;
+
+  // Live updates: a player's turn or HP change reaches the GM without pressing Refresh.
+  // Edits in flight are never overwritten; the draft only follows the server while the page is clean.
+  useCampaignEvents(
+    authStatus === "authenticated" && campaignId ? [campaignId] : [],
+    (type, _id, revision) => {
+      if (type === "game-session.updated" || type === "game-session.started") {
+        return;
+      }
+
+      // Revision 0 means the tracker was removed, which must always reload.
+      if (
+        type === "live-encounter.updated" &&
+        revision !== undefined &&
+        revision > 0 &&
+        revision <= serverRevision
+      ) {
+        return;
+      }
+
+      reloadCampaignFromServer();
+    }
+  );
+
   const tracker = draftTracker ?? serverTracker;
   const isTrackerValid = tracker?.status.state === "valid";
   const displayTracker = useMemo(
@@ -418,7 +470,9 @@ function CampaignLiveEncounterTrackerPage() {
     if (saveStatus === "dirty" || saveStatus === "saving" || saveStatus === "error") {
       const savedTracker = await flushPendingSave();
 
-      if (!savedTracker) {
+      // An "error" status with nothing pending (for example after a conflict reload) is not a reason
+      // to block: creature edits do not depend on the tracker's own save.
+      if (!savedTracker && saveStatus !== "error") {
         throw new Error("Unable to sync encounter tracker changes before editing hit points.");
       }
     }
@@ -437,6 +491,54 @@ function CampaignLiveEncounterTrackerPage() {
     dispatch(patchSelectedCampaign(campaignPatch));
 
     setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+  }
+
+  async function handleTurnAction(
+    action: CampaignLiveEncounterTurnAction,
+    afterParticipantId?: string
+  ) {
+    if (isTurnBusy || !campaignId) {
+      return;
+    }
+
+    setActionError(null);
+    setIsTurnBusy(true);
+
+    try {
+      // Pending edits go first so the turn applies to the revision the server now holds.
+      await flushPendingSave();
+
+      const revision =
+        store.getState().dmTools.selectedCampaignsById[campaignId]?.liveEncounterTracker?.revision;
+
+      if (!revision) {
+        return;
+      }
+
+      const campaignPatch = await applyCampaignLiveEncounterTurn(
+        campaignId,
+        { action, afterParticipantId, revision },
+        { suppressFailureToast: true }
+      );
+      const nextTracker = campaignPatch.patch.liveEncounterTracker;
+
+      dispatch(patchSelectedCampaign(campaignPatch));
+
+      if (nextTracker?.status.state === "valid") {
+        setDraftTracker(normalizeLiveEncounterTracker(nextTracker));
+      }
+    } catch (turnError) {
+      if (
+        turnError instanceof ApiRequestFailedError &&
+        turnError.code === "LIVE_ENCOUNTER_REVISION_CONFLICT"
+      ) {
+        reloadCampaignFromServer();
+      }
+
+      setActionError(getDmToolsApiErrorMessage(turnError, "Unable to change the turn."));
+    } finally {
+      setIsTurnBusy(false);
+    }
   }
 
   function handleTrackerChange(nextTracker: CampaignLiveEncounterTrackerRecord) {
@@ -478,6 +580,25 @@ function CampaignLiveEncounterTrackerPage() {
             </h2>
           </div>
           <div className={styles.headerActions}>
+            <ActionButton
+              actionType="INFO"
+              variant="OUTLINE"
+              fullWidth={false}
+              icon={<ExternalLink size={16} aria-hidden="true" />}
+              onClick={() => openLiveEncounterTrackerWindow(trackerHref)}
+            >
+              Pop out
+            </ActionButton>
+            <ActionButton
+              actionType="INFO"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!campaign?.selectedPartyId}
+              icon={<Tv size={16} aria-hidden="true" />}
+              onClick={() => openTableDisplayWindow(tableDisplayHref)}
+            >
+              Table view
+            </ActionButton>
             <ActionButton
               role="switch"
               aria-checked={isGmViewEnabled}
@@ -576,7 +697,11 @@ function CampaignLiveEncounterTrackerPage() {
             />
             <CampaignLiveEncounterRoundTracker
               tracker={displayTracker ?? tracker}
+              isTurnBusy={isTurnBusy}
               onChange={handleDisplayedTrackerChange}
+              onTurnAction={(action, afterParticipantId) =>
+                void handleTurnAction(action, afterParticipantId)
+              }
             />
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer

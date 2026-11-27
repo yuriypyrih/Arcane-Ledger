@@ -1,5 +1,6 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
+import CreatureImageUrlField from "./CreatureImageUrlField";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer/MonsterEntryRenderer";
@@ -258,8 +259,7 @@ function getCreatureVitalityLabel(participant: CampaignLiveEncounterTrackerCreat
     return creature.vitalityStatusLabel;
   }
 
-  return typeof creature.currentHitPoints === "number" &&
-    typeof creature.maxHitPoints === "number"
+  return typeof creature.currentHitPoints === "number" && typeof creature.maxHitPoints === "number"
     ? getDeathSaveStatusLabel(
         creature.currentHitPoints,
         Math.max(1, creature.maxHitPoints),
@@ -327,10 +327,7 @@ function LiveEncounterHitPointsPanel({
   if (participant.kind === "party-companion") {
     const companion = participant.companion;
 
-    if (
-      !isFiniteNumber(companion.currentHitPoints) ||
-      !isFiniteNumber(companion.maxHitPoints)
-    ) {
+    if (!isFiniteNumber(companion.currentHitPoints) || !isFiniteNumber(companion.maxHitPoints)) {
       return null;
     }
 
@@ -384,9 +381,11 @@ function LiveEncounterHitPointsPanel({
   function updateCreatureWithCompanionHelper(
     update: (creature: CharacterCompanion) => CharacterCompanion
   ) {
-    return updateCreature((currentCreature) =>
-      toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature)))
-    );
+    return updateCreature((currentCreature) => ({
+      ...toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature))),
+      // The companion shape has no picture; keep the GM's link through HP edits.
+      ...(currentCreature.imageUrl ? { imageUrl: currentCreature.imageUrl } : {})
+    }));
   }
 
   return (
@@ -496,6 +495,15 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
           onUpdateCreature={handleUpdateCreature}
         />
         {drawerNotice ? <p className={styles.modalError}>{drawerNotice}</p> : null}
+        {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
+          <CreatureImageUrlField
+            key={participant.creature.imageUrl ?? ""}
+            creature={participant.creature as EncounterTemplateCreatureRecord}
+            onUpdate={(update) =>
+              handleUpdateCreature(participant.creatureId ?? participant.creature.id, update)
+            }
+          />
+        ) : null}
 
         {participant.kind === "party-member" ? (
           <MemberStatBlock participant={participant} />

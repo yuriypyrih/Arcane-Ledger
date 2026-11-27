@@ -13,11 +13,14 @@ export type LiveEncounterTrackerListKey = "partyMembers" | "creatures" | "initia
 export function toLiveEncounterParticipantRef(
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): CampaignLiveEncounterTrackerParticipantRefRecord {
+  const initiative = participant.initiative ?? null;
+
   if (participant.kind === "party-member") {
     return {
       participantId: participant.participantId,
       kind: "party-member",
-      characterId: participant.characterId
+      characterId: participant.characterId,
+      initiative
     };
   }
 
@@ -26,14 +29,17 @@ export function toLiveEncounterParticipantRef(
       participantId: participant.participantId,
       kind: "party-companion",
       characterId: participant.characterId,
-      companionId: participant.companionId
+      companionId: participant.companionId,
+      initiative
     };
   }
 
   return {
     participantId: participant.participantId,
     kind: "creature",
-    creatureId: participant.creatureId
+    creatureId: participant.creatureId,
+    initiative,
+    groupId: participant.groupId ?? null
   };
 }
 
@@ -114,10 +120,7 @@ function normalizeLiveEncounterMonsterRecord(
   };
 
   liveEncounterMonsterFieldKeys.forEach((key) => {
-    if (
-      Object.prototype.hasOwnProperty.call(source, key) &&
-      normalizedMonster[key] !== undefined
-    ) {
+    if (Object.prototype.hasOwnProperty.call(source, key) && normalizedMonster[key] !== undefined) {
       monster[key] = normalizedMonster[key];
     }
   });

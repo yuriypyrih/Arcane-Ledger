@@ -6,10 +6,7 @@ import type {
   CampaignLiveEncounterTrackerRecord,
   PlayerVisibilitySettings
 } from "../../api/campaigns";
-import {
-  getDeathSaveStatusLabel,
-  normalizeDeathSaveTrack
-} from "../CharactersPage/deathSaves";
+import { getDeathSaveStatusLabel, normalizeDeathSaveTrack } from "../CharactersPage/deathSaves";
 
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettings = {
   showVitalityStatus: true,
@@ -134,8 +131,7 @@ function getCreatureVitalityStatusLabel(
     return creature.vitalityStatusLabel;
   }
 
-  return typeof creature.currentHitPoints === "number" &&
-    typeof creature.maxHitPoints === "number"
+  return typeof creature.currentHitPoints === "number" && typeof creature.maxHitPoints === "number"
     ? getDeathSaveStatusLabel(
         creature.currentHitPoints,
         Math.max(1, creature.maxHitPoints),
@@ -187,6 +183,11 @@ function createPlayerVisibleLiveEncounterCreature(
 
   if (settings.showMonsterType && creature.type) {
     visibleCreature.type = creature.type;
+  }
+
+  // The picture identifies the creature just like its type, so it follows the same visibility.
+  if (settings.showMonsterType && creature.imageUrl) {
+    visibleCreature.imageUrl = creature.imageUrl;
   }
 
   if (settings.showDmDescription && creature.description) {

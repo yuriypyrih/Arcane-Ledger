@@ -4,7 +4,10 @@ import { apiDelete, apiGet, apiPatch, apiPost, apiPut, type ApiRequestOptions } 
 export type EncounterTemplateCreatureRecord = Omit<
   CharacterCompanion,
   "role" | "separateInitiative" | "source"
->;
+> & {
+  /** GM-supplied https picture link shown on the trackers. */
+  imageUrl?: string;
+};
 
 export type EncounterTemplateRecord = {
   id: string;
