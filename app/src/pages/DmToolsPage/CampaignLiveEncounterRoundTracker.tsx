@@ -49,12 +49,12 @@ function CampaignLiveEncounterRoundTracker({
   const hasParticipants = tracker.initiativeOrder.length > 0;
   const turnActionsDisabled = readOnly || isTurnBusy || !hasParticipants;
   const hasActiveParticipant = activeParticipantIndex >= 0;
+  const slotInfo = getInitiativeSlotInfo(tracker.initiativeOrder, tracker.activeParticipantId);
   const delayTargets = hasActiveParticipant
     ? tracker.initiativeOrder
         .slice(activeParticipantIndex + 1)
         .filter((participant) => !slotInfo.get(participant.participantId)?.isActive)
     : [];
-  const slotInfo = getInitiativeSlotInfo(tracker.initiativeOrder, tracker.activeParticipantId);
   const activePack = tracker.initiativeOrder.filter(
     (participant) => slotInfo.get(participant.participantId)?.isActive
   );
