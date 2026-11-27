@@ -288,3 +288,15 @@ export function joinPartyGroup(
 export function listMyPartyMemberships(options?: ApiRequestOptions) {
   return apiGet<PartyMembershipEnvelope>("/party-groups/my-memberships", options);
 }
+
+export function updatePartyGroupLiveEncounterInitiative(
+  partyGroupId: string,
+  payload: { characterId: string; initiative: number },
+  options?: ApiRequestOptions
+) {
+  return apiPatch<PartyGroupLiveEncounterEnvelope & { initiativeUpdated: boolean }>(
+    `/party-groups/${partyGroupId}/live-encounter/initiative`,
+    payload,
+    options
+  );
+}

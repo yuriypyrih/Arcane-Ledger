@@ -45,6 +45,7 @@ import type { QueueCharacterSave } from "../../../../pages/CharactersPage/Charac
 import CharacterPartyGroupModal from "../../CharacterList/CharacterPartyGroupModal";
 import characterRowStyles from "../../CharacterRow/CharacterRow.module.css";
 import GameplayPartyPanel from "./GameplayPartyPanel";
+import InitiativePrompt from "./InitiativePrompt";
 import { createCharacterRosterEntryForPartyModal } from "./partyCharacterRoster";
 import ActionButton from "../../../ActionButton";
 import useGameplayPartyEncounter from "./useGameplayPartyEncounter";
@@ -416,8 +417,18 @@ function GameplayForm({
         >
           <GameplayPartyPanel
             error={partyEncounter.error}
+            initiativeSubmit={
+              partyMembership
+                ? {
+                    characterId: partyMembership.characterId,
+                    onUpdated: setPartyEncounterTracker,
+                    partyGroupId: partyMembership.partyGroupId
+                  }
+                : undefined
+            }
             inspectedParticipant={partyEncounter.inspectedParticipant}
             isInitialLoading={partyEncounter.isInitialLoading}
+            partyGroupId={partyMembership?.partyGroupId}
             onCloseInspection={() => partyEncounter.setInspectedParticipant(null)}
             onInspectParticipant={partyEncounter.setInspectedParticipant}
             tracker={partyEncounter.tracker}
@@ -425,6 +436,13 @@ function GameplayForm({
         </div>
       ) : null}
 
+      {partyMembership ? (
+        <InitiativePrompt
+          character={character}
+          membership={partyMembership}
+          onPersistCharacter={onPersistCharacter}
+        />
+      ) : null}
       {isGuideOpen ? <GameplayGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
       {isPartyModalOpen && partyMembership ? (
         <CharacterPartyGroupModal

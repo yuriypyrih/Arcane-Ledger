@@ -8,6 +8,7 @@ import {
   type PartyMembershipRecord
 } from "../../../../api/partyGroups";
 import { getDmToolsApiErrorMessage } from "../../../../pages/DmToolsPage/dmToolsApiErrors";
+import { usePartyEvents } from "../../../../lib/useCampaignEvents";
 import { normalizeLiveEncounterTracker } from "../../../../pages/DmToolsPage/liveEncounterTrackerUtils";
 
 const refreshCooldownMs = 5_000;
@@ -127,6 +128,12 @@ function useGameplayPartyEncounter({
     setTracker(null);
     void loadLiveEncounter();
   }, [clearRefreshCooldown, isActive, loadLiveEncounter, partyGroupId]);
+
+  // Push updates: the GM's changes arrive over SSE; REST stays the source of truth.
+  // A (re)connect also reloads, which recovers anything missed while disconnected.
+  usePartyEvents(isActive ? partyGroupId : null, () => {
+    void loadLiveEncounter();
+  });
 
   const isInitialLoading = status === "loading" && tracker === null;
   const isRefreshLoading = status === "loading";
