@@ -188,7 +188,9 @@ function EncounterCreatureBuilder({
     setDuplicatingCreatureId(creature.id);
 
     try {
-      await onSaveCreature(duplicateEncounterCreature(toEncounterCreatureRecord(creature)));
+      await onSaveCreature(
+        duplicateEncounterCreature(toEncounterCreatureRecord(creature), creatures)
+      );
     } catch (duplicateError) {
       setActionError(getDmToolsApiErrorMessage(duplicateError, "Unable to duplicate creature."));
     } finally {

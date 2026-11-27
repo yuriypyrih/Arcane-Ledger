@@ -59,9 +59,40 @@ export function toEncounterCreatureRecord(
   };
 }
 
-export function duplicateEncounterCreature(creature: EncounterTemplateCreatureRecord) {
+const NUMBER_SUFFIX = /\s+(\d+)$/;
+
+function stripNumberSuffix(name: string) {
+  return name.replace(NUMBER_SUFFIX, "").trim();
+}
+
+/**
+ * Names a copy after the creature it was copied from: "Goblin" copied three times gives "Goblin 1",
+ * "Goblin 2" and "Goblin 3". The number is one more than the highest already used in the encounter,
+ * so copying "Goblin 2" never reuses a number.
+ */
+export function getNextCopyName(name: string, siblings: { name: string }[]) {
+  const baseName = stripNumberSuffix(name);
+  const used = siblings.map((sibling) => {
+    if (sibling.name === baseName) {
+      return 0;
+    }
+
+    const match = NUMBER_SUFFIX.exec(sibling.name);
+
+    return match && stripNumberSuffix(sibling.name) === baseName ? Number(match[1]) : null;
+  });
+  const highest = Math.max(0, ...used.filter((value): value is number => value !== null));
+
+  return `${baseName} ${highest + 1}`;
+}
+
+export function duplicateEncounterCreature(
+  creature: EncounterTemplateCreatureRecord,
+  siblings: { name: string }[] = []
+) {
   return toEncounterCreatureRecord({
     ...creature,
-    id: createCharacterCompanionId()
+    id: createCharacterCompanionId(),
+    name: getNextCopyName(creature.name, siblings)
   });
 }
