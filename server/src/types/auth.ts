@@ -6,6 +6,8 @@ export type AuthUserResponse = {
   id: string;
   email: string;
   nickname: string;
+  avatarUrl: string;
+  bio: string;
   role: UserRole;
   emailVerifiedAt: string | null;
   createdAt: string | null;

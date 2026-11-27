@@ -176,6 +176,8 @@ export type CampaignLiveEncounterTrackerRecord = {
 export type CampaignRecord = {
   id: string;
   name: string;
+  /** Optional https picture link; empty when none. */
+  imageUrl: string;
   ownerId: string;
   selectedPartyId: string | null;
   sessionNoteCount: number;
@@ -214,6 +216,7 @@ export type CampaignPatchRecord = Partial<
   Pick<
     CampaignDetailRecord,
     | "name"
+    | "imageUrl"
     | "selectedPartyId"
     | "visibilitySettings"
     | "selectedParty"
@@ -257,8 +260,13 @@ export function getCampaign(campaignId: string, options?: ApiRequestOptions) {
   return apiGet<CampaignDetailEnvelope>(`/campaigns/${campaignId}`, options);
 }
 
-export function updateCampaign(campaignId: string, name: string, options?: ApiRequestOptions) {
-  return apiPatch<CampaignPatchEnvelope>(`/campaigns/${campaignId}`, { name }, options);
+/** Renames the campaign and/or sets its picture link (an empty link removes the picture). */
+export function updateCampaign(
+  campaignId: string,
+  changes: { imageUrl?: string; name?: string },
+  options?: ApiRequestOptions
+) {
+  return apiPatch<CampaignPatchEnvelope>(`/campaigns/${campaignId}`, changes, options);
 }
 
 export function deleteCampaign(campaignId: string, options?: ApiRequestOptions) {

@@ -175,6 +175,10 @@ function patchCampaignSummary(
     campaign.name = patch.name;
   }
 
+  if (patch.imageUrl !== undefined) {
+    campaign.imageUrl = patch.imageUrl;
+  }
+
   if (patch.sessionNoteCount !== undefined) {
     campaign.sessionNoteCount = patch.sessionNoteCount;
   }

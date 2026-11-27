@@ -1,11 +1,12 @@
-import { ScrollText } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ScrollText, UsersRound } from "lucide-react";
+import { type KeyboardEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCampaign,
   startCampaignLiveEncounterTracker,
   type CampaignPreparedEncounterRecord
 } from "../../api/campaigns";
+import ExternalImage from "../../components/ExternalImage";
 import {
   patchSelectedCampaign,
   setSelectedCampaign,
@@ -20,6 +21,7 @@ import DmToolsEmptyState from "./DmToolsEmptyState";
 import CampaignManagerGuideButton from "./CampaignManagerGuideButton";
 import CampaignManagerGuideModal from "./CampaignManagerGuideModal";
 import CampaignEncounterTrackerSection from "./CampaignEncounterTrackerSection";
+import CampaignPlayersTab from "./CampaignPlayersTab";
 import CampaignPreparedEncountersSection from "./CampaignPreparedEncountersSection";
 import CampaignSelectedPartySection from "./CampaignSelectedPartySection";
 import CampaignSessionNotesSection from "./CampaignSessionNotesSection";
@@ -29,6 +31,13 @@ import detailStyles from "./CampaignDetailPage.module.css";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import EditCampaignModal from "./EditCampaignModal";
 import styles from "./DmToolsPage.module.css";
+
+type CampaignTab = "overview" | "players";
+
+const CAMPAIGN_TABS: { id: CampaignTab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "players", label: "Players" }
+];
 
 function CampaignDetailPage() {
   const { campaignId = "" } = useParams();
@@ -44,6 +53,7 @@ function CampaignDetailPage() {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<CampaignTab>("overview");
 
   useEffect(() => {
     let didCancel = false;
@@ -77,6 +87,21 @@ function CampaignDetailPage() {
       didCancel = true;
     };
   }, [authStatus, campaignId, dispatch]);
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const index = CAMPAIGN_TABS.findIndex((tab) => tab.id === activeTab);
+    const step = event.key === "ArrowRight" ? 1 : CAMPAIGN_TABS.length - 1;
+    const next = CAMPAIGN_TABS[(index + step) % CAMPAIGN_TABS.length]!;
+
+    setActiveTab(next.id);
+    document.getElementById(`campaign-tab-${next.id}`)?.focus();
+  }
 
   async function handleStartEncounter(encounter: CampaignPreparedEncounterRecord) {
     const campaignPatch = await startCampaignLiveEncounterTracker(campaignId, encounter.id, {
@@ -127,7 +152,50 @@ function CampaignDetailPage() {
           <p className={styles.modalError}>{error}</p>
         ) : campaign ? (
           <>
-            <div className={detailStyles.workspace}>
+            <ExternalImage
+              src={campaign.imageUrl}
+              className={styles.campaignCover}
+              fallback={null}
+            />
+            <div role="tablist" aria-label="Campaign sections" className={detailStyles.tabs}>
+              {CAMPAIGN_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`campaign-tab-${tab.id}`}
+                  aria-controls={`campaign-panel-${tab.id}`}
+                  aria-selected={activeTab === tab.id}
+                  tabIndex={activeTab === tab.id ? 0 : -1}
+                  className={detailStyles.tab}
+                  onClick={() => setActiveTab(tab.id)}
+                  onKeyDown={handleTabKeyDown}
+                >
+                  {tab.id === "players" ? <UsersRound size={16} aria-hidden="true" /> : null}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div
+              role="tabpanel"
+              id="campaign-panel-players"
+              aria-labelledby="campaign-tab-players"
+              hidden={activeTab !== "players"}
+            >
+              {activeTab === "players" ? (
+                <CampaignPlayersTab
+                  campaignId={campaign.id}
+                  hasParty={campaign.selectedPartyId !== null}
+                />
+              ) : null}
+            </div>
+            <div
+              role="tabpanel"
+              id="campaign-panel-overview"
+              aria-labelledby="campaign-tab-overview"
+              hidden={activeTab !== "overview"}
+              className={detailStyles.workspace}
+            >
               <CampaignSelectedPartySection
                 campaign={campaign}
                 className={detailStyles.partyPanel}

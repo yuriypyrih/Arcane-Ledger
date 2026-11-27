@@ -98,3 +98,36 @@
   right: auto;
   z-index: 60;
 }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--theme-border-subtle);
+}
+
+.quiet {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.quiet:hover:not(:disabled) {
+  color: var(--theme-text-primary);
+  text-decoration: underline;
+}
+
+.quiet:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}

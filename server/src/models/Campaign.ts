@@ -93,6 +93,8 @@ export type CampaignLiveEncounterTrackerRecord = {
 
 export type CampaignRecord = {
   name: string;
+  /** Optional https link to a picture the GM picked for the campaign. */
+  imageUrl?: string;
   ownerId: Types.ObjectId;
   sessionNotes: CampaignSessionNoteRecord[];
   visibilitySettings: CampaignVisibilitySettingsRecord;
@@ -414,6 +416,12 @@ const campaignSchema = new Schema<CampaignRecord>(
       trim: true,
       minlength: 2,
       maxlength: 128
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 500
     },
     ownerId: {
       type: Schema.Types.ObjectId,

@@ -1,22 +1,27 @@
 import {
   ChevronLeft,
   ChevronRight,
+  BarChart3,
   Cloud,
   CloudOff,
+  Headset,
   LogIn,
   Maximize2,
   Menu,
   Moon,
   Settings,
+  ShieldCheck,
   Sun,
+  UserCircle,
   X
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useIsLazyLoading } from "../../../lib/lazyLoadTracker";
 import { useMediaQuery } from "../../../lib/useMediaQuery";
 import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
+import ExternalImage from "../../ExternalImage";
 import SessionNotificationsBell from "../../SessionNotificationsBell";
 import { navigationLinks } from "../navigationLinks";
 import {
@@ -118,6 +123,9 @@ export function SidebarNav({
   const isLazyLoading = useIsLazyLoading();
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [accountMenuPosition, setAccountMenuPosition] = useState<CSSProperties | undefined>(
+    undefined
+  );
   const [themeMode, setThemeMode] = useState(() => getThemeModePreference());
 
   useEffect(() => {
@@ -153,6 +161,9 @@ export function SidebarNav({
   const syncStatus = activeCharacter?.storageMetadata?.sync?.syncStatus;
   const isAuthenticated = auth.status === "authenticated" && Boolean(auth.user);
   const isAdmin = auth.user?.role === "admin";
+
+  const getMenuItemClass = ({ isActive }: { isActive: boolean }) =>
+    isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem;
 
   const navClassName = [
     styles.sidebar,
@@ -298,31 +309,82 @@ export function SidebarNav({
                 <button
                   type="button"
                   className={styles.accountButton}
-                  onClick={() => setShowAccountMenu(!showAccountMenu)}
+                  onClick={() => {
+                    // The sidebar scrolls and clips what sticks out of it, so the menu is placed on screen.
+                    const rect = accountMenuRef.current?.getBoundingClientRect();
+
+                    setAccountMenuPosition(
+                      rect
+                        ? {
+                            left: rect.right + 8,
+                            bottom: Math.max(8, window.innerHeight - rect.bottom)
+                          }
+                        : undefined
+                    );
+                    setShowAccountMenu(!showAccountMenu);
+                  }}
                   aria-label="Account"
                   aria-expanded={showAccountMenu}
                   title={isCollapsed ? "Account" : undefined}
                 >
-                  <Settings size={22} />
+                  <ExternalImage
+                    src={auth.user?.avatarUrl}
+                    className={styles.accountButtonAvatar}
+                    fallback={<Settings size={22} />}
+                  />
                   {!isCollapsed && <span className={styles.label}>Account</span>}
                 </button>
                 {showAccountMenu && (
-                  <div className={styles.accountMenuDropdown}>
-                    <NavLink to="/account" className={styles.menuItem}>
-                      Account Settings
+                  <div
+                    className={styles.accountMenuDropdown}
+                    style={accountMenuPosition}
+                    role="menu"
+                    aria-label="Account menu"
+                  >
+                    <div className={styles.menuProfile}>
+                      <span className={styles.menuAvatar} aria-hidden="true">
+                        <ExternalImage
+                          src={auth.user?.avatarUrl}
+                          className={styles.menuAvatarImage}
+                          fallback={
+                            <span>
+                              {(auth.user?.nickname || auth.user?.email || "?")
+                                .charAt(0)
+                                .toUpperCase()}
+                            </span>
+                          }
+                        />
+                      </span>
+                      <span className={styles.menuIdentity}>
+                        <strong className={styles.menuName}>
+                          {auth.user?.nickname || auth.user?.email}
+                        </strong>
+                        {auth.user?.nickname ? (
+                          <span className={styles.menuEmail}>{auth.user.email}</span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <NavLink to="/account" role="menuitem" className={getMenuItemClass}>
+                      <UserCircle size={18} aria-hidden="true" />
+                      <span>Account Settings</span>
                     </NavLink>
                     {isAdmin && (
                       <>
-                        <NavLink to="/administration" className={styles.menuItem}>
-                          Administration
+                        <p className={styles.menuSection}>Admin</p>
+                        <NavLink to="/administration" role="menuitem" className={getMenuItemClass}>
+                          <ShieldCheck size={18} aria-hidden="true" />
+                          <span>Administration</span>
                         </NavLink>
-                        <NavLink to="/analytics" className={styles.menuItem}>
-                          Analytics
+                        <NavLink to="/analytics" role="menuitem" className={getMenuItemClass}>
+                          <BarChart3 size={18} aria-hidden="true" />
+                          <span>Analytics</span>
                         </NavLink>
                       </>
                     )}
-                    <NavLink to="/support" className={styles.menuItem}>
-                      Support
+                    <div className={styles.menuDivider} aria-hidden="true" />
+                    <NavLink to="/support" role="menuitem" className={getMenuItemClass}>
+                      <Headset size={18} aria-hidden="true" />
+                      <span>Support &amp; Feedback</span>
                     </NavLink>
                   </div>
                 )}

@@ -3,13 +3,18 @@ import {
   cancelGameSession,
   createGameSession,
   endGameSession,
+  getCampaignStatus,
   getGameSession,
+  getSessionPreviousLog,
   listGameSessions,
   listMyUpcomingGameSessions,
+  proposeSessionReschedule,
   setAvailability,
+  setSessionHidden,
   startGameSession,
   streamCampaignEvents,
-  updateGameSession
+  updateGameSession,
+  withdrawSessionReschedule
 } from "../controllers/gameSessionController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -19,10 +24,15 @@ gameSessionRoutes.get("/", requireAuth, listGameSessions);
 gameSessionRoutes.post("/", requireAuth, createGameSession);
 gameSessionRoutes.get("/mine", requireAuth, listMyUpcomingGameSessions);
 gameSessionRoutes.get("/events", requireAuth, streamCampaignEvents);
+gameSessionRoutes.get("/campaign-status", requireAuth, getCampaignStatus);
 gameSessionRoutes.get("/:gameSessionId", requireAuth, getGameSession);
 gameSessionRoutes.patch("/:gameSessionId", requireAuth, updateGameSession);
 gameSessionRoutes.post("/:gameSessionId/cancel", requireAuth, cancelGameSession);
 gameSessionRoutes.put("/:gameSessionId/availability", requireAuth, setAvailability);
+gameSessionRoutes.put("/:gameSessionId/hidden", requireAuth, setSessionHidden);
+gameSessionRoutes.get("/:gameSessionId/previous-log", requireAuth, getSessionPreviousLog);
+gameSessionRoutes.post("/:gameSessionId/propose-reschedule", requireAuth, proposeSessionReschedule);
+gameSessionRoutes.delete("/:gameSessionId/propose-reschedule", requireAuth, withdrawSessionReschedule);
 gameSessionRoutes.post("/:gameSessionId/start", requireAuth, startGameSession);
 gameSessionRoutes.post("/:gameSessionId/end", requireAuth, endGameSession);
 

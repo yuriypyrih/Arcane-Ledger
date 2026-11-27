@@ -1,9 +1,10 @@
 import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, Pencil, UserCircle } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changeNickname, changePassword, logout } from "../../api/auth";
 import { clearLocalAuthSession } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
+import ExternalImage from "../../components/ExternalImage";
 import PwaInstallPanel from "../../components/PwaInstallPanel";
 import {
   setAuthError,
@@ -14,9 +15,11 @@ import {
   useAppSelector
 } from "../../store";
 import { formatAuthDate, getApiErrorMessage } from "./authPageUtils";
+import AccountCampaignSettings from "./AccountCampaignSettings";
 import AccountNicknameModal from "./AccountNicknameModal";
 import AccountPasswordModal from "./AccountPasswordModal";
 import AccountPrivilegesSection from "./AccountPrivilegesSection";
+import AccountProfileSection from "./AccountProfileSection";
 import styles from "./AuthPages.module.css";
 
 type AccountDetailCardProps = {
@@ -37,6 +40,13 @@ function AccountDetailCard({ icon, label, value }: AccountDetailCardProps) {
   );
 }
 
+type AccountTab = "account" | "campaigns";
+
+const ACCOUNT_TABS: { id: AccountTab; label: string }[] = [
+  { id: "account", label: "Account" },
+  { id: "campaigns", label: "Campaign settings" }
+];
+
 function AccountPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -46,6 +56,22 @@ function AccountPage() {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [activeTab, setActiveTab] = useState<AccountTab>("account");
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const index = ACCOUNT_TABS.findIndex((tab) => tab.id === activeTab);
+    const step = event.key === "ArrowRight" ? 1 : ACCOUNT_TABS.length - 1;
+    const next = ACCOUNT_TABS[(index + step) % ACCOUNT_TABS.length]!;
+
+    setActiveTab(next.id);
+    document.getElementById(`account-tab-${next.id}`)?.focus();
+  }
 
   async function handleLogout() {
     const sessionGeneration = store.getState().auth.sessionGeneration;
@@ -210,7 +236,11 @@ function AccountPage() {
 
         <aside className={styles.accountIdentityCard} aria-label="Signed in account">
           <span className={styles.accountAvatar}>
-            <UserCircle size={30} aria-hidden="true" />
+            <ExternalImage
+              src={user.avatarUrl}
+              className={styles.accountAvatarImage}
+              fallback={<UserCircle size={30} aria-hidden="true" />}
+            />
           </span>
           <div className={styles.accountIdentityText}>
             <span className={styles.accountIdentityLabel}>Signed in as</span>
@@ -229,70 +259,102 @@ function AccountPage() {
         </aside>
       </div>
 
-      <div className={styles.accountLayout}>
-        <div className={styles.accountDetailsColumn}>
-          <section className={styles.accountSection} aria-labelledby="account-details-title">
-            <div className={styles.accountSectionTopline}>
-              <div className={styles.accountSectionHeader}>
-                <span className={styles.accountSectionIcon}>
-                  <BadgeCheck size={20} aria-hidden="true" />
-                </span>
-                <div>
-                  <p className={styles.eyebrow}>Profile</p>
-                  <h2 id="account-details-title" className={styles.accountSectionTitle}>
-                    Account Details
-                  </h2>
+      <div role="tablist" aria-label="Account sections" className={styles.accountTabs}>
+        {ACCOUNT_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={`account-tab-${tab.id}`}
+            aria-controls={`account-panel-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            className={styles.accountTab}
+            onClick={() => setActiveTab(tab.id)}
+            onKeyDown={handleTabKeyDown}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "campaigns" ? (
+        <div role="tabpanel" id="account-panel-campaigns" aria-labelledby="account-tab-campaigns">
+          <AccountCampaignSettings />
+        </div>
+      ) : (
+        <div
+          role="tabpanel"
+          id="account-panel-account"
+          aria-labelledby="account-tab-account"
+          className={styles.accountLayout}
+        >
+          <div className={styles.accountDetailsColumn}>
+            <section className={styles.accountSection} aria-labelledby="account-details-title">
+              <div className={styles.accountSectionTopline}>
+                <div className={styles.accountSectionHeader}>
+                  <span className={styles.accountSectionIcon}>
+                    <BadgeCheck size={20} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className={styles.eyebrow}>Profile</p>
+                    <h2 id="account-details-title" className={styles.accountSectionTitle}>
+                      Account Details
+                    </h2>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className={styles.accountDetailGrid}>
-              <AccountDetailCard
-                icon={<Mail size={18} aria-hidden="true" />}
-                label="Email"
-                value={user.email}
-              />
-              <AccountDetailCard
-                icon={<UserCircle size={18} aria-hidden="true" />}
-                label="Nickname"
-                value={user.nickname}
-              />
-              <AccountDetailCard
-                icon={<BadgeCheck size={18} aria-hidden="true" />}
-                label="Role"
-                value={<span className={styles.rolePill}>{user.role}</span>}
-              />
-              <AccountDetailCard
-                icon={<CalendarDays size={18} aria-hidden="true" />}
-                label="Created"
-                value={formatAuthDate(user.createdAt)}
-              />
-            </div>
+              <div className={styles.accountDetailGrid}>
+                <AccountDetailCard
+                  icon={<Mail size={18} aria-hidden="true" />}
+                  label="Email"
+                  value={user.email}
+                />
+                <AccountDetailCard
+                  icon={<UserCircle size={18} aria-hidden="true" />}
+                  label="Nickname"
+                  value={user.nickname}
+                />
+                <AccountDetailCard
+                  icon={<BadgeCheck size={18} aria-hidden="true" />}
+                  label="Role"
+                  value={<span className={styles.rolePill}>{user.role}</span>}
+                />
+                <AccountDetailCard
+                  icon={<CalendarDays size={18} aria-hidden="true" />}
+                  label="Created"
+                  value={formatAuthDate(user.createdAt)}
+                />
+              </div>
 
-            <div className={styles.accountActionRows}>
-              <ActionButton
-                icon={<KeyRound size={16} aria-hidden="true" />}
-                type="button"
-                onClick={openPasswordModal}
-              >
-                Change Password
-              </ActionButton>
-              <ActionButton
-                icon={<Pencil size={16} aria-hidden="true" />}
-                variant="OUTLINE"
-                type="button"
-                onClick={openNicknameModal}
-              >
-                Change Nickname
-              </ActionButton>
-            </div>
-          </section>
+              <div className={styles.accountActionRows}>
+                <ActionButton
+                  icon={<KeyRound size={16} aria-hidden="true" />}
+                  type="button"
+                  onClick={openPasswordModal}
+                >
+                  Change Password
+                </ActionButton>
+                <ActionButton
+                  icon={<Pencil size={16} aria-hidden="true" />}
+                  variant="OUTLINE"
+                  type="button"
+                  onClick={openNicknameModal}
+                >
+                  Change Nickname
+                </ActionButton>
+              </div>
+            </section>
 
-          <PwaInstallPanel />
+            <AccountProfileSection />
+
+            <PwaInstallPanel />
+          </div>
+
+          <AccountPrivilegesSection role={user.role} />
         </div>
-
-        <AccountPrivilegesSection role={user.role} />
-      </div>
+      )}
 
       {isPasswordModalOpen ? (
         <AccountPasswordModal

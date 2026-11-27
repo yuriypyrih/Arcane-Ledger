@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteCampaign, listCampaigns, type CampaignRecord } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
+import ExternalImage from "../../components/ExternalImage";
 import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
@@ -192,7 +193,13 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
           {campaigns.map((campaign) => (
             <DmToolsListCard
               key={campaign.id}
-              icon={<ScrollText size={18} aria-hidden="true" />}
+              icon={
+                <ExternalImage
+                  src={campaign.imageUrl}
+                  className={styles.campaignThumb}
+                  fallback={<ScrollText size={18} aria-hidden="true" />}
+                />
+              }
               title={campaign.name}
               meta={`${campaign.sessionNoteCount} ${
                 campaign.sessionNoteCount === 1 ? "session note" : "session notes"

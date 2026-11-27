@@ -21,7 +21,7 @@ import {
   updateCampaignSelectedParty,
   updateCampaignSessionNote,
   updateCampaignVisibilitySettings,
-  updateOwnedCampaignName,
+  updateOwnedCampaign,
   upsertCampaignPreparedEncounterCreature
 } from "../services/campaignService.js";
 import {
@@ -90,10 +90,15 @@ export const updateCampaign = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const body = assertObjectBody(request.body);
 
+    if (body.name === undefined && body.imageUrl === undefined) {
+      throw new AppError("Send a name or an imageUrl.", 400, "INVALID_CAMPAIGN_INPUT");
+    }
+
     response.json(
-      await updateOwnedCampaignName({
+      await updateOwnedCampaign({
         campaignId: request.params.campaignId ?? "",
-        name: normalizeCampaignName(body.name),
+        ...(body.name !== undefined ? { name: normalizeCampaignName(body.name) } : {}),
+        ...(body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {}),
         ownerId: response.locals.authUser._id
       })
     );

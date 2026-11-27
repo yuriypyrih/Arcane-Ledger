@@ -75,3 +75,47 @@
     max-height: 400px;
   }
 }
+
+/* An author `display` would override the hidden attribute, so hidden panels are switched off here. */
+.workspace[hidden] {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.tab {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin-bottom: -1px;
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.tab:hover {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
+.tab[aria-selected="true"] {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-section);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 3px 0 var(--theme-accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: -2px;
+}

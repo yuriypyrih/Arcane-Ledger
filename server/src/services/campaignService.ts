@@ -9,6 +9,7 @@ import {
 } from "./creatureTypeGroups.js";
 import { publishCampaignEvent } from "./campaignEventBus.js";
 import { AppError } from "../errors/AppError.js";
+import { normalizeExternalImageUrl } from "./externalImageUrl.js";
 import {
   Campaign,
   type CampaignDocument,
@@ -82,6 +83,7 @@ type CampaignSource = CampaignRecord & DocumentIdSource;
 
 type CampaignListSource = DocumentIdSource & {
   name: string;
+  imageUrl?: string;
   ownerId: Types.ObjectId | string | { toString(): string };
   selectedPartyId?: Types.ObjectId | string | { toString(): string } | null;
   sessionNoteCount?: number;
@@ -100,6 +102,7 @@ type CampaignSelectedPartySummary = {
 
 type CampaignPatchRecord = Partial<{
   name: string;
+  imageUrl: string;
   selectedPartyId: string | null;
   visibilitySettings: PlayerVisibilitySettingsRecord;
   selectedParty: CampaignSelectedPartySummary;
@@ -445,6 +448,7 @@ function toCampaignListRecord(campaign: CampaignListSource) {
   return {
     id: getDocumentId(campaign),
     name: campaign.name,
+    imageUrl: campaign.imageUrl ?? "",
     ownerId: campaign.ownerId.toString(),
     selectedPartyId: toStringId(campaign.selectedPartyId),
     sessionNoteCount: getCampaignSessionNoteCount(campaign),
@@ -487,6 +491,7 @@ export async function listOwnedCampaigns(ownerId: Types.ObjectId) {
     {
       $project: {
         name: 1,
+        imageUrl: 1,
         ownerId: 1,
         selectedPartyId: 1,
         sessionNoteCount: { $size: { $ifNull: ["$sessionNotes", []] } },
@@ -562,18 +567,32 @@ export async function deleteOwnedCampaign(options: {
   };
 }
 
-export async function updateOwnedCampaignName(options: {
+/** Renames the campaign and/or sets its picture link; fields left undefined are untouched. */
+export async function updateOwnedCampaign(options: {
   campaignId: string;
-  name: string;
+  imageUrl?: unknown;
+  name?: string;
   ownerId: Types.ObjectId;
 }) {
   const campaign = await findOwnedCampaignDocument(options);
 
-  campaign.name = normalizeCampaignName(options.name);
+  if (options.name !== undefined) {
+    campaign.name = normalizeCampaignName(options.name);
+  }
+
+  if (options.imageUrl !== undefined) {
+    campaign.imageUrl = normalizeExternalImageUrl(options.imageUrl, {
+      code: "INVALID_CAMPAIGN_IMAGE_URL",
+      field: "imageUrl",
+      label: "Campaign picture link"
+    });
+  }
+
   await campaign.save();
 
   return toCampaignPatchEnvelope(campaign, {
-    name: campaign.name
+    name: campaign.name,
+    imageUrl: campaign.imageUrl ?? ""
   });
 }
 

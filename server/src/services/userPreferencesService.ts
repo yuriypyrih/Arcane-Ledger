@@ -8,7 +8,10 @@ import type { UserDocument } from "../models/User.js";
 export const defaultUserPreferences: UserPreferences = {
   diceRollerBehavior: "full_auto",
   broadLayout: false,
-  themeMode: "light"
+  themeMode: "light",
+  emailNewSession: true,
+  emailReschedule: true,
+  notificationBadge: true
 };
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -43,7 +46,19 @@ export function normalizeUserPreferences(value: unknown): UserPreferences {
   return {
     diceRollerBehavior: normalizeDiceRollerBehaviorPreference(value.diceRollerBehavior),
     broadLayout: normalizeBoolean(value.broadLayout, defaultUserPreferences.broadLayout),
-    themeMode: normalizeThemeModePreference(value.themeMode)
+    themeMode: normalizeThemeModePreference(value.themeMode),
+    emailNewSession: normalizeBoolean(
+      value.emailNewSession,
+      defaultUserPreferences.emailNewSession
+    ),
+    emailReschedule: normalizeBoolean(
+      value.emailReschedule,
+      defaultUserPreferences.emailReschedule
+    ),
+    notificationBadge: normalizeBoolean(
+      value.notificationBadge,
+      defaultUserPreferences.notificationBadge
+    )
   };
 }
 
@@ -69,7 +84,10 @@ function areUserPreferencesNormalized(value: unknown, preferences: UserPreferenc
   return (
     value.diceRollerBehavior === preferences.diceRollerBehavior &&
     value.broadLayout === preferences.broadLayout &&
-    value.themeMode === preferences.themeMode
+    value.themeMode === preferences.themeMode &&
+    value.emailNewSession === preferences.emailNewSession &&
+    value.emailReschedule === preferences.emailReschedule &&
+    value.notificationBadge === preferences.notificationBadge
   );
 }
 

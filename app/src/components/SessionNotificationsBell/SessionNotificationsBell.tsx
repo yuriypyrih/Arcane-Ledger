@@ -1,6 +1,12 @@
-import { Bell } from "lucide-react";
+import { Bell, BellOff, EyeOff } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
+import { setGameSessionHidden } from "../../api/gameSessions";
+import {
+  loadPreferences,
+  PREFERENCES_CHANGED_EVENT,
+  updatePreferences
+} from "../../storage/preferences";
 import PlayerSessionsList, { useUpcomingSessions } from "../PlayerSessionsPanel";
 import styles from "./SessionNotificationsBell.module.css";
 
@@ -22,7 +28,9 @@ function SessionNotificationsBell({
   placement = "below"
 }: SessionNotificationsBellProps) {
   const navigate = useNavigate();
-  const { attentionCount, sessions, userId, vote } = useUpcomingSessions();
+  const { attentionCount, refresh, sessions, userId, vote } = useUpcomingSessions();
+  const [showBadge, setShowBadge] = useState(() => loadPreferences().notificationBadge);
+  const [isDismissing, setIsDismissing] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -53,6 +61,30 @@ function SessionNotificationsBell({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    const sync = () => setShowBadge(loadPreferences().notificationBadge);
+
+    window.addEventListener(PREFERENCES_CHANGED_EVENT, sync);
+
+    return () => window.removeEventListener(PREFERENCES_CHANGED_EVENT, sync);
+  }, []);
+
+  /** Hides every session in the bell. They stay on the Sessions page under "Show hidden". */
+  async function handleDismissAll() {
+    setIsDismissing(true);
+
+    try {
+      await Promise.allSettled(
+        sessions.map((session) =>
+          setGameSessionHidden(session.id, true, { suppressFailureToast: true })
+        )
+      );
+    } finally {
+      setIsDismissing(false);
+      refresh();
+    }
+  }
 
   function handleToggle() {
     if (!isOpen && placement === "side") {
@@ -91,14 +123,18 @@ function SessionNotificationsBell({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={
-          attentionCount > 0 ? `Notifications, ${attentionCount} need you` : "Notifications"
+          showBadge && attentionCount > 0
+            ? `Notifications, ${attentionCount} need you`
+            : "Notifications"
         }
         title={label ? undefined : "Notifications"}
         onClick={handleToggle}
       >
         <span className={styles.icon}>
           <Bell size={defaultLook ? 16 : 22} aria-hidden="true" />
-          {attentionCount > 0 ? <span className={styles.badge}>{attentionCount}</span> : null}
+          {showBadge && attentionCount > 0 ? (
+            <span className={styles.badge}>{attentionCount}</span>
+          ) : null}
         </span>
         {label ? <span>{label}</span> : null}
       </button>
@@ -122,16 +158,41 @@ function SessionNotificationsBell({
           ) : (
             <p className={styles.empty}>No upcoming sessions.</p>
           )}
-          <button
-            type="button"
-            className={styles.link}
-            onClick={() => {
-              setIsOpen(false);
-              navigate("/sessions");
-            }}
-          >
-            Open Sessions
-          </button>
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.link}
+              onClick={() => {
+                setIsOpen(false);
+                navigate("/sessions");
+              }}
+            >
+              Open Sessions
+            </button>
+            {sessions.length > 0 ? (
+              <button
+                type="button"
+                className={styles.quiet}
+                disabled={isDismissing}
+                onClick={() => void handleDismissAll()}
+              >
+                <EyeOff size={14} aria-hidden="true" /> Dismiss all
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={styles.quiet}
+              aria-pressed={!showBadge}
+              onClick={() => updatePreferences({ notificationBadge: !showBadge })}
+            >
+              {showBadge ? (
+                <BellOff size={14} aria-hidden="true" />
+              ) : (
+                <Bell size={14} aria-hidden="true" />
+              )}
+              {showBadge ? "Hide the red badge" : "Show the red badge"}
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

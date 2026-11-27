@@ -12,6 +12,12 @@ export type GameSessionAvailabilityRecord = {
   updatedAt: Date;
 };
 
+export type GameSessionRescheduleProposalRecord = {
+  proposedAt: Date;
+  message: string;
+  createdAt: Date;
+};
+
 export type GameSessionRecord = {
   campaignId: Types.ObjectId;
   ownerId: Types.ObjectId;
@@ -23,6 +29,10 @@ export type GameSessionRecord = {
   linkedPreparedEncounterIds: string[];
   availability: GameSessionAvailabilityRecord[];
   attendedUserIds: Types.ObjectId[];
+  /** Players who hid this session from their own lists. */
+  hiddenByUserIds: Types.ObjectId[];
+  /** A new time the GM suggested; cleared when the session time changes or the GM withdraws it. */
+  rescheduleProposal?: GameSessionRescheduleProposalRecord | null;
   /** The scheduledAt value invites were last sent for; prevents duplicate emails. */
   invitedScheduledAt?: Date | null;
   startedAt?: Date | null;
@@ -50,6 +60,15 @@ const gameSessionAvailabilitySchema = new Schema<GameSessionAvailabilityRecord>(
       type: Date,
       required: true
     }
+  },
+  { _id: false }
+);
+
+const gameSessionRescheduleProposalSchema = new Schema<GameSessionRescheduleProposalRecord>(
+  {
+    proposedAt: { type: Date, required: true },
+    message: { type: String, default: "", trim: true, maxlength: 500 },
+    createdAt: { type: Date, required: true }
   },
   { _id: false }
 );
@@ -106,6 +125,14 @@ const gameSessionSchema = new Schema<GameSessionRecord>(
     attendedUserIds: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
       default: []
+    },
+    hiddenByUserIds: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: []
+    },
+    rescheduleProposal: {
+      type: gameSessionRescheduleProposalSchema,
+      default: null
     },
     invitedScheduledAt: {
       type: Date,

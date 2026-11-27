@@ -14,10 +14,15 @@ import {
   getOwnedGameSession,
   listGameSessionsForMember,
   listOwnedGameSessions,
-  listUpcomingGameSessionsForPlayer,
+  getCampaignPlayerStatus,
+  getPreviousGameSessionLog,
+  listGameSessionsForPlayer,
+  proposeGameSessionReschedule,
   setGameSessionAvailability,
+  setGameSessionHidden,
   startOwnedGameSession,
-  updateOwnedGameSession
+  updateOwnedGameSession,
+  withdrawGameSessionReschedule
 } from "../services/gameSessionService.js";
 
 type Locals = Response<unknown, AuthenticatedLocals>;
@@ -203,11 +208,57 @@ export const streamCampaignEvents = asyncHandler(async (request: Request, respon
 });
 
 export const listMyUpcomingGameSessions = asyncHandler(
-  async (_request: Request, response: Locals) => {
+  async (request: Request, response: Locals) => {
     response.json({
-      gameSessions: await listUpcomingGameSessionsForPlayer({
+      gameSessions: await listGameSessionsForPlayer({
+        scope: request.query.scope === "all" ? "all" : "upcoming",
         userId: response.locals.authUser._id
       })
     });
   }
 );
+
+export const setSessionHidden = asyncHandler(async (request: Request, response: Locals) => {
+  response.json(
+    await setGameSessionHidden({
+      gameSessionId: request.params.gameSessionId ?? "",
+      hidden: getBody(request).hidden,
+      userId: response.locals.authUser._id
+    })
+  );
+});
+
+export const getSessionPreviousLog = asyncHandler(async (request: Request, response: Locals) => {
+  response.json(
+    await getPreviousGameSessionLog({
+      gameSessionId: request.params.gameSessionId ?? "",
+      userId: response.locals.authUser._id
+    })
+  );
+});
+
+export const proposeSessionReschedule = asyncHandler(async (request: Request, response: Locals) => {
+  response.json({
+    gameSession: await proposeGameSessionReschedule({
+      ...getSessionOptions(request, response),
+      body: getBody(request)
+    })
+  });
+});
+
+export const withdrawSessionReschedule = asyncHandler(
+  async (request: Request, response: Locals) => {
+    response.json({
+      gameSession: await withdrawGameSessionReschedule(getSessionOptions(request, response))
+    });
+  }
+);
+
+export const getCampaignStatus = asyncHandler(async (request: Request, response: Locals) => {
+  response.json(
+    await getCampaignPlayerStatus({
+      campaignId: typeof request.query.campaignId === "string" ? request.query.campaignId : "",
+      ownerId: response.locals.authUser._id
+    })
+  );
+});

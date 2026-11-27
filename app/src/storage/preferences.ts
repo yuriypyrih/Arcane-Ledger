@@ -18,7 +18,10 @@ const THEME_MODE_ATTRIBUTE = "data-theme";
 const defaultPreferences: Preferences = {
   diceRollerBehavior: "full_auto",
   broadLayout: false,
-  themeMode: "light"
+  themeMode: "light",
+  emailNewSession: true,
+  emailReschedule: true,
+  notificationBadge: true
 };
 
 type PreferenceRemoteSave = (preferences: Preferences) => Promise<void> | void;
@@ -112,7 +115,13 @@ export function normalizePreferences(value: unknown): Preferences {
   return {
     diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior),
     broadLayout: normalizeBoolean(record.broadLayout, defaultPreferences.broadLayout),
-    themeMode: normalizeThemeModePreference(record.themeMode)
+    themeMode: normalizeThemeModePreference(record.themeMode),
+    emailNewSession: normalizeBoolean(record.emailNewSession, defaultPreferences.emailNewSession),
+    emailReschedule: normalizeBoolean(record.emailReschedule, defaultPreferences.emailReschedule),
+    notificationBadge: normalizeBoolean(
+      record.notificationBadge,
+      defaultPreferences.notificationBadge
+    )
   };
 }
 

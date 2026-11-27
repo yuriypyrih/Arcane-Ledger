@@ -67,6 +67,15 @@ export function changePassword(request: ChangePasswordRequest, options?: ApiRequ
   return apiPatch<AuthMessageEnvelope>("/auth/password/change", request, options);
 }
 
+export type UpdateProfileRequest = {
+  avatarUrl?: string;
+  bio?: string;
+};
+
+export function updateProfile(request: UpdateProfileRequest, options?: ApiRequestOptions) {
+  return apiPatch<AuthUserEnvelope>("/auth/profile", request, options);
+}
+
 export function changeNickname(request: ChangeNicknameRequest, options?: ApiRequestOptions) {
   return apiPatch<AuthUserEnvelope>("/auth/nickname", request, options);
 }
