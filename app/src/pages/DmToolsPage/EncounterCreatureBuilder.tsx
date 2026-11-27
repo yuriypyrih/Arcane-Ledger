@@ -1,6 +1,9 @@
-import { Eye, Plus, Swords } from "lucide-react";
+import { Eye, Link2, Plus, Swords } from "lucide-react";
 import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
 import ActionButton from "../../components/ActionButton";
 import CreatureCard from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureCard";
 import CreatureDrawer from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureDrawer";
@@ -23,8 +26,10 @@ import DmToolsEmptyState from "./DmToolsEmptyState";
 import {
   duplicateEncounterCreature,
   normalizeEncounterCreatureRecord,
+  preserveEncounterExtras,
   toEncounterCreatureRecord
 } from "./encounterCreatureUtils";
+import linkStyles from "./EncounterCreatureTypeLink.module.css";
 import styles from "./DmToolsPage.module.css";
 
 export type EncounterCreatureBuilderResource = {
@@ -47,8 +52,10 @@ type EncounterCreatureBuilderProps = {
   onEditCreatureVisibilitySettings?: (creatureId: string) => void;
   onEditResource?: () => void;
   onEditVisibilitySettings?: () => void;
+  /** Groups creatures built from the same monster into one type; resolves to how many were linked. */
+  onLinkCreatureTypes?: () => Promise<number>;
   onRemoveCreature: (creatureId: string) => Promise<void>;
-  onSaveCreature: (creature: EncounterTemplateCreatureRecord) => Promise<void>;
+  onSaveCreature: (creature: EncounterCreatureWriteRecord) => Promise<void>;
   resource: EncounterCreatureBuilderResource | null | undefined;
   resourceFallbackName: string;
   sectionTitle: string;
@@ -89,6 +96,7 @@ function EncounterCreatureBuilder({
   onEditCreatureVisibilitySettings,
   onEditResource,
   onEditVisibilitySettings,
+  onLinkCreatureTypes,
   onRemoveCreature,
   onSaveCreature,
   resource,
@@ -108,6 +116,9 @@ function EncounterCreatureBuilder({
   );
   const [isDeletingCreature, setIsDeletingCreature] = useState(false);
   const [duplicatingCreatureId, setDuplicatingCreatureId] = useState<string | null>(null);
+  const [isLinkConfirmOpen, setIsLinkConfirmOpen] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
+  const [unlinkingCreatureId, setUnlinkingCreatureId] = useState<string | null>(null);
   const creatures = useMemo(
     () => resource?.creatures.map(normalizeEncounterCreatureRecord) ?? [],
     [resource?.creatures]
@@ -116,6 +127,35 @@ function EncounterCreatureBuilder({
     () => creatures.map(toEncounterCreatureCompanion),
     [creatures]
   );
+  // How many creatures share each type, and how many would be grouped by "Link same monsters".
+  const { linkableCount, typeSizes } = useMemo(() => {
+    const sizes = new Map<string, number>();
+    const byMonster = new Map<string, EncounterTemplateCreatureRecord[]>();
+
+    creatures.forEach((creature) => {
+      if (creature.typeGroupId) {
+        sizes.set(creature.typeGroupId, (sizes.get(creature.typeGroupId) ?? 0) + 1);
+      }
+
+      const monsterKey = creature.inheritedCreatureEntry?.key;
+
+      if (monsterKey) {
+        byMonster.set(monsterKey, [...(byMonster.get(monsterKey) ?? []), creature]);
+      }
+    });
+
+    let count = 0;
+
+    byMonster.forEach((members) => {
+      const groupIds = new Set(members.map((member) => member.typeGroupId ?? ""));
+
+      if (members.length > 1 && (groupIds.size > 1 || groupIds.has(""))) {
+        count += members.length;
+      }
+    });
+
+    return { linkableCount: count, typeSizes: sizes };
+  }, [creatures]);
   const editorCreature =
     editingCreatureId && resource
       ? (companionCreatures.find((creature) => creature.id === editingCreatureId) ?? null)
@@ -161,8 +201,53 @@ function EncounterCreatureBuilder({
   }
 
   async function handleSaveCreature(creature: CharacterCompanion) {
-    await onSaveCreature(toEncounterCreatureRecord(creature));
+    // The editors only know the companion shape, so keep the stored picture and creature type.
+    const stored = creatures.find((candidate) => candidate.id === creature.id);
+
+    await onSaveCreature(preserveEncounterExtras(stored, toEncounterCreatureRecord(creature)));
     setActionError(null);
+  }
+
+  async function handleMakeIndependent(creature: CharacterCompanion) {
+    if (unlinkingCreatureId) {
+      return;
+    }
+
+    const stored = creatures.find((candidate) => candidate.id === creature.id);
+
+    setActionError(null);
+    setUnlinkingCreatureId(creature.id);
+
+    try {
+      await onSaveCreature({
+        ...preserveEncounterExtras(stored, toEncounterCreatureRecord(creature)),
+        unlinkFromType: true
+      });
+    } catch (unlinkError) {
+      setActionError(
+        getDmToolsApiErrorMessage(unlinkError, "Unable to make this creature independent.")
+      );
+    } finally {
+      setUnlinkingCreatureId(null);
+    }
+  }
+
+  async function handleConfirmLinkCreatureTypes() {
+    if (!onLinkCreatureTypes || isLinking) {
+      return;
+    }
+
+    setActionError(null);
+    setIsLinking(true);
+
+    try {
+      await onLinkCreatureTypes();
+      setIsLinkConfirmOpen(false);
+    } catch (linkError) {
+      setActionError(getDmToolsApiErrorMessage(linkError, "Unable to link these creatures."));
+    } finally {
+      setIsLinking(false);
+    }
   }
 
   async function handleUpdateSelectedCreature(creature: CharacterCompanion) {
@@ -279,6 +364,17 @@ function EncounterCreatureBuilder({
                     total={resource.maxCreatures}
                     label="creatures"
                   />
+                  {onLinkCreatureTypes && linkableCount > 0 ? (
+                    <ActionButton
+                      variant="OUTLINE"
+                      icon={<Link2 size={16} aria-hidden="true" />}
+                      fullWidth={false}
+                      title="Make creatures built from the same monster share one stat block"
+                      onClick={() => setIsLinkConfirmOpen(true)}
+                    >
+                      Link same monsters
+                    </ActionButton>
+                  ) : null}
                   <ActionButton
                     icon={<Plus size={16} aria-hidden="true" />}
                     disabled={isAtCreatureLimit}
@@ -295,37 +391,65 @@ function EncounterCreatureBuilder({
 
               {creatures.length > 0 ? (
                 <div className={styles.creatureList}>
-                  {companionCreatures.map((creature) => (
-                    <CreatureCard
-                      key={creature.id}
-                      creature={creature}
-                      duplicateDisabled={
-                        isAtCreatureLimit || duplicatingCreatureId !== null || isDeletingCreature
-                      }
-                      duplicateTitle={
-                        isAtCreatureLimit ? creatureLimitMessage : `Duplicate ${creature.name}`
-                      }
-                      predisposition="hostile"
-                      sourceLabel={getCompanionSourceLabel(creature)}
-                      statusLabel={getCompanionStatusLabel(creature)}
-                      isVisibilityActive={isCreatureVisibilitySettingsActive?.(creature.id)}
-                      onDuplicate={() => {
-                        void handleDuplicateCreature(creature);
-                      }}
-                      onEdit={() => {
-                        setActionError(null);
-                        setIsCreatingCreature(false);
-                        setEditingCreatureId(creature.id);
-                      }}
-                      onEditVisibility={
-                        onEditCreatureVisibilitySettings
-                          ? () => onEditCreatureVisibilitySettings(creature.id)
-                          : undefined
-                      }
-                      onInspect={() => setSelectedCreatureId(creature.id)}
-                      onRemove={() => setPendingDeleteCreature(creature)}
-                    />
-                  ))}
+                  {companionCreatures.map((creature) => {
+                    const typeSize =
+                      typeSizes.get(
+                        creatures.find((record) => record.id === creature.id)?.typeGroupId ?? ""
+                      ) ?? 0;
+
+                    return (
+                      <div key={creature.id} className={linkStyles.stack}>
+                        <CreatureCard
+                          creature={creature}
+                          duplicateDisabled={
+                            isAtCreatureLimit ||
+                            duplicatingCreatureId !== null ||
+                            isDeletingCreature
+                          }
+                          duplicateTitle={
+                            isAtCreatureLimit ? creatureLimitMessage : `Duplicate ${creature.name}`
+                          }
+                          predisposition="hostile"
+                          sourceLabel={getCompanionSourceLabel(creature)}
+                          statusLabel={getCompanionStatusLabel(creature)}
+                          isVisibilityActive={isCreatureVisibilitySettingsActive?.(creature.id)}
+                          onDuplicate={() => {
+                            void handleDuplicateCreature(creature);
+                          }}
+                          onEdit={() => {
+                            setActionError(null);
+                            setIsCreatingCreature(false);
+                            setEditingCreatureId(creature.id);
+                          }}
+                          onEditVisibility={
+                            onEditCreatureVisibilitySettings
+                              ? () => onEditCreatureVisibilitySettings(creature.id)
+                              : undefined
+                          }
+                          onInspect={() => setSelectedCreatureId(creature.id)}
+                          onRemove={() => setPendingDeleteCreature(creature)}
+                        />
+                        {typeSize > 1 ? (
+                          <div className={linkStyles.row}>
+                            <span
+                              className={linkStyles.chip}
+                              title="Stat block, max HP, picture and description are shared"
+                            >
+                              {`Linked ×${typeSize}`}
+                            </span>
+                            <button
+                              type="button"
+                              className={linkStyles.unlink}
+                              disabled={unlinkingCreatureId !== null}
+                              onClick={() => void handleMakeIndependent(creature)}
+                            >
+                              Make independent
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <DmToolsEmptyState icon={<Swords size={18} aria-hidden="true" />}>
@@ -374,6 +498,19 @@ function EncounterCreatureBuilder({
                 showSource={false}
                 onClose={() => setSelectedCreatureId(null)}
                 onUpdateCreature={handleUpdateSelectedCreature}
+              />
+            ) : null}
+            {isLinkConfirmOpen ? (
+              <DestructiveConfirmationModal
+                titleId={`${deleteTitleId}-link`}
+                title="Link same monsters?"
+                message={`${linkableCount} creatures built from the same monster become one type. The first creature's stat block, max HP, picture and description replace the others'. Names and current HP are kept.`}
+                confirmLabel={isLinking ? "Linking..." : "Link creatures"}
+                closeLabel="Close link creatures confirmation"
+                onCancel={() => setIsLinkConfirmOpen(false)}
+                onConfirm={() => {
+                  void handleConfirmLinkCreatureTypes();
+                }}
               />
             ) : null}
             {pendingDeleteCreature ? (
