@@ -36,6 +36,9 @@ const CampaignDetailPage = lazyWithTrackedLoad(
 const CampaignEncounterBuilderPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignEncounterBuilderPage")
 );
+const TableDisplayPage = lazyWithTrackedLoad(
+  () => import("./pages/TableDisplayPage/TableDisplayPage")
+);
 const CampaignLiveEncounterTrackerPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignLiveEncounterTrackerPage")
 );
@@ -129,6 +132,7 @@ function App() {
       <AppUpdateGate />
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
+          <Route path="/table/:partyGroupId" element={<TableDisplayPage />} />
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/account" element={<AccountPage />} />
