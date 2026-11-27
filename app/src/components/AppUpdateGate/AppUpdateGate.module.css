@@ -67,6 +67,42 @@
   font-size: 1rem;
 }
 
+.progressTrack {
+  width: min(100%, 20rem);
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--theme-border-medium);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--theme-accent);
+  transform-origin: left;
+  animation: updateGateProgress linear both;
+}
+
+.progressFill[data-complete="true"] {
+  animation: none;
+}
+
+@keyframes updateGateProgress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill {
+    animation-timing-function: step-end;
+  }
+}
+
 .reloadButton {
   display: inline-flex;
   align-items: center;

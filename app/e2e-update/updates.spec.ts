@@ -47,7 +47,7 @@ async function expectUpdated(page: Page, build = "B") {
   await expect.poll(() => new URL(page.url()).searchParams.has("__arcane_update")).toBe(false);
 }
 
-test("slow installation waits past the former timeout; repeated clicks navigate once and preserve a pending draft", async ({
+test("slow installation outlasts the progress bar; repeated clicks navigate once and preserve a pending draft", async ({
   page,
   deployment
 }) => {
@@ -59,8 +59,7 @@ test("slow installation waits past the former timeout; repeated clicks navigate 
   const urls = navigations(page);
   await page.getByRole("button", { name: "Update", exact: true }).click();
   await expect.poll(() => server.heldRequests).toBeGreaterThan(0);
-  // Deliberately exceed the old five-second fallback, while installation is held.
-  await page.waitForTimeout(6_000);
+  await expect(page.getByRole("status")).toHaveText("Finishing the update. Keep this window open.");
   await expect(page.getByRole("button", { name: "Updating", exact: true })).toBeDisabled();
   await page.evaluate(() => {
     for (let i = 0; i < 5; i++) void window.runAppUpdate();
@@ -350,7 +349,9 @@ test("downloaded updates apply offline or recover from WebKit's rejected navigat
   await page.getByRole("button", { name: "Update", exact: true }).click();
   if (browserName === "webkit") {
     // Playwright WebKit rejects this offline navigation with an internal error,
-    // even after the new worker controls the page. Require bounded recovery.
+    // even after the new worker controls the page. Wait for the navigation after
+    // the progress bar, then verify the watchdog restores the retry state.
+    await expect.poll(() => urls.length).toBe(1);
     await expect(page.getByRole("button", { name: "Try again" })).toBeEnabled();
     await expect(page.getByRole("status")).toContainText("could not be opened");
     await expect(page.getByTestId("build")).toHaveText("A");

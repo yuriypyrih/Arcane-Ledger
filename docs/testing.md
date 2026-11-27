@@ -385,8 +385,10 @@ traces and screenshots are written under `app/test-results/updates/`. Use
 
 The updater owns registration and navigation directly. It asks the worker for the build identity
 embedded in a versioned import script, waits for that exact worker to be activated and controlling,
-then performs one navigation. A transient asset failure may recover the current build only after
-a fresh network shell confirms that build; its receipt remains to prevent repeated same-build reloads.
+then performs one navigation once the five-second progress bar has filled. The bar fills on a timer
+while the update runs, and the button stays disabled with a finishing message if the update needs
+more time. A transient asset failure may recover the current build only after a fresh network shell
+confirms that build. Its receipt remains to prevent repeated same-build reloads.
 The navigation carries a target-build receipt in its query parameters; startup removes it only when
 the running build matches. Loading the wrong build produces a recovery
 message and blocks another navigation to the same target. This also works without session storage.

@@ -19,6 +19,7 @@ export type AppUpdateState = {
   phase: "available" | "preparing" | "activating" | "failed";
   error?: string;
   latestBuildId?: string;
+  progressComplete: boolean;
   reason: AppUpdateReason | null;
   updateRequired: boolean;
 };
@@ -31,10 +32,12 @@ const LIFECYCLE_CHECK_COOLDOWN_MS = 60_000;
 const LIFECYCLE_CHECK_DEBOUNCE_MS = 750;
 const VERSION_CHECK_TIMEOUT_MS = 8_000;
 const UPDATE_TIMEOUT_MS = 45_000;
+export const APP_UPDATE_PROGRESS_MS = 5_000;
 
 const initialState: AppUpdateState = {
   detectedAt: null,
   phase: "available",
+  progressComplete: false,
   reason: null,
   updateRequired: false
 };
@@ -76,6 +79,7 @@ function setUpdateRequired(reason: AppUpdateReason, latestBuildId?: string) {
     phase: "available",
     detectedAt: Date.now(),
     latestBuildId,
+    progressComplete: false,
     reason,
     updateRequired: true
   };
@@ -364,9 +368,17 @@ async function prepareNetworkNavigation(signal: AbortSignal, allowCurrentBuild =
 async function performAppUpdate() {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS);
-  updateState({ phase: "preparing", error: undefined });
+  let progressTimerId: number | undefined;
+  const progress = new Promise<void>((resolve) => {
+    progressTimerId = window.setTimeout(() => {
+      updateState({ progressComplete: true });
+      resolve();
+    }, APP_UPDATE_PROGRESS_MS);
+  });
+  updateState({ phase: "preparing", error: undefined, progressComplete: false });
   try {
     let targetBuildId: string;
+    let targetWorker: ServiceWorker | undefined;
     if (navigator.serviceWorker) {
       let registration = await abortable(
         navigator.serviceWorker.getRegistration("/"),
@@ -404,6 +416,7 @@ async function performAppUpdate() {
         updateState({ phase: "activating", latestBuildId: prepared.buildId });
         await activateAppWorker(registration, prepared.worker, controller.signal);
         targetBuildId = prepared.buildId;
+        targetWorker = prepared.worker;
       } else {
         targetBuildId = await prepareNetworkNavigation(
           controller.signal,
@@ -416,8 +429,15 @@ async function performAppUpdate() {
         state.reason === "asset-load-failure"
       );
     }
+    await progress;
     if (controller.signal.aborted)
       throw new Error("The update could not finish. Please try again.");
+    if (
+      targetWorker &&
+      (targetWorker.state !== "activated" || navigator.serviceWorker.controller !== targetWorker)
+    ) {
+      throw new Error("Another update replaced this one. Try again to load the latest version.");
+    }
     const destination = createAppUpdateNavigation(
       new URL(window.location.href),
       __ARCANE_LEDGER_BUILD_ID__,
@@ -442,6 +462,7 @@ async function performAppUpdate() {
     });
   } finally {
     window.clearTimeout(timeoutId);
+    window.clearTimeout(progressTimerId);
     controller.abort();
   }
 }

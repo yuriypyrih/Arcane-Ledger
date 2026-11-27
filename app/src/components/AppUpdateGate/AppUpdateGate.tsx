@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
-import { reloadForAppUpdate, useAppUpdateState } from "../../lib/appUpdate";
+import { APP_UPDATE_PROGRESS_MS, reloadForAppUpdate, useAppUpdateState } from "../../lib/appUpdate";
 import styles from "./AppUpdateGate.module.css";
 
 type AppUpdateRequiredPanelProps = {
@@ -16,15 +16,18 @@ export function AppUpdateRequiredPanel({
   const reloadButtonRef = useRef<HTMLButtonElement | null>(null);
   const updateState = useAppUpdateState();
   const isReloading = updateState.phase === "preparing" || updateState.phase === "activating";
+  const progressCopy = updateState.progressComplete
+    ? "Finishing the update. Keep this window open."
+    : updateState.phase === "activating"
+      ? "Applying the update. Keep this window open."
+      : "Downloading the update. Keep this window open.";
   const copy =
     updateState.error ??
-    (updateState.phase === "activating"
-      ? "Applying the update. Keep this window open."
-      : isReloading
-        ? "Downloading the update. Keep this window open."
-        : updateState.reason === "asset-load-failure"
-          ? "Some app files could not be loaded. Check your connection and try updating."
-          : "An update is available. Update to continue.");
+    (isReloading
+      ? progressCopy
+      : updateState.reason === "asset-load-failure"
+        ? "Some app files could not be loaded. Check your connection and try updating."
+        : "An update is available. Update to continue.");
 
   useEffect(() => {
     reloadButtonRef.current?.focus();
@@ -53,6 +56,15 @@ export function AppUpdateRequiredPanel({
         <p className={styles.copy} role="status">
           {copy}
         </p>
+        {isReloading && (
+          <div className={styles.progressTrack} aria-hidden="true">
+            <div
+              className={styles.progressFill}
+              data-complete={updateState.progressComplete}
+              style={{ animationDuration: `${APP_UPDATE_PROGRESS_MS}ms` }}
+            />
+          </div>
+        )}
         <button
           ref={reloadButtonRef}
           className={styles.reloadButton}
