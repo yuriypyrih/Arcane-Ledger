@@ -36,5 +36,12 @@ export function normalizeExternalImageUrl(
     throw invalid();
   }
 
-  return url.toString();
+  const normalized = url.toString();
+
+  // Normalising (percent-encoding, trailing slash) can lengthen the link past what is stored.
+  if (normalized.length > EXTERNAL_IMAGE_URL_MAX_LENGTH) {
+    throw invalid();
+  }
+
+  return normalized;
 }

@@ -1,7 +1,19 @@
 import { useEffect, useRef } from "react";
-import { subscribeToCampaignStream, type CampaignEventHandler } from "./campaignEventStream";
+import {
+  subscribeToCampaignStream,
+  type CampaignEventHandler,
+  type CampaignEventType
+} from "./campaignEventStream";
 
 export type { CampaignEventHandler, CampaignEventType } from "./campaignEventStream";
+
+/**
+ * True for the events that change session lists (and for a reconnect, which may have missed some).
+ * Combat updates are frequent and say nothing about sessions, so lists should not refetch for them.
+ */
+export function isSessionEvent(type: CampaignEventType | "connected") {
+  return type === "connected" || type.startsWith("game-session.");
+}
 
 function useLatest(handler: CampaignEventHandler) {
   const handlerRef = useRef(handler);

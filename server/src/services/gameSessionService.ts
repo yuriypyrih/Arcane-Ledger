@@ -23,6 +23,8 @@ const GAME_SESSION_TITLE_MIN_LENGTH = 2;
 const GAME_SESSION_TITLE_MAX_LENGTH = 128;
 const GAME_SESSION_RECAP_MAX_LENGTH = 20000;
 const GAME_SESSION_PROPOSAL_MESSAGE_MAX_LENGTH = 500;
+/** Proposals email the whole party, so a GM may send one per session this often. */
+const GAME_SESSION_PROPOSAL_COOLDOWN_MS = 60_000;
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -688,9 +690,23 @@ export async function proposeGameSessionReschedule(options: {
     throw new AppError("Note is invalid.", 400, "INVALID_GAME_SESSION_INPUT", { field: "message" });
   }
 
+  const now = new Date();
+
+  if (
+    session.rescheduleEmailedAt &&
+    now.getTime() - session.rescheduleEmailedAt.getTime() < GAME_SESSION_PROPOSAL_COOLDOWN_MS
+  ) {
+    throw new AppError(
+      "A proposal for this session was just sent. Wait a minute before sending another.",
+      429,
+      "GAME_SESSION_PROPOSAL_TOO_SOON"
+    );
+  }
+
   const previousScheduledAt = session.scheduledAt ?? null;
 
-  session.rescheduleProposal = { proposedAt, message, createdAt: new Date() };
+  session.rescheduleEmailedAt = now;
+  session.rescheduleProposal = { proposedAt, message, createdAt: now };
   session.revision += 1;
   await session.save();
   publishSessionEvent("game-session.updated", session);
@@ -761,8 +777,7 @@ export async function getCampaignPlayerStatus(options: {
       rescheduleProposal: toGameSessionRecord(session).rescheduleProposal,
       responses: users.map((user) => ({
         userId: user.id as string,
-        state:
-          session.availability.find((entry) => entry.userId.equals(user._id))?.state ?? null
+        state: session.availability.find((entry) => entry.userId.equals(user._id))?.state ?? null
       }))
     }))
   };

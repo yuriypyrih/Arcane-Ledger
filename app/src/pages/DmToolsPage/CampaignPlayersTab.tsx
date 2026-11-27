@@ -8,7 +8,7 @@ import {
   UserRound,
   X
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getCampaignPlayerStatus,
   withdrawGameSessionReschedule,
@@ -18,7 +18,7 @@ import {
 } from "../../api/gameSessions";
 import ActionButton from "../../components/ActionButton";
 import ExternalImage from "../../components/ExternalImage";
-import { useCampaignEvents } from "../../lib/useCampaignEvents";
+import { isSessionEvent, useCampaignEvents } from "../../lib/useCampaignEvents";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import ProposeRescheduleModal from "./ProposeRescheduleModal";
@@ -80,23 +80,44 @@ function CampaignPlayersTab({ campaignId, hasParty }: CampaignPlayersTabProps) {
   const [error, setError] = useState<string | null>(null);
   const [proposing, setProposing] = useState<CampaignPlayerStatusSession | null>(null);
   const [busySessionId, setBusySessionId] = useState<string | null>(null);
+  const latestRequest = useRef(0);
 
   const refresh = useCallback(() => {
+    const request = ++latestRequest.current;
+
     getCampaignPlayerStatus(campaignId, { suppressFailureToast: true })
       .then((status) => {
+        if (request !== latestRequest.current) {
+          return;
+        }
+
         setPlayers(status.players);
         setSessions(status.sessions);
         setError(null);
         setHasLoaded(true);
       })
       .catch((loadError) => {
+        if (request !== latestRequest.current) {
+          return;
+        }
+
         setError(getDmToolsApiErrorMessage(loadError, "Unable to load player status."));
         setHasLoaded(true);
       });
   }, [campaignId]);
 
   useEffect(refresh, [refresh]);
-  useCampaignEvents([campaignId], refresh);
+  useEffect(
+    () => () => {
+      latestRequest.current += 1;
+    },
+    []
+  );
+  useCampaignEvents([campaignId], (type) => {
+    if (isSessionEvent(type)) {
+      refresh();
+    }
+  });
 
   async function handleWithdraw(sessionId: string) {
     setBusySessionId(sessionId);

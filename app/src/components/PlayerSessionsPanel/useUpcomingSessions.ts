@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   listMyUpcomingGameSessions,
   setGameSessionAvailability,
   type GameSessionAvailabilityState,
   type PlayerGameSessionRecord
 } from "../../api/gameSessions";
-import { useCampaignEvents } from "../../lib/useCampaignEvents";
+import { isSessionEvent, useCampaignEvents } from "../../lib/useCampaignEvents";
 import { useAppSelector } from "../../store";
 
 /** The signed-in player's upcoming and live sessions, kept fresh by campaign events. */
 export function useUpcomingSessions() {
   const userId = useAppSelector((state) => state.auth.user?.id ?? null);
   const [sessions, setSessions] = useState<PlayerGameSessionRecord[]>([]);
+  const latestRequest = useRef(0);
 
   const refresh = useCallback(() => {
     if (!userId) {
@@ -19,15 +20,26 @@ export function useUpcomingSessions() {
       return;
     }
 
+    const request = ++latestRequest.current;
+
     listMyUpcomingGameSessions({ suppressFailureToast: true })
-      .then(({ gameSessions }) => setSessions(gameSessions))
+      .then(({ gameSessions }) => {
+        // A slower, older response must not replace a newer one.
+        if (request === latestRequest.current) {
+          setSessions(gameSessions);
+        }
+      })
       .catch(() => undefined);
   }, [userId]);
 
   useEffect(refresh, [refresh]);
   useCampaignEvents(
     sessions.map((session) => session.campaignId),
-    refresh
+    (type) => {
+      if (isSessionEvent(type)) {
+        refresh();
+      }
+    }
   );
 
   const vote = useCallback(

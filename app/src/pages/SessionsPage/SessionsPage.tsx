@@ -1,5 +1,5 @@
 import { CalendarDays, Eye, EyeOff } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listCampaigns } from "../../api/campaigns";
 import {
@@ -10,7 +10,7 @@ import {
   type GameSessionAvailabilityState
 } from "../../api/gameSessions";
 import ActionButton from "../../components/ActionButton";
-import { useCampaignEvents } from "../../lib/useCampaignEvents";
+import { isSessionEvent, useCampaignEvents } from "../../lib/useCampaignEvents";
 import { useAppSelector } from "../../store";
 import SessionListRow from "./SessionListRow";
 import SessionLogModal from "./SessionLogModal";
@@ -44,12 +44,14 @@ function SessionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showHidden, setShowHidden] = useState(readShowHidden);
   const [logTarget, setLogTarget] = useState<SessionRow | null>(null);
+  const latestRequest = useRef(0);
 
   const refresh = useCallback(() => {
     if (!userId) {
       return;
     }
 
+    const request = ++latestRequest.current;
     const asPlayer = listAllMyGameSessions({ suppressFailureToast: true }).then(
       ({ gameSessions }): SessionRow[] =>
         gameSessions.map((session) => ({
@@ -98,6 +100,11 @@ function SessionsPage() {
 
     // Either side may fail on its own (for example, no campaigns of your own); show what loaded.
     Promise.allSettled([asPlayer, asGm]).then(([player, gm]) => {
+      // A slower, older load must not replace a newer one (or land after leaving the page).
+      if (request !== latestRequest.current) {
+        return;
+      }
+
       const loaded = [player, gm].flatMap((result) =>
         result.status === "fulfilled" ? result.value : []
       );
@@ -113,7 +120,17 @@ function SessionsPage() {
   }, [userId]);
 
   useEffect(refresh, [refresh]);
-  useCampaignEvents([...new Set(rows.map((row) => row.campaignId))], refresh);
+  useEffect(
+    () => () => {
+      latestRequest.current += 1;
+    },
+    []
+  );
+  useCampaignEvents([...new Set(rows.map((row) => row.campaignId))], (type) => {
+    if (isSessionEvent(type)) {
+      refresh();
+    }
+  });
 
   const hiddenCount = rows.filter((row) => row.hidden).length;
   const visibleRows = useMemo(

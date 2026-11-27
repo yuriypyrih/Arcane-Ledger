@@ -330,7 +330,11 @@ const campaignLiveEncounterTurnHistorySchema =
       activeParticipantId: { type: String, default: null, maxlength: 128 },
       delayed: {
         type: new Schema(
-          { initiative: { type: Number, default: null }, participantId: String },
+          {
+            groupId: { type: String, default: null },
+            initiative: { type: Number, default: null },
+            participantId: String
+          },
           { _id: false }
         ),
         default: null

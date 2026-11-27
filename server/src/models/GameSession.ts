@@ -33,6 +33,8 @@ export type GameSessionRecord = {
   hiddenByUserIds: Types.ObjectId[];
   /** A new time the GM suggested; cleared when the session time changes or the GM withdraws it. */
   rescheduleProposal?: GameSessionRescheduleProposalRecord | null;
+  /** When reschedule emails last went out; withdrawing a proposal does not reset the cooldown. */
+  rescheduleEmailedAt?: Date | null;
   /** The scheduledAt value invites were last sent for; prevents duplicate emails. */
   invitedScheduledAt?: Date | null;
   startedAt?: Date | null;
@@ -132,6 +134,10 @@ const gameSessionSchema = new Schema<GameSessionRecord>(
     },
     rescheduleProposal: {
       type: gameSessionRescheduleProposalSchema,
+      default: null
+    },
+    rescheduleEmailedAt: {
+      type: Date,
       default: null
     },
     invitedScheduledAt: {

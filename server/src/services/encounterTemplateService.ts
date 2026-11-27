@@ -20,6 +20,7 @@ import {
   readCreatureLinkIntent,
   TEMPLATE_INHERITED_KEYS
 } from "./creatureTypeGroups.js";
+import { normalizeExternalImageUrl } from "./externalImageUrl.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const ENCOUNTER_TEMPLATE_NAME_MIN_LENGTH = 2;
@@ -231,37 +232,14 @@ export function normalizeEncounterTemplateName(value: unknown) {
   return name;
 }
 
-/** Picture links must be plain https URLs: no embedded credentials, no other schemes. */
 function normalizeCreatureImageUrl(value: unknown) {
-  if (value === undefined || value === null || value === "") {
-    return undefined;
-  }
-
-  const invalid = () =>
-    new AppError(
-      "Picture link must be a valid https:// URL.",
-      400,
-      "INVALID_ENCOUNTER_TEMPLATE_CREATURE",
-      { field: "imageUrl" }
-    );
-
-  if (typeof value !== "string" || value.trim().length > 500) {
-    throw invalid();
-  }
-
-  let url: URL;
-
-  try {
-    url = new URL(value.trim());
-  } catch {
-    throw invalid();
-  }
-
-  if (url.protocol !== "https:" || url.username || url.password) {
-    throw invalid();
-  }
-
-  return url.toString();
+  return (
+    normalizeExternalImageUrl(value, {
+      code: "INVALID_ENCOUNTER_TEMPLATE_CREATURE",
+      field: "imageUrl",
+      label: "Picture link"
+    }) || undefined
+  );
 }
 
 export function normalizeEncounterTemplateCreature(

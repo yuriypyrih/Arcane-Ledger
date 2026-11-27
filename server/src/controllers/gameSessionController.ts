@@ -182,6 +182,11 @@ async function resolveStreamSubscriptions(request: Request, response: Locals) {
 export const streamCampaignEvents = asyncHandler(async (request: Request, response: Locals) => {
   const { campaignIds, partyIdsByCampaign } = await resolveStreamSubscriptions(request, response);
 
+  // The client may have disconnected while access was being resolved; its close event already fired.
+  if (response.destroyed || response.writableEnded) {
+    return;
+  }
+
   response.status(200).set({
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
