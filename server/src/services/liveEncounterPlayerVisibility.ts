@@ -283,8 +283,8 @@ export function createPlayerVisibleLiveEncounterCreature(
     visibleCreature.type = creature.type;
   }
 
-  // The picture identifies the creature just like its type, so it follows the same visibility.
-  if (settings.showMonsterType && creature.imageUrl) {
+  // The GM attached this picture on purpose, so players see it; leave it unset to keep a creature hidden.
+  if (creature.imageUrl) {
     visibleCreature.imageUrl = creature.imageUrl;
   }
 

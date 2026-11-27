@@ -55,6 +55,8 @@ export type CampaignLiveEncounterParticipantRefRecord = {
   creatureId?: string;
   /** Initiative value; null/undefined until rolled or entered. */
   initiative?: number | null;
+  /** A value a player proposed after already rolling; it applies only if the GM approves. */
+  pendingInitiative?: number | null;
   /** Creatures sharing a group id sit together in the order and take one turn as a pack. */
   groupId?: string | null;
 };
@@ -288,6 +290,12 @@ const campaignLiveEncounterParticipantRefSchema =
         maxlength: 128
       },
       initiative: {
+        type: Number,
+        min: -100,
+        max: 100,
+        default: null
+      },
+      pendingInitiative: {
         type: Number,
         min: -100,
         max: 100,

@@ -61,9 +61,9 @@ function sortByInitiative(order: CampaignLiveEncounterParticipantRefRecord[]) {
 }
 
 /**
- * A player submits their own character's initiative (for example from the sheet's initiative roll).
- * It only applies once: a value that is already set can only be changed by the GM, so players cannot
- * re-roll for a better result. The character joins the initiative order and the order is re-sorted.
+ * A player submits their own character's initiative. The first value applies immediately: the
+ * character joins the initiative order and the order is re-sorted. Once a value is set, a new one is
+ * only stored as a pending request that the GM approves or denies, so players cannot quietly re-roll.
  */
 export async function submitMemberLiveEncounterInitiative(options: {
   ownerId: Types.ObjectId;
@@ -109,15 +109,48 @@ export async function submitMemberLiveEncounterInitiative(options: {
       throw new AppError("Party member was not found.", 404, "PARTY_MEMBER_NOT_FOUND");
     }
 
-    if (member.initiative !== null && member.initiative !== undefined) {
-      throw new AppError(
-        "Your initiative is already set. Ask the GM to change it.",
-        409,
-        "LIVE_ENCOUNTER_INITIATIVE_ALREADY_SET"
-      );
+    const alreadyRolled = member.initiative !== null && member.initiative !== undefined;
+
+    if (alreadyRolled) {
+      // A second roll is only a request: the GM decides whether it replaces the first.
+      const withRequest = (ref: CampaignLiveEncounterParticipantRefRecord) =>
+        ref.participantId === member.participantId
+          ? { ...ref, pendingInitiative: payload.initiative }
+          : ref;
+      const requested = await Campaign.findOneAndUpdate(
+        { _id: campaign._id, "liveEncounterTracker.revision": snapshot.tracker.revision },
+        {
+          $set: {
+            "liveEncounterTracker.partyMembers": partyMembers.map(withRequest),
+            "liveEncounterTracker.creatures": creatures,
+            "liveEncounterTracker.initiativeOrder": initiativeOrder.map(withRequest),
+            "liveEncounterTracker.revision": snapshot.tracker.revision + 1,
+            "liveEncounterTracker.updatedAt": new Date()
+          }
+        },
+        { new: true, runValidators: true }
+      ).exec();
+
+      if (!requested?.liveEncounterTracker) {
+        continue;
+      }
+
+      publishCampaignEvent({
+        type: "live-encounter.updated",
+        campaignId: requested.id as string,
+        revision: requested.liveEncounterTracker.revision
+      });
+
+      return {
+        partyGroupId: options.partyGroupId,
+        liveEncounterTracker:
+          await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(requested),
+        initiativeUpdated: false,
+        requested: true
+      };
     }
 
-    const withValue = { ...member, initiative: payload.initiative };
+    const withValue = { ...member, initiative: payload.initiative, pendingInitiative: null };
     const nextInitiativeOrder = sortByInitiative([
       ...initiativeOrder.filter((ref) => ref.participantId !== member.participantId),
       withValue
@@ -155,7 +188,8 @@ export async function submitMemberLiveEncounterInitiative(options: {
       partyGroupId: options.partyGroupId,
       liveEncounterTracker:
         await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(updatedCampaign),
-      initiativeUpdated: true
+      initiativeUpdated: true,
+      requested: false
     };
   }
 

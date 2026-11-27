@@ -489,6 +489,8 @@ function addCanonicalRefsFromList(options: {
     options.destination.push({
       ...canonicalRef,
       initiative: ref.initiative ?? null,
+      pendingInitiative:
+        canonicalRef.kind === "party-member" ? (ref.pendingInitiative ?? null) : null,
       groupId: canonicalRef.kind === "creature" ? (ref.groupId ?? null) : null
     });
     options.seenParticipantIds.add(canonicalRef.participantId);
@@ -564,7 +566,12 @@ function hydrateParticipantRef(
       : sourceContext.creaturesByParticipantId.get(ref.participantId);
 
   return participant
-    ? { ...participant, initiative: ref.initiative ?? null, groupId: ref.groupId ?? null }
+    ? {
+        ...participant,
+        initiative: ref.initiative ?? null,
+        pendingInitiative: ref.pendingInitiative ?? null,
+        groupId: ref.groupId ?? null
+      }
     : null;
 }
 
@@ -809,6 +816,7 @@ function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipa
   return {
     ...ref,
     initiative: normalizeInitiative(body.initiative),
+    pendingInitiative: normalizeInitiative(body.pendingInitiative),
     groupId: ref.kind === "creature" ? normalizeGroupId(body.groupId) : null
   };
 }

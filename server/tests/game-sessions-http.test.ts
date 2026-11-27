@@ -205,7 +205,7 @@ it("runs a session end to end: invite, availability, live combat, SSE push and c
   partyStream.close();
 });
 
-it("takes a player's initiative once, sorts it into the order, and lets the GM override it", async () => {
+it("takes a player's initiative, turns a second roll into a GM-approval request, and lets the GM override it", async () => {
   const { campaignId, preparedEncounterId } = await campaignWithParty();
   await gm
     .post(`/api/v1/campaigns/${campaignId}/live-encounter`)
@@ -231,8 +231,13 @@ it("takes a player's initiative once, sorts it into the order, and lets the GM o
   const again = await player
     .patch(initiativePath)
     .send({ characterId, initiative: 20 })
-    .expect(409);
-  expect(again.body.error.code).toBe("LIVE_ENCOUNTER_INITIATIVE_ALREADY_SET");
+    .expect(200);
+  // A second roll is only a request: the first value stands until the GM approves.
+  expect(again.body.requested).toBe(true);
+  expect(again.body.liveEncounterTracker.initiativeOrder[0]).toMatchObject({
+    initiative: 14,
+    pendingInitiative: 20
+  });
 
   // The GM can overwrite the value; it survives the save.
   const stored = (await gm.get(`/api/v1/campaigns/${campaignId}`).expect(200)).body.campaign
@@ -255,6 +260,8 @@ it("takes a player's initiative once, sorts it into the order, and lets the GM o
     })
     .expect(200);
   expect(updated.body.patch.liveEncounterTracker.initiativeOrder[0].initiative).toBe(9);
+  // Resolving the request (the GM saves without a pending value) clears it.
+  expect(updated.body.patch.liveEncounterTracker.initiativeOrder[0].pendingInitiative).toBeNull();
   await gm
     .patch(`/api/v1/campaigns/${campaignId}/live-encounter`)
     .send({
