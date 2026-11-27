@@ -79,6 +79,8 @@ export type CampaignLiveEncounterTrackerParticipantRefRecord = {
   creatureId?: string;
   /** Initiative value; null until rolled or entered. */
   initiative?: number | null;
+  /** A re-roll the player proposed; it only applies if the GM approves it. */
+  pendingInitiative?: number | null;
   /** Creatures sharing a group id take one turn together as a pack. */
   groupId?: string | null;
 };

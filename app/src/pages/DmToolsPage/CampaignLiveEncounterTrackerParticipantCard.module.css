@@ -554,3 +554,84 @@ label.portraitControl {
 .cardNumberedRow[data-pack-position="last"]::before {
   bottom: 0.3rem;
 }
+
+/* Quick damage under a creature's card in the initiative order. */
+.hpQuickRow {
+  display: flex;
+  grid-column: 2;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 0.3rem 0 0.1rem;
+}
+
+.hpQuickButton {
+  min-width: 2.4rem;
+  min-height: 1.7rem;
+  border: 1px solid rgba(198, 74, 60, 0.55);
+  border-radius: 6px;
+  background: rgba(150, 40, 32, 0.16);
+  color: var(--theme-state-danger);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0 0.4rem;
+}
+
+.hpQuickButton:hover:not(:disabled) {
+  background: rgba(150, 40, 32, 0.32);
+}
+
+.hpQuickButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+.hpQuickButton:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* A player's re-roll request, waiting on the GM. */
+.rerollRequest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.rerollValue {
+  color: var(--theme-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rerollApprove,
+.rerollDeny {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: 6px;
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.rerollApprove:hover {
+  border-color: #3c9b5d;
+  color: #3c9b5d;
+}
+
+.rerollDeny:hover {
+  border-color: var(--theme-state-danger);
+  color: var(--theme-state-danger);
+}
+
+.rerollApprove:focus-visible,
+.rerollDeny:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}

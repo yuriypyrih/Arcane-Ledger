@@ -240,3 +240,30 @@ export function leaveGroup(
     )
   };
 }
+
+/** Approves or denies a player's re-roll request. Approving applies the new value and re-sorts the order. */
+export function resolveInitiativeRequest(
+  tracker: CampaignLiveEncounterTrackerRecord,
+  participantId: string,
+  approve: boolean
+): CampaignLiveEncounterTrackerRecord {
+  const pending = [...tracker.partyMembers, ...tracker.initiativeOrder].find(
+    (participant) => participant.participantId === participantId
+  )?.pendingInitiative;
+  const applied =
+    approve && typeof pending === "number"
+      ? setParticipantInitiative(tracker, participantId, pending)
+      : tracker;
+  const clear = <T extends CampaignLiveEncounterTrackerParticipantRecord>(list: T[]) =>
+    list.map((participant) =>
+      participant.participantId === participantId
+        ? { ...participant, pendingInitiative: null }
+        : participant
+    );
+
+  return {
+    ...applied,
+    partyMembers: clear(applied.partyMembers),
+    initiativeOrder: clear(applied.initiativeOrder)
+  };
+}

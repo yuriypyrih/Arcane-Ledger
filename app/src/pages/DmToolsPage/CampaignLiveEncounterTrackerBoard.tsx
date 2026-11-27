@@ -32,6 +32,7 @@ import {
   groupWithPrevious,
   leaveGroup,
   normalizeInitiativeGroups,
+  resolveInitiativeRequest,
   rollCreatureInitiatives,
   setParticipantInitiative,
   type InitiativeSlotInfo
@@ -41,6 +42,7 @@ import styles from "./DmToolsPage.module.css";
 
 type CampaignLiveEncounterTrackerBoardProps = {
   onChange: (tracker: CampaignLiveEncounterTrackerRecord) => void;
+  onDamageCreature?: (creatureId: string, amount: number) => void;
   onEditEncounterCreatures?: () => void;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   readOnly?: boolean;
@@ -55,6 +57,8 @@ type TrackerListProps = {
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onSelectActiveParticipant: (participantId: string) => void;
   canGroupParticipant?: (participantId: string) => boolean;
+  onDamageCreature?: (creatureId: string, amount: number) => void;
+  onResolveInitiativeRequest?: (participantId: string, approve: boolean) => void;
   onChangeInitiative?: (participantId: string, initiative: number | null) => void;
   onToggleGroup?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   slotInfo?: Map<string, InitiativeSlotInfo>;
@@ -154,6 +158,8 @@ function TrackerList({
   onInspectParticipant,
   canGroupParticipant,
   onChangeInitiative,
+  onDamageCreature,
+  onResolveInitiativeRequest,
   onSelectActiveParticipant,
   onToggleGroup,
   onToggleInitiative,
@@ -204,6 +210,8 @@ function TrackerList({
                   isActiveSlot={slotInfo?.get(participant.participantId)?.isActive}
                   listKey={listKey}
                   onChangeInitiative={onChangeInitiative}
+                  onDamageCreature={onDamageCreature}
+                  onResolveInitiativeRequest={onResolveInitiativeRequest}
                   onToggleGroup={onToggleGroup}
                   onInspect={onInspectParticipant}
                   onSelectActiveParticipant={onSelectActiveParticipant}
@@ -252,6 +260,7 @@ function TrackerList({
 
 function CampaignLiveEncounterTrackerBoard({
   onChange,
+  onDamageCreature,
   onEditEncounterCreatures,
   onInspectParticipant,
   readOnly = false,
@@ -328,6 +337,10 @@ function CampaignLiveEncounterTrackerBoard({
         ? leaveGroup(tracker, participant.participantId)
         : groupWithPrevious(tracker, participant.participantId)
     );
+  }
+
+  function handleResolveInitiativeRequest(participantId: string, approve: boolean) {
+    onChange(resolveInitiativeRequest(tracker, participantId, approve));
   }
 
   function handleChangeInitiative(participantId: string, initiative: number | null) {
@@ -408,6 +421,8 @@ function CampaignLiveEncounterTrackerBoard({
             canGroupParticipant={(participantId) => canGroupWithPrevious(tracker, participantId)}
             listKey="initiativeOrder"
             onChangeInitiative={handleChangeInitiative}
+            onDamageCreature={onDamageCreature}
+            onResolveInitiativeRequest={handleResolveInitiativeRequest}
             onToggleGroup={handleToggleGroup}
             slotInfo={slotInfo}
             onInspectParticipant={onInspectParticipant}

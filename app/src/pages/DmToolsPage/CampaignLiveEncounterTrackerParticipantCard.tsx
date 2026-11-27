@@ -3,12 +3,14 @@ import clsx from "clsx";
 import { Fragment, useState, type CSSProperties } from "react";
 import {
   ArrowRightFromLine,
+  Check,
   ChessRook,
   GripVertical,
   Link2,
   Shield,
   Undo2,
-  Unlink
+  Unlink,
+  X
 } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
@@ -47,6 +49,8 @@ type CampaignLiveEncounterTrackerParticipantCardProps = {
   groupPosition?: "single" | "first" | "middle" | "last";
   isActiveSlot?: boolean;
   onChangeInitiative?: (participantId: string, initiative: number | null) => void;
+  onDamageCreature?: (creatureId: string, amount: number) => void;
+  onResolveInitiativeRequest?: (participantId: string, approve: boolean) => void;
   onToggleGroup?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onToggleInitiative?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participant: CampaignLiveEncounterTrackerParticipantRecord;
@@ -517,6 +521,8 @@ function ParticipantPortraitControl({
   );
 }
 
+const QUICK_DAMAGE_AMOUNTS = [1, 5, 10];
+
 function InitiativeValue({
   name,
   onChange,
@@ -586,7 +592,9 @@ function ParticipantCardFrame({
   groupPosition = "single",
   isActiveSlot,
   onChangeInitiative,
+  onDamageCreature,
   onInspect,
+  onResolveInitiativeRequest,
   onSelectActiveParticipant,
   onToggleGroup,
   onToggleInitiative,
@@ -710,6 +718,35 @@ function ParticipantCardFrame({
           participantId={participant.participantId}
           value={participant.initiative ?? null}
         />
+        {!readOnly && onResolveInitiativeRequest && participant.pendingInitiative != null ? (
+          <div
+            className={styles.rerollRequest}
+            role="group"
+            aria-label={`${viewModel.title} asks to re-roll initiative`}
+          >
+            <span className={styles.rerollValue} title="Requested re-roll">
+              {`→ ${participant.pendingInitiative}`}
+            </span>
+            <button
+              type="button"
+              className={styles.rerollApprove}
+              aria-label={`Approve initiative ${participant.pendingInitiative} for ${viewModel.title}`}
+              title="Approve the re-roll"
+              onClick={() => onResolveInitiativeRequest(participant.participantId, true)}
+            >
+              <Check size={13} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className={styles.rerollDeny}
+              aria-label={`Deny the re-roll for ${viewModel.title}`}
+              title="Keep the original initiative"
+              onClick={() => onResolveInitiativeRequest(participant.participantId, false)}
+            >
+              <X size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
         {!readOnly && isInInitiative && participant.kind === "creature" && onToggleGroup ? (
           <button
             type="button"
@@ -738,6 +775,27 @@ function ParticipantCardFrame({
         ) : null}
       </div>
       {card}
+      {!readOnly && isInInitiative && participant.kind === "creature" && onDamageCreature ? (
+        <div
+          className={styles.hpQuickRow}
+          role="group"
+          aria-label={`Quick damage for ${viewModel.title}`}
+        >
+          {QUICK_DAMAGE_AMOUNTS.map((amount) => (
+            <button
+              key={amount}
+              type="button"
+              className={styles.hpQuickButton}
+              disabled={(viewModel.currentHitPoints ?? 0) <= 0}
+              aria-label={`Deal ${amount} damage to ${viewModel.title}`}
+              title={`Remove ${amount} HP`}
+              onClick={() => onDamageCreature(participant.creatureId, amount)}
+            >
+              {`-${amount}`}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -55,6 +55,7 @@ import {
   openLiveEncounterTrackerWindow,
   openTableDisplayWindow
 } from "./liveEncounterTrackerWindow";
+import { applyDamageToEncounterCreature } from "./encounterCreatureDamage";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
 
 const trackerRefreshCooldownMs = 5_000;
@@ -190,6 +191,7 @@ function CampaignLiveEncounterTrackerPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isTurnBusy, setIsTurnBusy] = useState(false);
   const trackerRefreshCooldownRef = useRef<number | null>(null);
+  const creatureUpdateQueueRef = useRef<Promise<unknown>>(Promise.resolve());
 
   const clearTrackerRefreshCooldown = useCallback(() => {
     if (trackerRefreshCooldownRef.current === null) {
@@ -440,22 +442,48 @@ function CampaignLiveEncounterTrackerPage() {
     }
   }
 
-  async function handleUpdateInspectedCreature(
+  // Creature edits run one at a time, each against the newest campaign, so quick clicks never
+  // overwrite one another with stale hit points.
+  function handleUpdateInspectedCreature(
     creatureId: string,
     updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
   ) {
+    const run = creatureUpdateQueueRef.current.then(() =>
+      applyCreatureUpdate(creatureId, updateCreature)
+    );
+
+    creatureUpdateQueueRef.current = run.catch(() => undefined);
+
+    return run;
+  }
+
+  function handleDamageCreature(creatureId: string, amount: number) {
+    void handleUpdateInspectedCreature(creatureId, (creature) =>
+      applyDamageToEncounterCreature(creature, amount)
+    ).catch((damageError) =>
+      setActionError(getDmToolsApiErrorMessage(damageError, "Unable to change hit points."))
+    );
+  }
+
+  async function applyCreatureUpdate(
+    creatureId: string,
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  ) {
+    const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
+    const latestTracker = latestCampaign?.liveEncounterTracker;
+
     if (
       !campaignId ||
-      !campaign ||
-      !tracker ||
-      tracker.status.state !== "valid" ||
+      !latestCampaign ||
+      !latestTracker ||
+      latestTracker.status.state !== "valid" ||
       !isGmViewEnabled
     ) {
       throw new Error("Creature hit points can only be edited from GM View.");
     }
 
-    const preparedEncounter = campaign.preparedEncounters.find(
-      (encounter) => encounter.id === tracker.preparedEncounterId
+    const preparedEncounter = latestCampaign.preparedEncounters.find(
+      (encounter) => encounter.id === latestTracker.preparedEncounterId
     );
     const sourceCreature = preparedEncounter?.creatures.find(
       (creature) => creature.id === creatureId
@@ -691,6 +719,7 @@ function CampaignLiveEncounterTrackerPage() {
                 void handleEditPreparedEncounter();
               }}
               onChange={handleDisplayedTrackerChange}
+              onDamageCreature={handleDamageCreature}
               onInspectParticipant={(participant) =>
                 setInspectedParticipantId(participant.participantId)
               }

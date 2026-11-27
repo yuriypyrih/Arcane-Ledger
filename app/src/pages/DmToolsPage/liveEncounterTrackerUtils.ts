@@ -14,13 +14,15 @@ export function toLiveEncounterParticipantRef(
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): CampaignLiveEncounterTrackerParticipantRefRecord {
   const initiative = participant.initiative ?? null;
+  const pendingInitiative = participant.pendingInitiative ?? null;
 
   if (participant.kind === "party-member") {
     return {
       participantId: participant.participantId,
       kind: "party-member",
       characterId: participant.characterId,
-      initiative
+      initiative,
+      pendingInitiative
     };
   }
 
@@ -30,7 +32,8 @@ export function toLiveEncounterParticipantRef(
       kind: "party-companion",
       characterId: participant.characterId,
       companionId: participant.companionId,
-      initiative
+      initiative,
+      pendingInitiative
     };
   }
 
@@ -39,6 +42,7 @@ export function toLiveEncounterParticipantRef(
     kind: "creature",
     creatureId: participant.creatureId,
     initiative,
+    pendingInitiative,
     groupId: participant.groupId ?? null
   };
 }
