@@ -4,7 +4,8 @@
   gap: var(--space-section-gap);
   grid-template-areas:
     "party tracker"
-    "notes encounters";
+    "notes encounters"
+    "sessions sessions";
   grid-template-columns:
     minmax(17rem, 0.82fr)
     minmax(0, 1.48fr);
@@ -13,8 +14,13 @@
 .partyPanel,
 .trackerPanel,
 .encountersPanel,
-.notesPanel {
+.notesPanel,
+.sessionsPanel {
   min-width: 0;
+}
+
+.sessionsPanel {
+  grid-area: sessions;
 }
 
 .partyPanel {
@@ -60,7 +66,8 @@
       "party"
       "tracker"
       "encounters"
-      "notes";
+      "notes"
+      "sessions";
     grid-template-columns: minmax(0, 1fr);
   }
 

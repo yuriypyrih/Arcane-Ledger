@@ -11,6 +11,7 @@ import {
 } from "../../storage/preferences";
 import type { ThemeModePreference } from "../../storage/preferences";
 import { MEDIA_QUERIES } from "../../styles/breakpoints";
+import PlayerSessionsPanel from "../PlayerSessionsPanel";
 import ToastHost from "../ToastViewport";
 import PrimaryNav from "./PrimaryNav";
 import { navigationLinks } from "./navigationLinks";
@@ -102,6 +103,7 @@ function AppShell() {
         </div>
       </header>
       <main className={styles.main}>
+        <PlayerSessionsPanel />
         <Outlet context={outletContext} />
       </main>
       <ToastHost />

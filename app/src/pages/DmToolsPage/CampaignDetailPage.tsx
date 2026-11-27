@@ -23,6 +23,7 @@ import CampaignEncounterTrackerSection from "./CampaignEncounterTrackerSection";
 import CampaignPreparedEncountersSection from "./CampaignPreparedEncountersSection";
 import CampaignSelectedPartySection from "./CampaignSelectedPartySection";
 import CampaignSessionNotesSection from "./CampaignSessionNotesSection";
+import CampaignSessionsSection from "./CampaignSessionsSection";
 import CampaignVisibilitySettingsButton from "./CampaignVisibilitySettingsSection";
 import detailStyles from "./CampaignDetailPage.module.css";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
@@ -109,9 +110,7 @@ function CampaignDetailPage() {
           {campaign ? (
             <div className={styles.headerActions}>
               <CampaignVisibilitySettingsButton campaign={campaign} />
-              <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>
-                Edit
-              </DmToolsEditButton>
+              <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>Edit</DmToolsEditButton>
             </div>
           ) : null}
         </div>
@@ -146,6 +145,14 @@ function CampaignDetailPage() {
                 onStartEncounter={handleStartEncounter}
               />
 
+              <CampaignSessionsSection
+                campaignId={campaign.id}
+                className={detailStyles.sessionsPanel}
+                hasLiveEncounter={campaign.liveEncounterTracker !== null}
+                partyGroupId={campaign.selectedPartyId}
+                preparedEncounters={campaign.preparedEncounters}
+              />
+
               <CampaignSessionNotesSection
                 campaign={campaign}
                 className={detailStyles.notesPanel}
@@ -158,9 +165,7 @@ function CampaignDetailPage() {
             ) : null}
           </>
         ) : null}
-        {isGuideOpen ? (
-          <CampaignManagerGuideModal onClose={() => setIsGuideOpen(false)} />
-        ) : null}
+        {isGuideOpen ? <CampaignManagerGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
       </section>
     </section>
   );
