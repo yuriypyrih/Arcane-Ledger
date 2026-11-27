@@ -29,9 +29,7 @@ export function useAdministrationUsers({
   const isOnline = useOnlineStatus();
   const normalizedSearch = search.trim();
   const querySearch =
-    normalizedSearch.length >= ADMINISTRATION_USER_SEARCH_MIN_LENGTH
-      ? normalizedSearch
-      : undefined;
+    normalizedSearch.length >= ADMINISTRATION_USER_SEARCH_MIN_LENGTH ? normalizedSearch : undefined;
   const [payload, setPayload] = useState<AdministrationUserListResponse | null>(null);
   const [status, setStatus] = useState<AdministrationUsersStatus>(enabled ? "loading" : "idle");
 
