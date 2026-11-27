@@ -15,6 +15,7 @@ import { useHref, useNavigate, useParams } from "react-router-dom";
 import {
   applyCampaignLiveEncounterTurn,
   getCampaign,
+  updateCampaignPreparedEncounterCreatureVisibilitySettings,
   type CampaignLiveEncounterTurnAction,
   removeCampaignLiveEncounterTracker,
   upsertCampaignPreparedEncounterCreature,
@@ -457,6 +458,36 @@ function CampaignLiveEncounterTrackerPage() {
     return run;
   }
 
+  /** Lets players see (or hide) one creature's resistances and immunities; other settings stay as they are. */
+  async function handleSetResistanceVisibility(creatureId: string, show: boolean) {
+    const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
+    const latestTracker = latestCampaign?.liveEncounterTracker;
+    const creature = latestTracker?.creatures
+      .concat(latestTracker.initiativeOrder.filter((entry) => entry.kind === "creature"))
+      .find((entry) => entry.kind === "creature" && entry.creatureId === creatureId);
+
+    if (!campaignId || !latestTracker || creature?.kind !== "creature") {
+      throw new Error("Unable to find this creature.");
+    }
+
+    const campaignPatch = await updateCampaignPreparedEncounterCreatureVisibilitySettings(
+      campaignId,
+      latestTracker.preparedEncounterId,
+      creatureId,
+      {
+        ...creature.creature.effectivePlayerVisibilitySettings,
+        showResistancesAndImmunities: show
+      },
+      { suppressFailureToast: true }
+    );
+    const nextTracker = campaignPatch.patch.liveEncounterTracker
+      ? normalizeLiveEncounterTracker(campaignPatch.patch.liveEncounterTracker)
+      : null;
+
+    dispatch(patchSelectedCampaign(campaignPatch));
+    setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+  }
+
   function handleDamageCreature(creatureId: string, amount: number) {
     void handleUpdateInspectedCreature(creatureId, (creature) =>
       applyDamageToEncounterCreature(creature, amount)
@@ -506,6 +537,10 @@ function CampaignLiveEncounterTrackerPage() {
     }
 
     const nextCreature = updateCreature(sourceCreature);
+
+    if (nextCreature.id !== creatureId) {
+      throw new Error("The edit would change a different creature. Nothing was saved.");
+    }
     const campaignPatch = await upsertCampaignPreparedEncounterCreature(
       campaignId,
       preparedEncounter.id,
@@ -737,6 +772,7 @@ function CampaignLiveEncounterTrackerPage() {
                 participant={inspectedParticipant}
                 readOnly={!isGmViewEnabled}
                 onClose={() => setInspectedParticipantId(null)}
+                onSetResistanceVisibility={handleSetResistanceVisibility}
                 onUpdateCreature={handleUpdateInspectedCreature}
               />
             ) : null}

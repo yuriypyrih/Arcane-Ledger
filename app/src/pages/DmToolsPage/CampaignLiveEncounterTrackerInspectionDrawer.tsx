@@ -1,6 +1,7 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
 import CreatureImageUrlField from "./CreatureImageUrlField";
+import CreatureResistanceVisibilityToggle from "./CreatureResistanceVisibilityToggle";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer/MonsterEntryRenderer";
@@ -50,6 +51,7 @@ type CampaignLiveEncounterTrackerInspectionDrawerProps = {
   participant: CampaignLiveEncounterTrackerParticipantRecord;
   readOnly?: boolean;
   onClose: () => void;
+  onSetResistanceVisibility?: (creatureId: string, show: boolean) => void | Promise<void>;
   onUpdateCreature?: LiveEncounterCreatureUpdate;
 };
 
@@ -445,6 +447,7 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
   participant,
   readOnly = true,
   onClose,
+  onSetResistanceVisibility,
   onUpdateCreature
 }: CampaignLiveEncounterTrackerInspectionDrawerProps) {
   const titleId = useId();
@@ -495,6 +498,27 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
           onUpdateCreature={handleUpdateCreature}
         />
         {drawerNotice ? <p className={styles.modalError}>{drawerNotice}</p> : null}
+        {participant.kind === "creature" && !readOnly && onSetResistanceVisibility ? (
+          <CreatureResistanceVisibilityToggle
+            isVisible={
+              participant.creature.effectivePlayerVisibilitySettings.showResistancesAndImmunities
+            }
+            onChange={async (show) => {
+              setDrawerNotice(null);
+
+              try {
+                await onSetResistanceVisibility(
+                  participant.creatureId ?? participant.creature.id,
+                  show
+                );
+              } catch (visibilityError) {
+                setDrawerNotice(
+                  getDmToolsApiErrorMessage(visibilityError, "Unable to change what players see.")
+                );
+              }
+            }}
+          />
+        ) : null}
         {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
           <CreatureImageUrlField
             key={participant.creature.imageUrl ?? ""}
