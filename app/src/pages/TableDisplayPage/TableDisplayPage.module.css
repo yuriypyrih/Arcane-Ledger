@@ -520,3 +520,8 @@
     animation: none;
   }
 }
+
+.tag[data-tone="condition"] {
+  border-color: rgba(120, 190, 150, 0.55);
+  background: rgba(50, 110, 80, 0.3);
+}

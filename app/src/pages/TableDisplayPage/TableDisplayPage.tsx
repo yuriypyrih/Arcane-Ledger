@@ -124,6 +124,7 @@ function CombatantCard({ card, compact = false }: { card: TableDisplayCard; comp
         <div className={styles.tags}>
           <DamageTags label="Resist" tone="resist" values={card.resistances} />
           <DamageTags label="Immune" tone="immune" values={card.immunities} />
+          <DamageTags label="Status immune" tone="condition" values={card.conditionImmunities} />
           <DamageTags label="Vulnerable" tone="vulnerable" values={card.vulnerabilities} />
         </div>
       )}

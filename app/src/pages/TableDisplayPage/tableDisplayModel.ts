@@ -6,6 +6,7 @@ import type {
 
 export type TableDisplayCard = {
   ac: number | null;
+  conditionImmunities: string[];
   currentHitPoints: number | null;
   id: string;
   imageUrl: string | null;
@@ -75,6 +76,7 @@ export function toTableDisplayCard(
     return {
       ...base,
       ac: toNumber(statBlock?.armorClass),
+      conditionImmunities: cleanList(statBlock?.conditionImmunities),
       currentHitPoints: toNumber(statBlock?.currentHitPoints),
       imageUrl: participant.avatar?.imageUrl ?? null,
       immunities: cleanList(statBlock?.immunities),
@@ -100,6 +102,7 @@ export function toTableDisplayCard(
     return {
       ...base,
       ac: null,
+      conditionImmunities: [],
       currentHitPoints: toNumber(participant.companion.currentHitPoints),
       imageUrl: null,
       immunities: [],
@@ -117,27 +120,36 @@ export function toTableDisplayCard(
 
   const { creature } = participant;
   const entry = creature.inheritedCreatureEntry;
+  // Resistances live under resistances_and_immunities and reach players only when the GM allows it.
+  const defenses = entry?.resistances_and_immunities;
   const imageUrl = entry?.illustration?.file_url;
 
   return {
     ...base,
     ac: toNumber(entry?.armor_class),
+    conditionImmunities: splitDamageList(
+      defenses?.condition_immunities_display,
+      defenses?.condition_immunities
+    ),
     currentHitPoints: toNumber(creature.currentHitPoints),
     imageUrl:
       creature.imageUrl ||
       (typeof imageUrl === "string" && imageUrl.trim() ? imageUrl.trim() : null),
-    immunities: splitDamageList(entry?.damage_immunities_display, entry?.damage_immunities),
+    immunities: splitDamageList(defenses?.damage_immunities_display, defenses?.damage_immunities),
     isAlly: false,
     maxHitPoints: toNumber(creature.maxHitPoints),
     name: creature.name,
     passivePerception: toNumber(entry?.passive_perception),
-    resistances: splitDamageList(entry?.damage_resistances_display, entry?.damage_resistances),
+    resistances: splitDamageList(
+      defenses?.damage_resistances_display,
+      defenses?.damage_resistances
+    ),
     subtitle: typeof creature.type === "string" ? creature.type : "",
     temporaryHitPoints: Math.max(0, toNumber(creature.temporaryHitPoints) ?? 0),
     vitalityLabel: creature.vitalityStatusLabel ?? null,
     vulnerabilities: splitDamageList(
-      entry?.damage_vulnerabilities_display,
-      entry?.damage_vulnerabilities
+      defenses?.damage_vulnerabilities_display,
+      defenses?.damage_vulnerabilities
     )
   };
 }
