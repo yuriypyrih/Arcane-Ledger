@@ -13,6 +13,13 @@ import {
   ENCOUNTER_INHERITED_CREATURE_ENTRY_MAX_BYTES,
   ENCOUNTER_MAX_CREATURES
 } from "../constants/QUOTAS.js";
+import {
+  applyCreatureTypeRules,
+  dissolveLoneGroups,
+  linkCreaturesByMonster,
+  readCreatureLinkIntent,
+  TEMPLATE_INHERITED_KEYS
+} from "./creatureTypeGroups.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const ENCOUNTER_TEMPLATE_NAME_MIN_LENGTH = 2;
@@ -463,11 +470,12 @@ export async function upsertEncounterTemplateCreature(options: {
     });
   }
 
-  if (existingCreatureIndex >= 0) {
-    encounterTemplate.creatures[existingCreatureIndex] = creature;
-  } else {
-    encounterTemplate.creatures.push(creature);
-  }
+  encounterTemplate.creatures = applyCreatureTypeRules({
+    creature,
+    creatures: encounterTemplate.creatures as unknown as (typeof creature)[],
+    inheritedKeys: TEMPLATE_INHERITED_KEYS,
+    intent: readCreatureLinkIntent(options.creature)
+  });
 
   assertEncounterCreatureListSize(encounterTemplate.creatures);
 
@@ -495,8 +503,25 @@ export async function removeEncounterTemplateCreature(options: {
     );
   }
 
-  encounterTemplate.creatures = nextCreatures;
+  encounterTemplate.creatures = dissolveLoneGroups(nextCreatures);
   await encounterTemplate.save();
 
   return toEncounterTemplateDetailRecord(encounterTemplate);
+}
+
+export async function linkEncounterTemplateCreatureTypes(options: {
+  encounterTemplateId: string;
+  ownerId: Types.ObjectId;
+}) {
+  const encounterTemplate = await findOwnedEncounterTemplateDocument(options);
+  const { creatures, linkedCount } = linkCreaturesByMonster({
+    creatures: encounterTemplate.creatures as unknown as EncounterTemplateCreatureRecord[],
+    inheritedKeys: TEMPLATE_INHERITED_KEYS
+  });
+
+  assertEncounterCreatureListSize(creatures);
+  encounterTemplate.creatures = creatures;
+  await encounterTemplate.save();
+
+  return { encounterTemplate: toEncounterTemplateDetailRecord(encounterTemplate), linkedCount };
 }

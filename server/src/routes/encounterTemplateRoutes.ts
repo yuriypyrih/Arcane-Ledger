@@ -3,6 +3,7 @@ import {
   createEncounterTemplate,
   deleteEncounterTemplate,
   getEncounterTemplate,
+  linkEncounterTemplateCreatureTypesById,
   listEncounterTemplates,
   removeEncounterTemplateCreatureById,
   updateEncounterTemplate,
@@ -24,6 +25,11 @@ encounterTemplateRoutes.delete(
   "/:encounterTemplateId/creatures/:creatureId",
   requireAuth,
   removeEncounterTemplateCreatureById
+);
+encounterTemplateRoutes.post(
+  "/:encounterTemplateId/link-creature-types",
+  requireAuth,
+  linkEncounterTemplateCreatureTypesById
 );
 encounterTemplateRoutes.patch("/:encounterTemplateId", requireAuth, updateEncounterTemplate);
 encounterTemplateRoutes.get("/:encounterTemplateId", requireAuth, getEncounterTemplate);

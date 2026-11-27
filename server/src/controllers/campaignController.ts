@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { linkCampaignPreparedEncounterCreatureTypes } from "../services/campaignService.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
@@ -322,6 +323,18 @@ export const turnCampaignLiveEncounterById = asyncHandler(
         campaignId: request.params.campaignId ?? "",
         ownerId: response.locals.authUser._id,
         payload: request.body
+      })
+    );
+  }
+);
+
+export const linkCampaignPreparedEncounterCreatureTypesById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await linkCampaignPreparedEncounterCreatureTypes({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id,
+        preparedEncounterId: request.params.preparedEncounterId ?? ""
       })
     );
   }

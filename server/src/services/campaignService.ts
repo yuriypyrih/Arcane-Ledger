@@ -1,5 +1,12 @@
 import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
+import {
+  applyCreatureTypeRules,
+  CAMPAIGN_INHERITED_KEYS,
+  dissolveLoneGroups,
+  linkCreaturesByMonster,
+  readCreatureLinkIntent
+} from "./creatureTypeGroups.js";
 import { publishCampaignEvent } from "./campaignEventBus.js";
 import { AppError } from "../errors/AppError.js";
 import {
@@ -959,10 +966,20 @@ export async function updateCampaignPreparedEncounterCreatureVisibilitySettings(
 
   const nextCreatures = [...preparedEncounter.creatures];
   const creature = nextCreatures[creatureIndex]!;
-  nextCreatures[creatureIndex] = {
-    ...creature,
-    visibilitySettings: normalizePreparedEncounterVisibilitySettings(options.visibilitySettings)
-  };
+  const nextVisibilitySettings = normalizePreparedEncounterVisibilitySettings(
+    options.visibilitySettings
+  );
+
+  nextCreatures[creatureIndex] = { ...creature, visibilitySettings: nextVisibilitySettings };
+
+  // Creatures of the same type share what players may see about them.
+  if (creature.typeGroupId) {
+    nextCreatures.forEach((sibling, siblingIndex) => {
+      if (sibling.typeGroupId === creature.typeGroupId) {
+        nextCreatures[siblingIndex] = { ...sibling, visibilitySettings: nextVisibilitySettings };
+      }
+    });
+  }
 
   campaign.preparedEncounters[index] = {
     id: preparedEncounter.id,
@@ -1006,23 +1023,17 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
     });
   }
 
-  const nextCreatures = [...preparedEncounter.creatures];
-
-  if (existingCreatureIndex >= 0) {
-    nextCreatures[existingCreatureIndex] = {
+  const nextCreatures = applyCreatureTypeRules({
+    creature: {
       ...creature,
-      visibilitySettings: nextCreatures[existingCreatureIndex]?.visibilitySettings ?? null
-    };
-  } else {
-    nextCreatures.push({
-      ...creature,
-      visibilitySettings: null
-    });
-  }
-
-  const nextCreatureIndex =
-    existingCreatureIndex >= 0 ? existingCreatureIndex : nextCreatures.length - 1;
-  const nextCreature = nextCreatures[nextCreatureIndex]!;
+      visibilitySettings:
+        preparedEncounter.creatures[existingCreatureIndex]?.visibilitySettings ?? null
+    },
+    creatures: preparedEncounter.creatures,
+    inheritedKeys: CAMPAIGN_INHERITED_KEYS,
+    intent: readCreatureLinkIntent(options.creature)
+  });
+  const nextCreature = nextCreatures.find((candidate) => candidate.id === creature.id)!;
 
   assertEncounterCreatureRecordSize(nextCreature);
   assertEncounterCreatureListSize(nextCreatures);
@@ -1055,11 +1066,12 @@ export async function removeCampaignPreparedEncounterCreature(options: {
   const campaign = await findOwnedCampaignDocument(options);
   const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
   const creatureId = normalizeText(options.creatureId, "creatureId", { required: true });
-  const nextCreatures = preparedEncounter.creatures.filter(
+  const remainingCreatures = preparedEncounter.creatures.filter(
     (creature) => creature.id !== creatureId
   );
+  const nextCreatures = dissolveLoneGroups(remainingCreatures);
 
-  if (nextCreatures.length === preparedEncounter.creatures.length) {
+  if (remainingCreatures.length === preparedEncounter.creatures.length) {
     throw new AppError(
       "Prepared encounter creature was not found.",
       404,
@@ -1084,4 +1096,39 @@ export async function removeCampaignPreparedEncounterCreature(options: {
     preparedEncounterCount: campaign.preparedEncounters.length,
     liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
+}
+
+export async function linkCampaignPreparedEncounterCreatureTypes(options: {
+  campaignId: string;
+  ownerId: Types.ObjectId;
+  preparedEncounterId: string;
+}) {
+  const campaign = await findOwnedCampaignDocument(options);
+  const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
+  const { creatures, linkedCount } = linkCreaturesByMonster({
+    creatures: preparedEncounter.creatures,
+    inheritedKeys: CAMPAIGN_INHERITED_KEYS
+  });
+
+  assertEncounterCreatureListSize(creatures);
+
+  campaign.preparedEncounters[index] = {
+    id: preparedEncounter.id,
+    name: preparedEncounter.name,
+    visibilitySettings: preparedEncounter.visibilitySettings ?? null,
+    creatures
+  };
+  campaign.markModified("preparedEncounters");
+  await campaign.save();
+
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
+  return {
+    linkedCount,
+    ...toCampaignPatchEnvelope(campaign, {
+      preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
+      preparedEncounterCount: campaign.preparedEncounters.length,
+      liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
+    })
+  };
 }

@@ -6,6 +6,7 @@ import {
   createOwnedEncounterTemplate,
   deleteOwnedEncounterTemplate,
   getOwnedEncounterTemplateDetail,
+  linkEncounterTemplateCreatureTypes,
   listOwnedEncounterTemplates,
   normalizeEncounterTemplateName,
   removeEncounterTemplateCreature,
@@ -28,7 +29,11 @@ export const listEncounterTemplates = asyncHandler(
 export const createEncounterTemplate = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     if (!isObjectRecord(request.body)) {
-      throw new AppError("Request body must be a JSON object.", 400, "INVALID_ENCOUNTER_TEMPLATE_INPUT");
+      throw new AppError(
+        "Request body must be a JSON object.",
+        400,
+        "INVALID_ENCOUNTER_TEMPLATE_INPUT"
+      );
     }
 
     const encounterTemplate = await createOwnedEncounterTemplate({
@@ -66,7 +71,11 @@ export const deleteEncounterTemplate = asyncHandler(
 export const updateEncounterTemplate = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     if (!isObjectRecord(request.body)) {
-      throw new AppError("Request body must be a JSON object.", 400, "INVALID_ENCOUNTER_TEMPLATE_INPUT");
+      throw new AppError(
+        "Request body must be a JSON object.",
+        400,
+        "INVALID_ENCOUNTER_TEMPLATE_INPUT"
+      );
     }
 
     response.json({
@@ -101,5 +110,16 @@ export const removeEncounterTemplateCreatureById = asyncHandler(
         ownerId: response.locals.authUser._id
       })
     });
+  }
+);
+
+export const linkEncounterTemplateCreatureTypesById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await linkEncounterTemplateCreatureTypes({
+        encounterTemplateId: request.params.encounterTemplateId ?? "",
+        ownerId: response.locals.authUser._id
+      })
+    );
   }
 );

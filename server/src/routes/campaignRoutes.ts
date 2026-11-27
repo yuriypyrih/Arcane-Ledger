@@ -6,6 +6,7 @@ import {
   createCampaignSessionNoteById,
   deleteCampaign,
   getCampaign,
+  linkCampaignPreparedEncounterCreatureTypesById,
   listCampaigns,
   removeCampaignLiveEncounterById,
   removeCampaignPreparedEncounterById,
@@ -47,6 +48,11 @@ campaignRoutes.delete(
   "/:campaignId/session-notes/:sessionNoteId",
   requireAuth,
   removeCampaignSessionNoteById
+);
+campaignRoutes.post(
+  "/:campaignId/prepared-encounters/:preparedEncounterId/link-creature-types",
+  requireAuth,
+  linkCampaignPreparedEncounterCreatureTypesById
 );
 campaignRoutes.post(
   "/:campaignId/prepared-encounters",

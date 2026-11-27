@@ -16,6 +16,8 @@ export type EncounterTemplateCreatureRecord = {
   inheritedCreatureEntryModified?: boolean;
   /** GM-supplied https picture shown on trackers; players only see it when the creature's type is visible. */
   imageUrl?: string;
+  /** Creatures of one encounter sharing this id follow the same definition (a creature type). */
+  typeGroupId?: string | null;
 };
 
 export type EncounterTemplateRecord = {
@@ -90,6 +92,12 @@ export const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreat
       type: String,
       trim: true,
       maxlength: 500
+    },
+    typeGroupId: {
+      type: String,
+      trim: true,
+      maxlength: 64,
+      default: null
     }
   },
   {
