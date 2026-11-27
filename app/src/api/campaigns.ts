@@ -1,4 +1,7 @@
-import type { EncounterTemplateCreatureRecord } from "./encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "./encounterTemplates";
 import type {
   CharacterAvatarMetadata,
   MonsterRecord,
@@ -414,7 +417,7 @@ export function removeCampaignPreparedEncounter(
 export function upsertCampaignPreparedEncounterCreature(
   campaignId: string,
   preparedEncounterId: string,
-  creature: EncounterTemplateCreatureRecord,
+  creature: EncounterCreatureWriteRecord,
   options?: ApiRequestOptions
 ) {
   return apiPut<CampaignPatchEnvelope>(
@@ -464,6 +467,18 @@ export function applyCampaignLiveEncounterTurn(
   return apiPost<CampaignPatchEnvelope>(
     `/campaigns/${campaignId}/live-encounter/turn`,
     payload,
+    options
+  );
+}
+
+export function linkCampaignPreparedEncounterCreatureTypes(
+  campaignId: string,
+  preparedEncounterId: string,
+  options?: ApiRequestOptions
+) {
+  return apiPost<CampaignPatchEnvelope & { linkedCount: number }>(
+    `/campaigns/${campaignId}/prepared-encounters/${preparedEncounterId}/link-creature-types`,
+    {},
     options
   );
 }

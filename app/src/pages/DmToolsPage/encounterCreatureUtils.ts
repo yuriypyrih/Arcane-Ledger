@@ -1,4 +1,7 @@
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
 import type { CharacterCompanion } from "../../types";
 import { normalizeMonsterRecord } from "../../utils/monsters";
 import { createCharacterCompanionId } from "../CharactersPage/companions";
@@ -55,7 +58,25 @@ export function toEncounterCreatureRecord(
     ...(normalizedCreature.inheritedCreatureEntryModified
       ? { inheritedCreatureEntryModified: true }
       : {}),
-    ...("imageUrl" in creature && creature.imageUrl ? { imageUrl: creature.imageUrl } : {})
+    ...("imageUrl" in creature && creature.imageUrl ? { imageUrl: creature.imageUrl } : {}),
+    ...("typeGroupId" in creature && creature.typeGroupId
+      ? { typeGroupId: creature.typeGroupId }
+      : {})
+  };
+}
+
+/**
+ * The companion-shaped editors know nothing about a creature's picture or creature type, so edits made
+ * through them must carry those over from the stored creature or they would be wiped.
+ */
+export function preserveEncounterExtras(
+  stored: EncounterTemplateCreatureRecord | undefined,
+  edited: EncounterTemplateCreatureRecord
+): EncounterTemplateCreatureRecord {
+  return {
+    ...edited,
+    ...(stored?.imageUrl ? { imageUrl: stored.imageUrl } : {}),
+    ...(stored?.typeGroupId ? { typeGroupId: stored.typeGroupId } : {})
   };
 }
 
@@ -86,13 +107,21 @@ export function getNextCopyName(name: string, siblings: { name: string }[]) {
   return `${baseName} ${highest + 1}`;
 }
 
+/**
+ * A copy is a new member of the original's creature type: the server gives it the original's definition
+ * (stat block, max HP, picture, description) and keeps the two linked from then on.
+ */
 export function duplicateEncounterCreature(
   creature: EncounterTemplateCreatureRecord,
   siblings: { name: string }[] = []
-) {
-  return toEncounterCreatureRecord({
-    ...creature,
-    id: createCharacterCompanionId(),
-    name: getNextCopyName(creature.name, siblings)
-  });
+): EncounterCreatureWriteRecord {
+  return {
+    ...toEncounterCreatureRecord({
+      ...creature,
+      id: createCharacterCompanionId(),
+      name: getNextCopyName(creature.name, siblings),
+      typeGroupId: null
+    }),
+    copyOfCreatureId: creature.id
+  };
 }

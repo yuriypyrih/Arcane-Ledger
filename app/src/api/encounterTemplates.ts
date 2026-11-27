@@ -7,6 +7,16 @@ export type EncounterTemplateCreatureRecord = Omit<
 > & {
   /** GM-supplied https picture link shown on the trackers. */
   imageUrl?: string;
+  /** Creatures of one encounter sharing this id follow the same definition (a creature type). */
+  typeGroupId?: string | null;
+};
+
+/** What the server accepts for a creature write: the record plus one-off link instructions. */
+export type EncounterCreatureWriteRecord = EncounterTemplateCreatureRecord & {
+  /** On a new creature: make it a linked copy of this creature. */
+  copyOfCreatureId?: string;
+  /** Detach this creature from its type, keeping its current values. */
+  unlinkFromType?: boolean;
 };
 
 export type EncounterTemplateRecord = {
@@ -75,7 +85,7 @@ export function deleteEncounterTemplate(encounterTemplateId: string, options?: A
 
 export function upsertEncounterTemplateCreature(
   encounterTemplateId: string,
-  creature: EncounterTemplateCreatureRecord,
+  creature: EncounterCreatureWriteRecord,
   options?: ApiRequestOptions
 ) {
   return apiPut<EncounterTemplateDetailEnvelope>(
@@ -92,6 +102,17 @@ export function removeEncounterTemplateCreature(
 ) {
   return apiDelete<EncounterTemplateDetailEnvelope>(
     `/encounter-templates/${encounterTemplateId}/creatures/${creatureId}`,
+    options
+  );
+}
+
+export function linkEncounterTemplateCreatureTypes(
+  encounterTemplateId: string,
+  options?: ApiRequestOptions
+) {
+  return apiPost<EncounterTemplateDetailEnvelope & { linkedCount: number }>(
+    `/encounter-templates/${encounterTemplateId}/link-creature-types`,
+    {},
     options
   );
 }
