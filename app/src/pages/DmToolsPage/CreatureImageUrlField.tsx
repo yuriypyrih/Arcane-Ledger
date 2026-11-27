@@ -66,7 +66,9 @@ function CreatureImageUrlField({ creature, onUpdate }: CreatureImageUrlFieldProp
     <form className={styles.form} onSubmit={handleSubmit}>
       <label className={styles.label} htmlFor={`creature-image-${creature.id}`}>
         Picture link{" "}
-        <span className={styles.hint}>(GM only; players see it along with the creature type)</span>
+        <span className={styles.hint}>
+          (GM only to set; players always see it, so leave it empty for hidden monsters)
+        </span>
       </label>
       <div className={styles.row}>
         <input

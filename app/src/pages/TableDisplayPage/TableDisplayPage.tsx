@@ -27,7 +27,27 @@ function DamageTags({ label, values, tone }: { label: string; tone: string; valu
   );
 }
 
-function CombatantCard({ card }: { card: TableDisplayCard }) {
+function CardPortrait({ card }: { card: TableDisplayCard }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const hasImage = Boolean(card.imageUrl) && failedUrl !== card.imageUrl;
+
+  return hasImage ? (
+    // no-referrer: some image hosts refuse hotlinking, and the link should not reveal this page.
+    <img
+      src={card.imageUrl ?? undefined}
+      alt=""
+      className={styles.portraitImage}
+      referrerPolicy="no-referrer"
+      onError={() => setFailedUrl(card.imageUrl)}
+    />
+  ) : (
+    <span className={styles.portraitFallback} aria-hidden="true">
+      {card.isAlly ? <Shield size={42} /> : <Swords size={42} />}
+    </span>
+  );
+}
+
+function CombatantCard({ card, compact = false }: { card: TableDisplayCard; compact?: boolean }) {
   const hasHitPoints = card.currentHitPoints !== null && card.maxHitPoints !== null;
   const ratio = hasHitPoints
     ? Math.min(1, Math.max(0, (card.currentHitPoints ?? 0) / Math.max(1, card.maxHitPoints ?? 1)))
@@ -38,22 +58,18 @@ function CombatantCard({ card }: { card: TableDisplayCard }) {
     <li
       className={styles.card}
       data-side={card.isAlly ? "player" : "monster"}
-      data-pack={card.packPosition === "single" ? undefined : card.packPosition}
-      data-active={card.isActive || undefined}
+      data-compact={compact || undefined}
+      data-active={(!compact && card.isActive) || undefined}
       data-down={isDown || undefined}
-      aria-current={card.isActive ? "true" : undefined}
+      aria-current={!compact && card.isActive ? "true" : undefined}
     >
       <div className={styles.portrait}>
-        {card.imageUrl ? (
-          <img src={card.imageUrl} alt="" className={styles.portraitImage} />
-        ) : (
-          <span className={styles.portraitFallback} aria-hidden="true">
-            {card.isAlly ? <Shield size={42} /> : <Swords size={42} />}
+        <CardPortrait card={card} />
+        {compact ? null : (
+          <span className={styles.orderBadge} aria-label={`Turn order ${card.order}`}>
+            {card.order}
           </span>
         )}
-        <span className={styles.orderBadge} aria-label={`Turn order ${card.order}`}>
-          {card.order}
-        </span>
       </div>
 
       <div className={styles.chips}>
@@ -104,11 +120,78 @@ function CombatantCard({ card }: { card: TableDisplayCard }) {
         ) : null}
       </div>
 
-      <div className={styles.tags}>
-        <DamageTags label="Resist" tone="resist" values={card.resistances} />
-        <DamageTags label="Immune" tone="immune" values={card.immunities} />
-        <DamageTags label="Vulnerable" tone="vulnerable" values={card.vulnerabilities} />
+      {compact ? null : (
+        <div className={styles.tags}>
+          <DamageTags label="Resist" tone="resist" values={card.resistances} />
+          <DamageTags label="Immune" tone="immune" values={card.immunities} />
+          <DamageTags label="Vulnerable" tone="vulnerable" values={card.vulnerabilities} />
+        </div>
+      )}
+    </li>
+  );
+}
+
+type TurnSlot =
+  | { card: TableDisplayCard; type: "single" }
+  | { cards: TableDisplayCard[]; type: "pack" };
+
+/** Creatures that share a turn become one slot, so a pack can be drawn as a single box. */
+function toTurnSlots(cards: TableDisplayCard[]): TurnSlot[] {
+  const slots: TurnSlot[] = [];
+
+  cards.forEach((card) => {
+    const lastSlot = slots.at(-1);
+
+    if (card.packPosition === "single") {
+      slots.push({ card, type: "single" });
+    } else if (card.packPosition === "first" || lastSlot?.type !== "pack") {
+      slots.push({ cards: [card], type: "pack" });
+    } else {
+      lastSlot.cards.push(card);
+    }
+  });
+
+  return slots;
+}
+
+function getPackTitle(cards: TableDisplayCard[]) {
+  const names = new Set(cards.map((card) => card.name));
+
+  return names.size === 1 ? `${cards[0]?.name} pack` : `Pack of ${cards.length}`;
+}
+
+function PackBox({ cards }: { cards: TableDisplayCard[] }) {
+  const first = cards[0]!;
+  const isDown = cards.every(
+    (card) => card.currentHitPoints !== null && (card.currentHitPoints ?? 0) <= 0
+  );
+
+  return (
+    <li
+      className={styles.pack}
+      data-side={first.isAlly ? "player" : "monster"}
+      data-active={first.isActive || undefined}
+      data-down={isDown || undefined}
+      aria-current={first.isActive ? "true" : undefined}
+    >
+      <div className={styles.packHeader}>
+        <span className={styles.orderBadgeStatic} aria-label={`Turn order ${first.order}`}>
+          {first.order}
+        </span>
+        <h3 className={styles.packTitle}>{getPackTitle(cards)}</h3>
+        <span className={styles.packCount}>×{cards.length}</span>
+        {first.initiative !== null ? (
+          <span className={styles.chip}>
+            <span className={styles.chipLabel}>Init</span>
+            {first.initiative}
+          </span>
+        ) : null}
       </div>
+      <ul className={styles.packMembers}>
+        {cards.map((card) => (
+          <CombatantCard key={card.id} card={card} compact />
+        ))}
+      </ul>
     </li>
   );
 }
@@ -218,9 +301,13 @@ function TableDisplayPage() {
         <p className={styles.message}>Waiting for initiative…</p>
       ) : (
         <ol className={styles.cards} aria-label="Initiative order">
-          {cards.map((card) => (
-            <CombatantCard key={card.id} card={card} />
-          ))}
+          {toTurnSlots(cards).map((slot) =>
+            slot.type === "single" ? (
+              <CombatantCard key={slot.card.id} card={slot.card} />
+            ) : (
+              <PackBox key={slot.cards.map((card) => card.id).join("+")} cards={slot.cards} />
+            )
+          )}
         </ol>
       )}
     </main>
