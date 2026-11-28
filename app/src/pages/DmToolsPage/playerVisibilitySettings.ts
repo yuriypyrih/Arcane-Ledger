@@ -1,4 +1,4 @@
-import type { PlayerVisibilitySettings } from "../../api/campaigns";
+import type { CampaignVisibilitySettings, PlayerVisibilitySettings } from "../../api/campaigns";
 
 export const DEFAULT_PLAYER_VISIBILITY_SETTINGS = {
   showVitalityStatus: true,
@@ -15,9 +15,9 @@ export const DEFAULT_PLAYER_VISIBILITY_SETTINGS = {
   showSenses: false,
   showLanguages: false,
   showActionsAndReactions: false
-} satisfies PlayerVisibilitySettings;
+} satisfies CampaignVisibilitySettings;
 
-export type PlayerVisibilitySettingKey = keyof PlayerVisibilitySettings;
+export type PlayerVisibilitySettingKey = keyof CampaignVisibilitySettings;
 
 export type PlayerVisibilitySettingGroup = {
   label: string;

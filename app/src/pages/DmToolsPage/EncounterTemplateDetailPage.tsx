@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getEncounterTemplate,
+  linkEncounterTemplateCreatureTypes,
   removeEncounterTemplateCreature,
   upsertEncounterTemplateCreature,
-  type EncounterTemplateCreatureRecord
+  type EncounterCreatureWriteRecord
 } from "../../api/encounterTemplates";
 import {
   setSelectedEncounterTemplate,
@@ -68,7 +69,7 @@ function EncounterTemplateDetailPage() {
     };
   }, [authStatus, dispatch, encounterTemplateId]);
 
-  async function handleSaveCreature(creature: EncounterTemplateCreatureRecord) {
+  async function handleSaveCreature(creature: EncounterCreatureWriteRecord) {
     if (!encounterTemplate) {
       return;
     }
@@ -81,6 +82,22 @@ function EncounterTemplateDetailPage() {
 
     dispatch(setSelectedEncounterTemplate(nextEncounterTemplate));
     setActionError(null);
+  }
+
+  async function handleLinkCreatureTypes() {
+    if (!encounterTemplate) {
+      return 0;
+    }
+
+    const { encounterTemplate: nextEncounterTemplate, linkedCount } =
+      await linkEncounterTemplateCreatureTypes(encounterTemplate.id, {
+        suppressFailureToast: true
+      });
+
+    dispatch(setSelectedEncounterTemplate(nextEncounterTemplate));
+    setActionError(null);
+
+    return linkedCount;
   }
 
   async function handleRemoveCreature(creatureId: string) {
@@ -115,6 +132,7 @@ function EncounterTemplateDetailPage() {
         toolLabel="Encounter Templates"
         onBack={() => navigate("/gm-tools?tab=encounter-templates")}
         onEditResource={() => setIsEditModalOpen(true)}
+        onLinkCreatureTypes={handleLinkCreatureTypes}
         onRemoveCreature={handleRemoveCreature}
         onSaveCreature={handleSaveCreature}
       />

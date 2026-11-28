@@ -8,6 +8,7 @@ import { User, type UserDocument } from "../models/User.js";
 import { clearAuthCookie, setAuthCookie } from "../services/authCookieService.js";
 import { sendAuthEmail } from "../services/authEmailService.js";
 import { normalizeUserNickname } from "../services/authNicknameService.js";
+import { normalizeExternalImageUrl } from "../services/externalImageUrl.js";
 import { createExpiringToken, hashToken, signAuthToken } from "../services/authTokenService.js";
 import { serializeAuthUser } from "../services/authUserService.js";
 import {
@@ -241,7 +242,7 @@ export const login = asyncHandler(async (request: Request, response: Response<Au
     active: true
   }).select("+passwordHash");
 
-  if (!user || !(await argon2.verify(user.passwordHash, password))) {
+  if (!user || !user.passwordHash || !(await argon2.verify(user.passwordHash, password))) {
     throw new AppError("Incorrect email or password.", 401, "INVALID_CREDENTIALS");
   }
 
@@ -300,6 +301,50 @@ export const updateNickname = asyncHandler(
     const user = response.locals.authUser;
 
     user.nickname = readNickname(request);
+    await user.save({ validateModifiedOnly: true });
+
+    response.json({
+      user: serializeAuthUser(user)
+    });
+  }
+);
+
+const USER_BIO_MAX_LENGTH = 500;
+
+/** The player's own picture link and short bio; either field may be sent on its own. */
+export const updateProfile = asyncHandler(
+  async (request: Request, response: Response<AuthUserEnvelope, AuthenticatedLocals>) => {
+    const user = response.locals.authUser;
+    const body: Record<string, unknown> =
+      typeof request.body === "object" && request.body !== null && !Array.isArray(request.body)
+        ? (request.body as Record<string, unknown>)
+        : {};
+
+    if (body.avatarUrl === undefined && body.bio === undefined) {
+      throw new AppError("Send an avatarUrl or a bio.", 400, "INVALID_PROFILE_INPUT");
+    }
+
+    if (body.avatarUrl !== undefined) {
+      user.avatarUrl = normalizeExternalImageUrl(body.avatarUrl, {
+        code: "INVALID_PROFILE_INPUT",
+        field: "avatarUrl",
+        label: "Avatar link"
+      });
+    }
+
+    if (body.bio !== undefined) {
+      if (typeof body.bio !== "string" || body.bio.trim().length > USER_BIO_MAX_LENGTH) {
+        throw new AppError(
+          `Bio must be text of at most ${USER_BIO_MAX_LENGTH} characters.`,
+          400,
+          "INVALID_PROFILE_INPUT",
+          { field: "bio" }
+        );
+      }
+
+      user.bio = body.bio.trim();
+    }
+
     await user.save({ validateModifiedOnly: true });
 
     response.json({
@@ -412,7 +457,7 @@ export const changePassword = asyncHandler(
       active: true
     }).select("+passwordHash");
 
-    if (!user || !(await argon2.verify(user.passwordHash, currentPassword))) {
+    if (!user || !user.passwordHash || !(await argon2.verify(user.passwordHash, currentPassword))) {
       throw new AppError("Current password is incorrect.", 401, "INVALID_CREDENTIALS");
     }
 

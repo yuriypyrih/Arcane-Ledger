@@ -44,6 +44,10 @@ test("create a recommended character through the builder and reopen it from the 
   await page.getByLabel("Background", { exact: true }).selectOption({ label: "Soldier" });
   await create.click();
   await expect(page.getByRole("heading", { name: "New Test Hero", exact: true })).toBeVisible();
+  const openMenu = page.getByRole("button", { name: "Open menu" });
+  if (await openMenu.isVisible()) {
+    await openMenu.click();
+  }
   await page.getByRole("link", { name: "Characters", exact: true }).click();
   await page.getByRole("link", { name: "View New Test Hero" }).click();
   await expect(page.getByRole("heading", { name: "New Test Hero", exact: true })).toBeVisible();

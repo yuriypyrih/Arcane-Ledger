@@ -1,3 +1,4 @@
+import { submitMemberLiveEncounterInitiative } from "../services/liveEncounterPlayerInitiativeService.js";
 import type { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
@@ -265,5 +266,25 @@ export const listMyPartyMemberships = asyncHandler(
     response.json({
       memberships: await listCharacterPartyMemberships(response.locals.authUser._id)
     });
+  }
+);
+
+export const updatePartyGroupLiveEncounterInitiative = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    if (!isObjectRecord(request.body)) {
+      throw new AppError(
+        "Request body must be a JSON object.",
+        400,
+        "INVALID_LIVE_ENCOUNTER_INPUT"
+      );
+    }
+
+    response.json(
+      await submitMemberLiveEncounterInitiative({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? "",
+        payload: request.body
+      })
+    );
   }
 );

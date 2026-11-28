@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Swords } from "lucide-react";
 import type { CampaignLiveEncounterTrackerParticipantRecord } from "../../api/campaigns";
 import { CampaignLiveEncounterTrackerReadOnlyParticipantCard } from "./CampaignLiveEncounterTrackerParticipantCard";
+import { getInitiativeSlotInfo } from "./liveEncounterInitiative";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import LiveEncounterGuideButton from "./LiveEncounterGuideButton";
 import styles from "./DmToolsPage.module.css";
@@ -27,6 +28,7 @@ function CampaignLiveEncounterTrackerReadOnlyInitiativeList({
   participantListClassName,
   participants
 }: CampaignLiveEncounterTrackerReadOnlyInitiativeListProps) {
+  const slotInfo = getInitiativeSlotInfo(participants, activeParticipantId);
   const icon = <Swords size={16} aria-hidden="true" />;
   const isCenteredEmptyState = emptyStateVariant === "centered" && participants.length === 0;
 
@@ -53,11 +55,13 @@ function CampaignLiveEncounterTrackerReadOnlyInitiativeList({
         )}
       >
         {participants.length > 0 ? (
-          participants.map((participant, participantIndex) => (
+          participants.map((participant) => (
             <CampaignLiveEncounterTrackerReadOnlyParticipantCard
               key={participant.participantId}
               activeParticipantId={activeParticipantId}
-              initiativeOrderNumber={participantIndex + 1}
+              groupPosition={slotInfo.get(participant.participantId)?.groupPosition}
+              initiativeOrderNumber={slotInfo.get(participant.participantId)?.slotNumber}
+              isActiveSlot={slotInfo.get(participant.participantId)?.isActive}
               onInspect={onInspectParticipant}
               participant={participant}
             />

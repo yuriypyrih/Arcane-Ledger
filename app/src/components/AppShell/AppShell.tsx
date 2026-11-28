@@ -12,8 +12,7 @@ import {
 import type { ThemeModePreference } from "../../storage/preferences";
 import { MEDIA_QUERIES } from "../../styles/breakpoints";
 import ToastHost from "../ToastViewport";
-import PrimaryNav from "./PrimaryNav";
-import { navigationLinks } from "./navigationLinks";
+import { SidebarNav } from "./SidebarNav/SidebarNav";
 import type { AppShellOutletContext } from "./outletContext";
 import styles from "./AppShell.module.css";
 
@@ -41,10 +40,7 @@ function AppShell() {
       return undefined;
     }
 
-    document.documentElement.classList.toggle(
-      BROAD_LAYOUT_LG_COMPACT_CLASS,
-      useLgCompactScale
-    );
+    document.documentElement.classList.toggle(BROAD_LAYOUT_LG_COMPACT_CLASS, useLgCompactScale);
 
     return () => {
       document.documentElement.classList.remove(BROAD_LAYOUT_LG_COMPACT_CLASS);
@@ -88,19 +84,11 @@ function AppShell() {
 
   return (
     <div className={isBroadLayoutActive ? `${styles.shell} ${styles.shellBroad}` : styles.shell}>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <PrimaryNav
-            links={navigationLinks}
-            broadLayout={broadLayout}
-            characterSheetId={characterSheetLocalId}
-            showBroadLayoutSwitch={showBroadLayoutSwitch}
-            themeMode={themeMode}
-            onToggleBroadLayout={toggleBroadLayout}
-            onToggleThemeMode={toggleThemeMode}
-          />
-        </div>
-      </header>
+      <SidebarNav
+        broadLayout={broadLayout}
+        showBroadLayoutSwitch={showBroadLayoutSwitch}
+        onToggleBroadLayout={toggleBroadLayout}
+      />
       <main className={styles.main}>
         <Outlet context={outletContext} />
       </main>

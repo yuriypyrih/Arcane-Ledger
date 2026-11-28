@@ -6,10 +6,8 @@ import type {
   CampaignLiveEncounterTrackerRecord,
   PlayerVisibilitySettings
 } from "../../api/campaigns";
-import {
-  getDeathSaveStatusLabel,
-  normalizeDeathSaveTrack
-} from "../CharactersPage/deathSaves";
+import { filterRevealedDefenses } from "./creatureDefenses";
+import { getDeathSaveStatusLabel, normalizeDeathSaveTrack } from "../CharactersPage/deathSaves";
 
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettings = {
   showVitalityStatus: true,
@@ -98,6 +96,13 @@ function createPlayerVisibleMonsterRecord(
 
   if (settings.showResistancesAndImmunities) {
     copyFields(source, monster, ["resistances_and_immunities"]);
+
+    if (monster.resistances_and_immunities) {
+      monster.resistances_and_immunities = filterRevealedDefenses(
+        monster.resistances_and_immunities as Record<string, unknown>,
+        settings.revealedDefenses
+      );
+    }
   }
 
   if (settings.showSkills) {
@@ -134,8 +139,7 @@ function getCreatureVitalityStatusLabel(
     return creature.vitalityStatusLabel;
   }
 
-  return typeof creature.currentHitPoints === "number" &&
-    typeof creature.maxHitPoints === "number"
+  return typeof creature.currentHitPoints === "number" && typeof creature.maxHitPoints === "number"
     ? getDeathSaveStatusLabel(
         creature.currentHitPoints,
         Math.max(1, creature.maxHitPoints),
@@ -187,6 +191,11 @@ function createPlayerVisibleLiveEncounterCreature(
 
   if (settings.showMonsterType && creature.type) {
     visibleCreature.type = creature.type;
+  }
+
+  // The GM attached this picture on purpose, so players see it; leave it unset to keep a creature hidden.
+  if (creature.imageUrl) {
+    visibleCreature.imageUrl = creature.imageUrl;
   }
 
   if (settings.showDmDescription && creature.description) {

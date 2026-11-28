@@ -1,0 +1,28 @@
+.panel {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
+}
+
+.meta {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+}
+
+.votes {
+  display: flex;
+  gap: 0.35rem;
+}

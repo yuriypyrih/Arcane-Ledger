@@ -1,5 +1,12 @@
 import { getCompanionStatBlocks } from "../CharactersPage/companionStatBlocks";
 import { useId, useState } from "react";
+import CreatureDefensesEditor from "./CreatureDefensesEditor";
+import CreatureTypeLinkNotice from "./CreatureTypeLinkNotice";
+import CreatureImageUrlField from "./CreatureImageUrlField";
+import CreatureResistanceVisibilityToggle, {
+  type ResistanceVisibilityChange
+} from "./CreatureResistanceVisibilityToggle";
+import { getCreatureDefenseEntries } from "./creatureDefenses";
 import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer/MonsterEntryRenderer";
@@ -19,7 +26,10 @@ import type {
   CampaignLiveEncounterTrackerPartyCompanionRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
 import type { CharacterCompanion } from "../../types";
 import companionStyles from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionsSection.module.css";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
@@ -37,18 +47,24 @@ import {
 } from "../CharactersPage/deathSaves";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
-import { toEncounterCreatureRecord } from "./encounterCreatureUtils";
+import { preserveEncounterExtras, toEncounterCreatureRecord } from "./encounterCreatureUtils";
 import { createEncounterStatBlockRendererModel } from "./liveEncounterTrackerStatBlockAdapter";
 
 type LiveEncounterCreatureUpdate = (
   creatureId: string,
-  update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  update: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
 ) => void | Promise<void>;
 
 type CampaignLiveEncounterTrackerInspectionDrawerProps = {
   participant: CampaignLiveEncounterTrackerParticipantRecord;
   readOnly?: boolean;
+  /** How many creatures share this creature's type (itself included); 0 or 1 means it is on its own. */
+  linkedCreatureCount?: number;
   onClose: () => void;
+  onSetResistanceVisibility?: (
+    creatureId: string,
+    change: ResistanceVisibilityChange
+  ) => void | Promise<void>;
   onUpdateCreature?: LiveEncounterCreatureUpdate;
 };
 
@@ -258,8 +274,7 @@ function getCreatureVitalityLabel(participant: CampaignLiveEncounterTrackerCreat
     return creature.vitalityStatusLabel;
   }
 
-  return typeof creature.currentHitPoints === "number" &&
-    typeof creature.maxHitPoints === "number"
+  return typeof creature.currentHitPoints === "number" && typeof creature.maxHitPoints === "number"
     ? getDeathSaveStatusLabel(
         creature.currentHitPoints,
         Math.max(1, creature.maxHitPoints),
@@ -327,10 +342,7 @@ function LiveEncounterHitPointsPanel({
   if (participant.kind === "party-companion") {
     const companion = participant.companion;
 
-    if (
-      !isFiniteNumber(companion.currentHitPoints) ||
-      !isFiniteNumber(companion.maxHitPoints)
-    ) {
+    if (!isFiniteNumber(companion.currentHitPoints) || !isFiniteNumber(companion.maxHitPoints)) {
       return null;
     }
 
@@ -385,7 +397,11 @@ function LiveEncounterHitPointsPanel({
     update: (creature: CharacterCompanion) => CharacterCompanion
   ) {
     return updateCreature((currentCreature) =>
-      toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature)))
+      // The companion shape has no picture or creature type; keep them through HP edits.
+      preserveEncounterExtras(
+        currentCreature,
+        toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature)))
+      )
     );
   }
 
@@ -445,7 +461,9 @@ function LiveEncounterHitPointsPanel({
 function CampaignLiveEncounterTrackerInspectionDrawer({
   participant,
   readOnly = true,
+  linkedCreatureCount = 0,
   onClose,
+  onSetResistanceVisibility,
   onUpdateCreature
 }: CampaignLiveEncounterTrackerInspectionDrawerProps) {
   const titleId = useId();
@@ -455,7 +473,7 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
 
   async function handleUpdateCreature(
     creatureId: string,
-    update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+    update: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
   ) {
     if (!onUpdateCreature) {
       return;
@@ -496,6 +514,68 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
           onUpdateCreature={handleUpdateCreature}
         />
         {drawerNotice ? <p className={styles.modalError}>{drawerNotice}</p> : null}
+        {participant.kind === "creature" && !readOnly && onSetResistanceVisibility ? (
+          <CreatureResistanceVisibilityToggle
+            entries={getCreatureDefenseEntries(participant.creature)}
+            isVisible={
+              participant.creature.effectivePlayerVisibilitySettings.showResistancesAndImmunities
+            }
+            revealedDefenses={
+              participant.creature.effectivePlayerVisibilitySettings.revealedDefenses
+            }
+            onChange={async (change) => {
+              setDrawerNotice(null);
+
+              try {
+                await onSetResistanceVisibility(
+                  participant.creatureId ?? participant.creature.id,
+                  change
+                );
+              } catch (visibilityError) {
+                setDrawerNotice(
+                  getDmToolsApiErrorMessage(visibilityError, "Unable to change what players see.")
+                );
+              }
+            }}
+          />
+        ) : null}
+        {participant.kind === "creature" &&
+        !readOnly &&
+        onUpdateCreature &&
+        linkedCreatureCount > 1 ? (
+          <CreatureTypeLinkNotice
+            linkedCount={linkedCreatureCount}
+            onMakeIndependent={() =>
+              handleUpdateCreature(
+                participant.creatureId ?? participant.creature.id,
+                (creature) => ({
+                  ...creature,
+                  unlinkFromType: true
+                })
+              )
+            }
+          />
+        ) : null}
+        {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
+          <CreatureDefensesEditor
+            key={JSON.stringify(
+              participant.creature.inheritedCreatureEntry?.resistances_and_immunities ?? null
+            )}
+            creature={participant.creature as EncounterTemplateCreatureRecord}
+            onUpdate={(update) =>
+              handleUpdateCreature(participant.creatureId ?? participant.creature.id, update)
+            }
+          />
+        ) : null}
+        {participant.kind === "creature" && !readOnly && onUpdateCreature ? (
+          <CreatureImageUrlField
+            key={participant.creature.imageUrl ?? ""}
+            creature={participant.creature as EncounterTemplateCreatureRecord}
+            onUpdate={(update) =>
+              handleUpdateCreature(participant.creatureId ?? participant.creature.id, update)
+            }
+          />
+        ) : null}
 
         {participant.kind === "party-member" ? (
           <MemberStatBlock participant={participant} />

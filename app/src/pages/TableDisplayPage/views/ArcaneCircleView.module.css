@@ -1,0 +1,264 @@
+/* Table 3: the arcane circle. Tokens sit on a ring in turn order, health wraps each portrait. */
+.stage {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  container-type: size;
+}
+
+.wheel {
+  --radius: 0.385;
+
+  position: relative;
+  width: 100cqmin;
+  height: 100cqmin;
+}
+
+.ring {
+  position: absolute;
+  inset: calc((0.5 - var(--radius)) * 100%);
+  border: 0.3vh solid rgba(184, 121, 59, 0.45);
+  border-radius: 50%;
+  box-shadow:
+    0 0 4vh rgba(184, 121, 59, 0.18),
+    inset 0 0 6vh rgba(184, 121, 59, 0.08);
+}
+
+.tokens {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slot {
+  --side: #d9a84e;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--angle)) translateY(calc(var(--radius) * -100cqmin))
+    rotate(calc(var(--angle) * -1));
+  transition: transform 0.9s cubic-bezier(0.22, 0.8, 0.26, 1);
+}
+
+.slot[data-side="monster"] {
+  --side: #c4513f;
+}
+
+.slot[data-active] {
+  z-index: 2;
+}
+
+.token {
+  position: absolute;
+  top: calc(var(--token) * -50cqmin);
+  left: calc(var(--token) * -50cqmin);
+  display: block;
+  width: calc(var(--token) * 100cqmin);
+  height: calc(var(--token) * 100cqmin);
+  transition: transform 0.5s ease;
+}
+
+.slot[data-active] .token {
+  transform: scale(1.38);
+  filter: drop-shadow(0 0 2.6vh var(--side));
+}
+
+.slot[data-down] .token {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.hpRing {
+  --ring-color: #52c97a;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 7%;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) calc(var(--hp) * 1%), rgba(255, 255, 255, 0.14) 0);
+}
+
+.hpRing[data-tone="hurt"] {
+  --ring-color: #e6c040;
+}
+
+.hpRing[data-tone="critical"] {
+  --ring-color: #e2553a;
+}
+
+/* Without numbers there is no honest ring to draw, so it falls back to the side color. */
+.hpRing[data-hidden] {
+  background: color-mix(in srgb, var(--side) 70%, #000);
+}
+
+.face {
+  width: 100%;
+  height: 100%;
+  border: 0.35vh solid #0d1016;
+  border-radius: 50%;
+}
+
+.order {
+  position: absolute;
+  top: -4%;
+  left: -4%;
+  display: grid;
+  place-items: center;
+  min-width: 30%;
+  height: 30%;
+  border: 0.25vh solid #0d1016;
+  border-radius: 999px;
+  background: var(--side);
+  color: #14100a;
+  font-family: var(--table-sans);
+  font-size: clamp(1.6vh, calc(var(--token) * 22cqmin), 3vh);
+  font-weight: 800;
+}
+
+.packMark {
+  position: absolute;
+  right: -4%;
+  bottom: 6%;
+  display: grid;
+  place-items: center;
+  width: 28%;
+  height: 28%;
+  border: 0.25vh solid #0d1016;
+  border-radius: 50%;
+  background: #1a1f2a;
+  color: var(--side);
+}
+
+.packMark svg {
+  width: 62%;
+  height: 62%;
+}
+
+.label {
+  position: absolute;
+  overflow: hidden;
+  font-family: var(--table-display);
+  font-size: clamp(1.7vh, calc(var(--token) * 14cqmin), 2.8vh);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-shadow: 0 0.2vh 1vh #000;
+  white-space: nowrap;
+}
+
+.label[data-place="right"],
+.label[data-place="left"] {
+  top: 50%;
+  width: 24cqmin;
+  transform: translateY(-50%);
+}
+
+.label[data-place="right"] {
+  left: calc(100% + 1.4vh);
+  text-align: left;
+}
+
+.label[data-place="left"] {
+  right: calc(100% + 2.6vh);
+  text-align: right;
+}
+
+.label[data-place="top"],
+.label[data-place="bottom"] {
+  left: 50%;
+  width: min(26cqmin, calc(var(--token) * 160cqmin));
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.label[data-place="top"] {
+  bottom: calc(100% + 1.6vh);
+}
+
+.label[data-place="bottom"] {
+  top: calc(100% + 0.6vh);
+}
+
+.center {
+  position: absolute;
+  inset: calc((0.5 - var(--radius) * 0.64) * 100%);
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.focus {
+  --side: #d9a84e;
+  --tag-size: max(1.6vh, 1.9cqmin);
+  --stat-size: max(2.8vh, 3.2cqmin);
+
+  display: grid;
+  justify-items: center;
+  gap: 0.9cqmin;
+  max-width: 100%;
+}
+
+.focus[data-side="monster"] {
+  --side: #c4513f;
+}
+
+.focusEyebrow {
+  margin: 0;
+  color: var(--side);
+  font-family: var(--table-sans);
+  font-size: max(1.9vh, 2.3cqmin);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.focusName {
+  margin: 0;
+  font-family: var(--table-display);
+  font-size: max(3vh, 4.8cqmin);
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0.4vh 2vh rgba(0, 0, 0, 0.8);
+}
+
+.focusSubtitle {
+  margin: -0.4cqmin 0 0;
+  color: var(--table-muted);
+  font-family: var(--table-sans);
+  font-size: max(2vh, 2.6cqmin);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.focusHp {
+  font-size: max(5vh, 7.2cqmin);
+}
+
+.focusBar {
+  width: min(30cqmin, 100%);
+  height: max(1.2vh, 1.7cqmin);
+}
+
+.focusStats {
+  display: flex;
+  gap: 1.2vh;
+}
+
+.focusTags {
+  justify-content: center;
+  gap: 0.5vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot,
+  .token {
+    transition: none;
+  }
+}

@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { linkCampaignPreparedEncounterCreatureTypes } from "../services/campaignService.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
@@ -20,12 +21,13 @@ import {
   updateCampaignSelectedParty,
   updateCampaignSessionNote,
   updateCampaignVisibilitySettings,
-  updateOwnedCampaignName,
+  updateOwnedCampaign,
   upsertCampaignPreparedEncounterCreature
 } from "../services/campaignService.js";
 import {
   removeCampaignLiveEncounterTracker,
   startCampaignLiveEncounterTracker,
+  applyCampaignLiveEncounterTurn,
   updateCampaignLiveEncounterTracker
 } from "../services/campaignLiveEncounterTrackerService.js";
 
@@ -88,10 +90,15 @@ export const updateCampaign = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const body = assertObjectBody(request.body);
 
+    if (body.name === undefined && body.imageUrl === undefined) {
+      throw new AppError("Send a name or an imageUrl.", 400, "INVALID_CAMPAIGN_INPUT");
+    }
+
     response.json(
-      await updateOwnedCampaignName({
+      await updateOwnedCampaign({
         campaignId: request.params.campaignId ?? "",
-        name: normalizeCampaignName(body.name),
+        ...(body.name !== undefined ? { name: normalizeCampaignName(body.name) } : {}),
+        ...(body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {}),
         ownerId: response.locals.authUser._id
       })
     );
@@ -223,7 +230,8 @@ export const copyEncounterTemplateToCampaignById = asyncHandler(
     response.status(201).json(
       await copyEncounterTemplateToCampaign({
         campaignId: request.params.campaignId ?? "",
-        encounterTemplateId: typeof body.encounterTemplateId === "string" ? body.encounterTemplateId : "",
+        encounterTemplateId:
+          typeof body.encounterTemplateId === "string" ? body.encounterTemplateId : "",
         ownerId: response.locals.authUser._id
       })
     );
@@ -304,6 +312,32 @@ export const removeCampaignPreparedEncounterCreatureById = asyncHandler(
       await removeCampaignPreparedEncounterCreature({
         campaignId: request.params.campaignId ?? "",
         creatureId: request.params.creatureId ?? "",
+        ownerId: response.locals.authUser._id,
+        preparedEncounterId: request.params.preparedEncounterId ?? ""
+      })
+    );
+  }
+);
+
+export const turnCampaignLiveEncounterById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    assertObjectBody(request.body);
+
+    response.json(
+      await applyCampaignLiveEncounterTurn({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id,
+        payload: request.body
+      })
+    );
+  }
+);
+
+export const linkCampaignPreparedEncounterCreatureTypesById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await linkCampaignPreparedEncounterCreatureTypes({
+        campaignId: request.params.campaignId ?? "",
         ownerId: response.locals.authUser._id,
         preparedEncounterId: request.params.preparedEncounterId ?? ""
       })

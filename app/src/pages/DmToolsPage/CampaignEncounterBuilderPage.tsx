@@ -6,11 +6,12 @@ import {
   updateCampaignPreparedEncounter,
   updateCampaignPreparedEncounterCreatureVisibilitySettings,
   updateCampaignPreparedEncounterVisibilitySettings,
+  linkCampaignPreparedEncounterCreatureTypes,
   upsertCampaignPreparedEncounterCreature,
   type CampaignPreparedEncounterRecord,
   type PlayerVisibilitySettings
 } from "../../api/campaigns";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type { EncounterCreatureWriteRecord } from "../../api/encounterTemplates";
 import { ENCOUNTER_MAX_CREATURES } from "../../constants/QUOTAS";
 import {
   patchSelectedCampaign,
@@ -63,8 +64,7 @@ function CampaignEncounterBuilderPage() {
         null)
       : null;
   const builderError =
-    error ??
-    (campaign && !preparedEncounter ? "Prepared encounter was not found." : null);
+    error ?? (campaign && !preparedEncounter ? "Prepared encounter was not found." : null);
   const shouldReturnToLiveEncounter = searchParams.get("returnToLiveEncounter") === "1";
 
   useEffect(() => {
@@ -101,7 +101,7 @@ function CampaignEncounterBuilderPage() {
     };
   }, [authStatus, campaignId, dispatch]);
 
-  async function handleSaveCreature(creature: EncounterTemplateCreatureRecord) {
+  async function handleSaveCreature(creature: EncounterCreatureWriteRecord) {
     if (!campaign || !preparedEncounter) {
       return;
     }
@@ -115,6 +115,23 @@ function CampaignEncounterBuilderPage() {
 
     dispatch(patchSelectedCampaign(campaignPatch));
     setActionError(null);
+  }
+
+  async function handleLinkCreatureTypes() {
+    if (!campaign || !preparedEncounter) {
+      return 0;
+    }
+
+    const result = await linkCampaignPreparedEncounterCreatureTypes(
+      campaign.id,
+      preparedEncounter.id,
+      { suppressFailureToast: true }
+    );
+
+    dispatch(patchSelectedCampaign(result));
+    setActionError(null);
+
+    return result.linkedCount;
   }
 
   async function handleRemoveCreature(creatureId: string) {
@@ -175,14 +192,13 @@ function CampaignEncounterBuilderPage() {
       return;
     }
 
-    const campaignPatch =
-      await updateCampaignPreparedEncounterCreatureVisibilitySettings(
-        campaign.id,
-        preparedEncounter.id,
-        creatureId,
-        visibilitySettings,
-        { suppressFailureToast: true }
-      );
+    const campaignPatch = await updateCampaignPreparedEncounterCreatureVisibilitySettings(
+      campaign.id,
+      preparedEncounter.id,
+      creatureId,
+      visibilitySettings,
+      { suppressFailureToast: true }
+    );
 
     dispatch(patchSelectedCampaign(campaignPatch));
     setActionError(null);
@@ -237,6 +253,7 @@ function CampaignEncounterBuilderPage() {
         onEditVisibilitySettings={
           preparedEncounter ? () => setIsVisibilityModalOpen(true) : undefined
         }
+        onLinkCreatureTypes={handleLinkCreatureTypes}
         onRemoveCreature={handleRemoveCreature}
         onSaveCreature={handleSaveCreature}
       />

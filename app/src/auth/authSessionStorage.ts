@@ -38,6 +38,8 @@ export function readRememberedAuthUser(): AuthUser | null {
       id: user.id,
       email: user.email,
       nickname: user.nickname,
+      avatarUrl: typeof user.avatarUrl === "string" ? user.avatarUrl : "",
+      bio: typeof user.bio === "string" ? user.bio : "",
       role: user.role,
       emailVerifiedAt: user.emailVerifiedAt,
       createdAt: user.createdAt,

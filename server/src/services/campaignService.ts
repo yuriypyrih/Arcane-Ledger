@@ -1,6 +1,15 @@
 import { isCreatedDocumentRetained } from "./dmToolLimits.js";
 import { Types } from "mongoose";
+import {
+  applyCreatureTypeRules,
+  CAMPAIGN_INHERITED_KEYS,
+  dissolveLoneGroups,
+  linkCreaturesByMonster,
+  readCreatureLinkIntent
+} from "./creatureTypeGroups.js";
+import { publishCampaignEvent } from "./campaignEventBus.js";
 import { AppError } from "../errors/AppError.js";
+import { normalizeExternalImageUrl } from "./externalImageUrl.js";
 import {
   Campaign,
   type CampaignDocument,
@@ -8,6 +17,7 @@ import {
   type CampaignPreparedEncounterRecord,
   type CampaignRecord,
   type CampaignSessionNoteRecord,
+  type PlayerVisibilityFlagsRecord,
   type PlayerVisibilitySettingsRecord
 } from "../models/Campaign.js";
 import {
@@ -59,7 +69,10 @@ const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
 
 const PLAYER_VISIBILITY_SETTING_KEYS = Object.keys(
   DEFAULT_PLAYER_VISIBILITY_SETTINGS
-) as (keyof PlayerVisibilitySettingsRecord)[];
+) as (keyof PlayerVisibilityFlagsRecord)[];
+
+const MAX_REVEALED_DEFENSES = 100;
+const MAX_REVEALED_DEFENSE_LENGTH = 120;
 
 type DocumentIdSource = {
   _id?: Types.ObjectId | { toString(): string };
@@ -70,6 +83,7 @@ type CampaignSource = CampaignRecord & DocumentIdSource;
 
 type CampaignListSource = DocumentIdSource & {
   name: string;
+  imageUrl?: string;
   ownerId: Types.ObjectId | string | { toString(): string };
   selectedPartyId?: Types.ObjectId | string | { toString(): string } | null;
   sessionNoteCount?: number;
@@ -88,6 +102,7 @@ type CampaignSelectedPartySummary = {
 
 type CampaignPatchRecord = Partial<{
   name: string;
+  imageUrl: string;
   selectedPartyId: string | null;
   visibilitySettings: PlayerVisibilitySettingsRecord;
   selectedParty: CampaignSelectedPartySummary;
@@ -250,6 +265,17 @@ function normalizePlayerVisibilitySettings(
           ? value[key]
           : DEFAULT_PLAYER_VISIBILITY_SETTINGS[key];
   });
+
+  if (Array.isArray(value.revealedDefenses)) {
+    settings.revealedDefenses = value.revealedDefenses
+      .filter(
+        (entry): entry is string =>
+          typeof entry === "string" &&
+          entry.length > 0 &&
+          entry.length <= MAX_REVEALED_DEFENSE_LENGTH
+      )
+      .slice(0, MAX_REVEALED_DEFENSES);
+  }
 
   return settings;
 }
@@ -422,6 +448,7 @@ function toCampaignListRecord(campaign: CampaignListSource) {
   return {
     id: getDocumentId(campaign),
     name: campaign.name,
+    imageUrl: campaign.imageUrl ?? "",
     ownerId: campaign.ownerId.toString(),
     selectedPartyId: toStringId(campaign.selectedPartyId),
     sessionNoteCount: getCampaignSessionNoteCount(campaign),
@@ -464,6 +491,7 @@ export async function listOwnedCampaigns(ownerId: Types.ObjectId) {
     {
       $project: {
         name: 1,
+        imageUrl: 1,
         ownerId: 1,
         selectedPartyId: 1,
         sessionNoteCount: { $size: { $ifNull: ["$sessionNotes", []] } },
@@ -539,18 +567,32 @@ export async function deleteOwnedCampaign(options: {
   };
 }
 
-export async function updateOwnedCampaignName(options: {
+/** Renames the campaign and/or sets its picture link; fields left undefined are untouched. */
+export async function updateOwnedCampaign(options: {
   campaignId: string;
-  name: string;
+  imageUrl?: unknown;
+  name?: string;
   ownerId: Types.ObjectId;
 }) {
   const campaign = await findOwnedCampaignDocument(options);
 
-  campaign.name = normalizeCampaignName(options.name);
+  if (options.name !== undefined) {
+    campaign.name = normalizeCampaignName(options.name);
+  }
+
+  if (options.imageUrl !== undefined) {
+    campaign.imageUrl = normalizeExternalImageUrl(options.imageUrl, {
+      code: "INVALID_CAMPAIGN_IMAGE_URL",
+      field: "imageUrl",
+      label: "Campaign picture link"
+    });
+  }
+
   await campaign.save();
 
   return toCampaignPatchEnvelope(campaign, {
-    name: campaign.name
+    name: campaign.name,
+    imageUrl: campaign.imageUrl ?? ""
   });
 }
 
@@ -761,6 +803,9 @@ export async function createCampaignPreparedEncounter(options: {
     throw new AppError("Unable to create prepared encounter.", 409, "CAMPAIGN_UPDATE_CONFLICT");
   }
 
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
     preparedEncounterCount: campaign.preparedEncounters.length,
@@ -837,6 +882,9 @@ export async function copyEncounterTemplateToCampaign(options: {
     throw new AppError("Unable to import encounter template.", 409, "CAMPAIGN_UPDATE_CONFLICT");
   }
 
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
     preparedEncounterCount: campaign.preparedEncounters.length,
@@ -861,6 +909,9 @@ export async function updateCampaignPreparedEncounterName(options: {
   };
   campaign.markModified("preparedEncounters");
   await campaign.save();
+
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -887,6 +938,9 @@ export async function updateCampaignPreparedEncounterVisibilitySettings(options:
   campaign.markModified("preparedEncounters");
   await campaign.save();
 
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
     preparedEncounterCount: campaign.preparedEncounters.length,
@@ -911,6 +965,9 @@ export async function removeCampaignPreparedEncounter(options: {
 
   campaign.preparedEncounters = nextPreparedEncounters;
   await campaign.save();
+
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -943,10 +1000,20 @@ export async function updateCampaignPreparedEncounterCreatureVisibilitySettings(
 
   const nextCreatures = [...preparedEncounter.creatures];
   const creature = nextCreatures[creatureIndex]!;
-  nextCreatures[creatureIndex] = {
-    ...creature,
-    visibilitySettings: normalizePreparedEncounterVisibilitySettings(options.visibilitySettings)
-  };
+  const nextVisibilitySettings = normalizePreparedEncounterVisibilitySettings(
+    options.visibilitySettings
+  );
+
+  nextCreatures[creatureIndex] = { ...creature, visibilitySettings: nextVisibilitySettings };
+
+  // Creatures of the same type share what players may see about them.
+  if (creature.typeGroupId) {
+    nextCreatures.forEach((sibling, siblingIndex) => {
+      if (sibling.typeGroupId === creature.typeGroupId) {
+        nextCreatures[siblingIndex] = { ...sibling, visibilitySettings: nextVisibilitySettings };
+      }
+    });
+  }
 
   campaign.preparedEncounters[index] = {
     id: preparedEncounter.id,
@@ -956,6 +1023,9 @@ export async function updateCampaignPreparedEncounterCreatureVisibilitySettings(
   };
   campaign.markModified("preparedEncounters");
   await campaign.save();
+
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -987,23 +1057,17 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
     });
   }
 
-  const nextCreatures = [...preparedEncounter.creatures];
-
-  if (existingCreatureIndex >= 0) {
-    nextCreatures[existingCreatureIndex] = {
+  const nextCreatures = applyCreatureTypeRules({
+    creature: {
       ...creature,
-      visibilitySettings: nextCreatures[existingCreatureIndex]?.visibilitySettings ?? null
-    };
-  } else {
-    nextCreatures.push({
-      ...creature,
-      visibilitySettings: null
-    });
-  }
-
-  const nextCreatureIndex =
-    existingCreatureIndex >= 0 ? existingCreatureIndex : nextCreatures.length - 1;
-  const nextCreature = nextCreatures[nextCreatureIndex]!;
+      visibilitySettings:
+        preparedEncounter.creatures[existingCreatureIndex]?.visibilitySettings ?? null
+    },
+    creatures: preparedEncounter.creatures,
+    inheritedKeys: CAMPAIGN_INHERITED_KEYS,
+    intent: readCreatureLinkIntent(options.creature)
+  });
+  const nextCreature = nextCreatures.find((candidate) => candidate.id === creature.id)!;
 
   assertEncounterCreatureRecordSize(nextCreature);
   assertEncounterCreatureListSize(nextCreatures);
@@ -1016,6 +1080,9 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
   };
   campaign.markModified("preparedEncounters");
   await campaign.save();
+
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -1033,11 +1100,12 @@ export async function removeCampaignPreparedEncounterCreature(options: {
   const campaign = await findOwnedCampaignDocument(options);
   const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
   const creatureId = normalizeText(options.creatureId, "creatureId", { required: true });
-  const nextCreatures = preparedEncounter.creatures.filter(
+  const remainingCreatures = preparedEncounter.creatures.filter(
     (creature) => creature.id !== creatureId
   );
+  const nextCreatures = dissolveLoneGroups(remainingCreatures);
 
-  if (nextCreatures.length === preparedEncounter.creatures.length) {
+  if (remainingCreatures.length === preparedEncounter.creatures.length) {
     throw new AppError(
       "Prepared encounter creature was not found.",
       404,
@@ -1054,9 +1122,47 @@ export async function removeCampaignPreparedEncounterCreature(options: {
   campaign.markModified("preparedEncounters");
   await campaign.save();
 
+  // Encounter creatures (HP, picture, visibility) feed the live tracker, so watchers must refetch it.
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
     preparedEncounterCount: campaign.preparedEncounters.length,
     liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
+}
+
+export async function linkCampaignPreparedEncounterCreatureTypes(options: {
+  campaignId: string;
+  ownerId: Types.ObjectId;
+  preparedEncounterId: string;
+}) {
+  const campaign = await findOwnedCampaignDocument(options);
+  const { index, preparedEncounter } = findPreparedEncounter(campaign, options.preparedEncounterId);
+  const { creatures, linkedCount } = linkCreaturesByMonster({
+    creatures: preparedEncounter.creatures,
+    inheritedKeys: CAMPAIGN_INHERITED_KEYS
+  });
+
+  assertEncounterCreatureListSize(creatures);
+
+  campaign.preparedEncounters[index] = {
+    id: preparedEncounter.id,
+    name: preparedEncounter.name,
+    visibilitySettings: preparedEncounter.visibilitySettings ?? null,
+    creatures
+  };
+  campaign.markModified("preparedEncounters");
+  await campaign.save();
+
+  publishCampaignEvent({ type: "encounter-creature.updated", campaignId: campaign.id as string });
+
+  return {
+    linkedCount,
+    ...toCampaignPatchEnvelope(campaign, {
+      preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
+      preparedEncounterCount: campaign.preparedEncounters.length,
+      liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
+    })
+  };
 }

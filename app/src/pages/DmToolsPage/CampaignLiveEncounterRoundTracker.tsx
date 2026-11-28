@@ -1,12 +1,17 @@
-import { Minus, Plus, StepForward } from "lucide-react";
+import { Hourglass, Minus, Plus, SkipForward, StepBack, StepForward, Undo2 } from "lucide-react";
+import { useState } from "react";
 import type {
+  CampaignLiveEncounterTurnAction,
   CampaignLiveEncounterTrackerParticipantRecord,
   CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
+import { getInitiativeSlotInfo } from "./liveEncounterInitiative";
 import styles from "./CampaignLiveEncounterRoundTracker.module.css";
 
 type CampaignLiveEncounterRoundTrackerProps = {
+  isTurnBusy?: boolean;
   onChange: (tracker: CampaignLiveEncounterTrackerRecord) => void;
+  onTurnAction: (action: CampaignLiveEncounterTurnAction, afterParticipantId?: string) => void;
   readOnly?: boolean;
   tracker: CampaignLiveEncounterTrackerRecord;
 };
@@ -28,20 +33,42 @@ function getParticipantName(participant: CampaignLiveEncounterTrackerParticipant
 }
 
 function CampaignLiveEncounterRoundTracker({
+  isTurnBusy = false,
   onChange,
+  onTurnAction,
   readOnly = false,
   tracker
 }: CampaignLiveEncounterRoundTrackerProps) {
+  const [isDelayOpen, setIsDelayOpen] = useState(false);
   const roundNumber = normalizeRoundNumber(tracker.roundNumber);
   const activeParticipantIndex = tracker.initiativeOrder.findIndex(
     (participant) => participant.participantId === tracker.activeParticipantId
   );
   const activeParticipant =
     activeParticipantIndex >= 0 ? tracker.initiativeOrder[activeParticipantIndex] : null;
-  const nextTurnDisabled = readOnly || activeParticipantIndex < 0;
+  const hasParticipants = tracker.initiativeOrder.length > 0;
+  const turnActionsDisabled = readOnly || isTurnBusy || !hasParticipants;
+  const hasActiveParticipant = activeParticipantIndex >= 0;
+  const slotInfo = getInitiativeSlotInfo(tracker.initiativeOrder, tracker.activeParticipantId);
+  const delayTargets = hasActiveParticipant
+    ? tracker.initiativeOrder
+        .slice(activeParticipantIndex + 1)
+        .filter((participant) => !slotInfo.get(participant.participantId)?.isActive)
+    : [];
+  const activePack = tracker.initiativeOrder.filter(
+    (participant) => slotInfo.get(participant.participantId)?.isActive
+  );
+  const activeLabel =
+    activePack.length > 1
+      ? `${getParticipantName(activePack[0]!)} pack (${activePack.length})`
+      : activeParticipant
+        ? getParticipantName(activeParticipant)
+        : "";
   const turnLabel = activeParticipant
-    ? `${activeParticipantIndex + 1}. ${getParticipantName(activeParticipant)}'s Turn`
-    : "Decide who plays first";
+    ? `${slotInfo.get(activeParticipant.participantId)?.slotNumber ?? activeParticipantIndex + 1}. ${activeLabel}'s Turn`
+    : hasParticipants
+      ? "Press Next Turn to begin"
+      : "Add participants to initiative";
 
   function updateRound(nextRoundNumber: number) {
     if (readOnly) {
@@ -54,29 +81,9 @@ function CampaignLiveEncounterRoundTracker({
     });
   }
 
-  function handleNextTurn() {
-    if (readOnly) {
-      return;
-    }
-
-    if (nextTurnDisabled || tracker.initiativeOrder.length === 0) {
-      return;
-    }
-
-    const isLastParticipant = activeParticipantIndex === tracker.initiativeOrder.length - 1;
-    const nextParticipant = isLastParticipant
-      ? tracker.initiativeOrder[0]
-      : tracker.initiativeOrder[activeParticipantIndex + 1];
-
-    if (!nextParticipant) {
-      return;
-    }
-
-    onChange({
-      ...tracker,
-      activeParticipantId: nextParticipant.participantId,
-      roundNumber: isLastParticipant ? roundNumber + 1 : roundNumber
-    });
+  function runTurnAction(action: CampaignLiveEncounterTurnAction, afterParticipantId?: string) {
+    setIsDelayOpen(false);
+    onTurnAction(action, afterParticipantId);
   }
 
   return (
@@ -109,8 +116,8 @@ function CampaignLiveEncounterRoundTracker({
         <button
           type="button"
           className={styles.nextTurnButton}
-          disabled={nextTurnDisabled}
-          onClick={handleNextTurn}
+          disabled={turnActionsDisabled}
+          onClick={() => runTurnAction("next")}
           aria-label="Next turn"
           title="Next turn"
         >
@@ -118,6 +125,72 @@ function CampaignLiveEncounterRoundTracker({
           <span>Next Turn</span>
         </button>
       </div>
+      <div className={styles.turnActions} role="group" aria-label="More turn controls">
+        <button
+          type="button"
+          className={styles.turnActionButton}
+          disabled={turnActionsDisabled || !hasActiveParticipant}
+          onClick={() => runTurnAction("previous")}
+          title="Go back one turn"
+        >
+          <StepBack size={15} aria-hidden="true" />
+          <span>Previous</span>
+        </button>
+        <button
+          type="button"
+          className={styles.turnActionButton}
+          disabled={turnActionsDisabled}
+          onClick={() => runTurnAction("skip")}
+          title="Skip the next participant's turn"
+        >
+          <SkipForward size={15} aria-hidden="true" />
+          <span>Skip next</span>
+        </button>
+        <button
+          type="button"
+          className={styles.turnActionButton}
+          disabled={turnActionsDisabled || delayTargets.length === 0}
+          aria-expanded={isDelayOpen}
+          onClick={() => setIsDelayOpen((isOpen) => !isOpen)}
+          title="Delay the current turn until later in the round"
+        >
+          <Hourglass size={15} aria-hidden="true" />
+          <span>Delay</span>
+        </button>
+        <button
+          type="button"
+          className={styles.turnActionButton}
+          disabled={readOnly || isTurnBusy || !tracker.canUndo}
+          onClick={() => runTurnAction("undo")}
+          title="Undo the last turn action"
+        >
+          <Undo2 size={15} aria-hidden="true" />
+          <span>Undo</span>
+        </button>
+      </div>
+      {isDelayOpen && delayTargets.length > 0 ? (
+        <label className={styles.delayRow}>
+          <span>Act after</span>
+          <select
+            className={styles.delaySelect}
+            defaultValue=""
+            onChange={(event) => {
+              if (event.target.value) {
+                runTurnAction("delay", event.target.value);
+              }
+            }}
+          >
+            <option value="" disabled>
+              Choose participant
+            </option>
+            {delayTargets.map((participant) => (
+              <option key={participant.participantId} value={participant.participantId}>
+                {getParticipantName(participant)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
     </aside>
   );
 }

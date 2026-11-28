@@ -6,6 +6,7 @@ export * from "./characters";
 export * from "./characterPortraits";
 export * from "./customBestiary";
 export * from "./encounterTemplates";
+export * from "./gameSessions";
 export * from "./items";
 export * from "./monsters";
 export * from "./partyGroups";

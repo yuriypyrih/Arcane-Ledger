@@ -19,7 +19,7 @@ test(
     expect(response.ok()).toBe(true);
     const { campaign } = await response.json();
     try {
-      await page.goto(`/gm-tools/campaign-manager/${campaign.id}`);
+      await page.goto(`/gm-tools/campaign-manager/${campaign.id}?tab=prep`);
       for (const width of [320, 599, 600]) {
         await page.setViewportSize({ width, height: 800 });
         for (const [short, full] of [
@@ -37,6 +37,12 @@ test(
             page.getByRole("button", { name: width < 600 ? full : short, exact: true })
           ).toHaveCount(0);
         }
+      }
+
+      // Player visibility lives on the Settings tab.
+      await page.goto(`/gm-tools/campaign-manager/${campaign.id}?tab=settings`);
+      for (const width of [320, 599, 600]) {
+        await page.setViewportSize({ width, height: 800 });
         const visibility = page.getByRole("button", {
           name: "Player Visibility Settings",
           exact: true

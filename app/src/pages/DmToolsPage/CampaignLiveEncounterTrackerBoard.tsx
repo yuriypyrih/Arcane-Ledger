@@ -13,7 +13,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from "@dnd-kit/sortable";
-import { Skull, Swords, Users } from "lucide-react";
+import { Dices, Skull, Swords, Users } from "lucide-react";
+import ActionButton from "../../components/ActionButton";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
@@ -25,11 +26,23 @@ import {
   CampaignLiveEncounterTrackerSortableParticipantCard
 } from "./CampaignLiveEncounterTrackerParticipantCard";
 import DmToolsEditButton from "./DmToolsEditButton";
+import {
+  canGroupWithPrevious,
+  getInitiativeSlotInfo,
+  groupWithPrevious,
+  leaveGroup,
+  normalizeInitiativeGroups,
+  resolveInitiativeRequest,
+  rollCreatureInitiatives,
+  setParticipantInitiative,
+  type InitiativeSlotInfo
+} from "./liveEncounterInitiative";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignLiveEncounterTrackerBoardProps = {
   onChange: (tracker: CampaignLiveEncounterTrackerRecord) => void;
+  onDamageCreature?: (creatureId: string, amount: number) => void;
   onEditEncounterCreatures?: () => void;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   readOnly?: boolean;
@@ -43,6 +56,12 @@ type TrackerListProps = {
   listKey: LiveEncounterTrackerListKey;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onSelectActiveParticipant: (participantId: string) => void;
+  canGroupParticipant?: (participantId: string) => boolean;
+  onDamageCreature?: (creatureId: string, amount: number) => void;
+  onResolveInitiativeRequest?: (participantId: string, approve: boolean) => void;
+  onChangeInitiative?: (participantId: string, initiative: number | null) => void;
+  onToggleGroup?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
+  slotInfo?: Map<string, InitiativeSlotInfo>;
   onToggleInitiative: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participants: CampaignLiveEncounterTrackerParticipantRecord[];
   readOnly?: boolean;
@@ -59,11 +78,7 @@ function moveParticipantIntoInitiative(
   tracker: CampaignLiveEncounterTrackerRecord,
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): CampaignLiveEncounterTrackerRecord {
-  if (
-    tracker.initiativeOrder.some(
-      (entry) => entry.participantId === participant.participantId
-    )
-  ) {
+  if (tracker.initiativeOrder.some((entry) => entry.participantId === participant.participantId)) {
     return tracker;
   }
 
@@ -91,13 +106,13 @@ function returnParticipantToSourceList(
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): CampaignLiveEncounterTrackerRecord {
   const sourceListKey = getSourceListKey(participant);
-  const nextInitiativeOrder = tracker.initiativeOrder.filter(
-    (entry) => entry.participantId !== participant.participantId
+  // Leaving initiative also leaves its pack; a pack down to one creature dissolves.
+  const nextInitiativeOrder = normalizeInitiativeGroups(
+    tracker.initiativeOrder.filter((entry) => entry.participantId !== participant.participantId)
   );
+  const returnedParticipant = { ...participant, groupId: null };
   const activeParticipantId =
-    tracker.activeParticipantId === participant.participantId
-      ? null
-      : tracker.activeParticipantId;
+    tracker.activeParticipantId === participant.participantId ? null : tracker.activeParticipantId;
 
   if (sourceListKey === "partyMembers") {
     return {
@@ -106,7 +121,7 @@ function returnParticipantToSourceList(
       initiativeOrder: nextInitiativeOrder,
       partyMembers: [
         ...tracker.partyMembers,
-        participant as CampaignLiveEncounterTrackerPartyParticipantRecord
+        returnedParticipant as CampaignLiveEncounterTrackerPartyParticipantRecord
       ]
     };
   }
@@ -116,7 +131,7 @@ function returnParticipantToSourceList(
     activeParticipantId,
     creatures: [
       ...tracker.creatures,
-      participant as CampaignLiveEncounterTrackerCreatureRecord
+      returnedParticipant as CampaignLiveEncounterTrackerCreatureRecord
     ],
     initiativeOrder: nextInitiativeOrder
   };
@@ -141,10 +156,16 @@ function TrackerList({
   icon,
   listKey,
   onInspectParticipant,
+  canGroupParticipant,
+  onChangeInitiative,
+  onDamageCreature,
+  onResolveInitiativeRequest,
   onSelectActiveParticipant,
+  onToggleGroup,
   onToggleInitiative,
   participants,
   readOnly = false,
+  slotInfo,
   title
 }: TrackerListProps) {
   const isInitiativeList = listKey === "initiativeOrder";
@@ -181,8 +202,17 @@ function TrackerList({
                 <CampaignLiveEncounterTrackerSortableParticipantCard
                   key={participant.participantId}
                   activeParticipantId={activeParticipantId}
-                  initiativeOrderNumber={participantIndex + 1}
+                  canGroup={canGroupParticipant?.(participant.participantId)}
+                  groupPosition={slotInfo?.get(participant.participantId)?.groupPosition}
+                  initiativeOrderNumber={
+                    slotInfo?.get(participant.participantId)?.slotNumber ?? participantIndex + 1
+                  }
+                  isActiveSlot={slotInfo?.get(participant.participantId)?.isActive}
                   listKey={listKey}
+                  onChangeInitiative={onChangeInitiative}
+                  onDamageCreature={onDamageCreature}
+                  onResolveInitiativeRequest={onResolveInitiativeRequest}
+                  onToggleGroup={onToggleGroup}
                   onInspect={onInspectParticipant}
                   onSelectActiveParticipant={onSelectActiveParticipant}
                   onToggleInitiative={onToggleInitiative}
@@ -195,7 +225,11 @@ function TrackerList({
               <CampaignLiveEncounterTrackerParticipantCard
                 key={participant.participantId}
                 activeParticipantId={activeParticipantId}
-                initiativeOrderNumber={participantIndex + 1}
+                groupPosition={slotInfo?.get(participant.participantId)?.groupPosition}
+                initiativeOrderNumber={
+                  slotInfo?.get(participant.participantId)?.slotNumber ?? participantIndex + 1
+                }
+                isActiveSlot={slotInfo?.get(participant.participantId)?.isActive}
                 listKey={listKey}
                 onInspect={onInspectParticipant}
                 participant={participant}
@@ -226,6 +260,7 @@ function TrackerList({
 
 function CampaignLiveEncounterTrackerBoard({
   onChange,
+  onDamageCreature,
   onEditEncounterCreatures,
   onInspectParticipant,
   readOnly = false,
@@ -267,7 +302,9 @@ function CampaignLiveEncounterTrackerBoard({
 
     onChange({
       ...tracker,
-      initiativeOrder: arrayMove(tracker.initiativeOrder, activeIndex, overIndex)
+      initiativeOrder: normalizeInitiativeGroups(
+        arrayMove(tracker.initiativeOrder, activeIndex, overIndex)
+      )
     });
   }
 
@@ -282,9 +319,7 @@ function CampaignLiveEncounterTrackerBoard({
     });
   }
 
-  function handleToggleInitiative(
-    participant: CampaignLiveEncounterTrackerParticipantRecord
-  ) {
+  function handleToggleInitiative(participant: CampaignLiveEncounterTrackerParticipantRecord) {
     if (readOnly) {
       return;
     }
@@ -294,6 +329,33 @@ function CampaignLiveEncounterTrackerBoard({
     if (nextTracker !== tracker) {
       onChange(nextTracker);
     }
+  }
+
+  function handleToggleGroup(participant: CampaignLiveEncounterTrackerParticipantRecord) {
+    onChange(
+      participant.groupId
+        ? leaveGroup(tracker, participant.participantId)
+        : groupWithPrevious(tracker, participant.participantId)
+    );
+  }
+
+  function handleResolveInitiativeRequest(participantId: string, approve: boolean) {
+    onChange(resolveInitiativeRequest(tracker, participantId, approve));
+  }
+
+  function handleChangeInitiative(participantId: string, initiative: number | null) {
+    onChange(setParticipantInitiative(tracker, participantId, initiative));
+  }
+
+  const slotInfo = getInitiativeSlotInfo(tracker.initiativeOrder, tracker.activeParticipantId);
+  const hasUnrolledCreatures =
+    tracker.creatures.length > 0 ||
+    tracker.initiativeOrder.some(
+      (participant) => participant.kind === "creature" && participant.initiative == null
+    );
+
+  function handleRollCreatures() {
+    onChange(rollCreatureInitiatives(tracker));
   }
 
   return (
@@ -336,6 +398,7 @@ function CampaignLiveEncounterTrackerBoard({
           onSelectActiveParticipant={handleSelectActiveParticipant}
           onToggleInitiative={handleToggleInitiative}
           participants={tracker.initiativeOrder}
+          slotInfo={slotInfo}
           readOnly
           title="Initiative Order"
         />
@@ -343,8 +406,25 @@ function CampaignLiveEncounterTrackerBoard({
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <TrackerList
             activeParticipantId={tracker.activeParticipantId}
+            headerAction={
+              <ActionButton
+                icon={<Dices size={16} aria-hidden="true" />}
+                fullWidth={false}
+                size="sm"
+                disabled={!hasUnrolledCreatures}
+                onClick={handleRollCreatures}
+              >
+                Roll creatures
+              </ActionButton>
+            }
             icon={<Swords size={16} aria-hidden="true" />}
+            canGroupParticipant={(participantId) => canGroupWithPrevious(tracker, participantId)}
             listKey="initiativeOrder"
+            onChangeInitiative={handleChangeInitiative}
+            onDamageCreature={onDamageCreature}
+            onResolveInitiativeRequest={handleResolveInitiativeRequest}
+            onToggleGroup={handleToggleGroup}
+            slotInfo={slotInfo}
             onInspectParticipant={onInspectParticipant}
             onSelectActiveParticipant={handleSelectActiveParticipant}
             onToggleInitiative={handleToggleInitiative}

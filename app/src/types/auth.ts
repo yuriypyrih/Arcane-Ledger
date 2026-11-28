@@ -8,6 +8,10 @@ export type AuthUser = {
   id: string;
   email: string;
   nickname: string;
+  /** Optional https picture link the player picked. */
+  avatarUrl: string;
+  /** Short text the player wrote about themselves. */
+  bio: string;
   role: UserRole;
   emailVerifiedAt: string | null;
   createdAt: string | null;

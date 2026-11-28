@@ -175,7 +175,9 @@ describe("read-only character inspection", () => {
           role: "admin",
           createdAt: null,
           emailVerifiedAt: null,
-          lastFeedback: null
+          lastFeedback: null,
+          avatarUrl: "",
+          bio: ""
         })
       );
       const document = cloud();

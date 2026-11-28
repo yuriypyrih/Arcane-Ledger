@@ -101,7 +101,9 @@ test("administration defaults to recent activity, keeps sort arrows beside label
             role: "admin",
             emailVerifiedAt: "2026-01-01T00:00:00.000Z",
             createdAt: "2026-01-01T00:00:00.000Z",
-            lastFeedback: null
+            lastFeedback: null,
+            avatarUrl: "",
+            bio: ""
           }
         }
       });

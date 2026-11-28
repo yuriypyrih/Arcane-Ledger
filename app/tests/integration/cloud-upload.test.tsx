@@ -100,7 +100,9 @@ beforeEach(async () => {
       role: "user",
       emailVerifiedAt: null,
       createdAt: null,
-      lastFeedback: null
+      lastFeedback: null,
+      avatarUrl: "",
+      bio: ""
     })
   );
   store.dispatch(
@@ -293,7 +295,9 @@ it.each(["logout", "account switch", "same-account login"] as const)(
             role: "user",
             emailVerifiedAt: null,
             createdAt: null,
-            lastFeedback: null
+            lastFeedback: null,
+            avatarUrl: "",
+            bio: ""
           })
         );
       }

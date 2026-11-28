@@ -36,6 +36,9 @@ const CampaignDetailPage = lazyWithTrackedLoad(
 const CampaignEncounterBuilderPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignEncounterBuilderPage")
 );
+const TableDisplayPage = lazyWithTrackedLoad(
+  () => import("./pages/TableDisplayPage/TableDisplayPage")
+);
 const CampaignLiveEncounterTrackerPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignLiveEncounterTrackerPage")
 );
@@ -47,6 +50,9 @@ const ForgotPasswordPage = lazyWithTrackedLoad(
 );
 const HomePage = lazyWithTrackedLoad(() => import("./pages/HomePage"));
 const ItemCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/ItemCodexEntryPage"));
+const GoogleSignInCompletePage = lazyWithTrackedLoad(
+  () => import("./pages/AuthPages/GoogleSignInCompletePage")
+);
 const LoginPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/LoginPage"));
 const MonsterCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/MonsterCodexEntryPage"));
 const PartyGroupDetailPage = lazyWithTrackedLoad(
@@ -55,6 +61,7 @@ const PartyGroupDetailPage = lazyWithTrackedLoad(
 const PatchNotesPage = lazyWithTrackedLoad(() => import("./pages/PatchNotesPage"));
 const RegisterPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/RegisterPage"));
 const ResetPasswordPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/ResetPasswordPage"));
+const SessionsPage = lazyWithTrackedLoad(() => import("./pages/SessionsPage"));
 const SupportPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/SupportPage"));
 const VerifyEmailPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/VerifyEmailPage"));
 
@@ -126,13 +133,16 @@ function App() {
       <AppUpdateGate />
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
+          <Route path="/table/:partyGroupId" element={<TableDisplayPage />} />
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/administration" element={<AdministrationPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/sessions" element={<SessionsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/google/complete" element={<GoogleSignInCompletePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />

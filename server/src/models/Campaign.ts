@@ -10,7 +10,7 @@ export type CampaignSessionNoteRecord = {
   description: string;
 };
 
-export type PlayerVisibilitySettingsRecord = {
+export type PlayerVisibilityFlagsRecord = {
   showVitalityStatus: boolean;
   showHpBar: boolean;
   showDeathSaves: boolean;
@@ -25,6 +25,11 @@ export type PlayerVisibilitySettingsRecord = {
   showSenses: boolean;
   showLanguages: boolean;
   showActionsAndReactions: boolean;
+};
+
+export type PlayerVisibilitySettingsRecord = PlayerVisibilityFlagsRecord & {
+  /** Creature level: which resistance/immunity entries players may see; unset shows them all. */
+  revealedDefenses?: string[];
 };
 
 export type CampaignVisibilitySettingsRecord = PlayerVisibilitySettingsRecord & {
@@ -53,16 +58,34 @@ export type CampaignLiveEncounterParticipantRefRecord = {
   characterId?: string;
   companionId?: string;
   creatureId?: string;
+  /** Initiative value; null/undefined until rolled or entered. */
+  initiative?: number | null;
+  /** A value a player proposed after already rolling; it applies only if the GM approves. */
+  pendingInitiative?: number | null;
+  /** Creatures sharing a group id sit together in the order and take one turn as a pack. */
+  groupId?: string | null;
+};
+
+export type CampaignLiveEncounterTurnHistoryEntryRecord = {
+  activeParticipantId: string | null;
+  delayed?: { groupId?: string | null; initiative: number | null; participantId: string } | null;
+  orderIds?: string[];
+  /** Tracker revision produced by the turn action; undo only applies while it is still current. */
+  resultRevision: number;
+  roundNumber: number;
 };
 
 export type CampaignLiveEncounterTrackerRecord = {
   preparedEncounterId: string;
   partyGroupId: Types.ObjectId;
+  /** The live game session this encounter was started in, when there was one. */
+  gameSessionId?: Types.ObjectId | null;
   activeParticipantId?: string | null;
   roundNumber?: number;
   partyMembers: CampaignLiveEncounterParticipantRefRecord[];
   creatures: CampaignLiveEncounterParticipantRefRecord[];
   initiativeOrder: CampaignLiveEncounterParticipantRefRecord[];
+  turnHistory?: CampaignLiveEncounterTurnHistoryEntryRecord[];
   revision: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -70,6 +93,8 @@ export type CampaignLiveEncounterTrackerRecord = {
 
 export type CampaignRecord = {
   name: string;
+  /** Optional https link to a picture the GM picked for the campaign. */
+  imageUrl?: string;
   ownerId: Types.ObjectId;
   sessionNotes: CampaignSessionNoteRecord[];
   visibilitySettings: CampaignVisibilitySettingsRecord;
@@ -196,6 +221,10 @@ const campaignVisibilitySettingsSchema = new Schema<CampaignVisibilitySettingsRe
       type: Boolean,
       default: false,
       required: true
+    },
+    revealedDefenses: {
+      type: [String],
+      default: undefined
     }
   },
   {
@@ -270,11 +299,51 @@ const campaignLiveEncounterParticipantRefSchema =
         type: String,
         trim: true,
         maxlength: 128
+      },
+      initiative: {
+        type: Number,
+        min: -100,
+        max: 100,
+        default: null
+      },
+      pendingInitiative: {
+        type: Number,
+        min: -100,
+        max: 100,
+        default: null
+      },
+      groupId: {
+        type: String,
+        trim: true,
+        maxlength: 64,
+        default: null
       }
     },
     {
       _id: false
     }
+  );
+
+const campaignLiveEncounterTurnHistorySchema =
+  new Schema<CampaignLiveEncounterTurnHistoryEntryRecord>(
+    {
+      activeParticipantId: { type: String, default: null, maxlength: 128 },
+      delayed: {
+        type: new Schema(
+          {
+            groupId: { type: String, default: null },
+            initiative: { type: Number, default: null },
+            participantId: String
+          },
+          { _id: false }
+        ),
+        default: null
+      },
+      orderIds: { type: [String], default: undefined },
+      resultRevision: { type: Number, required: true },
+      roundNumber: { type: Number, required: true, min: 1 }
+    },
+    { _id: false }
   );
 
 const campaignLiveEncounterTrackerSchema = new Schema<CampaignLiveEncounterTrackerRecord>(
@@ -289,6 +358,11 @@ const campaignLiveEncounterTrackerSchema = new Schema<CampaignLiveEncounterTrack
       type: Schema.Types.ObjectId,
       ref: "PartyGroup",
       required: true
+    },
+    gameSessionId: {
+      type: Schema.Types.ObjectId,
+      ref: "GameSession",
+      default: null
     },
     activeParticipantId: {
       type: String,
@@ -311,6 +385,10 @@ const campaignLiveEncounterTrackerSchema = new Schema<CampaignLiveEncounterTrack
     },
     initiativeOrder: {
       type: [campaignLiveEncounterParticipantRefSchema],
+      default: []
+    },
+    turnHistory: {
+      type: [campaignLiveEncounterTurnHistorySchema],
       default: []
     },
     revision: {
@@ -342,6 +420,12 @@ const campaignSchema = new Schema<CampaignRecord>(
       trim: true,
       minlength: 2,
       maxlength: 128
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 500
     },
     ownerId: {
       type: Schema.Types.ObjectId,

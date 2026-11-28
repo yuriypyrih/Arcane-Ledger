@@ -12,8 +12,13 @@ import { defaultUserPreferences } from "../services/userPreferencesService.js";
 export type UserRecord = {
   email: string;
   nickname: string;
+  /** Optional https link to a picture the player picked; shown to the GM and the party. */
+  avatarUrl?: string;
+  /** Short text the player wrote about themselves. */
+  bio?: string;
   role: UserRole;
-  passwordHash: string;
+  passwordHash?: string;
+  googleSubject?: string;
   emailVerifiedAt?: Date | null;
   emailVerificationTokenHash?: string;
   emailVerificationTokenExpiresAt?: Date;
@@ -50,6 +55,21 @@ const userPreferencesSchema = new Schema<UserPreferences>(
       enum: [...THEME_MODE_PREFERENCES],
       default: defaultUserPreferences.themeMode,
       required: true
+    },
+    emailNewSession: {
+      type: Boolean,
+      default: defaultUserPreferences.emailNewSession,
+      required: true
+    },
+    emailReschedule: {
+      type: Boolean,
+      default: defaultUserPreferences.emailReschedule,
+      required: true
+    },
+    notificationBadge: {
+      type: Boolean,
+      default: defaultUserPreferences.notificationBadge,
+      required: true
     }
   },
   {
@@ -81,6 +101,18 @@ const userSchema = new Schema<UserRecord>(
       maxlength: USER_NICKNAME_MAX_LENGTH,
       default: DEFAULT_USER_NICKNAME
     },
+    avatarUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 500
+    },
+    bio: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 500
+    },
     role: {
       type: String,
       enum: USER_ROLES,
@@ -89,7 +121,12 @@ const userSchema = new Schema<UserRecord>(
     },
     passwordHash: {
       type: String,
-      required: true,
+      select: false
+    },
+    googleSubject: {
+      type: String,
+      unique: true,
+      sparse: true,
       select: false
     },
     emailVerifiedAt: {

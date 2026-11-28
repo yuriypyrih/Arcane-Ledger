@@ -87,6 +87,10 @@ export type AppConfig = {
   resendApiKey: string;
   resendFromEmail: string;
   resendReplyTo: string;
+  localEmailFilePath: string;
+  googleClientId: string;
+  googleClientSecret: string;
+  googleRedirectUri: string;
   characterAvatarS3Bucket: string;
   characterAvatarS3Region: string;
   characterAvatarS3PublicBaseUrl: string;
@@ -129,6 +133,10 @@ export function getAppConfig(): AppConfig {
     resendApiKey: process.env.RESEND_API_KEY ?? "",
     resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
     resendReplyTo: process.env.RESEND_REPLY_TO ?? "",
+    localEmailFilePath: process.env.LOCAL_EMAIL_FILE_PATH ?? "",
+    googleClientId: process.env.GOOGLE_CLIENT_ID?.trim() ?? "",
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET?.trim() ?? "",
+    googleRedirectUri: process.env.GOOGLE_REDIRECT_URI?.trim() ?? "",
     characterAvatarS3Bucket: process.env.CHARACTER_AVATAR_S3_BUCKET ?? "",
     characterAvatarS3Region: process.env.CHARACTER_AVATAR_S3_REGION ?? "",
     characterAvatarS3PublicBaseUrl: process.env.CHARACTER_AVATAR_S3_PUBLIC_BASE_URL ?? "",

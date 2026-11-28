@@ -50,8 +50,15 @@ function AdministrationUserModal({
   }
 
   if (inspectedCharacterId) {
-    return <CharacterInspectionModal target={{ kind: "admin", userId: user.id, characterId: inspectedCharacterId }}
-      onClose={() => { setFocusCharacterId(inspectedCharacterId); setInspectedCharacterId(null); }} />;
+    return (
+      <CharacterInspectionModal
+        target={{ kind: "admin", userId: user.id, characterId: inspectedCharacterId }}
+        onClose={() => {
+          setFocusCharacterId(inspectedCharacterId);
+          setInspectedCharacterId(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -108,7 +115,11 @@ function AdministrationUserModal({
             <p className={styles.modalText}>Admin roles are protected and cannot be changed.</p>
           ) : null}
           {error ? <p className={styles.modalError}>{error}</p> : null}
-          <AdministrationUserCharacters userId={user.id} onInspect={setInspectedCharacterId} focusCharacterId={focusCharacterId} />
+          <AdministrationUserCharacters
+            userId={user.id}
+            onInspect={setInspectedCharacterId}
+            focusCharacterId={focusCharacterId}
+          />
         </OverlayBody>
 
         <OverlayFooter>

@@ -66,6 +66,8 @@ import {
 import UnclaimedCharactersModal from "./UnclaimedCharactersModal";
 
 const cloudSyncDebounceMs = 20_000;
+// Party members feed the GM's live tracker, so their sheet changes sync within moments.
+const partyMemberSyncDebounceMs = 1_500;
 
 type ClaimPromptState = {
   availableSlots: number;
@@ -944,7 +946,9 @@ function CharacterSyncBootstrap() {
           return sync?.ownerId === user.id && sync.syncStatus === "deleting";
         });
 
-      queueCloudSync(hasDeletingRecords ? 0 : undefined);
+      const isInParty = Object.keys(store.getState().dmTools.membershipsByCharacterId).length > 0;
+
+      queueCloudSync(hasDeletingRecords ? 0 : isInParty ? partyMemberSyncDebounceMs : undefined);
     }
 
     window.addEventListener(CHARACTER_STORAGE_CHANGED_EVENT, handleStorageChange);
@@ -952,7 +956,7 @@ function CharacterSyncBootstrap() {
     return () => {
       window.removeEventListener(CHARACTER_STORAGE_CHANGED_EVENT, handleStorageChange);
     };
-  }, [queueCloudSync, status, user]);
+  }, [queueCloudSync, status, store, user]);
 
   useEffect(() => {
     function handleOnline() {

@@ -1,3 +1,4 @@
+import { notifyPartyMemberUpdated } from "../services/partyLiveUpdates.js";
 import {
   toAvatarResponse,
   toCloudRecord,
@@ -946,6 +947,8 @@ export const saveCharacterSheet = asyncHandler(
         serverRevision: latest.revision
       });
     }
+
+    notifyPartyMemberUpdated(savedCharacter.partyGroupId);
 
     response.json({ character: toCloudRecord(savedCharacter) });
   }

@@ -11,6 +11,8 @@ export function serializeAuthUser(user: UserDocument): AuthUserResponse {
     id: user.id,
     email: user.email,
     nickname: user.nickname ?? DEFAULT_USER_NICKNAME,
+    avatarUrl: user.avatarUrl ?? "",
+    bio: user.bio ?? "",
     role: user.role,
     emailVerifiedAt: user.emailVerifiedAt ? user.emailVerifiedAt.toISOString() : null,
     createdAt: user.createdAt ? user.createdAt.toISOString() : null,

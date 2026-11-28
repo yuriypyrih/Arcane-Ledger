@@ -1,0 +1,42 @@
+.picker {
+  border: 1px solid var(--theme-border-medium);
+  border-radius: var(--radius-control);
+  background: var(--theme-surface-raised);
+  padding: 0.45rem 0.6rem;
+}
+
+.summary {
+  display: grid;
+  gap: 0.15rem;
+  cursor: pointer;
+  color: var(--theme-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.label {
+  color: var(--theme-text-secondary);
+}
+
+.value {
+  color: var(--theme-text-primary);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-transform: capitalize;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--theme-text-primary);
+  font-size: 0.85rem;
+  font-weight: 400;
+}

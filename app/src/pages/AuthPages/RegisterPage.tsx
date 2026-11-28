@@ -12,6 +12,7 @@ import {
   USER_NICKNAME_MIN_LENGTH
 } from "./authNickname";
 import { getApiErrorMessage } from "./authPageUtils";
+import GoogleSignInButton from "./GoogleSignInButton";
 import RegisterConfirmationView from "./RegisterConfirmationView";
 import styles from "./AuthPages.module.css";
 
@@ -187,6 +188,8 @@ function RegisterPage() {
             </ActionButton>
           </div>
         </form>
+
+        <GoogleSignInButton />
 
         <div className={styles.linkRow}>
           <Link className={styles.link} to="/login">

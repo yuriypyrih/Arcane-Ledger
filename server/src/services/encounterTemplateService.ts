@@ -13,6 +13,14 @@ import {
   ENCOUNTER_INHERITED_CREATURE_ENTRY_MAX_BYTES,
   ENCOUNTER_MAX_CREATURES
 } from "../constants/QUOTAS.js";
+import {
+  applyCreatureTypeRules,
+  dissolveLoneGroups,
+  linkCreaturesByMonster,
+  readCreatureLinkIntent,
+  TEMPLATE_INHERITED_KEYS
+} from "./creatureTypeGroups.js";
+import { normalizeExternalImageUrl } from "./externalImageUrl.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const ENCOUNTER_TEMPLATE_NAME_MIN_LENGTH = 2;
@@ -224,6 +232,16 @@ export function normalizeEncounterTemplateName(value: unknown) {
   return name;
 }
 
+function normalizeCreatureImageUrl(value: unknown) {
+  return (
+    normalizeExternalImageUrl(value, {
+      code: "INVALID_ENCOUNTER_TEMPLATE_CREATURE",
+      field: "imageUrl",
+      label: "Picture link"
+    }) || undefined
+  );
+}
+
 export function normalizeEncounterTemplateCreature(
   creatureId: string,
   value: unknown
@@ -259,6 +277,7 @@ export function normalizeEncounterTemplateCreature(
     "temporaryHitPointsSource"
   );
   const primalBeastKind = normalizePrimalBeastKind(value.primalBeastKind);
+  const imageUrl = normalizeCreatureImageUrl(value.imageUrl);
 
   if (!duration) {
     throw new AppError("duration is required.", 400, "INVALID_ENCOUNTER_TEMPLATE_CREATURE", {
@@ -282,6 +301,7 @@ export function normalizeEncounterTemplateCreature(
     ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
     ...(deathSaves ? { deathSaves } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
+    ...(imageUrl ? { imageUrl } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
     ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
       ? { inheritedCreatureEntryModified: true }
@@ -428,11 +448,12 @@ export async function upsertEncounterTemplateCreature(options: {
     });
   }
 
-  if (existingCreatureIndex >= 0) {
-    encounterTemplate.creatures[existingCreatureIndex] = creature;
-  } else {
-    encounterTemplate.creatures.push(creature);
-  }
+  encounterTemplate.creatures = applyCreatureTypeRules({
+    creature,
+    creatures: encounterTemplate.creatures as unknown as (typeof creature)[],
+    inheritedKeys: TEMPLATE_INHERITED_KEYS,
+    intent: readCreatureLinkIntent(options.creature)
+  });
 
   assertEncounterCreatureListSize(encounterTemplate.creatures);
 
@@ -460,8 +481,25 @@ export async function removeEncounterTemplateCreature(options: {
     );
   }
 
-  encounterTemplate.creatures = nextCreatures;
+  encounterTemplate.creatures = dissolveLoneGroups(nextCreatures);
   await encounterTemplate.save();
 
   return toEncounterTemplateDetailRecord(encounterTemplate);
+}
+
+export async function linkEncounterTemplateCreatureTypes(options: {
+  encounterTemplateId: string;
+  ownerId: Types.ObjectId;
+}) {
+  const encounterTemplate = await findOwnedEncounterTemplateDocument(options);
+  const { creatures, linkedCount } = linkCreaturesByMonster({
+    creatures: encounterTemplate.creatures as unknown as EncounterTemplateCreatureRecord[],
+    inheritedKeys: TEMPLATE_INHERITED_KEYS
+  });
+
+  assertEncounterCreatureListSize(creatures);
+  encounterTemplate.creatures = creatures;
+  await encounterTemplate.save();
+
+  return { encounterTemplate: toEncounterTemplateDetailRecord(encounterTemplate), linkedCount };
 }

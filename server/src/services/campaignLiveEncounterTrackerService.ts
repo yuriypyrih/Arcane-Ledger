@@ -1,3 +1,11 @@
+import { GameSession } from "../models/GameSession.js";
+import {
+  applyTurnAction,
+  applyUndo,
+  LIVE_ENCOUNTER_TURN_ACTIONS,
+  type LiveEncounterTurnAction
+} from "./liveEncounterTurnLogic.js";
+import { publishCampaignEvent } from "./campaignEventBus.js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import {
@@ -5,6 +13,7 @@ import {
   type CampaignDocument,
   type CampaignLiveEncounterParticipantRefRecord,
   type CampaignLiveEncounterTrackerRecord,
+  type CampaignLiveEncounterTurnHistoryEntryRecord,
   type CampaignPreparedEncounterRecord,
   type CampaignRecord
 } from "../models/Campaign.js";
@@ -122,6 +131,8 @@ export type CampaignLiveEncounterTrackerDetailRecord = {
   partyMembers: CampaignLiveEncounterTrackerPartyParticipantRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
+  /** True while the last turn action can still be undone (nothing else changed the encounter). */
+  canUndo: boolean;
   revision: number;
   createdAt: string | null;
   updatedAt: string | null;
@@ -189,9 +200,7 @@ function createCreatureParticipantId(creatureId: string) {
   return `creature:${creatureId}`;
 }
 
-function createPartyMemberParticipantRef(
-  characterId: string
-): PartyMemberParticipantRefRecord {
+function createPartyMemberParticipantRef(characterId: string): PartyMemberParticipantRefRecord {
   return {
     participantId: createPartyMemberParticipantId(characterId),
     kind: "party-member",
@@ -211,9 +220,7 @@ function createPartyCompanionParticipantRef(
   };
 }
 
-function createCreatureParticipantRef(
-  creatureId: string
-): CreatureParticipantRefRecord {
+function createCreatureParticipantRef(creatureId: string): CreatureParticipantRefRecord {
   return {
     participantId: createCreatureParticipantId(creatureId),
     kind: "creature",
@@ -250,6 +257,7 @@ function createInvalidLiveEncounterTrackerRecord(
     partyMembers: [],
     creatures: [],
     initiativeOrder: [],
+    canUndo: false,
     revision: tracker.revision,
     createdAt: toIsoTimestamp(tracker.createdAt),
     updatedAt: toIsoTimestamp(tracker.updatedAt)
@@ -303,7 +311,9 @@ async function loadPartyMemberRecords(partyGroup: PartyGroupSource) {
     .select("_id ownerId summary avatar updatedAt")
     .lean()
     .exec()) as CharacterSheetMemberSource[];
-  const charactersById = new Map(characters.map((character) => [getDocumentId(character), character]));
+  const charactersById = new Map(
+    characters.map((character) => [getDocumentId(character), character])
+  );
   const orderedCharacters = partyGroup.characterIds
     .map((characterId) => charactersById.get(characterId.toString()))
     .filter((character): character is CharacterSheetMemberSource => Boolean(character));
@@ -449,7 +459,10 @@ async function loadLiveEncounterSourceContext(options: {
     );
   });
   creatures.forEach((creature) => {
-    allowedRefsByParticipantId.set(creature.participantId, createCreatureParticipantRef(creature.creatureId));
+    allowedRefsByParticipantId.set(
+      creature.participantId,
+      createCreatureParticipantRef(creature.creatureId)
+    );
   });
 
   return {
@@ -473,7 +486,13 @@ function addCanonicalRefsFromList(options: {
       return;
     }
 
-    options.destination.push(canonicalRef);
+    options.destination.push({
+      ...canonicalRef,
+      initiative: ref.initiative ?? null,
+      pendingInitiative:
+        canonicalRef.kind === "party-member" ? (ref.pendingInitiative ?? null) : null,
+      groupId: canonicalRef.kind === "creature" ? (ref.groupId ?? null) : null
+    });
     options.seenParticipantIds.add(canonicalRef.participantId);
   });
 }
@@ -541,11 +560,19 @@ function hydrateParticipantRef(
   ref: CampaignLiveEncounterParticipantRefRecord,
   sourceContext: LiveEncounterSourceContext
 ): CampaignLiveEncounterTrackerParticipantRecord | null {
-  if (ref.kind === "party-member" || ref.kind === "party-companion") {
-    return sourceContext.partyMembersByParticipantId.get(ref.participantId) ?? null;
-  }
+  const participant =
+    ref.kind === "party-member" || ref.kind === "party-companion"
+      ? sourceContext.partyMembersByParticipantId.get(ref.participantId)
+      : sourceContext.creaturesByParticipantId.get(ref.participantId);
 
-  return sourceContext.creaturesByParticipantId.get(ref.participantId) ?? null;
+  return participant
+    ? {
+        ...participant,
+        initiative: ref.initiative ?? null,
+        pendingInitiative: ref.pendingInitiative ?? null,
+        groupId: ref.groupId ?? null
+      }
+    : null;
 }
 
 function hydrateParticipantList<T extends CampaignLiveEncounterTrackerParticipantRecord>(
@@ -555,6 +582,12 @@ function hydrateParticipantList<T extends CampaignLiveEncounterTrackerParticipan
   return refs
     .map((ref) => hydrateParticipantRef(ref, sourceContext))
     .filter((participant): participant is T => Boolean(participant));
+}
+
+function canUndoLastTurnAction(tracker: CampaignLiveEncounterTrackerRecord) {
+  const lastEntry = tracker.turnHistory?.at(-1);
+
+  return Boolean(lastEntry) && lastEntry?.resultRevision === tracker.revision;
 }
 
 function toCampaignLiveEncounterTrackerDetailRecordFromContext(options: {
@@ -584,6 +617,7 @@ function toCampaignLiveEncounterTrackerDetailRecordFromContext(options: {
       reconciledLists.initiativeOrder,
       options.sourceContext
     ),
+    canUndo: canUndoLastTurnAction(options.tracker),
     revision: options.tracker.revision,
     createdAt: toIsoTimestamp(options.tracker.createdAt),
     updatedAt: toIsoTimestamp(options.tracker.updatedAt)
@@ -688,6 +722,14 @@ export async function createReconciledCampaignLiveEncounterTrackerSnapshot(
   };
 }
 
+function publishLiveEncounterUpdated(campaign: CampaignSource, revision: number) {
+  publishCampaignEvent({
+    type: "live-encounter.updated",
+    campaignId: getDocumentId(campaign),
+    revision
+  });
+}
+
 function toCampaignPatchEnvelope(campaign: CampaignSource, patch: CampaignPatchRecord) {
   return {
     campaignId: getDocumentId(campaign),
@@ -700,21 +742,13 @@ function toCampaignPatchEnvelope(campaign: CampaignSource, patch: CampaignPatchR
 
 function normalizeStartPayload(value: unknown) {
   if (!isObjectRecord(value) || typeof value.preparedEncounterId !== "string") {
-    throw new AppError(
-      "Prepared encounter id is required.",
-      400,
-      "INVALID_LIVE_ENCOUNTER_INPUT"
-    );
+    throw new AppError("Prepared encounter id is required.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
   }
 
   const preparedEncounterId = value.preparedEncounterId.trim();
 
   if (!preparedEncounterId) {
-    throw new AppError(
-      "Prepared encounter id is required.",
-      400,
-      "INVALID_LIVE_ENCOUNTER_INPUT"
-    );
+    throw new AppError("Prepared encounter id is required.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
   }
 
   return {
@@ -724,7 +758,11 @@ function normalizeStartPayload(value: unknown) {
 
 function normalizeRevision(value: unknown) {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
-    throw new AppError("Encounter tracker revision is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+    throw new AppError(
+      "Encounter tracker revision is invalid.",
+      400,
+      "INVALID_LIVE_ENCOUNTER_INPUT"
+    );
   }
 
   return value;
@@ -738,7 +776,54 @@ function normalizeRoundNumber(value: unknown) {
   return value;
 }
 
+function normalizeGroupId(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string" || value.trim().length > 64) {
+    throw new AppError("Group id is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT", {
+      field: "groupId"
+    });
+  }
+
+  return value.trim();
+}
+
+function normalizeInitiative(value: unknown) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (typeof value !== "number" || !Number.isInteger(value) || value < -100 || value > 100) {
+    throw new AppError(
+      "Initiative must be a whole number from -100 to 100.",
+      400,
+      "INVALID_LIVE_ENCOUNTER_INPUT",
+      {
+        field: "initiative"
+      }
+    );
+  }
+
+  return value;
+}
+
 function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipantRefRecord {
+  const ref = normalizeParticipantRefIdentity(value);
+  const body = value as Record<string, unknown>;
+
+  return {
+    ...ref,
+    initiative: normalizeInitiative(body.initiative),
+    pendingInitiative: normalizeInitiative(body.pendingInitiative),
+    groupId: ref.kind === "creature" ? normalizeGroupId(body.groupId) : null
+  };
+}
+
+function normalizeParticipantRefIdentity(
+  value: unknown
+): CampaignLiveEncounterParticipantRefRecord {
   if (!isObjectRecord(value)) {
     throw new AppError("Encounter participant is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
   }
@@ -748,7 +833,11 @@ function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipa
     const participantId = typeof value.participantId === "string" ? value.participantId.trim() : "";
 
     if (!characterId || participantId !== createPartyMemberParticipantId(characterId)) {
-      throw new AppError("Party member participant is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+      throw new AppError(
+        "Party member participant is invalid.",
+        400,
+        "INVALID_LIVE_ENCOUNTER_INPUT"
+      );
     }
 
     return createPartyMemberParticipantRef(characterId);
@@ -764,7 +853,11 @@ function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipa
       !companionId ||
       participantId !== createPartyCompanionParticipantId(characterId, companionId)
     ) {
-      throw new AppError("Party companion participant is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+      throw new AppError(
+        "Party companion participant is invalid.",
+        400,
+        "INVALID_LIVE_ENCOUNTER_INPUT"
+      );
     }
 
     return createPartyCompanionParticipantRef(characterId, companionId);
@@ -794,7 +887,11 @@ function normalizeParticipantRefList(value: unknown, fieldName: string) {
 
 function normalizeTrackerUpdatePayload(value: unknown) {
   if (!isObjectRecord(value)) {
-    throw new AppError("Encounter tracker payload is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+    throw new AppError(
+      "Encounter tracker payload is invalid.",
+      400,
+      "INVALID_LIVE_ENCOUNTER_INPUT"
+    );
   }
 
   const activeParticipantId =
@@ -821,11 +918,7 @@ export async function startCampaignLiveEncounterTracker(options: {
   const payload = normalizeStartPayload(options.payload);
 
   if (campaign.liveEncounterTracker) {
-    throw new AppError(
-      "A live encounter is already active.",
-      409,
-      "LIVE_ENCOUNTER_ALREADY_ACTIVE"
-    );
+    throw new AppError("A live encounter is already active.", 409, "LIVE_ENCOUNTER_ALREADY_ACTIVE");
   }
 
   if (!campaign.selectedPartyId) {
@@ -843,9 +936,14 @@ export async function startCampaignLiveEncounterTracker(options: {
   }
 
   const now = new Date();
+  const liveGameSession = await GameSession.findOne({ campaignId: campaign._id, status: "live" })
+    .select({ _id: 1 })
+    .lean()
+    .exec();
   campaign.liveEncounterTracker = {
     preparedEncounterId: preparedEncounter.id,
     partyGroupId: campaign.selectedPartyId,
+    gameSessionId: liveGameSession?._id ?? null,
     activeParticipantId: null,
     roundNumber: 1,
     partyMembers: [],
@@ -861,21 +959,38 @@ export async function startCampaignLiveEncounterTracker(options: {
     ownerId: options.ownerId
   });
 
-  campaign.liveEncounterTracker.partyMembers = [...sourceContext.partyMembersByParticipantId.values()].map(
-    (member) =>
-      member.kind === "party-companion"
-        ? createPartyCompanionParticipantRef(member.characterId, member.companionId)
-        : createPartyMemberParticipantRef(member.characterId)
+  campaign.liveEncounterTracker.partyMembers = [
+    ...sourceContext.partyMembersByParticipantId.values()
+  ].map((member) =>
+    member.kind === "party-companion"
+      ? createPartyCompanionParticipantRef(member.characterId, member.companionId)
+      : createPartyMemberParticipantRef(member.characterId)
   );
-  campaign.liveEncounterTracker.creatures = [...sourceContext.creaturesByParticipantId.values()].map(
-    (creature) => createCreatureParticipantRef(creature.creatureId)
-  );
+  campaign.liveEncounterTracker.creatures = [
+    ...sourceContext.creaturesByParticipantId.values()
+  ].map((creature) => createCreatureParticipantRef(creature.creatureId));
   campaign.markModified("liveEncounterTracker");
   await campaign.save();
+  publishLiveEncounterUpdated(campaign, campaign.liveEncounterTracker?.revision ?? 0);
 
   return toCampaignPatchEnvelope(campaign, {
     liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
+}
+
+function toPlainTracker<T extends object>(tracker: T): T {
+  const { toObject } = tracker as { toObject?: () => T };
+
+  return toObject ? toObject.call(tracker) : tracker;
+}
+
+function createRevisionConflict(clientRevision: number) {
+  return new AppError(
+    "The encounter changed since you loaded it. Reload to see the latest state.",
+    409,
+    "LIVE_ENCOUNTER_REVISION_CONFLICT",
+    { revision: clientRevision }
+  );
 }
 
 export async function updateCampaignLiveEncounterTracker(options: {
@@ -905,18 +1020,33 @@ export async function updateCampaignLiveEncounterTracker(options: {
     sourceContext
   );
 
-  campaign.liveEncounterTracker = {
-    ...tracker,
+  if (payload.revision !== tracker.revision) {
+    throw createRevisionConflict(tracker.revision);
+  }
+
+  const nextTracker = {
+    ...toPlainTracker(tracker),
     ...reconciledLists,
+    gameSessionId: tracker.gameSessionId ?? null,
     roundNumber: payload.roundNumber,
     revision: tracker.revision + 1,
     updatedAt: new Date()
   };
-  campaign.markModified("liveEncounterTracker");
-  await campaign.save();
+  // Atomic compare-and-set: a concurrent writer (another GM tab or a player turn) bumps the revision first.
+  const updatedCampaign = await Campaign.findOneAndUpdate(
+    { _id: campaign._id, "liveEncounterTracker.revision": payload.revision },
+    { $set: { liveEncounterTracker: nextTracker } },
+    { new: true, runValidators: true }
+  ).exec();
 
-  return toCampaignPatchEnvelope(campaign, {
-    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
+  if (!updatedCampaign?.liveEncounterTracker) {
+    throw createRevisionConflict(payload.revision);
+  }
+
+  publishLiveEncounterUpdated(updatedCampaign, updatedCampaign.liveEncounterTracker.revision);
+
+  return toCampaignPatchEnvelope(updatedCampaign, {
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(updatedCampaign)
   });
 }
 
@@ -929,8 +1059,141 @@ export async function removeCampaignLiveEncounterTracker(options: {
   campaign.liveEncounterTracker = null;
   campaign.markModified("liveEncounterTracker");
   await campaign.save();
+  publishLiveEncounterUpdated(campaign, 0);
 
   return toCampaignPatchEnvelope(campaign, {
     liveEncounterTracker: null
+  });
+}
+
+const TURN_HISTORY_LIMIT = 20;
+
+function normalizeTurnPayload(value: unknown) {
+  if (!isObjectRecord(value)) {
+    throw new AppError("Turn payload is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+  }
+
+  const revision = value.revision;
+  const action = value.action;
+
+  if (typeof revision !== "number" || !Number.isInteger(revision) || revision < 1) {
+    throw new AppError(
+      "Encounter tracker revision is invalid.",
+      400,
+      "INVALID_LIVE_ENCOUNTER_INPUT"
+    );
+  }
+
+  if (
+    action !== "undo" &&
+    !LIVE_ENCOUNTER_TURN_ACTIONS.includes(action as LiveEncounterTurnAction)
+  ) {
+    throw new AppError("Turn action is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+  }
+
+  return {
+    action: action as LiveEncounterTurnAction | "undo",
+    afterParticipantId:
+      typeof value.afterParticipantId === "string" ? value.afterParticipantId.trim() : undefined,
+    revision
+  };
+}
+
+/**
+ * GM turn control: next, previous, skip, delay and undo, decided on the server and applied atomically
+ * against the revision the GM was looking at.
+ */
+export async function applyCampaignLiveEncounterTurn(options: {
+  campaignId: string;
+  ownerId: Types.ObjectId;
+  payload: unknown;
+}) {
+  const campaign = await findOwnedCampaignDocument(options);
+  const payload = normalizeTurnPayload(options.payload);
+  const tracker = campaign.liveEncounterTracker;
+
+  if (!tracker) {
+    throw new AppError("There is no live encounter tracker.", 404, "LIVE_ENCOUNTER_NOT_FOUND");
+  }
+
+  if (payload.revision !== tracker.revision) {
+    throw createRevisionConflict(tracker.revision);
+  }
+
+  const snapshot = await createReconciledCampaignLiveEncounterTrackerSnapshot(campaign);
+  const currentState = {
+    activeParticipantId: snapshot.reconciledLists.activeParticipantId,
+    initiativeOrder: snapshot.reconciledLists.initiativeOrder,
+    roundNumber: snapshot.roundNumber
+  };
+  const history: CampaignLiveEncounterTurnHistoryEntryRecord[] = (tracker.turnHistory ?? []).map(
+    (entry) => ({
+      activeParticipantId: entry.activeParticipantId ?? null,
+      delayed: entry.delayed ?? null,
+      orderIds: entry.orderIds ? [...entry.orderIds] : undefined,
+      resultRevision: entry.resultRevision,
+      roundNumber: entry.roundNumber
+    })
+  );
+  const nextRevision = tracker.revision + 1;
+  let nextState = currentState;
+  let nextHistory = history;
+
+  if (payload.action === "undo") {
+    const lastEntry = history.at(-1);
+
+    if (!lastEntry || lastEntry.resultRevision !== tracker.revision) {
+      throw new AppError(
+        "Nothing to undo: the encounter changed since the last turn action.",
+        409,
+        "LIVE_ENCOUNTER_NOTHING_TO_UNDO"
+      );
+    }
+
+    nextState = applyUndo(currentState, {
+      activeParticipantId: lastEntry.activeParticipantId,
+      delayed: lastEntry.delayed ?? undefined,
+      orderIds: lastEntry.orderIds,
+      roundNumber: lastEntry.roundNumber
+    });
+    nextHistory = history.slice(0, -1);
+  } else {
+    const result = applyTurnAction(currentState, payload.action, {
+      afterParticipantId: payload.afterParticipantId
+    });
+
+    nextState = result.state;
+    nextHistory = [
+      ...history,
+      { ...result.undo, delayed: result.undo.delayed ?? null, resultRevision: nextRevision }
+    ].slice(-TURN_HISTORY_LIMIT);
+  }
+
+  const orderChanged = nextState.initiativeOrder !== currentState.initiativeOrder;
+  const updatedCampaign = await Campaign.findOneAndUpdate(
+    { _id: campaign._id, "liveEncounterTracker.revision": payload.revision },
+    {
+      $set: {
+        "liveEncounterTracker.activeParticipantId": nextState.activeParticipantId,
+        "liveEncounterTracker.roundNumber": nextState.roundNumber,
+        "liveEncounterTracker.turnHistory": nextHistory,
+        ...(orderChanged
+          ? { "liveEncounterTracker.initiativeOrder": nextState.initiativeOrder }
+          : {}),
+        "liveEncounterTracker.revision": nextRevision,
+        "liveEncounterTracker.updatedAt": new Date()
+      }
+    },
+    { new: true, runValidators: true }
+  ).exec();
+
+  if (!updatedCampaign?.liveEncounterTracker) {
+    throw createRevisionConflict(payload.revision);
+  }
+
+  publishLiveEncounterUpdated(updatedCampaign, updatedCampaign.liveEncounterTracker.revision);
+
+  return toCampaignPatchEnvelope(updatedCampaign, {
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(updatedCampaign)
   });
 }

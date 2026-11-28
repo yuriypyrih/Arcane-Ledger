@@ -3,21 +3,32 @@ import {
   CircleCheck,
   Eye,
   EyeOff,
+  ExternalLink,
+  HeartPulse,
   RefreshCw,
+  RotateCcw,
   ScrollText,
   Swords,
+  Tv,
   X
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useHref, useNavigate, useParams } from "react-router-dom";
 import {
+  applyCampaignLiveEncounterTurn,
   getCampaign,
+  updateCampaignPreparedEncounterCreatureVisibilitySettings,
+  type CampaignLiveEncounterTurnAction,
   removeCampaignLiveEncounterTracker,
   upsertCampaignPreparedEncounterCreature,
   type CampaignLiveEncounterTrackerParticipantRecord,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
-import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "../../api/encounterTemplates";
+import { ApiRequestFailedError } from "../../api/client";
 import {
   clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
@@ -25,10 +36,13 @@ import {
   setSelectedCampaign,
   setSelectedCampaignError,
   setSelectedCampaignLoading,
+  store,
   useAppDispatch,
   useAppSelector
 } from "../../store";
 import ActionButton from "../../components/ActionButton";
+import { DestructiveConfirmationModal } from "../../components/Overlay";
+import { useCampaignEvents } from "../../lib/useCampaignEvents";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
 import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
@@ -44,7 +58,18 @@ import {
   withLiveEncounterTrackerRevision
 } from "./liveEncounterTrackerUtils";
 import { createPlayerVisibleLiveEncounterTracker } from "./liveEncounterPlayerVisibility";
+import {
+  openLiveEncounterTrackerWindow,
+  openTableDisplayWindow
+} from "./liveEncounterTrackerWindow";
+import { applyDamageToEncounterCreature } from "./encounterCreatureDamage";
+import {
+  getCreaturesNeedingRestore,
+  resetTrackerOrder,
+  restoreCreatureToFullHealth
+} from "./liveEncounterReset";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
+import type { ResistanceVisibilityChange } from "./CreatureResistanceVisibilityToggle";
 
 const trackerRefreshCooldownMs = 5_000;
 
@@ -151,8 +176,12 @@ function CampaignLiveEncounterTrackerPage() {
   const { campaignId = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const trackerHref = useHref(`/gm-tools/campaign-manager/${campaignId}/live-encounter`);
   const authStatus = useAppSelector((state) => state.auth.status);
   const campaign = useAppSelector((state) => state.dmTools.selectedCampaignsById[campaignId]);
+  const tableDisplayHref = useHref(
+    `/table/${campaign?.liveEncounterTracker?.partyGroupId ?? campaign?.selectedPartyId ?? ""}`
+  );
   const status = useAppSelector(
     (state) => state.dmTools.selectedCampaignStatusById[campaignId] ?? "idle"
   );
@@ -173,7 +202,12 @@ function CampaignLiveEncounterTrackerPage() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isTurnBusy, setIsTurnBusy] = useState(false);
+  const [pendingReset, setPendingReset] = useState<"soft" | "hard" | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const resetTitleId = useId();
   const trackerRefreshCooldownRef = useRef<number | null>(null);
+  const creatureUpdateQueueRef = useRef<Promise<unknown>>(Promise.resolve());
 
   const clearTrackerRefreshCooldown = useCallback(() => {
     if (trackerRefreshCooldownRef.current === null) {
@@ -242,8 +276,19 @@ function CampaignLiveEncounterTrackerPage() {
     []
   );
 
+  const reloadCampaignFromServer = useCallback(() => {
+    if (!campaignId || authStatus !== "authenticated") {
+      return;
+    }
+
+    void getCampaign(campaignId, { suppressFailureToast: true })
+      .then(({ campaign: nextCampaign }) => dispatch(setSelectedCampaign(nextCampaign)))
+      .catch(() => undefined);
+  }, [authStatus, campaignId, dispatch]);
+
   const { flushPendingSave, queueSave } = useLiveEncounterTrackerPersistence({
     campaignId,
+    onConflict: reloadCampaignFromServer,
     onSavedTracker: handleSavedTracker
   });
 
@@ -254,6 +299,31 @@ function CampaignLiveEncounterTrackerPage() {
         : null,
     [campaign?.liveEncounterTracker]
   );
+  const serverRevision = serverTracker?.revision ?? 0;
+
+  // Live updates: a player's turn or HP change reaches the GM without pressing Refresh.
+  // Edits in flight are never overwritten; the draft only follows the server while the page is clean.
+  useCampaignEvents(
+    authStatus === "authenticated" && campaignId ? [campaignId] : [],
+    (type, _id, revision) => {
+      if (type === "game-session.updated" || type === "game-session.started") {
+        return;
+      }
+
+      // Revision 0 means the tracker was removed, which must always reload.
+      if (
+        type === "live-encounter.updated" &&
+        revision !== undefined &&
+        revision > 0 &&
+        revision <= serverRevision
+      ) {
+        return;
+      }
+
+      reloadCampaignFromServer();
+    }
+  );
+
   const tracker = draftTracker ?? serverTracker;
   const isTrackerValid = tracker?.status.state === "valid";
   const displayTracker = useMemo(
@@ -267,6 +337,17 @@ function CampaignLiveEncounterTrackerPage() {
     () => findLiveEncounterParticipantById(displayTracker, inspectedParticipantId),
     [displayTracker, inspectedParticipantId]
   );
+
+  // How many creatures share the inspected creature's type, so the drawer can say it is linked.
+  const inspectedTypeGroupId =
+    inspectedParticipant?.kind === "creature" ? inspectedParticipant.creature.typeGroupId : null;
+  const inspectedTypeSize =
+    inspectedTypeGroupId && tracker?.status.state === "valid"
+      ? [...tracker.creatures, ...tracker.initiativeOrder].filter(
+          (entry) =>
+            entry.kind === "creature" && entry.creature.typeGroupId === inspectedTypeGroupId
+        ).length
+      : 0;
 
   useEffect(() => {
     return () => clearTrackerRefreshCooldown();
@@ -388,22 +469,82 @@ function CampaignLiveEncounterTrackerPage() {
     }
   }
 
-  async function handleUpdateInspectedCreature(
+  // Creature edits run one at a time, each against the newest campaign, so quick clicks never
+  // overwrite one another with stale hit points.
+  function handleUpdateInspectedCreature(
     creatureId: string,
-    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
   ) {
+    const run = creatureUpdateQueueRef.current.then(() =>
+      applyCreatureUpdate(creatureId, updateCreature)
+    );
+
+    creatureUpdateQueueRef.current = run.catch(() => undefined);
+
+    return run;
+  }
+
+  /** Lets players see (or hide) one creature's resistances and immunities, entry by entry; other settings stay as they are. */
+  async function handleSetResistanceVisibility(
+    creatureId: string,
+    { revealedDefenses, show }: ResistanceVisibilityChange
+  ) {
+    const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
+    const latestTracker = latestCampaign?.liveEncounterTracker;
+    const creature = latestTracker?.creatures
+      .concat(latestTracker.initiativeOrder.filter((entry) => entry.kind === "creature"))
+      .find((entry) => entry.kind === "creature" && entry.creatureId === creatureId);
+
+    if (!campaignId || !latestTracker || creature?.kind !== "creature") {
+      throw new Error("Unable to find this creature.");
+    }
+
+    const campaignPatch = await updateCampaignPreparedEncounterCreatureVisibilitySettings(
+      campaignId,
+      latestTracker.preparedEncounterId,
+      creatureId,
+      {
+        ...creature.creature.effectivePlayerVisibilitySettings,
+        showResistancesAndImmunities: show,
+        revealedDefenses
+      },
+      { suppressFailureToast: true }
+    );
+    const nextTracker = campaignPatch.patch.liveEncounterTracker
+      ? normalizeLiveEncounterTracker(campaignPatch.patch.liveEncounterTracker)
+      : null;
+
+    dispatch(patchSelectedCampaign(campaignPatch));
+    setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+  }
+
+  function handleDamageCreature(creatureId: string, amount: number) {
+    void handleUpdateInspectedCreature(creatureId, (creature) =>
+      applyDamageToEncounterCreature(creature, amount)
+    ).catch((damageError) =>
+      setActionError(getDmToolsApiErrorMessage(damageError, "Unable to change hit points."))
+    );
+  }
+
+  async function applyCreatureUpdate(
+    creatureId: string,
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterCreatureWriteRecord
+  ) {
+    const latestCampaign = store.getState().dmTools.selectedCampaignsById[campaignId] ?? campaign;
+    const latestTracker = latestCampaign?.liveEncounterTracker;
+
     if (
       !campaignId ||
-      !campaign ||
-      !tracker ||
-      tracker.status.state !== "valid" ||
+      !latestCampaign ||
+      !latestTracker ||
+      latestTracker.status.state !== "valid" ||
       !isGmViewEnabled
     ) {
       throw new Error("Creature hit points can only be edited from GM View.");
     }
 
-    const preparedEncounter = campaign.preparedEncounters.find(
-      (encounter) => encounter.id === tracker.preparedEncounterId
+    const preparedEncounter = latestCampaign.preparedEncounters.find(
+      (encounter) => encounter.id === latestTracker.preparedEncounterId
     );
     const sourceCreature = preparedEncounter?.creatures.find(
       (creature) => creature.id === creatureId
@@ -418,12 +559,18 @@ function CampaignLiveEncounterTrackerPage() {
     if (saveStatus === "dirty" || saveStatus === "saving" || saveStatus === "error") {
       const savedTracker = await flushPendingSave();
 
-      if (!savedTracker) {
+      // An "error" status with nothing pending (for example after a conflict reload) is not a reason
+      // to block: creature edits do not depend on the tracker's own save.
+      if (!savedTracker && saveStatus !== "error") {
         throw new Error("Unable to sync encounter tracker changes before editing hit points.");
       }
     }
 
     const nextCreature = updateCreature(sourceCreature);
+
+    if (nextCreature.id !== creatureId) {
+      throw new Error("The edit would change a different creature. Nothing was saved.");
+    }
     const campaignPatch = await upsertCampaignPreparedEncounterCreature(
       campaignId,
       preparedEncounter.id,
@@ -437,6 +584,84 @@ function CampaignLiveEncounterTrackerPage() {
     dispatch(patchSelectedCampaign(campaignPatch));
 
     setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+  }
+
+  async function handleTurnAction(
+    action: CampaignLiveEncounterTurnAction,
+    afterParticipantId?: string
+  ) {
+    if (isTurnBusy || !campaignId) {
+      return;
+    }
+
+    setActionError(null);
+    setIsTurnBusy(true);
+
+    try {
+      // Pending edits go first so the turn applies to the revision the server now holds.
+      await flushPendingSave();
+
+      const revision =
+        store.getState().dmTools.selectedCampaignsById[campaignId]?.liveEncounterTracker?.revision;
+
+      if (!revision) {
+        return;
+      }
+
+      const campaignPatch = await applyCampaignLiveEncounterTurn(
+        campaignId,
+        { action, afterParticipantId, revision },
+        { suppressFailureToast: true }
+      );
+      const nextTracker = campaignPatch.patch.liveEncounterTracker;
+
+      dispatch(patchSelectedCampaign(campaignPatch));
+
+      if (nextTracker?.status.state === "valid") {
+        setDraftTracker(normalizeLiveEncounterTracker(nextTracker));
+      }
+    } catch (turnError) {
+      if (
+        turnError instanceof ApiRequestFailedError &&
+        turnError.code === "LIVE_ENCOUNTER_REVISION_CONFLICT"
+      ) {
+        reloadCampaignFromServer();
+      }
+
+      setActionError(getDmToolsApiErrorMessage(turnError, "Unable to change the turn."));
+    } finally {
+      setIsTurnBusy(false);
+    }
+  }
+
+  /** Reset sends everyone back to waiting; hard reset also heals monsters (never the players). */
+  async function handleConfirmReset(kind: "soft" | "hard") {
+    if (!tracker || tracker.status.state !== "valid" || isResetting) {
+      return;
+    }
+
+    setActionError(null);
+    setIsResetting(true);
+
+    try {
+      const monstersToRestore = kind === "hard" ? getCreaturesNeedingRestore(tracker) : [];
+
+      handleTrackerChange(resetTrackerOrder(tracker));
+      setInspectedParticipantId(null);
+
+      // Save the new order first; the creature writes below must not race with it.
+      await flushPendingSave();
+
+      for (const creatureId of monstersToRestore) {
+        await handleUpdateInspectedCreature(creatureId, restoreCreatureToFullHealth);
+      }
+
+      setPendingReset(null);
+    } catch (resetError) {
+      setActionError(getDmToolsApiErrorMessage(resetError, "Unable to reset the encounter."));
+    } finally {
+      setIsResetting(false);
+    }
   }
 
   function handleTrackerChange(nextTracker: CampaignLiveEncounterTrackerRecord) {
@@ -479,6 +704,25 @@ function CampaignLiveEncounterTrackerPage() {
           </div>
           <div className={styles.headerActions}>
             <ActionButton
+              actionType="INFO"
+              variant="OUTLINE"
+              fullWidth={false}
+              icon={<ExternalLink size={16} aria-hidden="true" />}
+              onClick={() => openLiveEncounterTrackerWindow(trackerHref)}
+            >
+              Pop out
+            </ActionButton>
+            <ActionButton
+              actionType="INFO"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!campaign?.selectedPartyId}
+              icon={<Tv size={16} aria-hidden="true" />}
+              onClick={() => openTableDisplayWindow(tableDisplayHref)}
+            >
+              Table view
+            </ActionButton>
+            <ActionButton
               role="switch"
               aria-checked={isGmViewEnabled}
               actionType="INFO"
@@ -496,6 +740,28 @@ function CampaignLiveEncounterTrackerPage() {
               onClick={() => setIsGmViewEnabled((currentValue) => !currentValue)}
             >
               GM View
+            </ActionButton>
+            <ActionButton
+              actionType="WARNING"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!isTrackerValid || !isGmViewEnabled || isResetting}
+              icon={<RotateCcw size={16} aria-hidden="true" />}
+              title="Bring everyone back and clear initiative and the round"
+              onClick={() => setPendingReset("soft")}
+            >
+              Reset
+            </ActionButton>
+            <ActionButton
+              actionType="ERROR"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!isTrackerValid || !isGmViewEnabled || isResetting}
+              icon={<HeartPulse size={16} aria-hidden="true" />}
+              title="Reset, and heal every monster to full. Player hit points are not touched"
+              onClick={() => setPendingReset("hard")}
+            >
+              Hard reset
             </ActionButton>
             <ActionButton
               actionType={isTrackerRefreshCoolingDown ? "SUCCESS" : "INFO"}
@@ -570,19 +836,45 @@ function CampaignLiveEncounterTrackerPage() {
                 void handleEditPreparedEncounter();
               }}
               onChange={handleDisplayedTrackerChange}
+              onDamageCreature={handleDamageCreature}
               onInspectParticipant={(participant) =>
                 setInspectedParticipantId(participant.participantId)
               }
             />
             <CampaignLiveEncounterRoundTracker
               tracker={displayTracker ?? tracker}
+              isTurnBusy={isTurnBusy}
               onChange={handleDisplayedTrackerChange}
+              onTurnAction={(action, afterParticipantId) =>
+                void handleTurnAction(action, afterParticipantId)
+              }
             />
+            {pendingReset ? (
+              <DestructiveConfirmationModal
+                titleId={resetTitleId}
+                title={pendingReset === "hard" ? "Hard reset encounter?" : "Reset encounter?"}
+                message={
+                  pendingReset === "hard"
+                    ? "Everyone goes back to waiting with no initiative, the round restarts, and every monster returns to full hit points. Player hit points are not changed."
+                    : "Everyone goes back to waiting with no initiative, packs are cleared and the round restarts. Hit points are not changed."
+                }
+                confirmLabel={
+                  isResetting ? "Resetting..." : pendingReset === "hard" ? "Hard reset" : "Reset"
+                }
+                closeLabel="Close reset confirmation"
+                onCancel={() => setPendingReset(null)}
+                onConfirm={() => {
+                  void handleConfirmReset(pendingReset);
+                }}
+              />
+            ) : null}
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer
                 participant={inspectedParticipant}
+                linkedCreatureCount={inspectedTypeSize}
                 readOnly={!isGmViewEnabled}
                 onClose={() => setInspectedParticipantId(null)}
+                onSetResistanceVisibility={handleSetResistanceVisibility}
                 onUpdateCreature={handleUpdateInspectedCreature}
               />
             ) : null}

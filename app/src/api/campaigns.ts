@@ -1,4 +1,7 @@
-import type { EncounterTemplateCreatureRecord } from "./encounterTemplates";
+import type {
+  EncounterCreatureWriteRecord,
+  EncounterTemplateCreatureRecord
+} from "./encounterTemplates";
 import type {
   CharacterAvatarMetadata,
   MonsterRecord,
@@ -25,7 +28,10 @@ export type CampaignVisibilitySettings = {
   showActionsAndReactions: boolean;
 };
 
-export type PlayerVisibilitySettings = CampaignVisibilitySettings;
+export type PlayerVisibilitySettings = CampaignVisibilitySettings & {
+  /** Creature level: resistance/immunity entries players may see (`<field>:<entry>`); unset shows all. */
+  revealedDefenses?: string[];
+};
 
 export type CampaignSelectedPartySummary = {
   id: string;
@@ -77,6 +83,12 @@ export type CampaignLiveEncounterTrackerParticipantRefRecord = {
   characterId?: string;
   companionId?: string;
   creatureId?: string;
+  /** Initiative value; null until rolled or entered. */
+  initiative?: number | null;
+  /** A re-roll the player proposed; it only applies if the GM approves it. */
+  pendingInitiative?: number | null;
+  /** Creatures sharing a group id take one turn together as a pack. */
+  groupId?: string | null;
 };
 
 export type CampaignLiveEncounterTrackerStatusRecord =
@@ -154,6 +166,8 @@ export type CampaignLiveEncounterTrackerRecord = {
   partyMembers: CampaignLiveEncounterTrackerPartyParticipantRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
+  /** True while the last turn action can still be undone. */
+  canUndo?: boolean;
   revision: number;
   createdAt: string | null;
   updatedAt: string | null;
@@ -162,6 +176,8 @@ export type CampaignLiveEncounterTrackerRecord = {
 export type CampaignRecord = {
   id: string;
   name: string;
+  /** Optional https picture link; empty when none. */
+  imageUrl: string;
   ownerId: string;
   selectedPartyId: string | null;
   sessionNoteCount: number;
@@ -200,6 +216,7 @@ export type CampaignPatchRecord = Partial<
   Pick<
     CampaignDetailRecord,
     | "name"
+    | "imageUrl"
     | "selectedPartyId"
     | "visibilitySettings"
     | "selectedParty"
@@ -243,8 +260,13 @@ export function getCampaign(campaignId: string, options?: ApiRequestOptions) {
   return apiGet<CampaignDetailEnvelope>(`/campaigns/${campaignId}`, options);
 }
 
-export function updateCampaign(campaignId: string, name: string, options?: ApiRequestOptions) {
-  return apiPatch<CampaignPatchEnvelope>(`/campaigns/${campaignId}`, { name }, options);
+/** Renames the campaign and/or sets its picture link (an empty link removes the picture). */
+export function updateCampaign(
+  campaignId: string,
+  changes: { imageUrl?: string; name?: string },
+  options?: ApiRequestOptions
+) {
+  return apiPatch<CampaignPatchEnvelope>(`/campaigns/${campaignId}`, changes, options);
 }
 
 export function deleteCampaign(campaignId: string, options?: ApiRequestOptions) {
@@ -303,10 +325,7 @@ export function removeCampaignLiveEncounterTracker(
   campaignId: string,
   options?: ApiRequestOptions
 ) {
-  return apiDelete<CampaignPatchEnvelope>(
-    `/campaigns/${campaignId}/live-encounter`,
-    options
-  );
+  return apiDelete<CampaignPatchEnvelope>(`/campaigns/${campaignId}/live-encounter`, options);
 }
 
 export function createCampaignSessionNote(
@@ -409,7 +428,7 @@ export function removeCampaignPreparedEncounter(
 export function upsertCampaignPreparedEncounterCreature(
   campaignId: string,
   preparedEncounterId: string,
-  creature: EncounterTemplateCreatureRecord,
+  creature: EncounterCreatureWriteRecord,
   options?: ApiRequestOptions
 ) {
   return apiPut<CampaignPatchEnvelope>(
@@ -441,6 +460,36 @@ export function updateCampaignPreparedEncounterCreatureVisibilitySettings(
   return apiPatch<CampaignPatchEnvelope>(
     `/campaigns/${campaignId}/prepared-encounters/${preparedEncounterId}/creatures/${creatureId}/visibility-settings`,
     visibilitySettings,
+    options
+  );
+}
+
+export type CampaignLiveEncounterTurnAction = "next" | "previous" | "skip" | "delay" | "undo";
+
+export function applyCampaignLiveEncounterTurn(
+  campaignId: string,
+  payload: {
+    action: CampaignLiveEncounterTurnAction;
+    afterParticipantId?: string;
+    revision: number;
+  },
+  options?: ApiRequestOptions
+) {
+  return apiPost<CampaignPatchEnvelope>(
+    `/campaigns/${campaignId}/live-encounter/turn`,
+    payload,
+    options
+  );
+}
+
+export function linkCampaignPreparedEncounterCreatureTypes(
+  campaignId: string,
+  preparedEncounterId: string,
+  options?: ApiRequestOptions
+) {
+  return apiPost<CampaignPatchEnvelope & { linkedCount: number }>(
+    `/campaigns/${campaignId}/prepared-encounters/${preparedEncounterId}/link-creature-types`,
+    {},
     options
   );
 }
