@@ -5,7 +5,7 @@ import type { FeatureDescriptionContribution } from "../../featureContributions"
 import { getFeatDefinition, getFeatLabel } from "../catalog";
 import { smoothTalkerSkills } from "./arcaneEloquence";
 import { knowledgeFromTheDeadSkills } from "./arcaneUndertaker";
-import { cunningDiversionDodgeActionKey } from "./constants";
+import { cunningDiversionDodgeActionKey, sharpEyeActionKeys } from "./constants";
 import {
   filterDescriptionEntries,
   isArcheryWeaponActionDescriptionEntry,
@@ -119,7 +119,7 @@ export const featDescriptionTargetKeys = {
 } as const;
 
 const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinition[] = [
-  ...["common-action-search", "common-action-study"].map((action) => ({
+  ...sharpEyeActionKeys.map((action) => ({
     feat: FEATS.SHARP_EYE,
     target: "commonAction" as const,
     targetKey: action,

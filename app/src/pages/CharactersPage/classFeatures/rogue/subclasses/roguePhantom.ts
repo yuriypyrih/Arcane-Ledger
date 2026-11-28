@@ -21,7 +21,7 @@ import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { replaceClassFeatureState, spendClassResource } from "../../shared/resourceState";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { rogueSneakAttackActionKey } from "../actionKeys";
-import { getRogueSneakAttackDiceCount } from "../rogue";
+import { getRogueSneakAttackDiceCount } from "../base";
 import { collectPhantomVoiceOfDeathContributions } from "./roguePhantomVoiceOfDeath";
 import { collectPhantomGhostWalkContributions } from "./roguePhantomGhostWalk";
 import { collectPhantomDeathsFriendContributions } from "./roguePhantomDeathsFriend";

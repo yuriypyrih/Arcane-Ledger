@@ -65,21 +65,37 @@ import {
   normalizeRangerPersistentWrathState,
   restoreRangerPersistentWrathOnLongRest
 } from "./subclasses/rangerPersistentWrath";
+import {
+  rangerFeyWandererGiftOptions,
+  rangerOtherworldlyGlamourSkillOptions
+} from "./subclasses/rangerFeyWanderer";
 import * as feyWandererSubclass from "./subclasses/rangerFeyWanderer";
 import * as gloomStalkerSubclass from "./subclasses/rangerGloomStalker";
+import { rangerHunterSuperiorHuntersDefenseDamageTypeOptions } from "./subclasses/rangerHunter";
 import * as hunterSubclass from "./subclasses/rangerHunter";
+import {
+  rangerBeastMasterCommandActionKey,
+  rangerBeastMasterReviveActionKey
+} from "./subclasses/rangerBeastMaster";
 import * as beastMasterSubclass from "./subclasses/rangerBeastMaster";
+import {
+  fortifyingSoulActionKey,
+  chillingRetributionReactionId
+} from "./subclasses/rangerWinterWalker";
 import * as winterWalkerSubclass from "./subclasses/rangerWinterWalker";
 
 export const favoredEnemyActionKey = "ranger-favored-enemy";
 export const tirelessActionKey = "ranger-tireless";
 export const naturesVeilActionKey = "ranger-natures-veil";
-export const fortifyingSoulActionKey = winterWalkerSubclass.fortifyingSoulActionKey;
-export const rangerBeastMasterCommandActionKey =
-  beastMasterSubclass.rangerBeastMasterCommandActionKey;
-export const rangerBeastMasterReviveActionKey =
-  beastMasterSubclass.rangerBeastMasterReviveActionKey;
-export const chillingRetributionReactionId = winterWalkerSubclass.chillingRetributionReactionId;
+export {
+  fortifyingSoulActionKey,
+  rangerBeastMasterCommandActionKey,
+  rangerBeastMasterReviveActionKey,
+  chillingRetributionReactionId,
+  rangerFeyWandererGiftOptions,
+  rangerOtherworldlyGlamourSkillOptions,
+  rangerHunterSuperiorHuntersDefenseDamageTypeOptions
+};
 const rangerWeaponMasterySource = "Weapon Mastery";
 const rangerWeaponMasterySelectionCount = 2;
 export const huntersMarkSpellId = "spell-hunters-mark";
@@ -95,12 +111,6 @@ const rangerFeralSensesSource = "Feral Senses";
 const rangerNaturesVeilSource = "Nature's Veil";
 const rangerNaturesVeilSourceId = "feature-ranger-natures-veil";
 const rangerNaturesVeilDurationRounds = 2;
-
-export const rangerFeyWandererGiftOptions = feyWandererSubclass.rangerFeyWandererGiftOptions;
-export const rangerOtherworldlyGlamourSkillOptions =
-  feyWandererSubclass.rangerOtherworldlyGlamourSkillOptions;
-export const rangerHunterSuperiorHuntersDefenseDamageTypeOptions =
-  hunterSubclass.rangerHunterSuperiorHuntersDefenseDamageTypeOptions;
 
 const rangerLanguageOptions = languageEntries.map((entry) => entry.proficiency);
 

@@ -2,9 +2,11 @@ import { hasCharacterClass } from "../../../../../../pages/CharactersPage/multic
 import type { Character } from "../../../../../../types";
 import {
   createEconomyMultiContextForWeaponAction,
+  getSharedEconomyMultiCountForCharacterAction
+} from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
+import {
   getBonusActionWeaponAttackMultiCountForCharacter,
   getMonkUnarmedStrikeMultiCountForCharacter,
-  getSharedEconomyMultiCountForCharacterAction,
   hasBattleMagicBonusWeaponAttackForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {

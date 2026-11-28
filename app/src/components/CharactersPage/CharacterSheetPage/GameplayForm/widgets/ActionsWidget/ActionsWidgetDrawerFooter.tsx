@@ -109,7 +109,8 @@ import { monkElementalBurstActionKey } from "../../../../../../pages/CharactersP
 import { CommonActionFooter } from "./CommonAction";
 import HelpActionFooter from "./HelpActionFooter";
 import SharpEyeActionFooter from "./SharpEyeActionFooter";
-import { getSharpEyeSkillOptions, sharpEyeResource } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
+import { sharpEyeActionKeys } from "../../../../../../pages/CharactersPage/feats/runtime/constants";
+import { sharpEyeResource } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
 
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
@@ -873,18 +874,25 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
           confirmLabel={selectedFeaturePrimaryLabel}
           actionPaths={actionPaths}
           onConfirmPath={(economyType, useUnderstandingOfDeath) =>
-            executeCommonAction(selectedAction.action, economyType, useUnderstandingOfDeath)
+            executeCommonAction(selectedAction.action, economyType, { useUnderstandingOfDeath })
           }
         />
       );
     }
 
-    if (getSharpEyeSkillOptions(selectedAction.action.key).length > 0 && sharpEyeResource.total(character) > 0) {
+    if (
+      sharpEyeActionKeys.includes(selectedAction.action.key) &&
+      sharpEyeResource.total(character) > 0
+    ) {
       return (
-        <SharpEyeActionFooter key={selectedAction.action.key} character={character}
-          actionKey={selectedAction.action.key} actionName={selectedAction.action.name}
-          confirmLabel={selectedFeaturePrimaryLabel} actionPaths={actionPaths}
-          onConfirmPath={(economyType, check) => executeCommonAction(selectedAction.action, economyType, false, check)}
+        <SharpEyeActionFooter
+          key={selectedAction.action.key}
+          character={character}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionPaths={actionPaths}
+          onConfirmPath={(economyType, useSharpEye) =>
+            executeCommonAction(selectedAction.action, economyType, { useSharpEye })
+          }
         />
       );
     }

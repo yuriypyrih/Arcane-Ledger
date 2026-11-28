@@ -22,8 +22,13 @@ export const powerSurgeResource = featResource(
   }
 );
 
-export function isPowerSurgeSpell(spell: Partial<Pick<SpellEntry, "magicSchool">>): boolean {
-  return spell.magicSchool === MAGIC_SCHOOL.EVOCATION;
+export function isPowerSurgeSpell(
+  spell: Partial<Pick<SpellEntry, "magicSchool" | "damage" | "isDamagingSpell">>
+): boolean {
+  return (
+    spell.magicSchool === MAGIC_SCHOOL.EVOCATION &&
+    (spell.isDamagingSpell === true || (spell.damage?.length ?? 0) > 0)
+  );
 }
 
 export function appendPowerSurgeSpellDescription(spell: SpellEntry): SpellEntry {

@@ -1,7 +1,5 @@
 import clsx from "clsx";
-import d20Icon from "../../../../../../assets/svg/d20.svg";
 import ActionFooterButtonRow from "./ActionFooterButtonRow";
-import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 import ActionButton from "../../../../../ActionButton";
 import ActionShape from "../../../../../ActionShape";
 import FeatureUsageLabel from "../../../FeatureUsageLabel";
@@ -40,7 +38,6 @@ type CommonActionFooterProps = {
   confirmLabel: string;
   actionPaths: CommonActionPathState[];
   onConfirmPath: (economyType: EconomyType) => void;
-  diceSettings?: { actionName: string; isOpen: boolean; onOpenChange: (open: boolean) => void };
 };
 
 function renderFeatureActionCardUsage(action: FeatureActionCard) {
@@ -165,13 +162,10 @@ export function CommonActionCard({
 export function CommonActionFooter({
   confirmLabel,
   actionPaths,
-  onConfirmPath,
-  diceSettings
+  onConfirmPath
 }: CommonActionFooterProps) {
   return (
-    <ActionFooterButtonRow settings={diceSettings ? (
-      <DiceRollerSettingsButton {...diceSettings} className={actionStyles.weaponFooterIconButton} />
-    ) : undefined}>
+    <ActionFooterButtonRow>
       {actionPaths.map((path) => {
         const actionShape = getActionShapeForEconomyType(path.economyType);
 
@@ -184,11 +178,10 @@ export function CommonActionFooter({
             key={`common-action-${path.id}`}
             className={actionStyles.weaponFooterButton}
             onClick={() =>
-              diceSettings ? onConfirmPath(path.economyType) : runWithActionConfirmationToast(path.economyType, () =>
+              runWithActionConfirmationToast(path.economyType, () =>
                 onConfirmPath(path.economyType)
               )
             }
-            icon={diceSettings ? <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} /> : undefined}
             disabled={path.disabledReason !== null}
             title={path.disabledReason ?? undefined}
             trailingBadge={

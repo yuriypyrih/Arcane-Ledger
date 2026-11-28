@@ -88,10 +88,25 @@ import {
   clericChannelDivinityActionKey,
   clericChannelDivinityOptionKeys
 } from "../channelDivinity";
+import { divineForeknowledgeActionKey } from "./subclasses/clericKnowledgeDomain";
 import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
+import { preserveLifeActionKey } from "./subclasses/clericLifeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
+import {
+  radianceOfTheDawnActionKey,
+  coronaOfLightActionKey,
+  wardingFlareReactionEntryId
+} from "./subclasses/clericLightDomain";
 import * as lightDomainSubclass from "./subclasses/clericLightDomain";
+import {
+  blessingOfTheTricksterActionKey,
+  invokeDuplicityActionKey
+} from "./subclasses/clericTrickeryDomain";
 import * as trickeryDomainSubclass from "./subclasses/clericTrickeryDomain";
+import {
+  warPriestActionKey,
+  guidedStrikeReactionEntryId
+} from "./subclasses/clericWarDomain";
 import * as warDomainSubclass from "./subclasses/clericWarDomain";
 
 const divineOrderProtectorSource = "Divine Order";
@@ -101,16 +116,17 @@ const blessedHealerSource = "Blessed Healer";
 const supremeHealingSource = "Supreme Healing";
 export const channelDivinityActionKey = clericChannelDivinityActionKey;
 export const divineInterventionActionKey = "cleric-divine-intervention";
-export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
-export const blessingOfTheTricksterActionKey =
-  trickeryDomainSubclass.blessingOfTheTricksterActionKey;
-export const invokeDuplicityActionKey = trickeryDomainSubclass.invokeDuplicityActionKey;
-export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
-export const radianceOfTheDawnActionKey = lightDomainSubclass.radianceOfTheDawnActionKey;
-export const coronaOfLightActionKey = lightDomainSubclass.coronaOfLightActionKey;
-export const warPriestActionKey = warDomainSubclass.warPriestActionKey;
-export const guidedStrikeReactionEntryId = warDomainSubclass.guidedStrikeReactionEntryId;
-export const wardingFlareReactionEntryId = lightDomainSubclass.wardingFlareReactionEntryId;
+export {
+  divineForeknowledgeActionKey,
+  blessingOfTheTricksterActionKey,
+  invokeDuplicityActionKey,
+  preserveLifeActionKey,
+  radianceOfTheDawnActionKey,
+  coronaOfLightActionKey,
+  warPriestActionKey,
+  guidedStrikeReactionEntryId,
+  wardingFlareReactionEntryId
+};
 const greaterDivineInterventionWishSpellId = "spell-wish";
 export {
   expendClericChannelDivinityUse,

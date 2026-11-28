@@ -27,22 +27,23 @@ import {
 } from "./clericTrickeryDomain";
 import { getClericWarDomainDerivedFeatureState, warDomainSubclassId } from "./clericWarDomain";
 
-const clericSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [graveDomainSubclassId]: getClericGraveDomainDerivedFeatureState,
-  [arcanaDomainSubclassId]: getClericArcanaDomainDerivedFeatureState,
-  [knowledgeDomainSubclassId]: getClericKnowledgeDomainDerivedFeatureState,
-  [lifeDomainSubclassId]: getClericLifeDomainDerivedFeatureState,
-  [lightDomainSubclassId]: getClericLightDomainDerivedFeatureState,
-  [trickeryDomainSubclassId]: getClericTrickeryDomainDerivedFeatureState,
-  [warDomainSubclassId]: getClericWarDomainDerivedFeatureState
-};
-
 export function getClericSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Cleric") || !getClassSubclassId(character, "Cleric")) {
     return {};
   }
+
+  // Divinity references can load these modules before the subclass bindings have initialized.
+  const clericSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [graveDomainSubclassId]: getClericGraveDomainDerivedFeatureState,
+    [arcanaDomainSubclassId]: getClericArcanaDomainDerivedFeatureState,
+    [knowledgeDomainSubclassId]: getClericKnowledgeDomainDerivedFeatureState,
+    [lifeDomainSubclassId]: getClericLifeDomainDerivedFeatureState,
+    [lightDomainSubclassId]: getClericLightDomainDerivedFeatureState,
+    [trickeryDomainSubclassId]: getClericTrickeryDomainDerivedFeatureState,
+    [warDomainSubclassId]: getClericWarDomainDerivedFeatureState
+  };
 
   return clericSubclassRuntimeRegistry[getClassSubclassId(character, "Cleric")]?.(character) ?? {};
 }

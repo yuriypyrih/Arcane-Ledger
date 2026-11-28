@@ -25,20 +25,20 @@ import {
   oathOfVengeanceSubclassId
 } from "./paladinOathOfVengeance";
 
-const paladinSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [oathOfTheAncientsSubclassId]: getPaladinOathOfTheAncientsDerivedFeatureState,
-  [oathOfDevotionSubclassId]: getPaladinOathOfDevotionDerivedFeatureState,
-  [oathOfGlorySubclassId]: getPaladinOathOfGloryDerivedFeatureState,
-  [oathOfTheNobleGeniesSubclassId]: getPaladinOathOfTheNobleGeniesDerivedFeatureState,
-  [oathOfVengeanceSubclassId]: getPaladinOathOfVengeanceDerivedFeatureState
-};
-
 export function getPaladinSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Paladin") || !getClassSubclassId(character, "Paladin")) {
     return {};
   }
+
+  const paladinSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [oathOfTheAncientsSubclassId]: getPaladinOathOfTheAncientsDerivedFeatureState,
+    [oathOfDevotionSubclassId]: getPaladinOathOfDevotionDerivedFeatureState,
+    [oathOfGlorySubclassId]: getPaladinOathOfGloryDerivedFeatureState,
+    [oathOfTheNobleGeniesSubclassId]: getPaladinOathOfTheNobleGeniesDerivedFeatureState,
+    [oathOfVengeanceSubclassId]: getPaladinOathOfVengeanceDerivedFeatureState
+  };
 
   return (
     paladinSubclassRuntimeRegistry[getClassSubclassId(character, "Paladin")]?.(character) ?? {}

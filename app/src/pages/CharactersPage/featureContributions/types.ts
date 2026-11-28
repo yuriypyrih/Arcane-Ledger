@@ -241,7 +241,8 @@ export type FeatureSpellActionPathContribution = {
 };
 
 export type FeatureSpellCastEffectContext = {
-  spell: Pick<SpellEntry, "id" | "spellLevel"> & Partial<Pick<SpellEntry, "magicSchool">>;
+  spell: Pick<SpellEntry, "id" | "spellLevel"> &
+    Partial<Pick<SpellEntry, "magicSchool" | "damage" | "isDamagingSpell">>;
   spellSlotLevel?: number | null;
   /** The slot actually spent, independent of a free cast's effective spell level. */
   sourceSpellSlotLevel?: number | null;

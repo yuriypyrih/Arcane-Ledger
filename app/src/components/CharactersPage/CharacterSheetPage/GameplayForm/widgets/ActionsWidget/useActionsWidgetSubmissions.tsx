@@ -24,6 +24,7 @@ import { createRogueFormSubmissions } from "./uiAdapters/rogue";
 import { consumePhantomVoiceOfDeathUse } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomVoiceOfDeath";
 import {
   canPaySpellEconomy,
+  createEconomyMultiContextForSpell,
   payEconomyForCharacterAction
 } from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
 import { createPaladinFormSubmissions } from "./uiAdapters/paladin";
@@ -57,7 +58,6 @@ import {
   consumeArtificerUnerringPathUseForCharacter,
   consumeRangerFavoredEnemyUseForCharacter,
   consumeNonMagicActionForCharacter,
-  createEconomyMultiContextForSpell,
   expendMonkFocusPointForCharacter,
   getMantleOfMajestyUsesRemainingForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,

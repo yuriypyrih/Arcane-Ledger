@@ -43,6 +43,10 @@ import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../we
 import * as ancientsSubclass from "./subclasses/paladinOathOfTheAncients";
 import * as devotionSubclass from "./subclasses/paladinOathOfDevotion";
 import * as glorySubclass from "./subclasses/paladinOathOfGlory";
+import {
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+  paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions
+} from "./subclasses/paladinOathOfTheNobleGenies";
 import * as nobleGeniesSubclass from "./subclasses/paladinOathOfTheNobleGenies";
 import * as vengeanceSubclass from "./subclasses/paladinOathOfVengeance";
 import {
@@ -82,10 +86,10 @@ export const naturesWrathActionKey = "paladin-natures-wrath";
 export const elderChampionActionKey = "paladin-elder-champion";
 export const gloriousDefenseReactionId = "reaction-paladin-glorious-defense";
 export const elementalRebukeReactionId = "reaction-paladin-elemental-rebuke";
-export const paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions =
-  nobleGeniesSubclass.paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions;
-export const paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions =
-  nobleGeniesSubclass.paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions;
+export {
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+  paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions
+};
 const paladinWeaponMasterySource = "Weapon Mastery";
 const paladinWeaponMasterySelectionCount = 2;
 const divineSmiteSpellId = "spell-divine-smite";

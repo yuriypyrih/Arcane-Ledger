@@ -28,21 +28,22 @@ import {
   thiefSubclassId
 } from "./rogueThief";
 
-const rogueSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [phantomSubclassId]: getRoguePhantomDerivedFeatureState,
-  [arcaneTricksterSubclassId]: getRogueArcaneTricksterDerivedFeatureState,
-  [assassinSubclassId]: getRogueAssassinDerivedFeatureState,
-  [scionOfTheThreeSubclassId]: getRogueScionOfTheThreeDerivedFeatureState,
-  [soulknifeSubclassId]: getRogueSoulknifeDerivedFeatureState,
-  [thiefSubclassId]: getRogueThiefDerivedFeatureState
-};
-
 export function getRogueSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Rogue") || !getClassSubclassId(character, "Rogue")) {
     return {};
   }
+
+  // Subclass choice panels can import a subclass before the rest of the class runtime.
+  const rogueSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [phantomSubclassId]: getRoguePhantomDerivedFeatureState,
+    [arcaneTricksterSubclassId]: getRogueArcaneTricksterDerivedFeatureState,
+    [assassinSubclassId]: getRogueAssassinDerivedFeatureState,
+    [scionOfTheThreeSubclassId]: getRogueScionOfTheThreeDerivedFeatureState,
+    [soulknifeSubclassId]: getRogueSoulknifeDerivedFeatureState,
+    [thiefSubclassId]: getRogueThiefDerivedFeatureState
+  };
 
   return rogueSubclassRuntimeRegistry[getClassSubclassId(character, "Rogue")]?.(character) ?? {};
 }

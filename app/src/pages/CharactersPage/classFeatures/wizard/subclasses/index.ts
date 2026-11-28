@@ -86,42 +86,25 @@ import {
   wizardIllusionistIllusoryRealityActionKey
 } from "./wizardIllusionist";
 
-const wizardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [conjurerSubclassId]: getWizardConjurerDerivedFeatureState,
-  [abjurerSubclassId]: getWizardAbjurerDerivedFeatureState,
-  [bladesingerSubclassId]: getWizardBladesingerDerivedFeatureState,
-  [divinerSubclassId]: getWizardDivinerDerivedFeatureState,
-  [enchanterSubclassId]: getWizardEnchanterDerivedFeatureState,
-  [evokerSubclassId]: getWizardEvokerDerivedFeatureState,
-  [illusionistSubclassId]: getWizardIllusionistDerivedFeatureState,
-  [necromancerSubclassId]: getWizardNecromancerDerivedFeatureState,
-  [transmuterSubclassId]: getWizardTransmuterDerivedFeatureState
-};
-const wizardLongRestRestorers: Record<string, (character: Character) => Character> = {
-  [conjurerSubclassId]: restoreConjurerOnLongRest,
-  [abjurerSubclassId]: restoreWizardAbjurerArcaneWardOnLongRest,
-  [bladesingerSubclassId]: restoreWizardBladesongOnLongRest,
-  [divinerSubclassId]: restoreWizardDivinerPortentOnLongRest,
-  [enchanterSubclassId]: restoreEnchanterOnLongRest,
-  [evokerSubclassId]: restoreWizardEvokerOverchannelOnLongRest,
-  [transmuterSubclassId]: restoreTransmuterOnLongRest,
-  [necromancerSubclassId]: (character) =>
-    restoreBolsterUndeadOnLongRest(restoreUndeadThrallsOnLongRest(character)),
-  [illusionistSubclassId]: (character) =>
-    restoreWizardIllusionistIllusorySelfOnLongRest(
-      restoreWizardIllusionistPhantasmalCreaturesOnLongRest(character)
-    )
-};
-const wizardShortRestRestorers: Record<string, (character: Character) => Character> = {
-  [illusionistSubclassId]: restoreWizardIllusionistIllusorySelfOnShortRest
-};
-
 export function getWizardSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Wizard") || !getClassSubclassId(character, "Wizard")) {
     return {};
   }
+
+  // A subclass choice panel can load a subclass while its class runtime is still initializing.
+  const wizardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [conjurerSubclassId]: getWizardConjurerDerivedFeatureState,
+    [abjurerSubclassId]: getWizardAbjurerDerivedFeatureState,
+    [bladesingerSubclassId]: getWizardBladesingerDerivedFeatureState,
+    [divinerSubclassId]: getWizardDivinerDerivedFeatureState,
+    [enchanterSubclassId]: getWizardEnchanterDerivedFeatureState,
+    [evokerSubclassId]: getWizardEvokerDerivedFeatureState,
+    [illusionistSubclassId]: getWizardIllusionistDerivedFeatureState,
+    [necromancerSubclassId]: getWizardNecromancerDerivedFeatureState,
+    [transmuterSubclassId]: getWizardTransmuterDerivedFeatureState
+  };
 
   return wizardSubclassRuntimeRegistry[getClassSubclassId(character, "Wizard")]?.(character) ?? {};
 }
@@ -260,6 +243,22 @@ export function restoreWizardSubclassFeaturesOnLongRest(character: Character): C
     return character;
   }
 
+  const wizardLongRestRestorers: Record<string, (character: Character) => Character> = {
+    [conjurerSubclassId]: restoreConjurerOnLongRest,
+    [abjurerSubclassId]: restoreWizardAbjurerArcaneWardOnLongRest,
+    [bladesingerSubclassId]: restoreWizardBladesongOnLongRest,
+    [divinerSubclassId]: restoreWizardDivinerPortentOnLongRest,
+    [enchanterSubclassId]: restoreEnchanterOnLongRest,
+    [evokerSubclassId]: restoreWizardEvokerOverchannelOnLongRest,
+    [transmuterSubclassId]: restoreTransmuterOnLongRest,
+    [necromancerSubclassId]: (character) =>
+      restoreBolsterUndeadOnLongRest(restoreUndeadThrallsOnLongRest(character)),
+    [illusionistSubclassId]: (character) =>
+      restoreWizardIllusionistIllusorySelfOnLongRest(
+        restoreWizardIllusionistPhantasmalCreaturesOnLongRest(character)
+      )
+  };
+
   return wizardLongRestRestorers[getClassSubclassId(character, "Wizard")]?.(character) ?? character;
 }
 
@@ -282,9 +281,9 @@ export function restoreWizardSubclassFeaturesOnShortRest(character: Character): 
     return character;
   }
 
-  return (
-    wizardShortRestRestorers[getClassSubclassId(character, "Wizard")]?.(character) ?? character
-  );
+  return getClassSubclassId(character, "Wizard") === illusionistSubclassId
+    ? restoreWizardIllusionistIllusorySelfOnShortRest(character)
+    : character;
 }
 
 export function advanceWizardSubclassFeaturesForNewRound(character: Character): Character {

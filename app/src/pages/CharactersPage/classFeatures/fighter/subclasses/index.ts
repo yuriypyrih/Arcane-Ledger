@@ -40,29 +40,6 @@ import {
   psiWarriorSubclassId
 } from "./fighterPsiWarrior";
 
-const fighterSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [arcaneArcherSubclassId]: getArcaneArcherDerivedFeatureState,
-  [banneretSubclassId]: getFighterBanneretDerivedFeatureState,
-  [battleMasterSubclassId]: getFighterBattleMasterDerivedFeatureState,
-  [championSubclassId]: getFighterChampionDerivedFeatureState,
-  [eldritchKnightSubclassId]: getFighterEldritchKnightDerivedFeatureState,
-  [psiWarriorSubclassId]: getFighterPsiWarriorDerivedFeatureState
-};
-
-const fighterSubclassStateNormalizers: Record<
-  string,
-  (
-    value: Partial<CharacterFighterFeatureState>,
-    character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-  ) => Partial<CharacterFighterFeatureState>
-> = {
-  [arcaneArcherSubclassId]: normalizeArcaneArcherFeatureState,
-  [banneretSubclassId]: normalizeFighterBanneretFeatureState,
-  [battleMasterSubclassId]: normalizeFighterBattleMasterFeatureState,
-  [eldritchKnightSubclassId]: normalizeFighterEldritchKnightFeatureState,
-  [psiWarriorSubclassId]: normalizeFighterPsiWarriorFeatureState
-};
-
 export function normalizeFighterSubclassFeatureState(
   value: Partial<CharacterFighterFeatureState>,
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
@@ -71,10 +48,20 @@ export function normalizeFighterSubclassFeatureState(
     return {};
   }
 
-  return (
-    fighterSubclassStateNormalizers[getClassSubclassId(character, "Fighter")]?.(value, character) ??
-    {}
-  );
+  switch (getClassSubclassId(character, "Fighter")) {
+    case arcaneArcherSubclassId:
+      return normalizeArcaneArcherFeatureState(value, character);
+    case banneretSubclassId:
+      return normalizeFighterBanneretFeatureState(value, character);
+    case battleMasterSubclassId:
+      return normalizeFighterBattleMasterFeatureState(value, character);
+    case eldritchKnightSubclassId:
+      return normalizeFighterEldritchKnightFeatureState(value, character);
+    case psiWarriorSubclassId:
+      return normalizeFighterPsiWarriorFeatureState(value, character);
+    default:
+      return {};
+  }
 }
 
 export function getFighterSubclassDerivedFeatureState(
@@ -83,6 +70,16 @@ export function getFighterSubclassDerivedFeatureState(
   if (!hasCharacterClass(character, "Fighter") || !getClassSubclassId(character, "Fighter")) {
     return {};
   }
+
+  // Subclasses use the shared ability helpers, which also depend on class features.
+  const fighterSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [arcaneArcherSubclassId]: getArcaneArcherDerivedFeatureState,
+    [banneretSubclassId]: getFighterBanneretDerivedFeatureState,
+    [battleMasterSubclassId]: getFighterBattleMasterDerivedFeatureState,
+    [championSubclassId]: getFighterChampionDerivedFeatureState,
+    [eldritchKnightSubclassId]: getFighterEldritchKnightDerivedFeatureState,
+    [psiWarriorSubclassId]: getFighterPsiWarriorDerivedFeatureState
+  };
 
   return (
     fighterSubclassRuntimeRegistry[getClassSubclassId(character, "Fighter")]?.(character) ?? {}

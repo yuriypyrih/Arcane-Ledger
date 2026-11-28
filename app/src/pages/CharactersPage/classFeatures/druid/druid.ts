@@ -49,6 +49,12 @@ import { createHeaderTagsFromResources } from "../cardUsage";
 import * as landSubclass from "./subclasses/druidCircleOfTheLand";
 import * as moonSubclass from "./subclasses/druidCircleOfTheMoon";
 import * as seaSubclass from "./subclasses/druidCircleOfTheSea";
+import {
+  circleOfTheStarsSubclassId,
+  druidStarryFormStatusSourceId,
+  druidCosmicOmenReactionId,
+  druidStarryFormConstellations
+} from "./subclasses/druidCircleOfTheStars";
 import * as starsSubclass from "./subclasses/druidCircleOfTheStars";
 import {
   isDruidPrimalStrikeEligibleAttack,
@@ -113,11 +119,13 @@ const primalStrikeSource = "Primal Strike";
 const speakWithAnimalsSpellId = "spell-speak-with-animals";
 const findFamiliarSpellId = "spell-find-familiar";
 const wildCompanionSource = "Wild Companion";
-export const circleOfTheStarsSubclassId = starsSubclass.circleOfTheStarsSubclassId;
-export const druidStarryFormStatusSourceId = starsSubclass.druidStarryFormStatusSourceId;
-export const druidCosmicOmenReactionId = starsSubclass.druidCosmicOmenReactionId;
+export {
+  circleOfTheStarsSubclassId,
+  druidStarryFormStatusSourceId,
+  druidCosmicOmenReactionId,
+  druidStarryFormConstellations
+};
 
-export const druidStarryFormConstellations = starsSubclass.druidStarryFormConstellations;
 export type DruidStarryFormConstellation = DruidStarryFormConstellationType;
 
 export type DruidWildCompanionActivation =

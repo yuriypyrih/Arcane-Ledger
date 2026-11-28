@@ -1,9 +1,9 @@
 import type { Character } from "../../../../../../types";
 import {
   createEconomyMultiContextForFeatureAction,
-  getSharedEconomyMultiCountForCharacterAction,
-  type FeatureActionCard
-} from "../../../../../../pages/CharactersPage/classFeatures";
+  getSharedEconomyMultiCountForCharacterAction
+} from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
+import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures/types";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 

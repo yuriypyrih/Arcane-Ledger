@@ -63,48 +63,6 @@ import {
   restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest
 } from "./warlockGreatOldOnePatron";
 
-const warlockSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [vestigePatronSubclassId]: getWarlockVestigePatronDerivedFeatureState,
-  [undeadPatronSubclassId]: getWarlockUndeadPatronDerivedFeatureState,
-  [archfeyPatronSubclassId]: getWarlockArchfeyPatronDerivedFeatureState,
-  [celestialPatronSubclassId]: getWarlockCelestialPatronDerivedFeatureState,
-  [fiendPatronSubclassId]: getWarlockFiendPatronDerivedFeatureState,
-  [greatOldOnePatronSubclassId]: getWarlockGreatOldOnePatronDerivedFeatureState
-};
-const warlockSubclassStateNormalizers: Record<
-  string,
-  (
-    value: Partial<CharacterWarlockFeatureState>,
-    character: Pick<Character, "className"> &
-      Partial<Pick<Character, "abilities" | "level" | "subclassId">>
-  ) => Partial<CharacterWarlockFeatureState>
-> = {
-  [vestigePatronSubclassId]: (value, character) => ({
-    ...normalizeWarlockVestigeFeatureState(value, character),
-    ...normalizeVestigeRecoveryState(value, character),
-    ...normalizeSemblanceOfLifeState(value, character)
-  }),
-  [undeadPatronSubclassId]: normalizeWarlockUndeadFeatureState,
-  [archfeyPatronSubclassId]: normalizeWarlockArchfeyPatronFeatureState,
-  [celestialPatronSubclassId]: normalizeWarlockCelestialPatronFeatureState,
-  [fiendPatronSubclassId]: normalizeWarlockFiendPatronFeatureState,
-  [greatOldOnePatronSubclassId]: normalizeWarlockGreatOldOnePatronFeatureState
-};
-const warlockShortRestRestorers: Record<string, (character: Character) => Character> = {
-  [undeadPatronSubclassId]: restoreUnholyResuscitationOnRest,
-  [greatOldOnePatronSubclassId]: restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest
-};
-const warlockLongRestRestorers: Record<string, (character: Character) => Character> = {
-  [vestigePatronSubclassId]: (character) =>
-    restoreSemblanceOfLifeOnLongRest(restoreVestigeRecoveryOnLongRest(character)),
-  [undeadPatronSubclassId]: (character) =>
-    restoreUnholyResuscitationOnRest(restoreFormOfDreadOnLongRest(character)),
-  [archfeyPatronSubclassId]: restoreWarlockArchfeyPatronFeaturesOnLongRest,
-  [celestialPatronSubclassId]: restoreWarlockCelestialPatronFeaturesOnLongRest,
-  [fiendPatronSubclassId]: restoreWarlockFiendPatronFeaturesOnLongRest,
-  [greatOldOnePatronSubclassId]: restoreWarlockGreatOldOnePatronClairvoyantCombatantOnLongRest
-};
-
 export function normalizeWarlockSubclassFeatureState(
   value: Partial<CharacterWarlockFeatureState>,
   character: Pick<Character, "className"> &
@@ -113,6 +71,26 @@ export function normalizeWarlockSubclassFeatureState(
   if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return {};
   }
+
+  const warlockSubclassStateNormalizers: Record<
+    string,
+    (
+      value: Partial<CharacterWarlockFeatureState>,
+      character: Pick<Character, "className"> &
+        Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+    ) => Partial<CharacterWarlockFeatureState>
+  > = {
+    [vestigePatronSubclassId]: (value, character) => ({
+      ...normalizeWarlockVestigeFeatureState(value, character),
+      ...normalizeVestigeRecoveryState(value, character),
+      ...normalizeSemblanceOfLifeState(value, character)
+    }),
+    [undeadPatronSubclassId]: normalizeWarlockUndeadFeatureState,
+    [archfeyPatronSubclassId]: normalizeWarlockArchfeyPatronFeatureState,
+    [celestialPatronSubclassId]: normalizeWarlockCelestialPatronFeatureState,
+    [fiendPatronSubclassId]: normalizeWarlockFiendPatronFeatureState,
+    [greatOldOnePatronSubclassId]: normalizeWarlockGreatOldOnePatronFeatureState
+  };
 
   return (
     warlockSubclassStateNormalizers[getClassSubclassId(character, "Warlock")]?.(value, character) ??
@@ -126,6 +104,15 @@ export function getWarlockSubclassDerivedFeatureState(
   if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return {};
   }
+
+  const warlockSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [vestigePatronSubclassId]: getWarlockVestigePatronDerivedFeatureState,
+    [undeadPatronSubclassId]: getWarlockUndeadPatronDerivedFeatureState,
+    [archfeyPatronSubclassId]: getWarlockArchfeyPatronDerivedFeatureState,
+    [celestialPatronSubclassId]: getWarlockCelestialPatronDerivedFeatureState,
+    [fiendPatronSubclassId]: getWarlockFiendPatronDerivedFeatureState,
+    [greatOldOnePatronSubclassId]: getWarlockGreatOldOnePatronDerivedFeatureState
+  };
 
   return (
     warlockSubclassRuntimeRegistry[getClassSubclassId(character, "Warlock")]?.(character) ?? {}
@@ -190,6 +177,11 @@ export function restoreWarlockSubclassFeaturesOnShortRest(character: Character):
     return character;
   }
 
+  const warlockShortRestRestorers: Record<string, (character: Character) => Character> = {
+    [undeadPatronSubclassId]: restoreUnholyResuscitationOnRest,
+    [greatOldOnePatronSubclassId]: restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest
+  };
+
   return (
     warlockShortRestRestorers[getClassSubclassId(character, "Warlock")]?.(character) ?? character
   );
@@ -199,6 +191,17 @@ export function restoreWarlockSubclassFeaturesOnLongRest(character: Character): 
   if (!hasCharacterClass(character, "Warlock") || !getClassSubclassId(character, "Warlock")) {
     return character;
   }
+
+  const warlockLongRestRestorers: Record<string, (character: Character) => Character> = {
+    [vestigePatronSubclassId]: (character) =>
+      restoreSemblanceOfLifeOnLongRest(restoreVestigeRecoveryOnLongRest(character)),
+    [undeadPatronSubclassId]: (character) =>
+      restoreUnholyResuscitationOnRest(restoreFormOfDreadOnLongRest(character)),
+    [archfeyPatronSubclassId]: restoreWarlockArchfeyPatronFeaturesOnLongRest,
+    [celestialPatronSubclassId]: restoreWarlockCelestialPatronFeaturesOnLongRest,
+    [fiendPatronSubclassId]: restoreWarlockFiendPatronFeaturesOnLongRest,
+    [greatOldOnePatronSubclassId]: restoreWarlockGreatOldOnePatronClairvoyantCombatantOnLongRest
+  };
 
   return (
     warlockLongRestRestorers[getClassSubclassId(character, "Warlock")]?.(character) ?? character

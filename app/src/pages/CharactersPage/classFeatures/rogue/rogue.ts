@@ -16,10 +16,8 @@ import {
   normalizeRoguePhantomState,
   restoreRoguePhantomWailsOnLongRest
 } from "./subclasses/roguePhantom";
-import { getProgressionRow } from "../../../../codex/progression";
-import { getUnlockedProgressionFeatures } from "../../../../codex/progression";
 import { hasCharacterClass, getClassLevel, getClassSubclassId } from "../../multiclassState";
-import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
+import { rogueFeatureMap } from "../../../../codex/classes/rogue";
 import { getReactionEntryById, type ReactionEntry } from "../../../../codex/entries";
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../codex/entries/enums";
 import {
@@ -98,11 +96,13 @@ import {
 import type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import { formatFormulaDieDisplayTerm } from "../../shared/formulas";
+import { getRogueSneakAttackDiceCount, hasRogueFeature } from "./base";
 import {
   rogueSneakAttackActionKey,
   rogueSteadyAimActionKey,
   rogueStrokeOfLuckActionKey
 } from "./actionKeys";
+export { getRogueSneakAttackDiceCount, hasRogueFeature } from "./base";
 export {
   rogueSneakAttackActionKey,
   rogueSteadyAimActionKey,
@@ -225,28 +225,6 @@ const baseRogueSneakAttackEffectDefinitions: Array<
 
 function dedupe<T>(values: T[]): T[] {
   return [...new Set(values)];
-}
-
-function getRogueFeatureRow(level: number) {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return getProgressionRow(rogueFeatures, normalizedLevel);
-}
-
-function getUnlockedRogueFeatures(level: number): Set<CLASS_FEATURE> {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return getUnlockedProgressionFeatures(rogueFeatures, normalizedLevel);
-}
-
-export function hasRogueFeature(
-  character: Pick<Character, "className" | "level">,
-  feature: CLASS_FEATURE
-): boolean {
-  if (!hasCharacterClass(character, "Rogue")) {
-    return false;
-  }
-
-  return getUnlockedRogueFeatures(getClassLevel(character, "Rogue")).has(feature);
 }
 
 function hasRogueLevel1Expertise(character: Pick<Character, "className" | "level">): boolean {
@@ -749,16 +727,6 @@ export function getRogueSpeedBonuses(
       setTotal: 0
     }
   ];
-}
-
-export function getRogueSneakAttackDiceCount(
-  character: Pick<Character, "className" | "level">
-): number {
-  if (!hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK)) {
-    return 0;
-  }
-
-  return getRogueFeatureRow(getClassLevel(character, "Rogue"))?.sneakAttack ?? 0;
 }
 
 export function getRogueSneakAttackEffectDefinitions(

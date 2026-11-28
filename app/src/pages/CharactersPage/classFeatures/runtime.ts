@@ -673,8 +673,7 @@ export function getRogueSoulknifePsionicDieForCharacter(
   return getRogueSoulknifePsionicDie(character);
 }
 
-export const rogueScionOfTheThreeBloodthirstReactionEntryId =
-  rogueScionOfTheThreeBloodthirstReactionId;
+export { rogueScionOfTheThreeBloodthirstReactionId as rogueScionOfTheThreeBloodthirstReactionEntryId };
 
 export function getRogueStrokeOfLuckUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
@@ -1014,11 +1013,13 @@ export function consumeFaithfulSteedUseForCharacter(character: Character): Chara
   return consumeFaithfulSteedUse(character);
 }
 
-export const paladinGloriousDefenseReactionEntryId = gloriousDefenseReactionId;
-export const paladinElementalRebukeReactionEntryId = elementalRebukeReactionId;
-export const paladinSoulOfVengeanceReactionEntryId = soulOfVengeanceReactionId;
-export const rangerWinterWalkerChillingRetributionReactionEntryId = chillingRetributionReactionId;
-export const wizardIllusionistIllusorySelfReactionEntryId = wizardIllusionistIllusorySelfReactionId;
+export {
+  gloriousDefenseReactionId as paladinGloriousDefenseReactionEntryId,
+  elementalRebukeReactionId as paladinElementalRebukeReactionEntryId,
+  soulOfVengeanceReactionId as paladinSoulOfVengeanceReactionEntryId,
+  chillingRetributionReactionId as rangerWinterWalkerChillingRetributionReactionEntryId,
+  wizardIllusionistIllusorySelfReactionId as wizardIllusionistIllusorySelfReactionEntryId
+};
 
 export function hasActivePaladinOathOfVengeanceVowOfEnmityForCharacter(
   character: Pick<Character, "className"> &

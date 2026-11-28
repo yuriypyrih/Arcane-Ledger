@@ -58,8 +58,16 @@ import {
   hasBardFeature
 } from "./base";
 import * as danceSubclass from "./subclasses/bardCollegeOfDance";
+import {
+  mantleOfInspirationActionKey,
+  mantleOfMajestyActionKey,
+  unbreakableMajestyActionKey,
+  mantleOfMajestyStatusSourceId,
+  unbreakableMajestyStatusSourceId
+} from "./subclasses/bardCollegeOfGlamour";
 import * as glamourSubclass from "./subclasses/bardCollegeOfGlamour";
 import * as loreSubclass from "./subclasses/bardCollegeOfLore";
+import { lunarVitalityActionKey } from "./subclasses/bardCollegeOfTheMoon";
 import * as moonSubclass from "./subclasses/bardCollegeOfTheMoon";
 import * as valorSubclass from "./subclasses/bardCollegeOfValor";
 export {
@@ -70,12 +78,6 @@ export {
 } from "./base";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
-const lunarVitalityActionKey = moonSubclass.lunarVitalityActionKey;
-const mantleOfInspirationActionKey = glamourSubclass.mantleOfInspirationActionKey;
-const mantleOfMajestyActionKey = glamourSubclass.mantleOfMajestyActionKey;
-const unbreakableMajestyActionKey = glamourSubclass.unbreakableMajestyActionKey;
-const mantleOfMajestyStatusSourceId = glamourSubclass.mantleOfMajestyStatusSourceId;
-const unbreakableMajestyStatusSourceId = glamourSubclass.unbreakableMajestyStatusSourceId;
 const wordsOfCreationAlwaysPreparedSpellIds: string[] = [
   "spell-power-word-heal",
   "spell-power-word-kill"

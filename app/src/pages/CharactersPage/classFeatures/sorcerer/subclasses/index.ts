@@ -94,15 +94,6 @@ import {
   shadowWalkActionKey
 } from "./sorcererShadowForm";
 
-const sorcererSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [shadowSorcerySubclassId]: getSorcererShadowSorceryDerivedFeatureState,
-  [aberrantSorcerySubclassId]: getSorcererAberrantSorceryDerivedFeatureState,
-  [clockworkSorcerySubclassId]: getSorcererClockworkSorceryDerivedFeatureState,
-  [draconicSorcerySubclassId]: getSorcererDraconicSorceryDerivedFeatureState,
-  [spellfireSorcerySubclassId]: getSorcererSpellfireSorceryDerivedFeatureState,
-  [wildMagicSorcerySubclassId]: getSorcererWildMagicSorceryDerivedFeatureState
-};
-
 export {
   canUseSorcererDraconicDragonCompanionForSpell,
   getSorcererDraconicDragonCompanionUsesRemaining,
@@ -121,6 +112,16 @@ export function getSorcererSubclassDerivedFeatureState(
   if (!hasCharacterClass(character, "Sorcerer") || !getClassSubclassId(character, "Sorcerer")) {
     return {};
   }
+
+  // Shadow Sorcery uses the base class resources. Read the subclass bindings after initialization.
+  const sorcererSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [shadowSorcerySubclassId]: getSorcererShadowSorceryDerivedFeatureState,
+    [aberrantSorcerySubclassId]: getSorcererAberrantSorceryDerivedFeatureState,
+    [clockworkSorcerySubclassId]: getSorcererClockworkSorceryDerivedFeatureState,
+    [draconicSorcerySubclassId]: getSorcererDraconicSorceryDerivedFeatureState,
+    [spellfireSorcerySubclassId]: getSorcererSpellfireSorceryDerivedFeatureState,
+    [wildMagicSorcerySubclassId]: getSorcererWildMagicSorceryDerivedFeatureState
+  };
 
   return (
     sorcererSubclassRuntimeRegistry[getClassSubclassId(character, "Sorcerer")]?.(character) ?? {}

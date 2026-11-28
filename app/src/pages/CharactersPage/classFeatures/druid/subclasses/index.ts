@@ -19,19 +19,19 @@ import {
   getDruidCircleOfTheStarsDerivedFeatureState
 } from "./druidCircleOfTheStars";
 
-const druidSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [circleOfTheLandSubclassId]: getDruidCircleOfTheLandDerivedFeatureState,
-  [circleOfTheMoonSubclassId]: getDruidCircleOfTheMoonDerivedFeatureState,
-  [circleOfTheSeaSubclassId]: getDruidCircleOfTheSeaDerivedFeatureState,
-  [circleOfTheStarsSubclassId]: getDruidCircleOfTheStarsDerivedFeatureState
-};
-
 export function getDruidSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Druid") || !getClassSubclassId(character, "Druid")) {
     return {};
   }
+
+  const druidSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [circleOfTheLandSubclassId]: getDruidCircleOfTheLandDerivedFeatureState,
+    [circleOfTheMoonSubclassId]: getDruidCircleOfTheMoonDerivedFeatureState,
+    [circleOfTheSeaSubclassId]: getDruidCircleOfTheSeaDerivedFeatureState,
+    [circleOfTheStarsSubclassId]: getDruidCircleOfTheStarsDerivedFeatureState
+  };
 
   return druidSubclassRuntimeRegistry[getClassSubclassId(character, "Druid")]?.(character) ?? {};
 }

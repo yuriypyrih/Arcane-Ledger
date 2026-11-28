@@ -27,21 +27,21 @@ import {
   getBardCollegeOfValorDerivedFeatureState
 } from "./bardCollegeOfValor";
 
-const bardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [collegeOfSpiritsSubclassId]: getBardCollegeOfSpiritsDerivedFeatureState,
-  [collegeOfDanceSubclassId]: getBardCollegeOfDanceDerivedFeatureState,
-  [collegeOfGlamourSubclassId]: getBardCollegeOfGlamourDerivedFeatureState,
-  [collegeOfLoreSubclassId]: getBardCollegeOfLoreDerivedFeatureState,
-  [collegeOfTheMoonSubclassId]: getBardCollegeOfTheMoonDerivedFeatureState,
-  [collegeOfValorSubclassId]: getBardCollegeOfValorDerivedFeatureState
-};
-
 export function getBardSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Bard") || !getClassSubclassId(character, "Bard")) {
     return {};
   }
+
+  const bardSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [collegeOfSpiritsSubclassId]: getBardCollegeOfSpiritsDerivedFeatureState,
+    [collegeOfDanceSubclassId]: getBardCollegeOfDanceDerivedFeatureState,
+    [collegeOfGlamourSubclassId]: getBardCollegeOfGlamourDerivedFeatureState,
+    [collegeOfLoreSubclassId]: getBardCollegeOfLoreDerivedFeatureState,
+    [collegeOfTheMoonSubclassId]: getBardCollegeOfTheMoonDerivedFeatureState,
+    [collegeOfValorSubclassId]: getBardCollegeOfValorDerivedFeatureState
+  };
 
   return bardSubclassRuntimeRegistry[getClassSubclassId(character, "Bard")]?.(character) ?? {};
 }

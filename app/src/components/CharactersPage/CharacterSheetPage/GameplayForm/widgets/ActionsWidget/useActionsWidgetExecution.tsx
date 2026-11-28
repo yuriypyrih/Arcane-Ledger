@@ -4,13 +4,11 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterCurvingShot";
 import { consumeArcaneShot } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneShot";
 import { applyActionResourceTransition } from "./actionResourceTransition";
-import { cunningDiversionDodgeActionKey } from "../../../../../../pages/CharactersPage/feats/runtime/constants";
+import { cunningDiversionDodgeActionKey, sharpEyeActionKeys } from "../../../../../../pages/CharactersPage/feats/runtime/constants";
 import { payCunningDiversionDodge } from "./commonActionEconomy";
 import { commonHelpActionKey } from "../../../../../../pages/CharactersPage/commonActions";
 import { applyUnderstandingOfDeath } from "../../../../../../pages/CharactersPage/feats/runtime/arcaneUndertaker";
-import { getSharpEyeSkillOptions, sharpEyeResource, type SharpEyeCheck } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
-import { createCombatSummarySkills } from "../../../../../../pages/CharactersPage/characterRuntime/combatSummarySkills";
-import { createEconomyMultiContextForFeatureAction, payEconomyForCharacterAction } from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
+import { sharpEyeResource } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
 import {
   formOfDreadActionKey,
   getFormOfDreadTemporaryHitPointsFormula
@@ -919,7 +917,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         nextAction.economyType
       );
 
-      if (nextAction.economyType === "action" && nextAction.actionCategory !== "magic") {
+      if (
+        nextAction.actionCategory !== "magic" &&
+        (nextAction.economyType === "action" || onNonMagicActionPaid)
+      ) {
         return consumeNonMagicActionForCharacter(
           nextCharacterWithFleetStep,
           nextAction,
@@ -961,14 +962,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
   function executeCommonAction(
     action: FeatureActionCard,
     economyType: EconomyType = action.economyType,
-    useUnderstandingOfDeath = false,
-    sharpEyeCheck?: SharpEyeCheck
+    { useUnderstandingOfDeath = false, useSharpEye = false } = {}
   ) {
-    if (sharpEyeCheck && getSharpEyeSkillOptions(action.key).length > 0) {
-      executeSharpEyeAction(action, economyType, sharpEyeCheck);
-      return;
-    }
-
     if (action.key === cunningDiversionDodgeActionKey && economyType === ECONOMY_TYPE.BONUS_ACTION) {
       onPersistCharacter((currentCharacter) => {
         const spentCharacter = payCunningDiversionDodge(currentCharacter, action);
@@ -1036,56 +1031,15 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       return;
     }
 
-    activateFeatureAction(
-      action,
-      economyType,
+    const onPaid =
       useUnderstandingOfDeath && action.key === commonHelpActionKey
         ? applyUnderstandingOfDeath
-        : undefined
-    );
+        : useSharpEye && sharpEyeActionKeys.includes(action.key)
+          ? sharpEyeResource.spendOne
+          : undefined;
+    activateFeatureAction(action, economyType, onPaid);
     closeActionDrawer();
     setIsCommonActionsOpen(false);
-  }
-
-  function executeSharpEyeAction(action: FeatureActionCard, economyType: EconomyType, check: SharpEyeCheck) {
-    const reference = check.kind === "roll" && getSharpEyeSkillOptions(action.key).includes(check.skill)
-      ? createCombatSummarySkills(character).getReferenceForSkill(check.skill)
-      : null;
-    if (check.kind === "roll" && !reference) return;
-
-    const economy = createEconomyMultiContextForFeatureAction({ ...action, economyType });
-    let actionPaid = false;
-    onPersistCharacter((currentCharacter) => {
-      if (sharpEyeResource.remaining(currentCharacter) <= 0) return currentCharacter;
-
-      const payment = payEconomyForCharacterAction(currentCharacter, economy);
-      if (payment.status !== "paid") return currentCharacter;
-
-      actionPaid = true;
-      const nextCharacter = activateFeatureActionForCharacter(payment.character, action.key);
-      return check.kind === "manual" && check.succeeded
-        ? sharpEyeResource.spendOne(nextCharacter)
-        : nextCharacter;
-    });
-    if (!actionPaid) return;
-
-    closeActionDrawer();
-    setIsCommonActionsOpen(false);
-    if (check.kind === "roll" && reference) {
-      openDiceRoller({
-        title: `${action.name}: ${check.skill}`,
-        description: `DC ${check.dc}. Sharp Eye spends a charge on a success.`,
-        entries: [{ formula: reference.rollFormula, formulaDisplay: reference.rollFormulaDisplay,
-          minimumTotal: reference.rollMinimumTotal ?? undefined, minimumLabel: reference.rollMinimumLabel }],
-        mode: getRollModeFromIndicators([...(reference.indicators ?? []), { label: "Advantage", tone: "advantage", source: "Sharp Eye" }]),
-        onResolvedResult: ({ result }) => {
-          if (result.total >= check.dc) {
-            onPersistCharacter((currentCharacter) => currentCharacter.id === character.id
-              ? sharpEyeResource.spendOne(currentCharacter) : currentCharacter);
-          }
-        }
-      });
-    }
   }
 
   function executeMonkHandOfHealingPath(economyType: EconomyType) {

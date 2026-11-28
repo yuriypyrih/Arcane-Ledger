@@ -18,7 +18,7 @@ import {
 import {
   createEconomyMultiContextForFeatureActionOption,
   getSharedEconomyMultiCountForCharacterAction
-} from "../../../../../../pages/CharactersPage/classFeatures";
+} from "../../../../../../pages/CharactersPage/classFeatures/economyMulti";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import {
   getActionShapeForEconomyType,

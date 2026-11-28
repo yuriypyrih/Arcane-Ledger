@@ -1,4 +1,5 @@
 export const actorStatusSourceId = "feat-actor";
+export const sharpEyeActionKeys: readonly string[] = ["common-action-search", "common-action-study"];
 export const heavyArmorMasterDamageReductionStatusSourceId =
   "feat-heavy-armor-master-damage-reduction";
 export const lordsAllianceAgentStatusSourceId = "feat-lords-alliance-agent";

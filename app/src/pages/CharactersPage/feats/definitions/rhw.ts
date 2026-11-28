@@ -129,7 +129,9 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "RHW",
     page: 32,
-    trackingState: TRACKER.TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "Roll with Advantage and resolve the check manually. Use the Sharp Eye checkbox in Search or Study to record a charge after a successful check.",
     description: [
       "<strong>Sharp Eye.</strong> When using the Search or Study action, you may gain <link:Advantage>Advantage</link> on any ability check made as part of it. Uses equal your <link:Proficiency Bonus>Proficiency Bonus</link>, all restored by a <link:long-rest>Long Rest</link>. A failed check does not spend the use."
     ]

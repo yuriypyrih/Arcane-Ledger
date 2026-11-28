@@ -21,19 +21,19 @@ import {
   pathOfTheZealotSubclassId
 } from "./barbarianPathOfTheZealot";
 
-const barbarianSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [pathOfTheBerserkerSubclassId]: getBarbarianPathOfTheBerserkerDerivedFeatureState,
-  [pathOfTheWildHeartSubclassId]: getBarbarianPathOfTheWildHeartDerivedFeatureState,
-  [pathOfTheWorldTreeSubclassId]: getBarbarianPathOfTheWorldTreeDerivedFeatureState,
-  [pathOfTheZealotSubclassId]: getBarbarianPathOfTheZealotDerivedFeatureState
-};
-
 export function getBarbarianSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
   if (!hasCharacterClass(character, "Barbarian") || !getClassSubclassId(character, "Barbarian")) {
     return {};
   }
+
+  const barbarianSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
+    [pathOfTheBerserkerSubclassId]: getBarbarianPathOfTheBerserkerDerivedFeatureState,
+    [pathOfTheWildHeartSubclassId]: getBarbarianPathOfTheWildHeartDerivedFeatureState,
+    [pathOfTheWorldTreeSubclassId]: getBarbarianPathOfTheWorldTreeDerivedFeatureState,
+    [pathOfTheZealotSubclassId]: getBarbarianPathOfTheZealotDerivedFeatureState
+  };
 
   return (
     barbarianSubclassRuntimeRegistry[getClassSubclassId(character, "Barbarian")]?.(character) ?? {}

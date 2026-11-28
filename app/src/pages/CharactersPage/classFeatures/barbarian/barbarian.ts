@@ -71,9 +71,15 @@ import {
   removeBarbarianRecklessAttackStatusEntries,
   upsertBarbarianRecklessAttackStatusEntry
 } from "./barbarianRecklessAttack";
+import { barbarianIntimidatingPresenceActionKey } from "./subclasses/barbarianPathOfTheBerserker";
 import * as berserkerSubclass from "./subclasses/barbarianPathOfTheBerserker";
 import * as wildHeartSubclass from "./subclasses/barbarianPathOfTheWildHeart";
+import { barbarianTravelAlongTheTreeActionKey } from "./subclasses/barbarianPathOfTheWorldTree";
 import * as worldTreeSubclass from "./subclasses/barbarianPathOfTheWorldTree";
+import {
+  barbarianZealousPresenceActionKey,
+  barbarianWarriorOfTheGodsActionKey
+} from "./subclasses/barbarianPathOfTheZealot";
 import * as zealotSubclass from "./subclasses/barbarianPathOfTheZealot";
 
 const rageConditionName = EFFECT_NAME.RAGE;
@@ -89,12 +95,12 @@ const persistentRageUsesTotal = 1;
 export const barbarianRageActionKey = "barbarian-rage";
 export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
 export const barbarianBrutalStrikeActionKey = "barbarian-brutal-strike";
-export const barbarianIntimidatingPresenceActionKey =
-  berserkerSubclass.barbarianIntimidatingPresenceActionKey;
-export const barbarianZealousPresenceActionKey = zealotSubclass.barbarianZealousPresenceActionKey;
-export const barbarianWarriorOfTheGodsActionKey = zealotSubclass.barbarianWarriorOfTheGodsActionKey;
-export const barbarianTravelAlongTheTreeActionKey =
-  worldTreeSubclass.barbarianTravelAlongTheTreeActionKey;
+export {
+  barbarianIntimidatingPresenceActionKey,
+  barbarianZealousPresenceActionKey,
+  barbarianWarriorOfTheGodsActionKey,
+  barbarianTravelAlongTheTreeActionKey
+};
 type BrutalStrikeEffectDefinition = {
   key: string;
   name: string;
