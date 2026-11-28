@@ -69,11 +69,13 @@ import type {
 } from "../../../types/feats";
 import { formatCodexLabel } from "../../../utils/codex";
 import { abilityKeys } from "../constants";
-import { getToolProficiencyLabel, musicalInstrumentToolProficiencies } from "../proficiencyOptions";
+import { getToolProficiencyLabel, languageProficiencyLabels, musicalInstrumentToolProficiencies } from "../proficiencyOptions";
 import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
 import { getCrafterChoiceSummary } from "./crafter";
 import { getHarperAgentChoiceSummary } from "./harperAgent";
-import { getArcaneCantripAbility, isArcaneCantripFeat } from "./arcaneCantripChoices";
+import { getEchoingSoulChoiceSummary } from "./echoingSoul";
+import { getArcaneUndertakerCantrip } from "./arcaneCantripChoices";
+import { getFeatSpellcastingChoiceAbility, hasFeatSpellcastingChoice } from "./spellcastingChoices";
 import { getSpellfireSparkChoiceSummary } from "./spellfireSpark";
 import {
   getCultOfDragonInitiateLanguageLabel,
@@ -1527,12 +1529,31 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
     return getHarperAgentChoiceSummary(entry.harperAgent);
   }
 
+  if (entry.feat === FEATS.ECHOING_SOUL) {
+    return getEchoingSoulChoiceSummary(entry.echoingSoul);
+  }
+
+  if (entry.feat === FEATS.PORTAL_JUMPER) {
+    return entry.portalJumper?.damageType ? `${formatCodexLabel(entry.portalJumper.damageType)} Resistance` : "Choose a damage type.";
+  }
+
+  if (entry.feat === FEATS.SYMBIOTIC_BEING) {
+    const { skill, language } = entry.symbioticBeing ?? {};
+    return skill && language ? `${skill}, ${languageProficiencyLabels[language]}` : "Choose a skill and language.";
+  }
+
   if (entry.feat === FEATS.PURPLE_DRAGON_ROOK) {
     return getPurpleDragonRookChoiceSummary(entry.purpleDragonRook);
   }
 
-  if (isArcaneCantripFeat(entry.feat)) {
-    const ability = getArcaneCantripAbility(entry);
+  if (hasFeatSpellcastingChoice(entry.feat)) {
+    const ability = getFeatSpellcastingChoiceAbility(entry);
+    if (entry.feat === FEATS.ARCANE_UNDERTAKER) {
+      const cantrip = getArcaneUndertakerCantrip(entry.arcaneUndertaker?.cantripId);
+      return cantrip && ability
+        ? `${cantrip.name} (${ability})`
+        : "Choose a Necromancy cantrip and a spellcasting ability.";
+    }
     return ability ? `Spellcasting Ability: ${ability}` : "Choose a spellcasting ability.";
   }
 

@@ -5,9 +5,13 @@ import { getSpellEntryById } from "../../../../../codex/spells";
 import { getFeatLabel } from "../../catalog";
 import {
   arcaneCantripFeats,
-  getArcaneCantripAbility,
+  getArcaneUndertakerCantrip,
   isArcaneCantripFeat
 } from "../../arcaneCantripChoices";
+import { getFeatSpellcastingChoiceAbility } from "../../spellcastingChoices";
+import { faithfulCompanionSpellId } from "../familiarFriend";
+import { alternateFormSpellId, spiritWhispersSpellId } from "../featSpellFreeCasts";
+import { borrowedEyesSpellIds } from "../../featBenefitChoices";
 
 import {
   getBoonOfRevelryIrresistibleDanceSpellEntry,
@@ -32,15 +36,32 @@ export const boonOfRevelryIrresistibleDanceFreeCastContributionId =
   "feat-boon-of-revelry-irresistible-dance-free-cast";
 const grantArcaneCantrip: FeatContributionBuilder = ({ entry, contribution }) => {
   if (!isArcaneCantripFeat(entry.feat)) return false;
-  const spell = getSpellEntryById(arcaneCantripFeats[entry.feat].cantripId);
+  const { cantripId } = arcaneCantripFeats[entry.feat];
+  const spellcastingAbility = getFeatSpellcastingChoiceAbility(entry);
+  const spell = cantripId
+    ? getSpellEntryById(cantripId)
+    : spellcastingAbility && getArcaneUndertakerCantrip(entry.arcaneUndertaker?.cantripId);
   if (!spell) return false;
 
   contribution.spellGrants!.push(
     { kind: "granted-cantrip", spell },
-    { kind: "always-prepared-cantrip", spell, spellcastingAbility: getArcaneCantripAbility(entry) }
+    { kind: "always-prepared-cantrip", spell, spellcastingAbility }
   );
   return true;
 };
+
+function addAlwaysPreparedSpell({ entry, contribution }: Parameters<FeatContributionBuilder>[0], spellId: string) {
+  const spell = getSpellEntryById(spellId);
+  if (!spell) return false;
+
+  contribution.spellGrants!.push({
+    kind: "always-prepared-spell",
+    spell,
+    sourceLabel: getFeatLabel(entry.feat),
+    spellcastingAbility: getFeatSpellcastingChoiceAbility(entry)
+  });
+  return true;
+}
 
 export const spellGrantsBuilders: FeatContributionBuilders = {
   [FEATS.ARCANE_ARTIST]: grantArcaneCantrip,
@@ -49,6 +70,19 @@ export const spellGrantsBuilders: FeatContributionBuilders = {
   [FEATS.ARCANE_OMENS]: grantArcaneCantrip,
   [FEATS.ARCANE_OVERLOAD]: grantArcaneCantrip,
   [FEATS.ARCANE_SAFEGUARD]: grantArcaneCantrip,
+  [FEATS.ARCANE_UNDERTAKER]: grantArcaneCantrip,
+  [FEATS.FAMILIAR_FRIEND]: (context) => addAlwaysPreparedSpell(context, faithfulCompanionSpellId),
+  [FEATS.GATHERED_WHISPERS]: (context) => {
+    grantArcaneCantrip(context);
+    return addAlwaysPreparedSpell(context, spiritWhispersSpellId);
+  },
+  [FEATS.LIVING_SHADOW]: grantArcaneCantrip,
+  [FEATS.SECOND_SKIN]: (context) => addAlwaysPreparedSpell(context, alternateFormSpellId),
+  [FEATS.TOUCH_OF_DEATH]: grantArcaneCantrip,
+  [FEATS.WATCHERS]: (context) => {
+    borrowedEyesSpellIds.forEach((id) => addAlwaysPreparedSpell(context, id));
+    return true;
+  },
   [FEATS.MAGIC_INITIATE]: ({ entry, contribution, featCantripEntries }) => {
     if (!entry.magicInitiate) return false;
 

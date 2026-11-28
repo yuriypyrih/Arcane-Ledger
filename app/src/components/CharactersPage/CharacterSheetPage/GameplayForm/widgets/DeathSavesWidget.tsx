@@ -3,11 +3,10 @@ import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getDeathSaveDescriptionAdditionsForCharacter,
-  getDeathSaveAdvantageSourcesForCharacter,
   getDeathSaveNaturalTwentyBenefitMinimumForCharacter,
-  getDeathSaveRollIndicatorsForCharacter,
-  hasDeathSaveAdvantageForCharacter
+  getDeathSaveRollIndicatorsForCharacter
 } from "../../../../../pages/CharactersPage/deathSaves";
+import { getRollModeFromResolvedRollState, resolveFeatureIndicators } from "../../../../../pages/CharactersPage/rollState";
 import { formatD20Formula } from "../../../../../pages/CharactersPage/shared";
 import { getExhaustionD20TestPenalty } from "../../../../../pages/CharactersPage/statusEntries";
 import { removeConjuredInventoryItemsForCharacterDeath } from "../../../../../pages/CharactersPage/inventoryItems";
@@ -27,8 +26,8 @@ type DeathSavesWidgetProps = {
 function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetProps) {
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const isAtZeroHitPoints = character.currentHitPoints === 0;
-  const hasDeathSaveAdvantage = hasDeathSaveAdvantageForCharacter(character);
-  const deathSaveAdvantageSources = getDeathSaveAdvantageSourcesForCharacter(character);
+  const rollIndicators = getDeathSaveRollIndicatorsForCharacter(character);
+  const rollState = resolveFeatureIndicators(rollIndicators);
   const naturalTwentyBenefitMinimum = getDeathSaveNaturalTwentyBenefitMinimumForCharacter(character);
 
   const updateDeathSaves = useCallback(
@@ -154,16 +153,8 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
         ? " Any d20 roll gains the benefit of rolling a 20."
         : ` Rolls of ${naturalTwentyBenefitMinimum}-20 gain the benefit of rolling a 20.`
       : "";
-  const advantageSourceDescription =
-    deathSaveAdvantageSources.length > 0
-      ? deathSaveAdvantageSources.length === 1
-        ? deathSaveAdvantageSources[0]
-        : `${deathSaveAdvantageSources.slice(0, -1).join(", ")} and ${
-            deathSaveAdvantageSources[deathSaveAdvantageSources.length - 1]
-          }`
-      : "";
-  const rollDescription = hasDeathSaveAdvantage
-    ? `Roll a death saving throw with Advantage from ${advantageSourceDescription}.${exhaustionDescription}${naturalTwentyDescription}`
+  const rollDescription = rollState && rollState.tone !== "neutralized"
+    ? `Roll a death saving throw with ${rollState.label} from ${rollState.sources.join(", ")}.${exhaustionDescription}${naturalTwentyDescription}`
     : `Roll a death saving throw.${exhaustionDescription}${naturalTwentyDescription}`;
 
   if (!isAtZeroHitPoints) {
@@ -174,10 +165,10 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
     <DeathSavesTracker
       deathSaves={deathSaves}
       descriptionAdditions={getDeathSaveDescriptionAdditionsForCharacter(character)}
-      rollIndicators={getDeathSaveRollIndicatorsForCharacter(character)}
+      rollIndicators={rollIndicators}
       rollFormula={deathSaveFormula}
       rollFormulaDisplay={deathSaveFormula}
-      rollMode={hasDeathSaveAdvantage ? "advantage" : undefined}
+      rollMode={getRollModeFromResolvedRollState(rollState)}
       rollDescription={rollDescription}
       naturalTwentyBenefitMinimum={naturalTwentyBenefitMinimum}
       onNaturalTwentyBenefit={applyNaturalTwentyBenefit}

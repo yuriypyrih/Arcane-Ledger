@@ -1,3 +1,4 @@
+import { mistWalkReactionId, mistWalkResource, spendMistWalkForReaction } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
 import {
   gainPhantomSoulTrinket,
   getPhantomSoulTrinketsMaximum,
@@ -740,6 +741,16 @@ const descriptors: ReactionDescriptor[] = [
   instinctiveCharmReaction,
   harvestUndeadReaction,
   extinguishUndeadReaction,
+  {
+    id: mistWalkReactionId,
+    getResourceWarning: ({ character }) =>
+      mistWalkResource.remaining(character) <= 0 ? "Mist Walk recharges on a Long Rest." : null,
+    getHeaderTags: ({ character }) => [createChargesHeaderTag(
+      mistWalkResource.remaining(character), mistWalkResource.total(character), undefined, mistWalkResource
+    )],
+    apply: spendMistWalkForReaction,
+    skipReactionWhenUnchanged: true
+  },
   {
     id: helpfulPremonitionReactionId,
     footerActionName: helpfulPremonitionResource.label,

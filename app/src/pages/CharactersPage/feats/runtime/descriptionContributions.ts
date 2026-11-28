@@ -1,7 +1,10 @@
 import { FEATS } from "../../../../codex/entries/enums";
+import { ALL_SKILLS } from "../../../../types";
+import { commonHelpActionKey } from "../../commonActions";
 import type { FeatureDescriptionContribution } from "../../featureContributions";
 import { getFeatDefinition, getFeatLabel } from "../catalog";
 import { smoothTalkerSkills } from "./arcaneEloquence";
+import { knowledgeFromTheDeadSkills } from "./arcaneUndertaker";
 import { cunningDiversionDodgeActionKey } from "./constants";
 import {
   filterDescriptionEntries,
@@ -116,12 +119,48 @@ export const featDescriptionTargetKeys = {
 } as const;
 
 const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinition[] = [
+  ...["common-action-search", "common-action-study"].map((action) => ({
+    feat: FEATS.SHARP_EYE,
+    target: "commonAction" as const,
+    targetKey: action,
+    fullDescription: true
+  })),
+  {
+    feat: FEATS.SURVIVOR,
+    target: "initiative",
+    targetKey: "hypervigilance",
+    predicate: (line) => line.startsWith("<strong>Hypervigilance.</strong>")
+  },
+  {
+    feat: FEATS.TRANSMUTED_ANATOMY,
+    target: "stat",
+    targetKey: featDescriptionTargetKeys.speed,
+    predicate: (line) => line.startsWith("<strong>Lengthened Stride.</strong>")
+  },
   ...smoothTalkerSkills.map((skill) => ({
     feat: FEATS.ARCANE_ELOQUENCE,
     target: "skill" as const,
     targetKey: skill,
     predicate: (entry: string) => entry.startsWith("<strong>Smooth Talker.</strong>")
   })),
+  ...knowledgeFromTheDeadSkills.map((skill) => ({
+    feat: FEATS.ARCANE_UNDERTAKER,
+    target: "skill" as const,
+    targetKey: skill,
+    predicate: (entry: string) => entry.startsWith("<strong>Knowledge from the Dead.</strong>")
+  })),
+  ...ALL_SKILLS.map((skill) => ({
+    feat: FEATS.ECHOING_SOUL,
+    target: "skill" as const,
+    targetKey: skill,
+    predicate: (entry: string) => entry.startsWith("<strong>Intrusive Echoes.</strong>")
+  })),
+  {
+    feat: FEATS.ARCANE_UNDERTAKER,
+    target: "commonAction",
+    targetKey: commonHelpActionKey,
+    predicate: (entry) => entry.startsWith("<strong>Understanding of Death.</strong>")
+  },
   {
     feat: FEATS.ARCANE_INFILTRATOR,
     target: "commonAction",

@@ -323,6 +323,33 @@ export type ArcaneSafeguardState = {
   resistanceBonusActionUsesExpended?: number;
 };
 
+export type ArcaneUndertakerState = {
+  cantripId?: string;
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  understandingOfDeathExpended?: boolean;
+};
+
+export type FamiliarFriendState = {
+  spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+  faithfulCompanionExpended?: boolean;
+};
+
+export type PortalJumperState = {
+  damageType?: DAMAGE_TYPE;
+  portalStepUsesExpended?: number;
+};
+
+export type SymbioticBeingChoice = {
+  skill?: SkillName;
+  language?: LANGUAGE_PROFICIENCY;
+};
+
+export type EchoingSoulChoice = {
+  skillProficiencies: [SkillName | null, SkillName | null];
+  skillExpertise?: SkillName;
+  language?: LANGUAGE_PROFICIENCY;
+};
+
 export type SpellfireSparkChoice = {
   spellcastingAbility: "INT" | "WIS" | "CHA";
   spellfireFlameExpended?: number;
@@ -441,6 +468,24 @@ export type CharacterFeatEntry = {
   arcaneOmens?: ArcaneOmensState;
   arcaneOverload?: ArcaneOverloadState;
   arcaneSafeguard?: ArcaneSafeguardState;
+  arcaneUndertaker?: ArcaneUndertakerState;
+  familiarFriend?: FamiliarFriendState;
+  gatheredWhispers?: {
+    spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+    spiritWhispersExpended?: boolean;
+  };
+  livingShadow?: { spellcastingAbility?: ArcaneCantripSpellcastingAbility };
+  secondSkin?: {
+    spellcastingAbility?: ArcaneCantripSpellcastingAbility;
+    alternateFormExpended?: boolean;
+  };
+  touchOfDeath?: { spellcastingAbility?: ArcaneCantripSpellcastingAbility };
+  watchers?: { borrowedEyesExpendedSpellIds?: string[] };
+  mistWalker?: { mistWalkUsesExpended?: number };
+  portalJumper?: PortalJumperState;
+  sharpEye?: { usesExpended?: number };
+  symbioticBeing?: SymbioticBeingChoice;
+  echoingSoul?: EchoingSoulChoice;
   spellfireSpark?: SpellfireSparkChoice;
   harperAgent?: HarperAgentChoice;
   purpleDragonRook?: PurpleDragonRookChoice;

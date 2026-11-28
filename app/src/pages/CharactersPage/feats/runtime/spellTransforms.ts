@@ -4,6 +4,8 @@ import type { CharacterFeatEntry } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatLabel } from "../catalog";
+import { borrowedEyesSpellIds } from "../featBenefitChoices";
+import { alternateFormSpellId, spiritWhispersSpellId } from "./featSpellFreeCasts";
 import {
   boonOfRevelryIrresistibleDanceSpellId,
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
@@ -39,6 +41,14 @@ type FeatDescriptionSliceGetter = (
   predicate: (entry: string) => boolean
 ) => SpellEntry["description"];
 
+const darkGiftSpellBenefits: Partial<Record<FEATS, { spellIds: readonly string[]; benefit: string }>> = {
+  [FEATS.GATHERED_WHISPERS]: { spellIds: ["spell-message", spiritWhispersSpellId], benefit: "Spirit Whispers" },
+  [FEATS.LIVING_SHADOW]: { spellIds: ["spell-mage-hand"], benefit: "Grasping Shadow" },
+  [FEATS.SECOND_SKIN]: { spellIds: [alternateFormSpellId], benefit: "Alternate Form" },
+  [FEATS.TOUCH_OF_DEATH]: { spellIds: ["spell-chill-touch"], benefit: "Death Touch" },
+  [FEATS.WATCHERS]: { spellIds: borrowedEyesSpellIds, benefit: "Borrowed Eyes" }
+};
+
 function doesSpellDealDamageType(spell: SpellEntry, chosenDamageType: DAMAGE_TYPE): boolean {
   return spell.damage.some(([, damageType]) =>
     Array.isArray(damageType)
@@ -57,6 +67,20 @@ export function transformFeatSpellEntryForEntries(
   getFeatDescriptionSlice: FeatDescriptionSliceGetter
 ): SpellEntry {
   return normalizedFeats.reduce<SpellEntry>((currentSpell, entry) => {
+    const darkGift = darkGiftSpellBenefits[entry.feat];
+    if (darkGift?.spellIds.includes(currentSpell.id)) {
+      const description = getFeatDescriptionSlice(entry.feat,
+        (line) => line.startsWith(`<strong>${darkGift.benefit}.</strong>`));
+      const descriptionSpell = appendSourcedDescriptionAddition(currentSpell, getFeatLabel(entry.feat), description);
+      if (entry.feat === FEATS.LIVING_SHADOW || entry.feat === FEATS.TOUCH_OF_DEATH) {
+        return { ...descriptionSpell, components: [], materialSpecified: undefined };
+      }
+      if (entry.feat === FEATS.GATHERED_WHISPERS && currentSpell.id === "spell-message") {
+        return { ...descriptionSpell, components: currentSpell.components.filter((part) => part !== SPELL_COMPONENT.M), materialSpecified: undefined };
+      }
+      return descriptionSpell;
+    }
+
     if (entry.feat === FEATS.BOON_OF_DIMENSIONAL_TRAVEL) {
       const description = getFeatDescriptionSlice(
         FEATS.BOON_OF_DIMENSIONAL_TRAVEL,

@@ -14,7 +14,7 @@ import {
   getFighterChampionSurvivorDefyDeathDescription,
   hasFighterChampionSurvivorFeature
 } from "./classFeatures/fighter/subclasses/fighterChampion";
-import { hasFeatForCharacter } from "./feats/runtime";
+import { getFeatDescriptionSlice, hasFeatForCharacter } from "./feats/runtime";
 import {
   getRebornDeathSaveDescriptionAdditionsForCharacter,
   hasRebornDeathSaveAdvantageForCharacter
@@ -120,15 +120,14 @@ export function getDeathSaveNaturalTwentyBenefitMinimumForCharacter(
 export function getDeathSaveRollIndicatorsForCharacter(character: Character): FeatureIndicator[] {
   const advantageSources = getDeathSaveAdvantageSourcesForCharacter(character);
 
-  return advantageSources.length > 0
-    ? [
-        {
-          label: "Advantage",
-          tone: "advantage",
-          source: advantageSources
-        }
-      ]
-    : [];
+  const indicators: FeatureIndicator[] = [];
+  if (advantageSources.length > 0) {
+    indicators.push({ label: "Advantage", tone: "advantage", source: advantageSources });
+  }
+  if (hasFeatForCharacter(character, FEATS.TOUCH_OF_DEATH)) {
+    indicators.push({ label: "Disadvantage", tone: "disadvantage", source: "Pull of the Grave" });
+  }
+  return indicators;
 }
 
 export function getDeathSaveDescriptionAdditionsForCharacter(
@@ -159,6 +158,10 @@ export function getDeathSaveDescriptionAdditionsForCharacter(
   }
 
   descriptionAdditions.push(...getRebornDeathSaveDescriptionAdditionsForCharacter(character));
+  if (hasFeatForCharacter(character, FEATS.TOUCH_OF_DEATH)) {
+    descriptionAdditions.push(createSourcedDescriptionEntries("Touch of Death",
+      getFeatDescriptionSlice(FEATS.TOUCH_OF_DEATH, (line) => line.startsWith("<strong>Pull of the Grave.</strong>"))));
+  }
 
   return descriptionAdditions;
 }

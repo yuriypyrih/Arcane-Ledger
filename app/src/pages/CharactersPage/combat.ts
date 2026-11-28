@@ -99,7 +99,8 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
     reactionAvailable:
       typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true,
     lightWeaponAttack,
-    spellExtraAttackUses
+    spellExtraAttackUses,
+    portalStepUsedThisTurn: record.portalStepUsedThisTurn === true || undefined
   };
 }
 
@@ -146,6 +147,7 @@ export function startRoundTrackerTurn(value?: unknown): CharacterRoundTracker {
     combatRoundAdvancePending: false,
     turnStarted: true,
     lightWeaponAttack: undefined,
+    portalStepUsedThisTurn: undefined,
     spellExtraAttackUses: undefined
   };
 }
@@ -186,6 +188,7 @@ export function setRoundTrackerCombatState(
     actionAvailable: true,
     bonusActionAvailable: true,
     reactionAvailable: true,
+    portalStepUsedThisTurn: undefined,
     lightWeaponAttack: undefined,
     spellExtraAttackUses: undefined
   };

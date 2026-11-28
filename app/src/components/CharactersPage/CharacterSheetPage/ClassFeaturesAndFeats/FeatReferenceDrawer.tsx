@@ -26,6 +26,7 @@ type FeatReferenceDrawerProps = {
   selectedFeatReference: SelectedFeatReference;
   featDefinition: FeatDefinition;
   onClose: () => void;
+  onEscape: () => void;
   renderTrackingButton: TrackingButtonRenderer;
   onOpenKeyword: (keywordKey: string, title?: string, trackingMessage?: string) => void;
   onOpenFeatReference: (feat: CharacterFeatEntry["feat"], entry?: CharacterFeatEntry) => void;
@@ -38,6 +39,7 @@ function FeatReferenceDrawer({
   selectedFeatReference,
   featDefinition,
   onClose,
+  onEscape,
   renderTrackingButton,
   onOpenKeyword,
   onOpenFeatReference,
@@ -49,6 +51,7 @@ function FeatReferenceDrawer({
     <SheetDrawer
       titleId="feat-reference-drawer-title"
       onClose={onClose}
+      onEscape={onEscape}
       backdropClassName={styles.featDrawerBackdrop}
     >
       <OverlayHeader>

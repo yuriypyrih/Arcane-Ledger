@@ -31,12 +31,14 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "Channeled Prowess and Inherent Tongues are tracked. When Intrusive Echoes triggers, roll the Constitution save and apply its effects manually.",
     description: [
       "Memories of another life echo through your soul.",
       "<strong>Channeled Prowess.</strong> Gain two skill proficiencies of your choice. Choose one proficient skill to gain <link:Expertise>Expertise</link>; you may change this <link:Expertise>Expertise</link> choice after each <link:long-rest>Long Rest</link>.",
       "<strong>Inherent Tongues.</strong> Learn one language of your choice from the Player's Handbook language tables.",
-      "<strong>Intrusive Echoes.</strong> Immediately after rolling a natural 1 on a D20 Test, make a Constitution save against DC 13 + your <link:Proficiency Bonus>Proficiency Bonus</link>. Failure leaves you <link:Incapacitated>Incapacitated</link> until the end of your next turn, with your Speed halved while this condition lasts."
+      "<strong>Intrusive Echoes.</strong> Immediately after rolling a natural 1 on a D20 Test, make a Constitution save against DC 13 + your <link:Proficiency Bonus>Proficiency Bonus</link>. Failure leaves you <link:Incapacitated>Incapacitated</link> until the end of your next turn, with your Speed halved while this condition lasts. Roll the save and apply its effects manually."
     ]
   },
   {
@@ -48,7 +50,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Apply Unearthly Scream and Voices from Beyond manually.",
     description: [
       "Whispering spirits haunt you, inaudible to others.",
       "<strong>Spirit Whispers.</strong> Learn <spell:Message>Message</spell>, which you may cast without Material components. <spell:Augury>Augury</spell> is always prepared and can be cast without a slot or any components once per <link:long-rest>Long Rest</link>, or using your available spell slots. Choose Intelligence, Wisdom, or Charisma as the spellcasting ability for both spells when taking this feat.",
@@ -65,7 +68,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Apply Lengthened Strike and Ominous Will manually.",
     description: [
       "Your ever-present shadow moves independently and sometimes imposes its own will.",
       "<strong>Grasping Shadow.</strong> Learn <spell:Mage Hand>Mage Hand</spell>, which you may cast without components. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
@@ -86,7 +90,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Resolve Domain Traveler and Poisoned Roots manually.",
     description: [
       "You can navigate the Mists, but remaining in one place lets them drain your vitality.",
       "<strong>Domain Traveler.</strong> Entering the Mists with a specific domain in mind counts as possessing its keyed Mist talisman. You must know the domain's name but need not have visited it. Borders closed by a Darklord still block you.",
@@ -103,7 +108,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Resolve Involuntary Change manually.",
     description: [
       "A hidden, monstrous aspect of you can emerge in another form.",
       "<strong>Alternate Form.</strong> <spell:Alter Self>Alter Self</spell> is always prepared. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat. Once per <link:long-rest>Long Rest</link>, you may cast it without a slot or components, and that casting needs no <link:Concentration>Concentration</link>. You may also cast it with available slots of an appropriate level.",
@@ -123,7 +129,7 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "RHW",
     page: 32,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Sharp Eye.</strong> When using the Search or Study action, you may gain <link:Advantage>Advantage</link> on any ability check made as part of it. Uses equal your <link:Proficiency Bonus>Proficiency Bonus</link>, all restored by a <link:long-rest>Long Rest</link>. A failed check does not spend the use."
     ]
@@ -134,7 +140,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "RHW",
     page: 32,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Hypervigilance appears in the Initiative drawer. Resolve the reroll and Steel Yourself manually.",
     description: [
       "<strong>Hypervigilance.</strong> When your Initiative d20 shows 9 or lower, you may reroll it and must keep the new result.",
       "<strong>Steel Yourself.</strong> After failing a save to avoid or end being <link:Charmed>Charmed</link> or <link:Frightened>Frightened</link>, you may use a Reaction to add your <link:Proficiency Bonus>Proficiency Bonus</link> to the roll, possibly making it succeed. This Reaction is usable once per <link:long-rest>Long Rest</link>."
@@ -149,7 +156,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Resolve Entwined Existence, Sustained Symbiosis, and Symbiotic Agenda manually.",
     description: [
       "Another being shares your body, lending knowledge and help while pursuing its own goals.",
       "<strong>Entwined Existence.</strong> The symbiote cannot be targeted separately. Your death kills it, and restoring you to life revives it too.",
@@ -167,7 +175,7 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "Destructive deathly energy responds to the slightest provocation.",
       "<strong>Death Touch.</strong> Learn <spell:Chill Touch>Chill Touch</spell>, which you may cast without components. Its Necrotic damage ignores Resistance. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
@@ -183,7 +191,8 @@ export const rhwFeatDefinitions: FeatDefinition[] = [
     tags: ["dark-gift"],
     prerequisite: "Ravenloft Campaign",
     requirements: [],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Apply Heightened Suspicion and Incessant Watchers manually.",
     description: [
       "Unnatural watchers follow you in the guise of vermin and other unsettling creatures.",
       "<strong>Borrowed Eyes.</strong> <spell:Beast Sense>Beast Sense</spell> and <spell:Speak with Animals>Speak with Animals</spell> are always prepared. Each can be cast without a slot once per <link:long-rest>Long Rest</link>, or with available slots of an appropriate level.",

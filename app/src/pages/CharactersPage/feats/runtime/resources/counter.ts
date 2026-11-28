@@ -1,9 +1,27 @@
 import type { FEATS } from "../../../../../codex/entries/enums";
 import type { Character, CharacterFeatEntry } from "../../../../../types";
 import type { CounterResourceTarget, ResourceAdjustment } from "../../../resourceManagement";
+import { getProficiencyBonus } from "../../../proficiencyBonus";
 import { collectFeatDerivedState } from "../state";
 
 type Usage = { usesTotal: number; usesRemaining: number } | null;
+
+export function proficiencyBonusFeatResource<K extends keyof CharacterFeatEntry>(
+  feat: FEATS,
+  stateKey: K,
+  field: keyof NonNullable<CharacterFeatEntry[K]>,
+  label: string,
+  getExpended: (entry: CharacterFeatEntry) => number | undefined
+): CounterResourceTarget {
+  return featResource(feat, stateKey, field, label, (character) => {
+    const entries = collectFeatDerivedState(character).featsByFeat.get(feat);
+    if (!entries?.length) return null;
+
+    const usesTotal = getProficiencyBonus(character);
+    const expended = Math.max(...entries.map((entry) => getExpended(entry) ?? 0));
+    return { usesTotal, usesRemaining: Math.max(0, usesTotal - expended) };
+  }, "number");
+}
 
 /** Adjust only the resource field on eligible feat records, preserving their choices and other casts. */
 export function featResource<K extends keyof CharacterFeatEntry>(

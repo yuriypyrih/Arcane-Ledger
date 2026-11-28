@@ -3,6 +3,8 @@ import { ACTION_CARD_THEME } from "./actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "./actionEconomy";
 import type { FeatureActionCard } from "./classFeatures";
 
+export const commonHelpActionKey = "common-action-help";
+
 const attackDescription: SpellDescriptionEntry[] = [
   "When you take the Attack action, you can make one attack roll with a weapon or an Unarmed Strike. Your character already has explicit gameplay Action Cards for weapon attacks and Unarmed Strike, so you can usually use those instead.",
   "<strong>Equipping and Unequipping Weapons</strong>. You can either equip or unequip one weapon when you make an attack as part of this action. You do so either before or after the attack. If you equip a weapon before an attack, you don't need to use it for that attack. Equipping a weapon includes drawing it from a sheath or picking it up. Unequipping a weapon includes sheathing, stowing, or dropping it.",
@@ -162,7 +164,7 @@ const commonActionCards = [
     description: dodgeDescription
   },
   {
-    key: "common-action-help",
+    key: commonHelpActionKey,
     name: "Help",
     summary: "Aid an ally's check or attack.",
     detail: "Give an ally Advantage on a timely check or attack.",

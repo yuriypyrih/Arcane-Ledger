@@ -39,7 +39,8 @@ import {
   type JumpDistanceBreakdown
 } from "../speed";
 import {
-  getAthleteSpeedDescriptionAdditionsForCharacter,
+  getFeatSpeedDescriptionAdditionsForCharacter,
+  getHypervigilanceDescriptionAdditionsForCharacter,
   getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter,
   getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter,
   getZhentarimRuffianFamilyFirstDescriptionAdditionsForCharacter
@@ -352,6 +353,7 @@ export function buildReferenceIndicatorSections(
 function getInitiativeDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
   return [
     ...getInitiativeReferenceDescriptionAdditions(character),
+    ...getHypervigilanceDescriptionAdditionsForCharacter(character),
     ...getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter(character),
     ...getZhentarimRuffianFamilyFirstDescriptionAdditionsForCharacter(character)
   ];
@@ -366,7 +368,7 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
     ...getMonkFeatureDescriptionAdditions(character, "stat", "speed")
   ];
 
-  descriptionAdditions.push(...getAthleteSpeedDescriptionAdditionsForCharacter(character));
+  descriptionAdditions.push(...getFeatSpeedDescriptionAdditionsForCharacter(character));
   descriptionAdditions.push(
     ...getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character)
   );

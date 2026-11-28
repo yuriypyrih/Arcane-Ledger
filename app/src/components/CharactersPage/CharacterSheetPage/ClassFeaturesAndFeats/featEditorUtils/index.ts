@@ -1,7 +1,8 @@
+import { getFeatBenefitChoice } from "../../../../../pages/CharactersPage/feats/featBenefitChoices";
 import {
-  getArcaneCantripAbility,
-  isArcaneCantripFeat
-} from "../../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+  getFeatSpellcastingChoiceAbility,
+  hasFeatSpellcastingChoice
+} from "../../../../../pages/CharactersPage/feats/spellcastingChoices";
 import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
 import { singleAbilityChoices } from "../../../../../pages/CharactersPage/feats/singleAbilityChoices";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -343,7 +344,9 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     emeraldEnclaveFledglingChoice: null,
     harperAgentChoice: null,
     purpleDragonRookChoice: null,
-    arcaneCantripChoice: null,
+    featBenefitChoice: null,
+    featSpellcastingChoice: null,
+    echoingSoulChoice: null,
     spellfireSparkChoice: null,
     musicianChoice: null,
     epicBoonAbilityChoice: null,
@@ -997,8 +1000,20 @@ export function createPendingFeatStateForFeat(
     };
   }
 
-  if (isArcaneCantripFeat(feat)) {
-    return { ...createEmptyPendingFeatState(), arcaneCantripChoice: { feat, ability: "none" } };
+  const benefitChoice = getFeatBenefitChoice(feat);
+  if (benefitChoice) {
+    return { ...createEmptyPendingFeatState(), featBenefitChoice: benefitChoice };
+  }
+
+  if (hasFeatSpellcastingChoice(feat)) {
+    return { ...createEmptyPendingFeatState(), featSpellcastingChoice: { feat, ability: "none" } };
+  }
+
+  if (feat === FEATS.ECHOING_SOUL) {
+    return {
+      ...createEmptyPendingFeatState(),
+      echoingSoulChoice: { skillProficiencies: [null, null] }
+    };
   }
 
   if (feat === FEATS.SPELLFIRE_SPARK) {
@@ -1104,10 +1119,26 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
     };
   }
 
-  if (isArcaneCantripFeat(entry.feat)) {
+  const benefitChoice = getFeatBenefitChoice(entry.feat, entry);
+  if (benefitChoice) {
+    return { ...createEmptyPendingFeatState(), featBenefitChoice: benefitChoice };
+  }
+
+  if (hasFeatSpellcastingChoice(entry.feat)) {
     return {
       ...createEmptyPendingFeatState(),
-      arcaneCantripChoice: { feat: entry.feat, ability: getArcaneCantripAbility(entry) ?? "none" }
+      featSpellcastingChoice: {
+        feat: entry.feat,
+        ability: getFeatSpellcastingChoiceAbility(entry) ?? "none",
+        cantripId: entry.arcaneUndertaker?.cantripId
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.ECHOING_SOUL) {
+    return {
+      ...createEmptyPendingFeatState(),
+      echoingSoulChoice: entry.echoingSoul ?? { skillProficiencies: [null, null] }
     };
   }
 

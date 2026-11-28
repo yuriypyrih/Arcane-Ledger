@@ -19,7 +19,7 @@ import { CLASS_FEATURE, MAGIC_SCHOOL } from "../../../../codex/entries/enums";
 import type { Character, CharacterCompanion, CharacterCustomTraitEffect } from "../../../../types";
 import { getArcaneArcherLoreSpellcastingAbility } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterArcaneArcher";
 import { getPhantomSpiritQuerySpellcastingAbility } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/roguePhantomTokens";
-import { getArcaneCantripFeatSpellcastingAbilityForSpell } from "../../../../pages/CharactersPage/feats/runtime/spellcasting";
+import { getOriginFeatSpellcastingChoiceForSpell } from "../../../../pages/CharactersPage/feats/runtime/spellcasting";
 import {
   normalizeRoundTracker,
   shouldTrackRoundScopedResources,
@@ -463,7 +463,7 @@ function SpellCastingForm({
   );
   const getSpellcastingAbilityOverrideForSpell = useCallback(
     (spellId: string) =>
-      getArcaneCantripFeatSpellcastingAbilityForSpell(character, spellId) ??
+      getOriginFeatSpellcastingChoiceForSpell(character, spellId) ??
       getArcaneArcherLoreSpellcastingAbility(character, spellId) ??
       getPhantomSpiritQuerySpellcastingAbility(character, spellId) ??
       getSpeciesSpellcastingAbilityForCharacter(character, spellId) ??

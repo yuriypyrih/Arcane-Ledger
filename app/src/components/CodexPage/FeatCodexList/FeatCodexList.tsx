@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer,
-  LazyCodexFeatDrawer as CodexFeatDrawer,
-  LazyCodexSpellDrawer as CodexSpellDrawer
-} from "../LazyCodexReferenceDrawers";
+import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
+import CodexSpellDrawer from "../CodexSpellDrawer";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../LazyCodexReferenceDrawers";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import {
   FeatureDisclosureContentStack,

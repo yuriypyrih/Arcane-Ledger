@@ -45,7 +45,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import { ENTRY_CATEGORIES, TRACKER } from "../../../../codex/entries/enums";
+import { DURATION, ENTRY_CATEGORIES, SPELL_COMPONENT, TRACKER } from "../../../../codex/entries/enums";
 import type {
   AbilityKey,
   Character,
@@ -109,6 +109,7 @@ import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import d20Icon from "../../../../assets/svg/d20.svg";
+import { useFeatSpellFreeCastOption } from "./useFeatSpellFreeCastOption";
 import styles from "./CharacterSpellDrawer.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
 
@@ -126,6 +127,7 @@ export type CharacterSpellDrawerActionOptions = {
   useJoltToLife?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
+  featSpellFreeCastId?: string;
   useGoliathAncestry?: boolean;
   useFeyMagic?: boolean;
   useFiendishLegacy?: boolean;
@@ -254,6 +256,7 @@ type CharacterSpellDrawerProps = {
   freeCastSlotLevel?: number | null;
   freeCastAvailabilityText?: string | null;
   slotFreeUseOption?: CharacterSpellDrawerSlotFreeUseOption | null;
+  enableFeatSpellFreeCasts?: boolean;
   allowRitualCasting?: boolean;
   ritualCastingRequired?: boolean;
   actionAvailabilityText?: string | null;
@@ -364,6 +367,7 @@ function CharacterSpellDrawer({
   freeCastSlotLevel = null,
   freeCastAvailabilityText = null,
   slotFreeUseOption = null,
+  enableFeatSpellFreeCasts = false,
   allowRitualCasting = false,
   ritualCastingRequired = false,
   actionAvailabilityText = null,
@@ -563,6 +567,19 @@ function CharacterSpellDrawer({
     mode === "standard" && actionConsumesSpellSlot
   );
   const transmuterFreeCast = transmuterFreeCastOption?.checked === true;
+  const featFreeCast = useFeatSpellFreeCastOption(
+    character,
+    spell.id,
+    enableFeatSpellFreeCasts && mode === "standard",
+    actionConsumesSpellSlot &&
+      !isRitualCastingSelected &&
+      !ritualCastingRequired &&
+      !phantomOption.selected &&
+      !transmuterFreeCast &&
+      !spiritsOptions.freeCast &&
+      !undeadThrallsFreeCast
+  );
+  const selectedFeatFreeCast = featFreeCast?.option.checked ? featFreeCast : null;
   const allActionOptions: CharacterSpellDrawerActionOption[] = [
     ...phantomOption.options,
     ...clericOptions.options,
@@ -570,6 +587,7 @@ function CharacterSpellDrawer({
     ...actionOptions,
     ...(reanimatorOption ? [reanimatorOption] : []),
     ...spiritsOptions.options,
+    ...(featFreeCast ? [featFreeCast.option] : []),
     ...(undeadThrallsOption ? [undeadThrallsOption] : []),
     ...(transmuterFreeCastOption ? [transmuterFreeCastOption] : [])
   ];
@@ -601,6 +619,7 @@ function CharacterSpellDrawer({
       : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
   const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
+    selectedFeatFreeCast ||
     transmuterFreeCast ||
     undeadThrallsFreeCast ||
     phantomOption.selected ||
@@ -615,6 +634,7 @@ function CharacterSpellDrawer({
   const shouldShowActionFooter = mode !== "prepare-preview";
   const spendsSpellSlotForOptionalEffects =
     actionConsumesSpellSlot &&
+    !selectedFeatFreeCast &&
     !transmuterFreeCast &&
     !undeadThrallsFreeCast &&
     !selectedSlotIsFreeCast &&
@@ -672,6 +692,7 @@ function CharacterSpellDrawer({
   );
   const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
+    !selectedFeatFreeCast &&
     !transmuterFreeCast &&
     !undeadThrallsFreeCast &&
     !phantomOption.required &&
@@ -720,7 +741,16 @@ function CharacterSpellDrawer({
           : formatCodexLabel(ENTRY_CATEGORIES.SPELLS);
   const closeComponentsTooltip = () => setIsComponentsTooltipOpen(false);
   const closeTrackingKeyword = () => setSelectedTrackingKeyword(null);
-  const spellDuration = getSpellDurationDisplayParts(spell.duration);
+  const spellDuration = getSpellDurationDisplayParts(
+    selectedFeatFreeCast?.withoutConcentration
+      ? spell.duration.filter((part) => part !== DURATION.CONCENTRATION)
+      : spell.duration
+  );
+  const spellComponents = selectedFeatFreeCast?.components === "all"
+    ? []
+    : selectedFeatFreeCast?.components === "material"
+      ? spell.components.filter((component) => component !== SPELL_COMPONENT.M)
+      : spell.components;
   const castingTimeActionShape = getActionShapeForCastingTime(spell.castingTime);
   const footerActionShape =
     actionShape ??
@@ -735,6 +765,7 @@ function CharacterSpellDrawer({
     summonDefinitionWarning ??
     (clericOptions.dispellingRecovery ? null : actionWarning);
   const baseActionOptions = {
+    featSpellFreeCastId: selectedFeatFreeCast?.resource.id,
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),
     usePsionicSorcery: allActionOptions.some(
@@ -869,6 +900,15 @@ function CharacterSpellDrawer({
   const actionContextTexts = [
     actionContextText,
     freeCastContextText,
+    selectedFeatFreeCast
+      ? selectedFeatFreeCast.withoutConcentration
+        ? "Cast without a spell slot, components, or Concentration."
+        : selectedFeatFreeCast.components === "all"
+          ? "Cast without a spell slot or components."
+          : selectedFeatFreeCast.components === "material"
+            ? "Cast without a spell slot or Material components."
+            : "Cast without a spell slot."
+      : null,
     isRogueArcaneTricksterMagicalAmbushActiveForSpell(character, spell)
       ? "Magical Ambush is active"
       : null,
@@ -1108,7 +1148,7 @@ function CharacterSpellDrawer({
                 as="button"
                 className={styles.spellDetailButton}
                 label="Components"
-                content={formatSpellComponents(spell.components, spell.materialSpecified)}
+                content={formatSpellComponents(spellComponents, spell.materialSpecified)}
                 onClick={() => setIsComponentsTooltipOpen(true)}
               />
               <CellContainer

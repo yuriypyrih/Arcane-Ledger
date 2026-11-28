@@ -485,6 +485,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
       ) : (
         <CharacterSpellDrawer
           character={character}
+          enableFeatSpellFreeCasts
           spell={selectedSpellDisplay ?? selectedSpell}
           customEffects={selectedSpellCustomEffects}
           isCustomSpell={selectedSpellIsCustom}

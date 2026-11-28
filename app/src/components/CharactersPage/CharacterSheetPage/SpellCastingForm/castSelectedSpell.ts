@@ -28,6 +28,8 @@ import {
   spareTheDyingSpellId
 } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { getSheetSpellSlotTotals } from "../../../../pages/CharactersPage/multiclassSpellcasting";
+import { DURATION } from "../../../../codex/entries/enums";
+import { getFeatSpellFreeCast } from "../../../../pages/CharactersPage/feats/runtime/featSpellFreeCasts";
 import { getWizardSubclassSpellSummonTransform } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 import {
   canPaySpellEconomy,
@@ -210,26 +212,33 @@ export function castSelectedSpellWithContext(
   });
   const castAsRitual =
     !useSpiritQuery && options?.castAsRitual === true && selectedSpell.ritual === true;
+  const featFreeCastId = castAsRitual ? undefined : options?.featSpellFreeCastId;
+  const featFreeCast = featFreeCastId ? getFeatSpellFreeCast(character, selectedSpell.id) : undefined;
+  if (featFreeCastId && (featFreeCast?.resource.id !== featFreeCastId || featFreeCast.resource.remaining(character) <= 0)) {
+    return;
+  }
   const useBeguilingMagic = options?.useBeguilingMagic === true;
   const useStarMap = options?.useStarMap === true && selectedSpellSupportsStarMap;
-  const useMagicInitiate = options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
-  const useGenasiLineage = options?.useGenasiLineage === true && selectedSpellSupportsGenasiLineage;
-  const useForestGnome = options?.useForestGnome === true && selectedSpellSupportsForestGnome;
+  const useMagicInitiate =
+    !featFreeCast && options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
+  const useGenasiLineage = !featFreeCast && options?.useGenasiLineage === true && selectedSpellSupportsGenasiLineage;
+  const useForestGnome = !featFreeCast && options?.useForestGnome === true && selectedSpellSupportsForestGnome;
   const useFiendishLegacy =
     options?.useFiendishLegacy === true && selectedSpellSupportsFiendishLegacy;
   const useHexMagic = options?.useHexMagic === true && selectedSpellSupportsHexMagic;
   const useGoliathAncestry =
     options?.useGoliathAncestry === true && selectedSpellSupportsGoliathAncestry;
   const useFeyMagic = options?.useFeyMagic === true && selectedSpellSupportsFeyMagic;
-  const useQuickRitual = options?.useQuickRitual === true && selectedSpellSupportsQuickRitual;
+  const useQuickRitual =
+    !featFreeCast && options?.useQuickRitual === true && selectedSpellSupportsQuickRitual;
   const useShadowMagic = options?.useShadowMagic === true && selectedSpellSupportsShadowMagic;
   const useDetectThoughts =
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
-    options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
+    !featFreeCast && options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
   const useBoonOfRevelry = options?.useBoonOfRevelry === true && selectedSpellSupportsBoonOfRevelry;
   const useDruidWildCompanion =
-    options?.useDruidWildCompanion === true && selectedSpellSupportsDruidWildCompanion;
+    !featFreeCast && options?.useDruidWildCompanion === true && selectedSpellSupportsDruidWildCompanion;
   const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
     ? options.spellCastEffectIds
     : [];
@@ -258,10 +267,10 @@ export function castSelectedSpellWithContext(
     return;
   }
   const useEmeraldEnclaveFledglingFreeUse =
-    options?.useEmeraldEnclaveFledglingFreeUse === true &&
+    !featFreeCast && options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
   const useTwoHeartsOneMind =
-    options?.useTwoHeartsOneMind === true && selectedSpellSupportsEnclaveMagicTwoHeartsOneMind;
+    !featFreeCast && options?.useTwoHeartsOneMind === true && selectedSpellSupportsEnclaveMagicTwoHeartsOneMind;
   const spellImplementationOptions = options?.spellImplementationOptions ?? {};
   const spellImplementationCastSource =
     options?.spellImplementationCastSource ??
@@ -292,7 +301,7 @@ export function castSelectedSpellWithContext(
     selectedSpellSupportsDragonCompanion &&
     sorcererDragonCompanionUsesRemaining > 0;
   const usePhantasmalCreatures =
-    options?.usePhantasmalCreatures === true &&
+    !featFreeCast && options?.usePhantasmalCreatures === true &&
     selectedSpellPhantasmalCreaturesOptionState !== null &&
     selectedSpellPhantasmalCreaturesOptionState.usesRemaining > 0;
   const useFeyReinforcementsNoConcentration =
@@ -321,7 +330,9 @@ export function castSelectedSpellWithContext(
   const frozenHauntFallbackSlotLevel = useFrozenHaunt
     ? (options?.frozenHauntFallbackSlotLevel ?? null)
     : null;
-  const spellForStatusEntries = useTwoHeartsOneMind
+  const spellForStatusEntries = featFreeCast?.withoutConcentration
+    ? { ...selectedSpell, duration: selectedSpell.duration.filter((part) => part !== DURATION.CONCENTRATION) }
+    : useTwoHeartsOneMind
     ? {
         id: selectedSpell.id,
         name: selectedSpell.name,
@@ -692,6 +703,7 @@ export function castSelectedSpellWithContext(
     useNaturalRecovery
   });
   const slotLevel =
+    featFreeCast ||
     useSpiritQuery ||
     useSpiritualManifestation ||
     useDispellingRecovery ||
@@ -701,6 +713,7 @@ export function castSelectedSpellWithContext(
       ? spellLevel
       : slotPlan.slotLevel;
   const castsWithoutSpellSlot =
+    Boolean(featFreeCast) ||
     useShapeShifter ||
     useWondrousAlteration ||
     useUndeadThralls ||
@@ -761,10 +774,14 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
-    const preparedCharacter = prepareCharacterForResourceConsumption(
+    const characterReadyToCast = prepareCharacterForResourceConsumption(
       currentCharacter,
       roundTrackerResource
     );
+    const preparedCharacter = featFreeCast
+      ? featFreeCast.resource.spendOne(characterReadyToCast)
+      : characterReadyToCast;
+    if (featFreeCast && preparedCharacter === characterReadyToCast) return currentCharacter;
     if (useShapeShifter && !canUseShapeShifterFreeCast(preparedCharacter, selectedSpell)) {
       return currentCharacter;
     }

@@ -7,6 +7,9 @@ import type {
   ArcaneOmensState,
   ArcaneOverloadState,
   ArcaneSafeguardState,
+  ArcaneUndertakerState,
+  EchoingSoulChoice,
+  FamiliarFriendState,
   AthleteChoice,
   BlessedWarriorChoice,
   CharacterFeatEntry,
@@ -131,13 +134,17 @@ import {
   normalizeSkilledChoice
 } from "./choices";
 import { normalizeCrafterChoice } from "./crafter";
+import { normalizeEchoingSoulChoice } from "./echoingSoul";
+import { normalizeFeatBenefitFields, type FeatBenefitFields } from "./featBenefitChoices";
+import { normalizeFamiliarFriendState } from "./spellcastingChoices";
 import {
   normalizeArcaneArtistState,
   normalizeArcaneEloquenceChoice,
   normalizeArcaneInfiltratorState,
   normalizeArcaneOmensState,
   normalizeArcaneOverloadState,
-  normalizeArcaneSafeguardState
+  normalizeArcaneSafeguardState,
+  normalizeArcaneUndertakerState
 } from "./arcaneCantripChoices";
 import { featDefinitions } from "./definitions";
 import { normalizeHarperAgentChoice } from "./harperAgent";
@@ -650,6 +657,16 @@ export function normalizeCharacterFeats(
         ...(feat === FEATS.ARCANE_SAFEGUARD
           ? { arcaneSafeguard: normalizeArcaneSafeguardState(record.arcaneSafeguard) }
           : {}),
+        ...(feat === FEATS.ARCANE_UNDERTAKER
+          ? { arcaneUndertaker: normalizeArcaneUndertakerState(record.arcaneUndertaker) }
+          : {}),
+        ...(feat === FEATS.FAMILIAR_FRIEND
+          ? { familiarFriend: normalizeFamiliarFriendState(record.familiarFriend) }
+          : {}),
+        ...normalizeFeatBenefitFields(feat, record),
+        ...(feat === FEATS.ECHOING_SOUL
+          ? { echoingSoul: normalizeEchoingSoulChoice(record.echoingSoul) }
+          : {}),
         crafter,
         boonOfEnergyResistance,
         boonOfFate,
@@ -681,7 +698,7 @@ export function normalizeCharacterFeats(
 export function createCharacterFeatEntry(
   feat: FEATS,
   takenAtLevel: number,
-  options?: {
+  options?: FeatBenefitFields & {
     source?: CharacterFeatSource;
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     athlete?: AthleteChoice;
@@ -731,6 +748,9 @@ export function createCharacterFeatEntry(
     arcaneOmens?: ArcaneOmensState;
     arcaneOverload?: ArcaneOverloadState;
     arcaneSafeguard?: ArcaneSafeguardState;
+    arcaneUndertaker?: ArcaneUndertakerState;
+    familiarFriend?: FamiliarFriendState;
+    echoingSoul?: EchoingSoulChoice;
     harperAgent?: HarperAgentChoice;
     purpleDragonRook?: PurpleDragonRookChoice;
     fairyTrickster?: FairyTricksterState;
@@ -824,6 +844,16 @@ export function createCharacterFeatEntry(
       : {}),
     ...(feat === FEATS.ARCANE_SAFEGUARD
       ? { arcaneSafeguard: normalizeArcaneSafeguardState(options?.arcaneSafeguard) }
+      : {}),
+    ...(feat === FEATS.ARCANE_UNDERTAKER
+      ? { arcaneUndertaker: normalizeArcaneUndertakerState(options?.arcaneUndertaker) }
+      : {}),
+    ...(feat === FEATS.FAMILIAR_FRIEND
+      ? { familiarFriend: normalizeFamiliarFriendState(options?.familiarFriend) }
+      : {}),
+    ...normalizeFeatBenefitFields(feat, options),
+    ...(feat === FEATS.ECHOING_SOUL
+      ? { echoingSoul: normalizeEchoingSoulChoice(options?.echoingSoul) }
       : {}),
     harperAgent: feat === FEATS.HARPER_AGENT ? options?.harperAgent : undefined,
     purpleDragonRook: feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,

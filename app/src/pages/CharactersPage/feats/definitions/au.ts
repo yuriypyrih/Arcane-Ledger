@@ -106,7 +106,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Cantrip.</strong> Learn one Necromancy cantrip from the Cleric or Wizard list. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat.",
       "<strong>Knowledge from the Dead.</strong> You may add 1d4 to Intelligence (History) and Wisdom (Medicine) checks.",
@@ -299,7 +299,9 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "Faithful Companion tracks spell preparation and its free cast. Apply Fortified Familiar and Helpful Friend manually.",
     description: [
       "<strong>Faithful Companion.</strong> <spell:Find Familiar>Find Familiar</spell> is always prepared. Choose Intelligence, Wisdom, or Charisma as its spellcasting ability when taking this feat. Once per <link:long-rest>Long Rest</link>, you may cast it without a spell slot or Material components. You may also cast it with your available spell slots.",
       "<strong>Fortified Familiar.</strong> Each time you cast <spell:Find Familiar>Find Familiar</spell>, increase the familiar's current and maximum Hit Points by twice your character level.",
@@ -399,7 +401,7 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 27,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "<strong>Otherworldly Resilience.</strong> When taking this feat, choose Necrotic, Psychic, or Radiant damage; you have Resistance to it.",
       "<strong>Portal Step.</strong> Spend 15 feet of movement to teleport up to 15 feet to a visible, unoccupied space. This is usable once per turn, with total uses equal to your <link:Proficiency Bonus>Proficiency Bonus</link>. A <link:long-rest>Long Rest</link> restores all uses."
@@ -487,7 +489,8 @@ export const auFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     source: "AU",
     page: 28,
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Apply Resilient Anatomy manually.",
     description: [
       "<strong>Lengthened Stride.</strong> Increase your Speed by 5 feet.",
       "<strong>Resilient Anatomy.</strong> You have <link:Advantage>Advantage</link> on saves against forced shape-shifting. When you fail a Constitution save, you may use a Reaction to add 1d4, possibly making it succeed. Uses of this Reaction equal your <link:Proficiency Bonus>Proficiency Bonus</link>; a <link:long-rest>Long Rest</link> restores them all."

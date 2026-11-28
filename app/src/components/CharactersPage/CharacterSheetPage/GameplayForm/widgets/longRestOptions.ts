@@ -500,6 +500,11 @@ import {
 import type { RestOption } from "./restOptionTypes";
 import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
 import { inspiringMagicResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneArtist";
+import { understandingOfDeathResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneUndertaker";
+import { faithfulCompanionResource } from "../../../../../pages/CharactersPage/feats/runtime/familiarFriend";
+import { featSpellFreeCasts } from "../../../../../pages/CharactersPage/feats/runtime/featSpellFreeCasts";
+import { mistWalkResource, sharpEyeResource } from "../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
+import { portalStepResource } from "../../../../../pages/CharactersPage/feats/runtime/portalJumper";
 import { helpfulPremonitionResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneOmens";
 import { powerSurgeResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneOverload";
 import { arcaneSafeguardResource } from "../../../../../pages/CharactersPage/feats/runtime/arcaneSafeguard";
@@ -1269,7 +1274,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
       { id: "restore-arcane-infiltrator-cunning-diversion", resource: cunningDiversionResource },
       { id: "restore-arcane-omens-helpful-premonition", resource: helpfulPremonitionResource },
       { id: "restore-arcane-overload-power-surge", resource: powerSurgeResource },
-      { id: "restore-arcane-safeguard", resource: arcaneSafeguardResource }
+      { id: "restore-arcane-safeguard", resource: arcaneSafeguardResource },
+      {
+        id: "restore-arcane-undertaker-understanding-of-death",
+        resource: understandingOfDeathResource
+      },
+      ...featSpellFreeCasts.map(({ resource }) => ({
+        id: resource === faithfulCompanionResource ? "restore-familiar-friend-faithful-companion" : `restore-${resource.id}`,
+        resource
+      })),
+      ...[mistWalkResource, portalStepResource, sharpEyeResource].map((resource) => ({ id: `restore-${resource.id}`, resource }))
     ].flatMap(({ id, resource }): RestOption[] => {
       const total = resource.total(character);
       if (total === 0) return [];

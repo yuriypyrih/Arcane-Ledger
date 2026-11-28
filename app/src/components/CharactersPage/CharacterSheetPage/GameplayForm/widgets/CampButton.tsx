@@ -10,7 +10,7 @@ import d20Icon from "../../../../../assets/svg/d20.svg";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import CellContainer from "../../../../CellContainer/CellContainer";
-import type { Character } from "../../../../../types";
+import { ALL_SKILLS, type Character, type SkillName } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
@@ -22,6 +22,15 @@ import {
 import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import { hasBoonOfBountifulHealthForCharacter } from "../../../../../pages/CharactersPage/feats/runtime";
+import {
+  getEchoingSoulBaseSkills,
+  getEchoingSoulExpertiseOptions,
+  isEchoingSoulSkill
+} from "../../../../../pages/CharactersPage/feats/echoingSoul";
+import {
+  changeEchoingSoulExpertise,
+  getEchoingSoulFeatEntry
+} from "../../../../../pages/CharactersPage/feats/runtime/echoingSoul";
 import type { RestDescriptionInjectionSection } from "../../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import {
   formatFormulaCell,
@@ -43,6 +52,8 @@ import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RadioContainerOption from "../../RadioContainerOption";
 import SheetActionButton from "../../SheetActionButton";
+import SelectInput from "../../../FormInputs/SelectInput";
+import { buildSkillSelectOptions } from "../../ClassFeaturesAndFeats/helpers";
 import HitDiceSpendControls from "./HitDiceSpendControls";
 import type { RestOption, RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
@@ -189,6 +200,7 @@ function CampButton({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRestType, setSelectedRestType] = useState<RestType | null>(null);
   const [selectedRestOptionIds, setSelectedRestOptionIds] = useState<string[]>([]);
+  const [echoingSoulExpertise, setEchoingSoulExpertise] = useState<SkillName | null>(null);
   const [hitDiceCounts, setHitDiceCounts] = useState<Record<string, number>>({});
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
@@ -255,12 +267,21 @@ function CampButton({
     () => getGroupedRestOptions(selectedRestOptions),
     [selectedRestOptions]
   );
+  const echoingSoulEntry =
+    selectedRestType === "long" ? getEchoingSoulFeatEntry(character) : undefined;
+  const echoingSoulExpertiseOptions = echoingSoulEntry
+    ? getEchoingSoulExpertiseOptions(
+        getEchoingSoulBaseSkills(character.skillProficiencies, echoingSoulEntry.id),
+        echoingSoulEntry.echoingSoul
+      ).filter((skill) => skill !== echoingSoulEntry.echoingSoul.skillExpertise)
+    : [];
 
   useBodyScrollLock(isOpen);
 
   function openPopup() {
     setSelectedRestType(null);
     setSelectedRestOptionIds([]);
+    setEchoingSoulExpertise(null);
     setHitDiceCounts({});
     setIsOpen(true);
   }
@@ -279,6 +300,7 @@ function CampButton({
 
     const nextOptions = restType === "short" ? shortRestOptions : longRestOptions;
     setSelectedRestType(restType);
+    setEchoingSoulExpertise(null);
     setHitDiceCounts({});
     setSelectedRestOptionIds(
       nextOptions
@@ -356,6 +378,10 @@ function CampButton({
           (next, pool) => spendClassHitDice(next, pool.classEntryId, pool.count),
           nextCharacter
         );
+      }
+
+      if (restType === "long" && echoingSoulExpertise) {
+        nextCharacter = changeEchoingSoulExpertise(nextCharacter, echoingSoulExpertise);
       }
 
       return shouldUseMaximumHitDiceHealing
@@ -528,6 +554,33 @@ function CampButton({
                   </div>
                 </div>
               </>
+            ) : null}
+
+            {echoingSoulEntry && echoingSoulExpertiseOptions.length > 0 ? (
+              <label className={styles.restChecklistSection}>
+                <span className={sheetStyles.restChecklistHeading}>Channeled Prowess — Expertise</span>
+                <SelectInput
+                  compact
+                  value={echoingSoulExpertise ?? ""}
+                  onChange={(event) => {
+                    const skill = event.target.value;
+                    setEchoingSoulExpertise(isEchoingSoulSkill(skill) ? skill : null);
+                  }}
+                >
+                  <option value="">
+                    {echoingSoulEntry.echoingSoul.skillExpertise
+                      ? `Keep ${echoingSoulEntry.echoingSoul.skillExpertise} Expertise`
+                      : "Choose a proficient skill"}
+                  </option>
+                  {buildSkillSelectOptions(ALL_SKILLS, echoingSoulExpertiseOptions, null).map(
+                    (option) => (
+                      <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                        {option.label}
+                      </option>
+                    )
+                  )}
+                </SelectInput>
+              </label>
             ) : null}
 
             {selectedRestType === "short" ? (

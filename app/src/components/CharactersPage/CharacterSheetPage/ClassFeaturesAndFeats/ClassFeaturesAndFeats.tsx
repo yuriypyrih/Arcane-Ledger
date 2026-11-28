@@ -1,7 +1,9 @@
+import { isFeatBenefitChoiceReady } from "../../../../pages/CharactersPage/feats/featBenefitChoices";
 import {
-  getArcaneCantripChoiceUpdate,
-  isArcaneCantripSpellcastingAbility
-} from "../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+  getFeatSpellcastingChoiceUpdate,
+  isFeatSpellcastingChoiceComplete
+} from "../../../../pages/CharactersPage/feats/spellcastingChoices";
+import { isEchoingSoulChoiceComplete } from "../../../../pages/CharactersPage/feats/echoingSoul";
 import { getProficiencyBonus } from "../../../../pages/CharactersPage/proficiencyBonus";
 import { withReadOnlySheet } from "../withReadOnlySheet";
 import { applyClassEditorChange } from "../../../../pages/CharactersPage/multiclass";
@@ -98,10 +100,8 @@ import {
 } from "../../../../pages/CharactersPage/customOrigins";
 import { hasBuiltInSpellcastingForCharacter } from "../../../../pages/CharactersPage/spellcasting";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
-import {
-  LazyCodexDivinityDrawer as CodexDivinityDrawer,
-  LazyCodexSpellDrawer as CodexSpellDrawer
-} from "../../../CodexPage/LazyCodexReferenceDrawers";
+import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
+import { LazyCodexDivinityDrawer as CodexDivinityDrawer } from "../../../CodexPage/LazyCodexReferenceDrawers";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SelectInput from "../../FormInputs/SelectInput";
@@ -304,9 +304,8 @@ function ClassFeaturesAndFeats({
     createFeatEditorDraft(character)
   );
   const featEditorDraftRef = useRef(featEditorDraft);
-  const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
-    null
-  );
+  const [featReferenceStack, setFeatReferenceStack] = useState<SelectedFeatReference[]>([]);
+  const selectedFeatReference = featReferenceStack.at(-1) ?? null;
   const [isSpeciesReferenceOpen, setIsSpeciesReferenceOpen] = useState(false);
   const [selectedInvocationReference, setSelectedInvocationReference] =
     useState<WarlockEldritchInvocationOption | null>(null);
@@ -751,8 +750,8 @@ function ClassFeaturesAndFeats({
       currentEntryId === entryToRemove.id ? null : currentEntryId
     );
 
-    setSelectedFeatReference((current) =>
-      current?.entry?.id === entryToRemove.id ? null : current
+    setFeatReferenceStack((current) =>
+      current.filter((reference) => reference.entry?.id !== entryToRemove.id)
     );
   }
 
@@ -776,10 +775,17 @@ function ClassFeaturesAndFeats({
       return;
     }
 
-    setSelectedFeatReference({
-      feat,
-      entry
-    });
+    setFeatReferenceStack((current) => [...current, { feat, entry }]);
+  }
+
+  function closeFeatReference() {
+    setFeatReferenceStack((current) => current.slice(0, -1));
+  }
+
+  function dismissFeatReferenceWithEscape() {
+    if (!selectedKeyword && !selectedSpellReference && !selectedDivinityReference) {
+      closeFeatReference();
+    }
   }
 
   function openSpeciesReference() {
@@ -2012,9 +2018,18 @@ function ClassFeaturesAndFeats({
     );
   }
 
-  function savePendingArcaneCantripChoice() {
-    const choice = pendingFeatState.arcaneCantripChoice;
-    if (!choice || !isArcaneCantripSpellcastingAbility(choice.ability)) return;
+  function savePendingFeatBenefitChoice() {
+    const choice = pendingFeatState.featBenefitChoice;
+    if (!choice || !isFeatBenefitChoiceReady(choice)) return;
+
+    const { feat, ...fields } = choice;
+    upsertFeatForContext(createContextualFeatEntry(feat, fields));
+  }
+
+  function savePendingFeatSpellcastingChoice() {
+    const choice = pendingFeatState.featSpellcastingChoice;
+    if (!choice || !isFeatSpellcastingChoiceComplete(choice.feat, choice.ability, choice.cantripId))
+      return;
 
     const editingEntry = featEditorDraftRef.current.feats.find(
       (entry) => entry.id === editingFeatEntryId && entry.feat === choice.feat
@@ -2022,9 +2037,20 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(
         choice.feat,
-        getArcaneCantripChoiceUpdate(choice.feat, choice.ability, editingEntry)
+        getFeatSpellcastingChoiceUpdate(
+          choice.feat,
+          { spellcastingAbility: choice.ability, cantripId: choice.cantripId },
+          editingEntry
+        )
       )
     );
+  }
+
+  function savePendingEchoingSoulChoice() {
+    const echoingSoul = pendingFeatState.echoingSoulChoice;
+    if (!echoingSoul || !isEchoingSoulChoiceComplete(echoingSoul)) return;
+
+    upsertFeatForContext(createContextualFeatEntry(FEATS.ECHOING_SOUL, { echoingSoul }));
   }
 
   function savePendingSpellfireSparkChoice() {
@@ -2609,7 +2635,9 @@ function ClassFeaturesAndFeats({
           onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
           onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
           onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
-          onSavePendingArcaneCantripChoice={savePendingArcaneCantripChoice}
+          onSavePendingFeatBenefitChoice={savePendingFeatBenefitChoice}
+          onSavePendingFeatSpellcastingChoice={savePendingFeatSpellcastingChoice}
+          onSavePendingEchoingSoulChoice={savePendingEchoingSoulChoice}
           onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}
@@ -2644,9 +2672,11 @@ function ClassFeaturesAndFeats({
 
       {selectedFeatReference && selectedFeatDefinition ? (
         <FeatReferenceDrawer
+          key={selectedFeatReference.feat}
           selectedFeatReference={selectedFeatReference}
           featDefinition={selectedFeatDefinition}
-          onClose={() => setSelectedFeatReference(null)}
+          onClose={closeFeatReference}
+          onEscape={dismissFeatReferenceWithEscape}
           renderTrackingButton={renderTrackingButton}
           onOpenKeyword={openKeyword}
           onOpenFeatReference={openFeatReference}

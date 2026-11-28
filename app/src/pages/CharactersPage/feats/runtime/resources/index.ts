@@ -1,3 +1,4 @@
+import { portalStepActionKey, spendPortalStep } from "../portalJumper";
 import { getClericDomainSpellCastEffects } from "../../../classFeatures/cleric/subclasses/clericDomainSpellEffects";
 import { getWizardSubclassSpellCastEffects } from "../../../classFeatures/wizard/subclasses";
 import { getPhantomSpiritQueryCastEffects } from "../../../classFeatures/rogue/subclasses/roguePhantomTokens";
@@ -1794,6 +1795,8 @@ export function restoreLuckyPointsForCharacter(character: Character): Character 
 }
 
 export function activateFeatActionForCharacter(character: Character, actionKey: string): Character {
+  if (actionKey === portalStepActionKey) return spendPortalStep(character);
+
   if (actionKey === fairyTricksterFlusteringStrikeActionKey) {
     return spendFairyTricksterFlusteringStrikeForCharacter(character);
   }

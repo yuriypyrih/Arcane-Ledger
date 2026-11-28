@@ -1,6 +1,8 @@
 import { singleAbilityChoices, type SingleAbilityFeat } from "../../singleAbilityChoices";
 import type { FeatContributionContext } from "./types";
 import { helpfulPremonitionReactionId } from "../arcaneOmens";
+import { mistWalkReactionId } from "../ravenloftResources";
+import { createPortalStepAction } from "../portalJumper";
 import {
   appendPowerSurgeSpellDescription,
   isPowerSurgeSpell,
@@ -15,6 +17,7 @@ import {
   arcaneSafeguardResistancePath
 } from "../arcaneSafeguard";
 import { smoothTalkerSkillBonus } from "../arcaneEloquence";
+import { knowledgeFromTheDeadSkillBonus } from "../arcaneUndertaker";
 import {
   appendInspiringMagicSpellDescription,
   inspiringMagicEffectId,
@@ -83,6 +86,40 @@ function singleAbilityBonusBuilder(feat: SingleAbilityFeat): FeatContributionBui
 }
 
 export const benefitsBuilders: FeatContributionBuilders = {
+  [FEATS.MIST_WALKER]: ({ contribution, getFeatDescription }) => {
+    contribution.reactions!.push({
+      id: mistWalkReactionId,
+      reaction: REACTION.MIST_WALK,
+      name: "Mist Walk",
+      sourceType: "feat",
+      sourceLabel: getFeatLabel(FEATS.MIST_WALKER),
+      description: filterDescriptionEntries(getFeatDescription(FEATS.MIST_WALKER),
+        (line) => line.startsWith("<strong>Mist Walk.</strong>"))
+    });
+    return true;
+  },
+  [FEATS.PORTAL_JUMPER]: ({ entry, contribution, getFeatDescription }) => {
+    contribution.actionFactories!.push((character) => [createPortalStepAction(character)]);
+    if (entry.portalJumper?.damageType) {
+      const sourceId = `feat-portal-jumper-otherworldly-resilience-${entry.id}`;
+      contribution.statuses!.push({
+        id: sourceId,
+        sourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: entry.portalJumper.damageType,
+        source: getFeatLabel(entry.feat),
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: { kind: STATUS_DURATION_KIND.INFINITE },
+        description: filterDescriptionEntries(getFeatDescription(entry.feat),
+          (line) => line.startsWith("<strong>Otherworldly Resilience.</strong>")).join("\n")
+      });
+    }
+    return true;
+  },
+  [FEATS.TRANSMUTED_ANATOMY]: ({ contribution }) => {
+    contribution.speedBonuses!.push({ label: "Lengthened Stride", value: 5, movementType: "walk" });
+    return true;
+  },
   [FEATS.ARCANE_OMENS]: ({ contribution, getFeatDescription }) => {
     contribution.reactions!.push({
       id: helpfulPremonitionReactionId,
@@ -120,6 +157,10 @@ export const benefitsBuilders: FeatContributionBuilders = {
   },
   [FEATS.ARCANE_ELOQUENCE]: ({ contribution }) => {
     contribution.skillBonuses!.push(smoothTalkerSkillBonus);
+    return true;
+  },
+  [FEATS.ARCANE_UNDERTAKER]: ({ contribution }) => {
+    contribution.skillBonuses!.push(knowledgeFromTheDeadSkillBonus);
     return true;
   },
   [FEATS.ARCANE_ARTIST]: ({ contribution }) => {

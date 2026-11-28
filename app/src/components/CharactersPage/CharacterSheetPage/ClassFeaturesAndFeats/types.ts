@@ -1,5 +1,7 @@
-import type { ArcaneCantripFeat } from "../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+import type { FeatBenefitChoice } from "../../../../pages/CharactersPage/feats/featBenefitChoices";
+import type { FeatWithSpellcastingChoice } from "../../../../pages/CharactersPage/feats/spellcastingChoices";
 import type { ArcaneCantripSpellcastingAbility } from "../../../../types";
+import type { EchoingSoulChoice } from "../../../../types";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
 import type { DivinityEntry, FeatureMapEntry, SpellEntry } from "../../../../codex/entries";
@@ -433,10 +435,13 @@ export type PendingFeatState = {
   emeraldEnclaveFledglingChoice: PendingEmeraldEnclaveFledglingChoice | null;
   harperAgentChoice: PendingHarperAgentChoice | null;
   purpleDragonRookChoice: PendingPurpleDragonRookChoice | null;
-  arcaneCantripChoice: {
-    feat: ArcaneCantripFeat;
+  featBenefitChoice: FeatBenefitChoice | null;
+  featSpellcastingChoice: {
+    feat: FeatWithSpellcastingChoice;
     ability: ArcaneCantripSpellcastingAbility | "none";
+    cantripId?: string;
   } | null;
+  echoingSoulChoice: EchoingSoulChoice | null;
   spellfireSparkChoice: PendingSpellfireSparkChoice | null;
   musicianChoice: PendingMusicianChoice | null;
   epicBoonAbilityChoice: PendingEpicBoonAbilityChoice | null;

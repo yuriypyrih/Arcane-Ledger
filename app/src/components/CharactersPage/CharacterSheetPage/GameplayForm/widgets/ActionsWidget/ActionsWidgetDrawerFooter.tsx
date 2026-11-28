@@ -61,7 +61,10 @@ import {
   rogueSoulknifePsychicWhispersActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import { type GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
-import { isCommonActionKey } from "../../../../../../pages/CharactersPage/commonActions";
+import {
+  commonHelpActionKey,
+  isCommonActionKey
+} from "../../../../../../pages/CharactersPage/commonActions";
 
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import {
@@ -104,6 +107,9 @@ import {
 import { monkShadowStepActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
 import { monkElementalBurstActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
 import { CommonActionFooter } from "./CommonAction";
+import HelpActionFooter from "./HelpActionFooter";
+import SharpEyeActionFooter from "./SharpEyeActionFooter";
+import { getSharpEyeSkillOptions, sharpEyeResource } from "../../../../../../pages/CharactersPage/feats/runtime/ravenloftResources";
 
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
@@ -852,16 +858,41 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
   }
 
   if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
+    const actionPaths = selectedCommonActionPathStates.map((path) => ({
+      ...path,
+      disabledReason:
+        path.id === "primary"
+          ? selectedCommonActionPrimaryDisabledReason
+          : selectedCommonActionSecondaryDisabledReason
+    }));
+
+    if (selectedAction.action.key === commonHelpActionKey) {
+      return (
+        <HelpActionFooter
+          character={character}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionPaths={actionPaths}
+          onConfirmPath={(economyType, useUnderstandingOfDeath) =>
+            executeCommonAction(selectedAction.action, economyType, useUnderstandingOfDeath)
+          }
+        />
+      );
+    }
+
+    if (getSharpEyeSkillOptions(selectedAction.action.key).length > 0 && sharpEyeResource.total(character) > 0) {
+      return (
+        <SharpEyeActionFooter key={selectedAction.action.key} character={character}
+          actionKey={selectedAction.action.key} actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel} actionPaths={actionPaths}
+          onConfirmPath={(economyType, check) => executeCommonAction(selectedAction.action, economyType, false, check)}
+        />
+      );
+    }
+
     return (
       <CommonActionFooter
         confirmLabel={selectedFeaturePrimaryLabel}
-        actionPaths={selectedCommonActionPathStates.map((path) => ({
-          ...path,
-          disabledReason:
-            path.id === "primary"
-              ? selectedCommonActionPrimaryDisabledReason
-              : selectedCommonActionSecondaryDisabledReason
-        }))}
+        actionPaths={actionPaths}
         onConfirmPath={(economyType) => executeCommonAction(selectedAction.action, economyType)}
       />
     );

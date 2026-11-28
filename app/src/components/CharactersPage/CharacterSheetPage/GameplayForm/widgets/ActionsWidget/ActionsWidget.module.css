@@ -449,3 +449,7 @@
     width: 100%;
   }
 }
+.footerOptionField {
+  display: grid;
+  gap: 0.35rem;
+}

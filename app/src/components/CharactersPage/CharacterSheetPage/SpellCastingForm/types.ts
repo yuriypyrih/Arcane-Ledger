@@ -26,6 +26,7 @@ export type CastSelectedSpellOptions = {
   useJoltToLife?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
+  featSpellFreeCastId?: string;
   useGenasiLineage?: boolean;
   useGoliathAncestry?: boolean;
   useForestGnome?: boolean;

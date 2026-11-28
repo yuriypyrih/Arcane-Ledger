@@ -1,7 +1,9 @@
+import { isFeatBenefitChoiceReady } from "../../../../pages/CharactersPage/feats/featBenefitChoices";
 import {
-  getArcaneCantripChoiceUpdate,
-  isArcaneCantripSpellcastingAbility
-} from "../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+  getFeatSpellcastingChoiceUpdate,
+  isFeatSpellcastingChoiceComplete
+} from "../../../../pages/CharactersPage/feats/spellcastingChoices";
+import { isEchoingSoulChoiceComplete } from "../../../../pages/CharactersPage/feats/echoingSoul";
 import { useState } from "react";
 import type { SetStateAction } from "react";
 import { FEATS } from "../../../../codex/entries/enums";
@@ -182,16 +184,35 @@ function EldritchInvocationLessonsFeatEditor({
     );
   }
 
-  function savePendingArcaneCantripChoice() {
-    const choice = pendingFeatState.arcaneCantripChoice;
-    if (!choice || !isArcaneCantripSpellcastingAbility(choice.ability)) return;
+  function savePendingFeatBenefitChoice() {
+    const choice = pendingFeatState.featBenefitChoice;
+    if (!choice || !isFeatBenefitChoiceReady(choice)) return;
+
+    const { feat, ...fields } = choice;
+    saveConfiguredFeatEntry(createSelectedFeatEntry(feat, fields));
+  }
+
+  function savePendingFeatSpellcastingChoice() {
+    const choice = pendingFeatState.featSpellcastingChoice;
+    if (!choice || !isFeatSpellcastingChoiceComplete(choice.feat, choice.ability, choice.cantripId))
+      return;
 
     saveConfiguredFeatEntry(
       createSelectedFeatEntry(
         choice.feat,
-        getArcaneCantripChoiceUpdate(choice.feat, choice.ability)
+        getFeatSpellcastingChoiceUpdate(choice.feat, {
+          spellcastingAbility: choice.ability,
+          cantripId: choice.cantripId
+        })
       )
     );
+  }
+
+  function savePendingEchoingSoulChoice() {
+    const echoingSoul = pendingFeatState.echoingSoulChoice;
+    if (!echoingSoul || !isEchoingSoulChoiceComplete(echoingSoul)) return;
+
+    saveConfiguredFeatEntry(createSelectedFeatEntry(FEATS.ECHOING_SOUL, { echoingSoul }));
   }
 
   function savePendingSpellfireSparkChoice() {
@@ -312,7 +333,9 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
         onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
         onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
-        onSavePendingArcaneCantripChoice={savePendingArcaneCantripChoice}
+        onSavePendingFeatBenefitChoice={savePendingFeatBenefitChoice}
+          onSavePendingFeatSpellcastingChoice={savePendingFeatSpellcastingChoice}
+        onSavePendingEchoingSoulChoice={savePendingEchoingSoulChoice}
         onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
         onSavePendingCrafterChoice={savePendingCrafterChoice}
         onSavePendingDruidicWarriorChoice={noopSavePendingChoice}

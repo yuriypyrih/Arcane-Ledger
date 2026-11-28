@@ -4,7 +4,7 @@ import {
   getCharacterClassRulesSpellcastingAbility
 } from "../customClass";
 import {
-  getArcaneCantripFeatSpellcastingAbilityForSpell,
+  getOriginFeatSpellcastingChoiceForSpell,
   getFeatSpellcastingAbilityForCharacter
 } from "../feats/runtime/spellcasting";
 import { getSpeciesSpellcastingAbilityForCharacter } from "../species";
@@ -60,7 +60,7 @@ export function getSpellcastingAbilityForCharacterSpell(
   spellId: string
 ): AbilityKey | null {
   return (
-    getArcaneCantripFeatSpellcastingAbilityForSpell(character, spellId) ??
+    getOriginFeatSpellcastingChoiceForSpell(character, spellId) ??
     getArcaneArcherLoreSpellcastingAbility(character, spellId) ??
     getSpeciesSpellcastingAbilityForCharacter(character, spellId) ??
     getFeatSpellcastingAbilityForCharacter(character, spellId) ??

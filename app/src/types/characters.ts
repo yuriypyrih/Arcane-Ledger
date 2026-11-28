@@ -407,6 +407,7 @@ export type CharacterRoundTracker = {
     followUpDamagePenaltyPending?: boolean;
   };
   spellExtraAttackUses?: Record<string, number>;
+  portalStepUsedThisTurn?: boolean;
 };
 
 export type CharacterDeathSaves = {

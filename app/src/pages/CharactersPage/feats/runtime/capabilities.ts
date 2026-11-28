@@ -561,11 +561,11 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.FAMILIAR_FRIEND]: {
     feat: FEATS.FAMILIAR_FRIEND,
-    capabilities: []
+    capabilities: ["choice", "spellGrant", "freeCast", "restRecovery"]
   },
   [FEATS.GATHERED_WHISPERS]: {
     feat: FEATS.GATHERED_WHISPERS,
-    capabilities: []
+    capabilities: ["choice", "spellGrant", "spellTransform", "freeCast", "restRecovery"]
   },
   [FEATS.ILLUSION_ADEPT]: {
     feat: FEATS.ILLUSION_ADEPT,
@@ -573,7 +573,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.LIVING_SHADOW]: {
     feat: FEATS.LIVING_SHADOW,
-    capabilities: []
+    capabilities: ["choice", "spellGrant", "spellTransform"]
   },
   [FEATS.MAGIC_CONNOISSEUR]: {
     feat: FEATS.MAGIC_CONNOISSEUR,
@@ -581,7 +581,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.MIST_WALKER]: {
     feat: FEATS.MIST_WALKER,
-    capabilities: []
+    capabilities: ["reaction", "restRecovery"]
   },
   [FEATS.NECROMANCY_ADEPT]: {
     feat: FEATS.NECROMANCY_ADEPT,
@@ -593,15 +593,15 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.PORTAL_JUMPER]: {
     feat: FEATS.PORTAL_JUMPER,
-    capabilities: []
+    capabilities: ["choice", "status", "actionCard", "restRecovery"]
   },
   [FEATS.SECOND_SKIN]: {
     feat: FEATS.SECOND_SKIN,
-    capabilities: []
+    capabilities: ["choice", "spellGrant", "spellTransform", "freeCast", "restRecovery"]
   },
   [FEATS.SHARP_EYE]: {
     feat: FEATS.SHARP_EYE,
-    capabilities: []
+    capabilities: ["commonActionTransform", "restRecovery"]
   },
   [FEATS.SOOTHING_FAMILIAR]: {
     feat: FEATS.SOOTHING_FAMILIAR,
@@ -621,11 +621,11 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.SYMBIOTIC_BEING]: {
     feat: FEATS.SYMBIOTIC_BEING,
-    capabilities: []
+    capabilities: ["choice", "proficiency"]
   },
   [FEATS.TOUCH_OF_DEATH]: {
     feat: FEATS.TOUCH_OF_DEATH,
-    capabilities: []
+    capabilities: ["choice", "spellGrant", "spellTransform", "deathSave"]
   },
   [FEATS.TRANSMUTATION_ADEPT]: {
     feat: FEATS.TRANSMUTATION_ADEPT,
@@ -633,7 +633,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.TRANSMUTED_ANATOMY]: {
     feat: FEATS.TRANSMUTED_ANATOMY,
-    capabilities: []
+    capabilities: ["speed"]
   },
   [FEATS.WARLIKE_FAMILIAR]: {
     feat: FEATS.WARLIKE_FAMILIAR,
@@ -641,6 +641,6 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.WATCHERS]: {
     feat: FEATS.WATCHERS,
-    capabilities: []
+    capabilities: ["spellGrant", "spellTransform", "freeCast", "restRecovery"]
   }
 } as const satisfies Record<FEATS, FeatRuntimeCapabilityDescriptor>;

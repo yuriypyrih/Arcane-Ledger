@@ -110,6 +110,11 @@ function getPurpleDragonRookSkillSelections(choice?: PurpleDragonRookChoice): Sk
 function getFeatProficiencyGrantDescriptors(
   featEntry: CharacterFeatEntry
 ): FeatProficiencyGrantDescriptor[] {
+  if (featEntry.feat === FEATS.SYMBIOTIC_BEING && featEntry.symbioticBeing) {
+    const { skill, language } = featEntry.symbioticBeing;
+    return [{ label: getFeatLabel(featEntry.feat), skills: skill ? [skill] : [], languages: language ? [language] : [] }];
+  }
+
   if (featEntry.feat === FEATS.SKILLED && featEntry.skilled) {
     const { skills, tools } = splitSkilledSelections(featEntry.skilled);
 
@@ -293,6 +298,18 @@ function getFeatProficiencyGrantDescriptors(
           { skill: SKILL.PERCEPTION, level: PROF_LEVEL.PROFICIENT },
           { skill: SKILL.PERCEPTION, level: PROF_LEVEL.EXPERT }
         ]
+      }
+    ];
+  }
+
+  if (featEntry.feat === FEATS.ECHOING_SOUL && featEntry.echoingSoul) {
+    const { skillProficiencies, skillExpertise, language } = featEntry.echoingSoul;
+    return [
+      {
+        label: getFeatLabel(featEntry.feat),
+        skills: skillProficiencies.filter((skill): skill is SkillName => skill !== null),
+        skillLevels: skillExpertise ? [{ skill: skillExpertise, level: PROF_LEVEL.EXPERT }] : [],
+        languages: language ? [language] : []
       }
     ];
   }

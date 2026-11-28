@@ -1,12 +1,21 @@
-import { arcaneCantripSpellcastingAbilityOptions } from "../../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+import FeatBenefitChoiceFields from "../../../FeatBenefitChoiceFields";
+import { isFeatBenefitChoiceReady } from "../../../../../pages/CharactersPage/feats/featBenefitChoices";
+import {
+  arcaneCantripSpellcastingAbilityOptions,
+  arcaneUndertakerCantripOptions,
+  getArcaneUndertakerCantrip
+} from "../../../../../pages/CharactersPage/feats/arcaneCantripChoices";
+import { isFeatSpellcastingChoiceComplete } from "../../../../../pages/CharactersPage/feats/spellcastingChoices";
 import { cantripChoices } from "../../../../../pages/CharactersPage/feats/cantripChoices";
+import { isEchoingSoulChoiceComplete } from "../../../../../pages/CharactersPage/feats/echoingSoul";
+import EchoingSoulChoiceFields from "../../../EchoingSoulChoiceFields";
 import {
   singleAbilityChoices,
   getSingleAbilityChoiceSummary
 } from "../../../../../pages/CharactersPage/feats/singleAbilityChoices";
 import clsx from "clsx";
 import { Pencil, Plus, X } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { getFeatureTrackingState, type SpellEntry } from "../../../../../codex/entries";
 import { FEATS } from "../../../../../codex/entries/enums";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
@@ -270,7 +279,9 @@ type FeatEditorCardProps = {
   onSavePendingEmeraldEnclaveFledglingChoice: () => void;
   onSavePendingHarperAgentChoice: () => void;
   onSavePendingPurpleDragonRookChoice: () => void;
-  onSavePendingArcaneCantripChoice: () => void;
+  onSavePendingFeatBenefitChoice: () => void;
+  onSavePendingFeatSpellcastingChoice: () => void;
+  onSavePendingEchoingSoulChoice: () => void;
   onSavePendingSpellfireSparkChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
@@ -444,10 +455,12 @@ type PurpleDragonRookChoiceEditorProps = {
 
 type SpellcastingAbilityChoiceEditorProps = {
   title: string;
+  children?: ReactNode;
   abilities: readonly string[];
   choice: PendingSpellfireSparkChoice;
   summary: string | null;
   isValid: boolean;
+  validationMessage?: string;
   onCancel: () => void;
   onSave: () => void;
   onChange: (nextChoice: PendingSpellfireSparkChoice) => void;
@@ -1805,10 +1818,12 @@ function PurpleDragonRookChoiceEditor({
 
 function SpellcastingAbilityChoiceEditor({
   title,
+  children,
   abilities,
   choice,
   summary,
   isValid,
+  validationMessage = "Choose a spellcasting ability.",
   onCancel,
   onSave,
   onChange
@@ -1832,6 +1847,7 @@ function SpellcastingAbilityChoiceEditor({
       }
     >
       <div className={modalStyles.singleFieldGrid}>
+        {children}
         <SelectField
           label="Spellcasting Ability"
           value={choice.spellcastingAbility}
@@ -1853,7 +1869,7 @@ function SpellcastingAbilityChoiceEditor({
         />
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
-      {!isValid ? <p className={modalStyles.validation}>Choose a spellcasting ability.</p> : null}
+      {!isValid ? <p className={modalStyles.validation}>{validationMessage}</p> : null}
     </InlineEditorFrame>
   );
 }
@@ -2464,7 +2480,9 @@ function renderInlineEditor(
     onSavePendingEmeraldEnclaveFledglingChoice,
     onSavePendingHarperAgentChoice,
     onSavePendingPurpleDragonRookChoice,
-    onSavePendingArcaneCantripChoice,
+    onSavePendingFeatBenefitChoice,
+    onSavePendingFeatSpellcastingChoice,
+    onSavePendingEchoingSoulChoice,
     onSavePendingSpellfireSparkChoice,
     onSavePendingMusicianChoice,
     onSavePendingSkilledChoice
@@ -3122,9 +3140,41 @@ function renderInlineEditor(
     );
   }
 
-  const arcaneCantripChoice = pendingFeatState.arcaneCantripChoice;
-  if (arcaneCantripChoice?.feat === featDefinition.feat) {
-    const { ability } = arcaneCantripChoice;
+  const benefitChoice = pendingFeatState.featBenefitChoice;
+  if (benefitChoice?.feat === featDefinition.feat) {
+    return (
+      <InlineEditorFrame
+        title={featDefinition.label}
+        cancelLabel={`Cancel ${featDefinition.label} selection`}
+        onCancel={() => onPendingFeatStateChange((current) => ({ ...current, featBenefitChoice: null }))}
+        footer={
+          <div className={modalStyles.editorActions}>
+            <ActionButton icon={<Plus size={16} />} fullWidth={false}
+              disabled={!isFeatBenefitChoiceReady(benefitChoice)} onClick={onSavePendingFeatBenefitChoice}>
+              Add Feat
+            </ActionButton>
+          </div>
+        }
+      >
+        <div className={modalStyles.singleFieldGrid}>
+          <FeatBenefitChoiceFields
+            choice={benefitChoice}
+            skillProficiencies={skillProficiencies}
+            languageProficiencies={languageProficiencies}
+            fieldClassName={modalStyles.field}
+            compact
+            onChange={(featBenefitChoice) => onPendingFeatStateChange((current) => ({ ...current, featBenefitChoice }))}
+          />
+        </div>
+      </InlineEditorFrame>
+    );
+  }
+
+  const featSpellcastingChoice = pendingFeatState.featSpellcastingChoice;
+  if (featSpellcastingChoice?.feat === featDefinition.feat) {
+    const { feat, ability, cantripId } = featSpellcastingChoice;
+    const isUndertaker = feat === FEATS.ARCANE_UNDERTAKER;
+    const cantrip = getArcaneUndertakerCantrip(cantripId);
 
     return (
       <SpellcastingAbilityChoiceEditor
@@ -3132,18 +3182,81 @@ function renderInlineEditor(
         abilities={arcaneCantripSpellcastingAbilityOptions}
         choice={{ spellcastingAbility: ability }}
         summary={ability !== "none" ? `Spellcasting Ability: ${ability}` : null}
-        isValid={ability !== "none"}
-        onCancel={() =>
-          onPendingFeatStateChange((current) => ({ ...current, arcaneCantripChoice: null }))
+        isValid={isFeatSpellcastingChoiceComplete(feat, ability, cantripId)}
+        validationMessage={
+          isUndertaker ? "Choose a Necromancy cantrip and a spellcasting ability." : undefined
         }
-        onSave={onSavePendingArcaneCantripChoice}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({ ...current, featSpellcastingChoice: null }))
+        }
+        onSave={onSavePendingFeatSpellcastingChoice}
         onChange={({ spellcastingAbility }) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            arcaneCantripChoice: { ...arcaneCantripChoice, ability: spellcastingAbility }
+            featSpellcastingChoice: { ...featSpellcastingChoice, ability: spellcastingAbility }
           }))
         }
-      />
+      >
+        {isUndertaker ? (
+          <SelectField
+            label="Necromancy Cantrip"
+            value={cantrip?.id ?? ""}
+            options={[
+              { label: "Choose a cantrip", value: "", disabled: true },
+              ...arcaneUndertakerCantripOptions.map((spell) => ({
+                label: spell.name,
+                value: spell.id
+              }))
+            ]}
+            onChange={(cantripId) =>
+              onPendingFeatStateChange((current) => ({
+                ...current,
+                featSpellcastingChoice: { ...featSpellcastingChoice, cantripId }
+              }))
+            }
+          />
+        ) : null}
+      </SpellcastingAbilityChoiceEditor>
+    );
+  }
+
+  if (featDefinition.feat === FEATS.ECHOING_SOUL && pendingFeatState.echoingSoulChoice) {
+    const choice = pendingFeatState.echoingSoulChoice;
+
+    return (
+      <InlineEditorFrame
+        title={featDefinition.label}
+        cancelLabel="Cancel Echoing Soul selection"
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({ ...current, echoingSoulChoice: null }))
+        }
+        footer={
+          <div className={modalStyles.editorActions}>
+            <ActionButton
+              icon={<Plus size={16} />}
+              fullWidth={false}
+              disabled={!isEchoingSoulChoiceComplete(choice)}
+              onClick={onSavePendingEchoingSoulChoice}
+            >
+              Add Feat
+            </ActionButton>
+          </div>
+        }
+      >
+        <div className={modalStyles.singleFieldGrid}>
+          <EchoingSoulChoiceFields
+            choice={choice}
+            featEntryId={editingFeatEntryId}
+            skillProficiencies={skillProficiencies}
+            languageProficiencies={languageProficiencies}
+            fieldClassName={modalStyles.field}
+            compact
+            onChange={(echoingSoulChoice) =>
+              onPendingFeatStateChange((current) => ({ ...current, echoingSoulChoice }))
+            }
+          />
+        </div>
+      </InlineEditorFrame>
     );
   }
 
@@ -3403,7 +3516,9 @@ function FeatEditorCard({
   onSavePendingEmeraldEnclaveFledglingChoice,
   onSavePendingHarperAgentChoice,
   onSavePendingPurpleDragonRookChoice,
-  onSavePendingArcaneCantripChoice,
+  onSavePendingFeatBenefitChoice,
+  onSavePendingFeatSpellcastingChoice,
+  onSavePendingEchoingSoulChoice,
   onSavePendingSpellfireSparkChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
@@ -3563,7 +3678,9 @@ function FeatEditorCard({
         onSavePendingEmeraldEnclaveFledglingChoice,
         onSavePendingHarperAgentChoice,
         onSavePendingPurpleDragonRookChoice,
-        onSavePendingArcaneCantripChoice,
+        onSavePendingFeatBenefitChoice,
+        onSavePendingFeatSpellcastingChoice,
+        onSavePendingEchoingSoulChoice,
         onSavePendingSpellfireSparkChoice,
         onSavePendingMusicianChoice,
         onSavePendingSkilledChoice

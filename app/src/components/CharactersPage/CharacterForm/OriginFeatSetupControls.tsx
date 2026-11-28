@@ -3,6 +3,7 @@ import { FEATS } from "../../../codex/entries/enums";
 import {
   LANGUAGE_PROFICIENCY,
   type CharacterFeatEntry,
+  type EchoingSoulChoice,
   type EmeraldEnclaveFledglingChoice,
   type LanguageProficiencyEntry,
   type MagicInitiateChoice,
@@ -12,6 +13,9 @@ import {
   type TOOL_PROFICIENCY
 } from "../../../types";
 import SelectInput from "../FormInputs/SelectInput";
+import FeatBenefitChoiceFields from "../FeatBenefitChoiceFields";
+import { getFeatBenefitChoice, type FeatBenefitChoice } from "../../../pages/CharactersPage/feats/featBenefitChoices";
+import EchoingSoulChoiceFields from "../EchoingSoulChoiceFields";
 import {
   getMagicInitiateCantripOptions,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
@@ -24,10 +28,14 @@ import {
 import { getFeatLabel } from "../../../pages/CharactersPage/feats/catalog";
 import {
   arcaneCantripSpellcastingAbilityOptions,
-  getArcaneCantripAbility,
-  isArcaneCantripFeat,
+  arcaneUndertakerCantripOptions,
   isArcaneCantripSpellcastingAbility
 } from "../../../pages/CharactersPage/feats/arcaneCantripChoices";
+import {
+  getFeatSpellcastingChoiceAbility,
+  hasFeatSpellcastingChoice,
+  type FeatSpellcastingSelection
+} from "../../../pages/CharactersPage/feats/spellcastingChoices";
 import { purpleDragonRookSkillOptions } from "../../../pages/CharactersPage/feats/purpleDragonRook";
 import { getSourceChoiceSkillOptions } from "../../../pages/CharactersPage/proficiency";
 import {
@@ -58,7 +66,9 @@ type OriginFeatSetupControlsProps = {
   onCultOfDragonInitiateLanguageChange: (language: LANGUAGE_PROFICIENCY) => void;
   onEmeraldEnclaveFledglingChange: (partialChoice: Partial<EmeraldEnclaveFledglingChoice>) => void;
   onSpellfireSparkChange: (partialChoice: Partial<SpellfireSparkChoice>) => void;
-  onArcaneCantripAbilityChange: (ability: (typeof arcaneCantripSpellcastingAbilityOptions)[number]) => void;
+  onFeatSpellcastingChange: (selection: FeatSpellcastingSelection) => void;
+  onFeatBenefitChoiceChange: (choice: FeatBenefitChoice) => void;
+  onEchoingSoulChange: (choice: EchoingSoulChoice) => void;
   onPurpleDragonRookSkillChange: (skill: PurpleDragonRookChoice["skill"]) => void;
   onToolFeatSelection: (
     feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
@@ -95,7 +105,9 @@ function OriginFeatSetupControls({
   onCultOfDragonInitiateLanguageChange,
   onEmeraldEnclaveFledglingChange,
   onSpellfireSparkChange,
-  onArcaneCantripAbilityChange,
+  onFeatSpellcastingChange,
+  onFeatBenefitChoiceChange,
+  onEchoingSoulChange,
   onPurpleDragonRookSkillChange,
   onToolFeatSelection,
   onSkilledSelection
@@ -293,17 +305,70 @@ function OriginFeatSetupControls({
     );
   }
 
-  if (isArcaneCantripFeat(feat)) {
+  const benefitChoice = getFeatBenefitChoice(feat, featEntry);
+  if (benefitChoice) {
     return (
       <div className={styles.classSetupGrid}>
+        <FeatBenefitChoiceFields
+          choice={benefitChoice}
+          skillProficiencies={skillProficiencies}
+          languageProficiencies={languageProficiencies}
+          fieldClassName={styles.field}
+          selectClassName={styles.fieldInput}
+          onChange={onFeatBenefitChoiceChange}
+        />
+      </div>
+    );
+  }
+
+  if (feat === FEATS.ECHOING_SOUL) {
+    return (
+      <div className={styles.classSetupGrid}>
+        <EchoingSoulChoiceFields
+          choice={featEntry.echoingSoul ?? { skillProficiencies: [null, null] }}
+          featEntryId={featEntry.id}
+          skillProficiencies={skillProficiencies}
+          languageProficiencies={languageProficiencies}
+          fieldClassName={styles.field}
+          selectClassName={styles.fieldInput}
+          onChange={onEchoingSoulChange}
+        />
+      </div>
+    );
+  }
+
+  if (hasFeatSpellcastingChoice(feat)) {
+    return (
+      <div className={styles.classSetupGrid}>
+        {feat === FEATS.ARCANE_UNDERTAKER ? (
+          <label className={styles.field}>
+            <span>Necromancy cantrip</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={featEntry.arcaneUndertaker?.cantripId ?? ""}
+              onChange={(event) => onFeatSpellcastingChange({ cantripId: event.target.value })}
+            >
+              <option value="" disabled>
+                Choose a cantrip
+              </option>
+              {arcaneUndertakerCantripOptions.map((spell) => (
+                <option key={spell.id} value={spell.id}>
+                  {spell.name}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+        ) : null}
         <label className={styles.field}>
           <span>Spellcasting ability</span>
           <SelectInput
             className={styles.fieldInput}
-            value={getArcaneCantripAbility(featEntry) ?? ""}
+            value={getFeatSpellcastingChoiceAbility(featEntry) ?? ""}
             onChange={(event) => {
               const ability = event.target.value;
-              if (isArcaneCantripSpellcastingAbility(ability)) onArcaneCantripAbilityChange(ability);
+              if (isArcaneCantripSpellcastingAbility(ability)) {
+                onFeatSpellcastingChange({ spellcastingAbility: ability });
+              }
             }}
           >
             <option value="" disabled>

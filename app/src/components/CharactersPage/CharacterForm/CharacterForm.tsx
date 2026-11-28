@@ -20,7 +20,6 @@ import type {
   MagicInitiateChoice,
   PurpleDragonRookChoice,
   SpellfireSparkChoice,
-  ArcaneCantripSpellcastingAbility,
   SkillName
 } from "../../../types";
 import {
@@ -30,11 +29,15 @@ import {
   standardLanguageEntries
 } from "../../../types";
 import { FEATS } from "../../../codex/entries/enums";
+import { getFeatBenefitChoice, isFeatBenefitChoiceReady } from "../../../pages/CharactersPage/feats/featBenefitChoices";
+import { isEchoingSoulChoiceComplete } from "../../../pages/CharactersPage/feats/echoingSoul";
 import {
-  getArcaneCantripAbility,
-  getArcaneCantripChoiceUpdate,
-  isArcaneCantripFeat
-} from "../../../pages/CharactersPage/feats/arcaneCantripChoices";
+  getFeatSpellcastingChoiceAbility,
+  getFeatSpellcastingChoiceUpdate,
+  isFeatSpellcastingChoiceComplete,
+  hasFeatSpellcastingChoice,
+  type FeatSpellcastingSelection
+} from "../../../pages/CharactersPage/feats/spellcastingChoices";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
   getBackgroundEntryByName,
@@ -467,8 +470,21 @@ function updateSpellfireSparkFeatEntry(
   };
 }
 
-function isArcaneCantripAbilityReady(entry: CharacterFeatEntry | null): boolean {
-  return !entry || !isArcaneCantripFeat(entry.feat) || Boolean(getArcaneCantripAbility(entry));
+function isOriginFeatChoiceReady(entry: CharacterFeatEntry | null): boolean {
+  const benefitChoice = entry ? getFeatBenefitChoice(entry.feat, entry) : null;
+  if (benefitChoice) return isFeatBenefitChoiceReady(benefitChoice);
+
+  if (entry?.feat === FEATS.ECHOING_SOUL) return isEchoingSoulChoiceComplete(entry.echoingSoul);
+
+  return (
+    !entry ||
+    !hasFeatSpellcastingChoice(entry.feat) ||
+    isFeatSpellcastingChoiceComplete(
+      entry.feat,
+      getFeatSpellcastingChoiceAbility(entry),
+      entry.arcaneUndertaker?.cantripId
+    )
+  );
 }
 
 function updatePurpleDragonRookFeatEntry(
@@ -1812,7 +1828,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         (selectedBackgroundEquipmentTool !== undefined &&
           backgroundEquipmentToolChoice.options.includes(selectedBackgroundEquipmentTool))));
   const isBackgroundSetupReady =
-    (isEditing || isArcaneCantripAbilityReady(selectedBackgroundFeatEntry)) &&
+    (isEditing || isOriginFeatChoiceReady(selectedBackgroundFeatEntry)) &&
     isBackgroundAbilitySelectionReady &&
     isBackgroundSkillSelectionReady &&
     isBackgroundToolSelectionReady &&
@@ -1853,7 +1869,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const isSpeciesHumanOriginFeatReady =
     humanOriginFeatOptions.length === 0 ||
     (Boolean(normalizedSpeciesChoices?.humanOriginFeat) &&
-      (isEditing || isArcaneCantripAbilityReady(selectedHumanOriginFeatEntry)));
+      (isEditing || isOriginFeatChoiceReady(selectedHumanOriginFeatEntry)));
   const isSpeciesKalashtarSkillProficiencyReady =
     kalashtarSkillProficiencyOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.kalashtarSkillProficiency);
@@ -2537,13 +2553,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
   }
 
-  function updateArcaneCantripAbility(
+  function updateFeatSpellcastingSelection(
     entry: CharacterFeatEntry | null,
-    spellcastingAbility: ArcaneCantripSpellcastingAbility,
+    selection: FeatSpellcastingSelection,
     commit: (entry: CharacterFeatEntry) => void
   ) {
-    if (entry && isArcaneCantripFeat(entry.feat)) {
-      commit({ ...entry, ...getArcaneCantripChoiceUpdate(entry.feat, spellcastingAbility, entry) });
+    if (entry && hasFeatSpellcastingChoice(entry.feat)) {
+      commit({ ...entry, ...getFeatSpellcastingChoiceUpdate(entry.feat, selection, entry) });
     }
   }
 
@@ -2946,8 +2962,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       !isCustomSpeciesReady ||
       !isCustomBackgroundReady ||
       (!isEditing &&
-        (!isArcaneCantripAbilityReady(selectedBackgroundFeatEntry) ||
-          !isArcaneCantripAbilityReady(selectedHumanOriginFeatEntry)))
+        (!isOriginFeatChoiceReady(selectedBackgroundFeatEntry) ||
+          !isOriginFeatChoiceReady(selectedHumanOriginFeatEntry)))
     ) {
       setAttemptedBuildAdvance(true);
       return;
@@ -3090,7 +3106,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     reset(recommendedDraft);
     if (
-      !isArcaneCantripAbilityReady(
+      !isOriginFeatChoiceReady(
         getBackgroundFeatEntry(recommendedDraft.feats, recommendedDraft.background)
       )
     ) {
@@ -4180,9 +4196,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         onCultOfDragonInitiateLanguageChange={updateBackgroundCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateBackgroundEmeraldEnclaveFledgling}
         onSpellfireSparkChange={updateBackgroundSpellfireSpark}
-        onArcaneCantripAbilityChange={(ability) =>
-          updateArcaneCantripAbility(selectedBackgroundFeatEntry, ability, commitBackgroundFeat)
+        onFeatSpellcastingChange={(selection) =>
+          updateFeatSpellcastingSelection(selectedBackgroundFeatEntry, selection, commitBackgroundFeat)
         }
+        onFeatBenefitChoiceChange={({ feat, ...fields }) => {
+          if (selectedBackgroundFeatEntry?.feat === feat) {
+            commitBackgroundFeat({ ...selectedBackgroundFeatEntry, ...fields });
+          }
+        }}
+        onEchoingSoulChange={(echoingSoul) => {
+          if (selectedBackgroundFeatEntry) {
+            commitBackgroundFeat({ ...selectedBackgroundFeatEntry, echoingSoul });
+          }
+        }}
         onPurpleDragonRookSkillChange={updateBackgroundPurpleDragonRookSkill}
         onToolFeatSelection={updateBackgroundToolFeatSelection}
         onSkilledSelection={updateBackgroundSkilledSelection}
@@ -4203,9 +4229,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         onCultOfDragonInitiateLanguageChange={updateHumanCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateHumanEmeraldEnclaveFledgling}
         onSpellfireSparkChange={updateHumanSpellfireSpark}
-        onArcaneCantripAbilityChange={(ability) =>
-          updateArcaneCantripAbility(selectedHumanOriginFeatEntry, ability, commitHumanOriginFeat)
+        onFeatSpellcastingChange={(selection) =>
+          updateFeatSpellcastingSelection(selectedHumanOriginFeatEntry, selection, commitHumanOriginFeat)
         }
+        onFeatBenefitChoiceChange={({ feat, ...fields }) => {
+          if (selectedHumanOriginFeatEntry?.feat === feat) {
+            commitHumanOriginFeat({ ...selectedHumanOriginFeatEntry, ...fields });
+          }
+        }}
+        onEchoingSoulChange={(echoingSoul) => {
+          if (selectedHumanOriginFeatEntry) {
+            commitHumanOriginFeat({ ...selectedHumanOriginFeatEntry, echoingSoul });
+          }
+        }}
         onPurpleDragonRookSkillChange={updateHumanPurpleDragonRookSkill}
         onToolFeatSelection={updateHumanToolFeatSelection}
         onSkilledSelection={updateHumanSkilledSelection}

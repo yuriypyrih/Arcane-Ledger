@@ -1,4 +1,5 @@
-import { FEATS } from "../../../codex/entries/enums";
+import { getSpellEntriesForSpellListClasses } from "../../../codex/classes/spellAccess";
+import { FEATS, MAGIC_SCHOOL, SPELL_LIST_CLASS } from "../../../codex/entries/enums";
 import type {
   ArcaneArtistState,
   ArcaneCantripSpellcastingAbility,
@@ -7,7 +8,7 @@ import type {
   ArcaneOmensState,
   ArcaneOverloadState,
   ArcaneSafeguardState,
-  CharacterFeatEntry
+  ArcaneUndertakerState
 } from "../../../types";
 
 export const arcaneCantripSpellcastingAbilityOptions = ["INT", "WIS", "CHA"] as const;
@@ -18,10 +19,23 @@ export const arcaneCantripFeats = {
   [FEATS.ARCANE_INFILTRATOR]: { key: "arcaneInfiltrator", cantripId: "spell-friends" },
   [FEATS.ARCANE_OMENS]: { key: "arcaneOmens", cantripId: "spell-guidance" },
   [FEATS.ARCANE_OVERLOAD]: { key: "arcaneOverload", cantripId: "spell-fire-bolt" },
-  [FEATS.ARCANE_SAFEGUARD]: { key: "arcaneSafeguard", cantripId: "spell-resistance" }
+  [FEATS.ARCANE_SAFEGUARD]: { key: "arcaneSafeguard", cantripId: "spell-resistance" },
+  [FEATS.ARCANE_UNDERTAKER]: { key: "arcaneUndertaker", cantripId: null },
+  [FEATS.GATHERED_WHISPERS]: { key: "gatheredWhispers", cantripId: "spell-message" },
+  [FEATS.LIVING_SHADOW]: { key: "livingShadow", cantripId: "spell-mage-hand" },
+  [FEATS.TOUCH_OF_DEATH]: { key: "touchOfDeath", cantripId: "spell-chill-touch" }
 } as const;
 
 export type ArcaneCantripFeat = keyof typeof arcaneCantripFeats;
+
+export const arcaneUndertakerCantripOptions = getSpellEntriesForSpellListClasses([
+  SPELL_LIST_CLASS.CLERIC,
+  SPELL_LIST_CLASS.WIZARD
+]).filter((spell) => spell.spellLevel === 0 && spell.magicSchool === MAGIC_SCHOOL.NECROMANCY);
+
+export function getArcaneUndertakerCantrip(cantripId?: string) {
+  return arcaneUndertakerCantripOptions.find((spell) => spell.id === cantripId);
+}
 
 export function isArcaneCantripFeat(feat: string | null | undefined): feat is ArcaneCantripFeat {
   return typeof feat === "string" && Object.prototype.hasOwnProperty.call(arcaneCantripFeats, feat);
@@ -31,21 +45,6 @@ export function isArcaneCantripSpellcastingAbility(
   value: unknown
 ): value is ArcaneCantripSpellcastingAbility {
   return value === "INT" || value === "WIS" || value === "CHA";
-}
-
-export function getArcaneCantripAbility(entry: CharacterFeatEntry) {
-  return isArcaneCantripFeat(entry.feat)
-    ? entry[arcaneCantripFeats[entry.feat].key]?.spellcastingAbility
-    : undefined;
-}
-
-export function getArcaneCantripChoiceUpdate(
-  feat: ArcaneCantripFeat,
-  spellcastingAbility: ArcaneCantripSpellcastingAbility,
-  entry?: CharacterFeatEntry
-): Pick<CharacterFeatEntry, (typeof arcaneCantripFeats)[ArcaneCantripFeat]["key"]> {
-  const { key } = arcaneCantripFeats[feat];
-  return { [key]: { ...entry?.[key], spellcastingAbility } };
 }
 
 function normalizeExpendedUses(value: unknown): number | undefined {
@@ -128,5 +127,23 @@ export function normalizeArcaneSafeguardState(value: unknown): ArcaneSafeguardSt
   const expended = normalizeExpendedUses(resistanceBonusActionUsesExpended);
   return ability || expended
     ? { spellcastingAbility: ability, resistanceBonusActionUsesExpended: expended }
+    : undefined;
+}
+
+export function normalizeArcaneUndertakerState(value: unknown): ArcaneUndertakerState | undefined {
+  if (!value || typeof value !== "object") return undefined;
+
+  const record = value as Partial<ArcaneUndertakerState>;
+  const cantripId =
+    typeof record.cantripId === "string"
+      ? getArcaneUndertakerCantrip(record.cantripId.trim())?.id
+      : undefined;
+  const spellcastingAbility = isArcaneCantripSpellcastingAbility(record.spellcastingAbility)
+    ? record.spellcastingAbility
+    : undefined;
+  const understandingOfDeathExpended = record.understandingOfDeathExpended === true || undefined;
+
+  return cantripId || spellcastingAbility || understandingOfDeathExpended
+    ? { cantripId, spellcastingAbility, understandingOfDeathExpended }
     : undefined;
 }

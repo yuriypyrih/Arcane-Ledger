@@ -1476,14 +1476,15 @@ export function consumeWeaponAttackActionForCharacter(
 
 export function consumeNonMagicActionForCharacter(
   character: Character,
-  action: Pick<FeatureActionCard, "economyType" | "actionCategory">
+  action: Pick<FeatureActionCard, "economyType" | "actionCategory">,
+  onPaid?: (character: Character) => Character
 ): Character {
   const paid = payEconomyForCharacterAction(
     character,
     createEconomyMultiContextForFeatureAction(action)
   );
   return paid.status === "paid"
-    ? clearRoundScopedFeatureStateIfOutOfCombat(paid.character)
+    ? clearRoundScopedFeatureStateIfOutOfCombat(onPaid?.(paid.character) ?? paid.character)
     : character;
 }
 

@@ -225,7 +225,7 @@ function getFeatDescriptionEntriesForTarget(
   return getFeatDescriptionAdditionsForTarget(character, target, targetKey).flat();
 }
 
-export function getAthleteSpeedDescriptionAdditionsForCharacter(
+export function getFeatSpeedDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
   return getFeatDescriptionAdditionsForTarget(character, "stat", featDescriptionTargetKeys.speed);
@@ -684,6 +684,10 @@ export function getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter(
     "initiative",
     featDescriptionTargetKeys.initiativeRallyingCry
   );
+}
+
+export function getHypervigilanceDescriptionAdditionsForCharacter(character: FeatRuntimeCharacter) {
+  return getFeatDescriptionAdditionsForTarget(character, "initiative", "hypervigilance");
 }
 
 export function getTyroOfTheGauntletVigilantDescriptionAdditionsForCharacter(
